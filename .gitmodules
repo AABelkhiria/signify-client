@@ -1,0 +1,3 @@
+[submodule "reference/signify-ts"]
+	path = reference/signify-ts
+	url = https://github.com/WebOfTrust/signify-ts.git

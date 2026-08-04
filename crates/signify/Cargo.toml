@@ -1,0 +1,20 @@
+[package]
+name = "signify"
+version = "0.0.0"
+description = "Rust SDK for signing at the edge with KERI, ACDC, and KERIA"
+edition.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+signify-acdc = { path = "../signify-acdc" }
+signify-cesr = { path = "../signify-cesr" }
+signify-client = { path = "../signify-client" }
+signify-crypto = { path = "../signify-crypto" }
+signify-http = { path = "../signify-http" }
+signify-keri = { path = "../signify-keri" }
+signify-types = { path = "../signify-types" }
+
+[lints]
+workspace = true

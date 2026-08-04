@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-03",
+  "base64_cases": [
+    {
+      "raw": [],
+      "encoded": "",
+      "accepted_decodings": [
+        ""
+      ]
+    },
+    {
+      "raw": [
+        102
+      ],
+      "encoded": "Zg",
+      "accepted_decodings": [
+        "Zg",
+        "Zg=="
+      ]
+    },
+    {
+      "raw": [
+        102,
+        105
+      ],
+      "encoded": "Zmk",
+      "accepted_decodings": [
+        "Zmk",
+        "Zmk="
+      ]
+    },
+    {
+      "raw": [
+        102,
+        105,
+        115
+      ],
+      "encoded": "Zmlz",
+      "accepted_decodings": [
+        "Zmlz"
+      ]
+    },
+    {
+      "raw": [
+        102,
+        105,
+        115,
+        104
+      ],
+      "encoded": "ZmlzaA",
+      "accepted_decodings": [
+        "ZmlzaA",
+        "ZmlzaA=="
+      ]
+    },
+    {
+      "raw": [
+        248
+      ],
+      "encoded": "-A",
+      "accepted_decodings": [
+        "-A",
+        "-A=="
+      ]
+    },
+    {
+      "raw": [
+        252
+      ],
+      "encoded": "_A",
+      "accepted_decodings": [
+        "_A",
+        "_A=="
+      ]
+    },
+    {
+      "raw": [
+        240,
+        159,
+        143,
+        179,
+        239,
+        184,
+        143,
+        240,
+        159,
+        143,
+        179,
+        239,
+        184,
+        143
+      ],
+      "encoded": "8J-Ps--4j_Cfj7PvuI8",
+      "accepted_decodings": [
+        "8J-Ps--4j_Cfj7PvuI8",
+        "8J-Ps--4j_Cfj7PvuI8="
+      ]
+    }
+  ],
+  "integer_cases": [
+    {
+      "value": "0",
+      "minimum_width": 0,
+      "encoded": "",
+      "decoded": null
+    },
+    {
+      "value": "0",
+      "minimum_width": 1,
+      "encoded": "A",
+      "decoded": "0"
+    },
+    {
+      "value": "27",
+      "minimum_width": 1,
+      "encoded": "b",
+      "decoded": "27"
+    },
+    {
+      "value": "27",
+      "minimum_width": 2,
+      "encoded": "Ab",
+      "decoded": "27"
+    },
+    {
+      "value": "80",
+      "minimum_width": 1,
+      "encoded": "BQ",
+      "decoded": "80"
+    },
+    {
+      "value": "4095",
+      "minimum_width": 1,
+      "encoded": "__",
+      "decoded": "4095"
+    },
+    {
+      "value": "4096",
+      "minimum_width": 1,
+      "encoded": "BAA",
+      "decoded": "4096"
+    },
+    {
+      "value": "6011",
+      "minimum_width": 1,
+      "encoded": "Bd7",
+      "decoded": "6011"
+    }
+  ],
+  "byte_integer_cases": [
+    {
+      "value": "0",
+      "length": 2,
+      "encoded": [
+        0,
+        0
+      ],
+      "decoded": "0"
+    },
+    {
+      "value": "1",
+      "length": 2,
+      "encoded": [
+        0,
+        1
+      ],
+      "decoded": "1"
+    },
+    {
+      "value": "0",
+      "length": 8,
+      "encoded": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "decoded": "0"
+    },
+    {
+      "value": "1",
+      "length": 8,
+      "encoded": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "decoded": "1"
+    },
+    {
+      "value": "0",
+      "length": 16,
+      "encoded": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "decoded": "0"
+    },
+    {
+      "value": "1",
+      "length": 16,
+      "encoded": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "decoded": "1"
+    },
+    {
+      "value": "66051",
+      "length": 8,
+      "encoded": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3
+      ],
+      "decoded": "66051"
+    }
+  ],
+  "rejected_cases": [
+    {
+      "operation": "decode_u64",
+      "input": "",
+      "reference_error_category": "Error",
+      "rust_error_category": "EmptyInput"
+    }
+  ],
+  "strict_rejections": [
+    {
+      "operation": "decode_url_safe",
+      "input": "A",
+      "reference_output": [],
+      "rust_error_category": "InvalidLength"
+    },
+    {
+      "operation": "decode_url_safe",
+      "input": "+A",
+      "reference_output": [
+        248
+      ],
+      "rust_error_category": "InvalidBase64Character"
+    },
+    {
+      "operation": "decode_url_safe",
+      "input": "Zh",
+      "reference_output": [
+        102
+      ],
+      "rust_error_category": "NonCanonicalBase64"
+    },
+    {
+      "operation": "decode_url_safe",
+      "input": "Zg=",
+      "reference_output": [
+        102
+      ],
+      "rust_error_category": "InvalidBase64Padding"
+    }
+  ]
+}

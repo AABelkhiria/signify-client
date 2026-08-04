@@ -1,0 +1,16 @@
+[package]
+name = "signify-keri"
+version = "0.0.0"
+description = "KERI event construction and key-state logic for Signify"
+edition.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+signify-cesr = { path = "../signify-cesr" }
+signify-crypto = { path = "../signify-crypto" }
+signify-types = { path = "../signify-types" }
+
+[lints]
+workspace = true

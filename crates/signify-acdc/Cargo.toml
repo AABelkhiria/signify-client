@@ -1,0 +1,17 @@
+[package]
+name = "signify-acdc"
+version = "0.0.0"
+description = "ACDC credential protocol support for Signify"
+edition.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+signify-cesr = { path = "../signify-cesr" }
+signify-crypto = { path = "../signify-crypto" }
+signify-keri = { path = "../signify-keri" }
+signify-types = { path = "../signify-types" }
+
+[lints]
+workspace = true

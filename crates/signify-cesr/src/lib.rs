@@ -1,0 +1,9 @@
+//! Pure CESR parsing, encoding, and qualified-material primitives.
+
+#![forbid(unsafe_code)]
+
+pub mod base64;
+pub mod bytes;
+pub mod error;
+
+pub use error::CesrError;

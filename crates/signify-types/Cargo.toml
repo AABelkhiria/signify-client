@@ -1,0 +1,11 @@
+[package]
+name = "signify-types"
+version = "0.0.0"
+description = "Shared protocol and KERIA API data types for Signify"
+edition.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true

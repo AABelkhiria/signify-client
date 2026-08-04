@@ -1,0 +1,24 @@
+[package]
+name = "signify-cesr"
+version = "0.0.0"
+description = "CESR primitives for Signify"
+edition.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+base64.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "foundations"
+harness = false
+
+[lints]
+workspace = true
