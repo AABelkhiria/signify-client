@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-04",
+  "sources": [
+    "src/keri/core/seqner.ts",
+    "src/keri/core/matter.ts",
+    "src/keri/core/utils.ts",
+    "test/core/seqner.test.ts"
+  ],
+  "binary_derivation": "qb2_hex is decodeBase64Url(reference-produced qb64) because Matter._bexfil is unimplemented; qb64_round_trip is accepted by the pinned Seqner constructor",
+  "cases": [
+    {
+      "name": "default_zero",
+      "input_kind": "default",
+      "input": "",
+      "value_hex": "0",
+      "code": "0A",
+      "raw_hex": "00000000000000000000000000000000",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAA",
+      "qb64_bytes_hex": "304141414141414141414141414141414141414141414141",
+      "qb2_hex": "d00000000000000000000000000000000000",
+      "qb64_round_trip": "0AAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "name": "number_one",
+      "input_kind": "number",
+      "input": "1",
+      "value_hex": "1",
+      "code": "0A",
+      "raw_hex": "00000000000000000000000000000001",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAB",
+      "qb64_bytes_hex": "304141414141414141414141414141414141414141414142",
+      "qb2_hex": "d00000000000000000000000000000000001",
+      "qb64_round_trip": "0AAAAAAAAAAAAAAAAAAAAAAB"
+    },
+    {
+      "name": "number_fifteen",
+      "input_kind": "number",
+      "input": "15",
+      "value_hex": "f",
+      "code": "0A",
+      "raw_hex": "0000000000000000000000000000000f",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAP",
+      "qb64_bytes_hex": "304141414141414141414141414141414141414141414150",
+      "qb2_hex": "d0000000000000000000000000000000000f",
+      "qb64_round_trip": "0AAAAAAAAAAAAAAAAAAAAAAP"
+    },
+    {
+      "name": "number_sixteen",
+      "input_kind": "number",
+      "input": "16",
+      "value_hex": "10",
+      "code": "0A",
+      "raw_hex": "00000000000000000000000000000010",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAQ",
+      "qb64_bytes_hex": "304141414141414141414141414141414141414141414151",
+      "qb2_hex": "d00000000000000000000000000000000010",
+      "qb64_round_trip": "0AAAAAAAAAAAAAAAAAAAAAAQ"
+    },
+    {
+      "name": "hex_f",
+      "input_kind": "hex",
+      "input": "f",
+      "value_hex": "f",
+      "code": "0A",
+      "raw_hex": "0000000000000000000000000000000f",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAP",
+      "qb64_bytes_hex": "304141414141414141414141414141414141414141414150",
+      "qb2_hex": "d0000000000000000000000000000000000f",
+      "qb64_round_trip": "0AAAAAAAAAAAAAAAAAAAAAAP"
+    },
+    {
+      "name": "safe_integer_max",
+      "input_kind": "number",
+      "input": "9007199254740991",
+      "value_hex": "1fffffffffffff",
+      "code": "0A",
+      "raw_hex": "0000000000000000001fffffffffffff",
+      "qb64": "0AAAAAAAAAAAAAAf________",
+      "qb64_bytes_hex": "304141414141414141414141414141665f5f5f5f5f5f5f5f",
+      "qb2_hex": "d0000000000000000000001fffffffffffff",
+      "qb64_round_trip": "0AAAAAAAAAAAAAAf________"
+    }
+  ],
+  "exact_raw_cases": [
+    {
+      "name": "raw_zero",
+      "value_hex": "0",
+      "code": "0A",
+      "raw_hex": "00000000000000000000000000000000",
+      "observed_reference_snh": "0",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAA",
+      "qb2_hex": "d00000000000000000000000000000000000"
+    },
+    {
+      "name": "raw_above_javascript_safe_range",
+      "value_hex": "20000000000001",
+      "code": "0A",
+      "raw_hex": "00000000000000000020000000000001",
+      "observed_reference_snh": "20000000000000",
+      "qb64": "0AAAAAAAAAAAAAAgAAAAAAAB",
+      "qb2_hex": "d00000000000000000000020000000000001"
+    },
+    {
+      "name": "raw_u128_max",
+      "value_hex": "ffffffffffffffffffffffffffffffff",
+      "code": "0A",
+      "raw_hex": "ffffffffffffffffffffffffffffffff",
+      "observed_reference_snh": "100000000000000000000000000000000",
+      "qb64": "0AD_____________________",
+      "qb2_hex": "d000ffffffffffffffffffffffffffffffff"
+    }
+  ],
+  "reference_quirks": {
+    "negative_number": {
+      "input_kind": "number",
+      "input": "-1",
+      "observed_snh": "100000000000000000000000000000000",
+      "raw_hex": "ffffffffffffffffffffffffffffffff",
+      "qb64": "0AD_____________________",
+      "rust_error_category": "Unrepresentable"
+    },
+    "fractional_number": {
+      "input_kind": "number",
+      "input": "1.5",
+      "observed_snh": "1",
+      "raw_hex": "00000000000000000000000000000001",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAB",
+      "rust_error_category": "Unrepresentable"
+    },
+    "partial_hex": {
+      "input_kind": "hex",
+      "input": "fzz",
+      "observed_snh": "f",
+      "raw_hex": "0000000000000000000000000000000f",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAP",
+      "rust_error_category": "InvalidHexCharacter"
+    },
+    "prefixed_hex": {
+      "input_kind": "hex",
+      "input": "0x10",
+      "observed_snh": "10",
+      "raw_hex": "00000000000000000000000000000010",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAQ",
+      "rust_error_category": "InvalidHexCharacter"
+    },
+    "positive_infinity": {
+      "input_kind": "number",
+      "input": "Infinity",
+      "observed_snh": "0",
+      "raw_hex": "00000000000000000000000000000000",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAA",
+      "rust_error_category": "Unrepresentable"
+    },
+    "excess_raw_truncation": {
+      "input_raw_hex": "00000000000000000000000000000001ff",
+      "retained_raw_hex": "00000000000000000000000000000001",
+      "qb64": "0AAAAAAAAAAAAAAAAAAAAAAB",
+      "rust_error_category": "TrailingMaterial"
+    }
+  },
+  "rejected_cases": [
+    {
+      "name": "wrong_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid code = M for Seqner.",
+      "rust_error_category": "InvalidSequenceCode"
+    },
+    {
+      "name": "short_raw",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=0A expected 16 got 15.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "empty_raw",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=0A expected 16 got 0.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "qb2_constructor",
+      "reference_error_category": "Error",
+      "reference_error_message": "qb2 not yet supported: 208,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+      "rust_error_category": "ReferenceUnsupported"
+    }
+  ]
+}

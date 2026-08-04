@@ -142,6 +142,11 @@ pub enum CesrError {
         /// Rejected, bounded derivation code.
         code: &'static str,
     },
+    /// Qualified material uses a supported derivation code other than the fixed sequence code.
+    InvalidSequenceCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
     /// A numeric value is encoded with a wider CESR derivation code than necessary.
     NonCanonicalNumber {
         /// Derivation code found in the encoded material.
@@ -249,6 +254,9 @@ impl fmt::Display for CesrError {
             }
             Self::InvalidNumericCode { code } => {
                 write!(formatter, "CESR derivation code {code} is not numeric")
+            }
+            Self::InvalidSequenceCode { code } => {
+                write!(formatter, "CESR derivation code {code} is not sequence material")
             }
             Self::NonCanonicalNumber { code, canonical } => write!(
                 formatter,
