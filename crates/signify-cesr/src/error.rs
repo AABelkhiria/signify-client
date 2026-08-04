@@ -152,6 +152,23 @@ pub enum CesrError {
         /// Rejected, bounded derivation code.
         code: &'static str,
     },
+    /// Base64 text does not have the canonical structure of a SAD path.
+    InvalidPath {
+        /// Stable description of the violated path invariant.
+        context: &'static str,
+    },
+    /// One SAD path component is empty, ambiguous, or otherwise invalid.
+    InvalidPathComponent {
+        /// Zero-based component position.
+        component: usize,
+        /// Stable description of the violated component invariant.
+        context: &'static str,
+    },
+    /// SAD traversal could not resolve one component against the current value.
+    PathResolutionFailed {
+        /// Zero-based component position at which traversal stopped.
+        component: usize,
+    },
     /// A numeric value is encoded with a wider CESR derivation code than necessary.
     NonCanonicalNumber {
         /// Derivation code found in the encoded material.
@@ -266,6 +283,9 @@ impl fmt::Display for CesrError {
             Self::InvalidBase64TextCode { code } => {
                 write!(formatter, "CESR derivation code {code} is not Base64 text material")
             }
+            Self::InvalidPath { .. } | Self::InvalidPathComponent { .. } | Self::PathResolutionFailed { .. } => {
+                format_path_error(self, formatter)
+            }
             Self::NonCanonicalNumber { code, canonical } => write!(
                 formatter,
                 "CESR number code {code} is non-canonical; expected {canonical}"
@@ -281,6 +301,19 @@ impl fmt::Display for CesrError {
             }
             Self::InvalidUtf8 { source } => write!(formatter, "invalid UTF-8: {source}"),
         }
+    }
+}
+
+fn format_path_error(error: &CesrError, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match error {
+        CesrError::InvalidPath { context } => write!(formatter, "invalid SAD path: {context}"),
+        CesrError::InvalidPathComponent { component, context } => {
+            write!(formatter, "invalid SAD path component {component}: {context}")
+        }
+        CesrError::PathResolutionFailed { component } => {
+            write!(formatter, "SAD path resolution failed at component {component}")
+        }
+        _ => Err(fmt::Error),
     }
 }
 

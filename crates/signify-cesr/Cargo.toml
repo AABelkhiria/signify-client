@@ -50,5 +50,9 @@ harness = false
 name = "bexter"
 harness = false
 
+[[bench]]
+name = "path"
+harness = false
+
 [lints]
 workspace = true
