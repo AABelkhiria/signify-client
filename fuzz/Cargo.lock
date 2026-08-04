@@ -92,6 +92,7 @@ name = "signify-cesr"
 version = "0.0.0"
 dependencies = [
  "base64",
+ "zeroize",
 ]
 
 [[package]]
@@ -101,3 +102,9 @@ dependencies = [
  "libfuzzer-sys",
  "signify-cesr",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13c156562582aa81c60cb29407084cdb54c4164760106ab78e6c5b0858cf64e"

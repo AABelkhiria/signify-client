@@ -4,6 +4,7 @@ version = "0.0.0"
 description = "Rust SDK for signing at the edge with KERI, ACDC, and KERIA"
 edition.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 keywords.workspace = true
 categories.workspace = true
 

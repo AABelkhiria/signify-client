@@ -4,6 +4,7 @@ version = "0.0.0"
 description = "KERI event construction and key-state logic for Signify"
 edition.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 keywords.workspace = true
 categories.workspace = true
 

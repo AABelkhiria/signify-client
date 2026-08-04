@@ -20,6 +20,31 @@ pub enum CesrError {
         /// Observed length.
         length: usize,
     },
+    /// A stream ended before one complete CESR primitive was available.
+    Truncated {
+        /// Stable name of the primitive or field being parsed.
+        context: &'static str,
+        /// Total bytes or characters required for the primitive.
+        needed: usize,
+        /// Bytes or characters available in the input.
+        available: usize,
+    },
+    /// A strict parser found material after one complete CESR primitive.
+    TrailingMaterial {
+        /// Stable name of the encoded representation.
+        context: &'static str,
+        /// Number of unconsumed bytes or characters.
+        length: usize,
+    },
+    /// Raw material has a different length from that selected by its fixed derivation code.
+    RawSizeMismatch {
+        /// Stable name of the raw-material input.
+        context: &'static str,
+        /// Required raw size in bytes.
+        expected: usize,
+        /// Observed raw size in bytes.
+        actual: usize,
+    },
     /// An input exceeds the operation's explicit resource bound.
     InputTooLarge {
         /// Stable name of the operation or input kind.
@@ -43,6 +68,18 @@ pub enum CesrError {
     },
     /// URL-safe Base64 has non-zero unused bits and is not canonical.
     NonCanonicalBase64,
+    /// CESR code alignment bits or lead bytes are not zero.
+    NonZeroPadding {
+        /// Whether the failure was in code-alignment bits or lead bytes.
+        context: &'static str,
+    },
+    /// A variable derivation code carries an impossible or unsupported material size.
+    InvalidVariableSize {
+        /// Stable description of the rejected size relationship.
+        context: &'static str,
+        /// Decoded CESR size in three-byte triplets.
+        size: u64,
+    },
     /// A CESR derivation code contains a byte outside the permitted code alphabet.
     InvalidCodeCharacter {
         /// Zero-based byte offset of the invalid character.
@@ -86,6 +123,25 @@ impl fmt::Display for CesrError {
             Self::InvalidLength { context, length } => {
                 write!(formatter, "invalid {context} length: {length}")
             }
+            Self::Truncated {
+                context,
+                needed,
+                available,
+            } => write!(
+                formatter,
+                "truncated {context}: need {needed}, only {available} available"
+            ),
+            Self::TrailingMaterial { context, length } => {
+                write!(formatter, "{context} has {length} trailing bytes or characters")
+            }
+            Self::RawSizeMismatch {
+                context,
+                expected,
+                actual,
+            } => write!(
+                formatter,
+                "invalid {context} size: expected {expected} bytes, got {actual}"
+            ),
             Self::InputTooLarge {
                 context,
                 length,
@@ -98,6 +154,12 @@ impl fmt::Display for CesrError {
                 write!(formatter, "invalid URL-safe Base64 padding at offset {index}")
             }
             Self::NonCanonicalBase64 => formatter.write_str("non-canonical URL-safe Base64 encoding"),
+            Self::NonZeroPadding { context } => {
+                write!(formatter, "non-zero CESR {context}")
+            }
+            Self::InvalidVariableSize { context, size } => {
+                write!(formatter, "invalid variable material size {size}: {context}")
+            }
             Self::InvalidCodeCharacter { index, byte } => {
                 write!(formatter, "invalid CESR code byte 0x{byte:02x} at offset {index}")
             }

@@ -4,11 +4,13 @@ version = "0.0.0"
 description = "CESR primitives for Signify"
 edition.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
 base64.workspace = true
+zeroize = { version = "1.9.0", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 criterion.workspace = true
@@ -22,6 +24,10 @@ harness = false
 
 [[bench]]
 name = "code_tables"
+harness = false
+
+[[bench]]
+name = "matter"
 harness = false
 
 [lints]
