@@ -106,6 +106,25 @@ pub enum CesrError {
         /// Stable description of the violated relationship.
         context: &'static str,
     },
+    /// A CESR counter value does not fit the soft field selected by its code.
+    CounterOutOfRange {
+        /// Rejected counter value.
+        value: u64,
+        /// Largest value accepted by the selected counter code.
+        maximum: u64,
+    },
+    /// Dotted semantic-version text is not a supported three-component integer form.
+    InvalidSemanticVersion {
+        /// Zero-based component containing invalid text, when a component was reached.
+        component: Option<usize>,
+    },
+    /// A semantic-version component exceeds the CESR single-digit range.
+    SemanticVersionOutOfRange {
+        /// Zero-based major, minor, or patch component.
+        component: usize,
+        /// Rejected component value.
+        value: u64,
+    },
     /// A table entry describes variable-length indexed material that is not implemented upstream.
     UnsupportedVariableLength {
         /// Stable name of the indexed material operation.
@@ -189,6 +208,20 @@ impl fmt::Display for CesrError {
                 maximum,
             } => write!(formatter, "{context} {value} exceeds maximum {maximum}"),
             Self::InvalidIndexRelation { context } => formatter.write_str(context),
+            Self::CounterOutOfRange { value, maximum } => {
+                write!(formatter, "counter value {value} exceeds maximum {maximum}")
+            }
+            Self::InvalidSemanticVersion { component } => match component {
+                Some(component) => write!(
+                    formatter,
+                    "invalid CESR semantic-version component at position {component}"
+                ),
+                None => formatter.write_str("invalid CESR semantic version"),
+            },
+            Self::SemanticVersionOutOfRange { component, value } => write!(
+                formatter,
+                "CESR semantic-version component {component} value {value} exceeds maximum 63"
+            ),
             Self::UnsupportedVariableLength { context } => {
                 write!(formatter, "variable-length {context} is unsupported")
             }

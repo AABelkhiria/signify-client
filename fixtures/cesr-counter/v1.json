@@ -1,0 +1,426 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-04",
+  "sources": [
+    "src/keri/core/counter.ts",
+    "test/core/counter.test.ts"
+  ],
+  "binary_derivation": "qb2_hex is decodeBase64Url(reference Counter.qb64); pinned Counter qb2 construction leaves an invalid empty object",
+  "code_sizes": [
+    {
+      "code": "-A",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-B",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-C",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-D",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-E",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-F",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-G",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-H",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-I",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-J",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-K",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-L",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-V",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": 4,
+      "lead_size": 0
+    },
+    {
+      "code": "-0V",
+      "hard_size": 3,
+      "soft_size": 5,
+      "full_size": 8,
+      "lead_size": 0
+    },
+    {
+      "code": "--AAA",
+      "hard_size": 5,
+      "soft_size": 3,
+      "full_size": 8,
+      "lead_size": 0
+    }
+  ],
+  "cases": [
+    {
+      "code": "-A",
+      "count": 1,
+      "qb64": "-AAB",
+      "qb2_hex": "f80001"
+    },
+    {
+      "code": "-B",
+      "count": 2,
+      "qb64": "-BAC",
+      "qb2_hex": "f81002"
+    },
+    {
+      "code": "-C",
+      "count": 3,
+      "qb64": "-CAD",
+      "qb2_hex": "f82003"
+    },
+    {
+      "code": "-D",
+      "count": 4,
+      "qb64": "-DAE",
+      "qb2_hex": "f83004"
+    },
+    {
+      "code": "-E",
+      "count": 5,
+      "qb64": "-EAF",
+      "qb2_hex": "f84005"
+    },
+    {
+      "code": "-F",
+      "count": 6,
+      "qb64": "-FAG",
+      "qb2_hex": "f85006"
+    },
+    {
+      "code": "-G",
+      "count": 7,
+      "qb64": "-GAH",
+      "qb2_hex": "f86007"
+    },
+    {
+      "code": "-H",
+      "count": 8,
+      "qb64": "-HAI",
+      "qb2_hex": "f87008"
+    },
+    {
+      "code": "-I",
+      "count": 9,
+      "qb64": "-IAJ",
+      "qb2_hex": "f88009"
+    },
+    {
+      "code": "-J",
+      "count": 10,
+      "qb64": "-JAK",
+      "qb2_hex": "f8900a"
+    },
+    {
+      "code": "-K",
+      "count": 11,
+      "qb64": "-KAL",
+      "qb2_hex": "f8a00b"
+    },
+    {
+      "code": "-L",
+      "count": 12,
+      "qb64": "-LAM",
+      "qb2_hex": "f8b00c"
+    },
+    {
+      "code": "-V",
+      "count": 13,
+      "qb64": "-VAN",
+      "qb2_hex": "f9500d"
+    },
+    {
+      "code": "-0V",
+      "count": 1024,
+      "qb64": "-0VAAAQA",
+      "qb2_hex": "fb4540000400"
+    },
+    {
+      "code": "--AAA",
+      "count": 4227,
+      "qb64": "--AAABCD",
+      "qb2_hex": "fbe000001083"
+    }
+  ],
+  "default_case": {
+    "code": "-A",
+    "count": 1,
+    "qb64": "-AAB"
+  },
+  "count_b64_case": {
+    "input": "F",
+    "count": 5,
+    "qb64": "-AAF"
+  },
+  "stream_case": {
+    "input": "-AAFABCD",
+    "consumed_characters": 4,
+    "parsed_qb64": "-AAF"
+  },
+  "version_cases": [
+    {
+      "version": "1.2.3",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "BCD"
+    },
+    {
+      "version": "",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "AAA"
+    },
+    {
+      "version": "",
+      "fallback": [
+        1,
+        0,
+        0
+      ],
+      "qb64_digits": "BAA"
+    },
+    {
+      "version": "",
+      "fallback": [
+        0,
+        1,
+        0
+      ],
+      "qb64_digits": "ABA"
+    },
+    {
+      "version": "",
+      "fallback": [
+        0,
+        0,
+        1
+      ],
+      "qb64_digits": "AAB"
+    },
+    {
+      "version": "",
+      "fallback": [
+        3,
+        4,
+        5
+      ],
+      "qb64_digits": "DEF"
+    },
+    {
+      "version": "1.1",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "BBA"
+    },
+    {
+      "version": "1.",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "BAA"
+    },
+    {
+      "version": "1",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "BAA"
+    },
+    {
+      "version": "1.2.",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "BCA"
+    },
+    {
+      "version": "..",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "AAA"
+    },
+    {
+      "version": "1..3",
+      "fallback": [
+        0,
+        0,
+        0
+      ],
+      "qb64_digits": "BAD"
+    },
+    {
+      "version": "4",
+      "fallback": [
+        1,
+        2,
+        3
+      ],
+      "qb64_digits": "ECD"
+    }
+  ],
+  "reference_quirks": {
+    "qb2_constructor": {
+      "parsed_code": "",
+      "parsed_count": -1,
+      "reencode_error": {
+        "category": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'hs')"
+      }
+    },
+    "permissive_version_prefix": {
+      "input": "1x.2.3",
+      "reference_qb64_digits": "BCD",
+      "rust_error_category": "InvalidSemanticVersion"
+    },
+    "extra_version_component": {
+      "input": "1.2.3.4",
+      "reference_qb64_digits": "BCDE",
+      "rust_error_category": "InvalidSemanticVersion"
+    },
+    "invalid_soft_digits": {
+      "input": "-A!A",
+      "parsed_count": 0,
+      "canonical_qb64": "-AAA",
+      "rust_error_category": "InvalidBase64Character"
+    }
+  },
+  "rejected_cases": [
+    {
+      "name": "empty_qb64",
+      "reference_error_category": "Error",
+      "reference_error_message": "Empty Material",
+      "rust_error_category": "EmptyInput"
+    },
+    {
+      "name": "unsupported_selector",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unexpected code AA",
+      "rust_error_category": "UnsupportedCode"
+    },
+    {
+      "name": "reserved_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code -M",
+      "rust_error_category": "UnsupportedCode"
+    },
+    {
+      "name": "truncated_qb64",
+      "reference_error_category": "Error",
+      "reference_error_message": "Need 1 more chars.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "negative_count",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid count=-1 for code=-A.",
+      "rust_error_category": "Unrepresentable"
+    },
+    {
+      "name": "short_count_too_large",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid count=4096 for code=-A.",
+      "rust_error_category": "CounterOutOfRange"
+    },
+    {
+      "name": "big_count_too_large",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid count=1073741824 for code=-0V.",
+      "rust_error_category": "CounterOutOfRange"
+    },
+    {
+      "name": "version_component_too_large",
+      "reference_error_category": "Error",
+      "reference_error_message": "Out of bounds semantic version. Part=64 is < 0 or > 63.",
+      "rust_error_category": "SemanticVersionOutOfRange"
+    },
+    {
+      "name": "negative_version_component",
+      "reference_error_category": "Error",
+      "reference_error_message": "Out of bounds semantic version. Part=-1 is < 0 or > 63.",
+      "rust_error_category": "InvalidSemanticVersion"
+    }
+  ]
+}

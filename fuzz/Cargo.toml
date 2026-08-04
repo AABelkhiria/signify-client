@@ -39,6 +39,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "counter"
+path = "fuzz_targets/counter.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
