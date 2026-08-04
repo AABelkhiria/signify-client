@@ -46,5 +46,9 @@ harness = false
 name = "sequence"
 harness = false
 
+[[bench]]
+name = "bexter"
+harness = false
+
 [lints]
 workspace = true

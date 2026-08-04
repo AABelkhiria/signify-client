@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 pub mod base64;
+pub mod bexter;
 pub mod bytes;
 pub mod code;
 pub mod counter;
