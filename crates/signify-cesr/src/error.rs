@@ -92,6 +92,25 @@ pub enum CesrError {
         /// Complete rejected code, bounded by derivation-code parsing to at most four ASCII bytes.
         code: String,
     },
+    /// An indexed-material index exceeds the field width selected by its code.
+    IndexOutOfRange {
+        /// Stable name of the index field.
+        context: &'static str,
+        /// Rejected index value.
+        value: u32,
+        /// Largest value accepted by the selected code.
+        maximum: u32,
+    },
+    /// Current and prior-list indices violate the selected code's relationship.
+    InvalidIndexRelation {
+        /// Stable description of the violated relationship.
+        context: &'static str,
+    },
+    /// A table entry describes variable-length indexed material that is not implemented upstream.
+    UnsupportedVariableLength {
+        /// Stable name of the indexed material operation.
+        context: &'static str,
+    },
     /// An integer cannot be represented by the selected Rust integer type.
     IntegerOverflow {
         /// Stable name of the conversion being performed.
@@ -164,6 +183,15 @@ impl fmt::Display for CesrError {
                 write!(formatter, "invalid CESR code byte 0x{byte:02x} at offset {index}")
             }
             Self::UnsupportedCode { code } => write!(formatter, "unsupported CESR code {code}"),
+            Self::IndexOutOfRange {
+                context,
+                value,
+                maximum,
+            } => write!(formatter, "{context} {value} exceeds maximum {maximum}"),
+            Self::InvalidIndexRelation { context } => formatter.write_str(context),
+            Self::UnsupportedVariableLength { context } => {
+                write!(formatter, "variable-length {context} is unsupported")
+            }
             Self::IntegerOverflow { context } => {
                 write!(formatter, "integer overflow while decoding {context}")
             }

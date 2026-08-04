@@ -32,6 +32,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "indexer"
+path = "fuzz_targets/indexer.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
