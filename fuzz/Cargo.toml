@@ -46,6 +46,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "number"
+path = "fuzz_targets/number.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

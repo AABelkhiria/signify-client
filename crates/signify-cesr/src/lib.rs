@@ -9,5 +9,6 @@ pub mod counter;
 pub mod error;
 pub mod indexer;
 pub mod matter;
+pub mod number;
 
 pub use error::CesrError;

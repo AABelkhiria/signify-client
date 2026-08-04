@@ -130,6 +130,25 @@ pub enum CesrError {
         /// Stable name of the indexed material operation.
         context: &'static str,
     },
+    /// Hexadecimal text used for an exact CESR number contains an invalid byte.
+    InvalidHexCharacter {
+        /// Zero-based byte offset of the invalid character.
+        index: usize,
+        /// Invalid input byte.
+        byte: u8,
+    },
+    /// Qualified material uses a supported derivation code that is not numeric.
+    InvalidNumericCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// A numeric value is encoded with a wider CESR derivation code than necessary.
+    NonCanonicalNumber {
+        /// Derivation code found in the encoded material.
+        code: &'static str,
+        /// Smallest derivation code for the decoded value.
+        canonical: &'static str,
+    },
     /// An integer cannot be represented by the selected Rust integer type.
     IntegerOverflow {
         /// Stable name of the conversion being performed.
@@ -225,6 +244,16 @@ impl fmt::Display for CesrError {
             Self::UnsupportedVariableLength { context } => {
                 write!(formatter, "variable-length {context} is unsupported")
             }
+            Self::InvalidHexCharacter { index, byte } => {
+                write!(formatter, "invalid hexadecimal byte 0x{byte:02x} at offset {index}")
+            }
+            Self::InvalidNumericCode { code } => {
+                write!(formatter, "CESR derivation code {code} is not numeric")
+            }
+            Self::NonCanonicalNumber { code, canonical } => write!(
+                formatter,
+                "CESR number code {code} is non-canonical; expected {canonical}"
+            ),
             Self::IntegerOverflow { context } => {
                 write!(formatter, "integer overflow while decoding {context}")
             }
