@@ -20,5 +20,9 @@ serde_json.workspace = true
 name = "foundations"
 harness = false
 
+[[bench]]
+name = "code_tables"
+harness = false
+
 [lints]
 workspace = true

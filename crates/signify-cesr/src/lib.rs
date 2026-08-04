@@ -4,6 +4,7 @@
 
 pub mod base64;
 pub mod bytes;
+pub mod code;
 pub mod error;
 
 pub use error::CesrError;

@@ -18,6 +18,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "code_tables"
+path = "fuzz_targets/code_tables.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

@@ -1,0 +1,818 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-04",
+  "sources": [
+    "src/keri/core/matter.ts",
+    "test/core/matter.test.ts"
+  ],
+  "sizage_constructor_case": {
+    "input": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "hard_size": 1,
+    "soft_size": 2,
+    "full_size": 3,
+    "lead_size": 4
+  },
+  "codes": [
+    {
+      "code": "A",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "B",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter",
+        "non_transferable"
+      ]
+    },
+    {
+      "code": "C",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "D",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "E",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter",
+        "digest"
+      ]
+    },
+    {
+      "code": "F",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "digest"
+      ]
+    },
+    {
+      "code": "G",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "digest"
+      ]
+    },
+    {
+      "code": "H",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter",
+        "digest"
+      ]
+    },
+    {
+      "code": "I",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter",
+        "digest"
+      ]
+    },
+    {
+      "code": "J",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "K",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 76,
+      "lead_size": 0,
+      "raw_size": 56,
+      "families": []
+    },
+    {
+      "code": "L",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 76,
+      "lead_size": 0,
+      "raw_size": 56,
+      "families": []
+    },
+    {
+      "code": "M",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 4,
+      "lead_size": 0,
+      "raw_size": 2,
+      "families": [
+        "numeric"
+      ]
+    },
+    {
+      "code": "N",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 12,
+      "lead_size": 0,
+      "raw_size": 8,
+      "families": [
+        "numeric"
+      ]
+    },
+    {
+      "code": "O",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "P",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 124,
+      "lead_size": 0,
+      "raw_size": 92,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "Q",
+      "hard_size": 1,
+      "soft_size": 0,
+      "full_size": 44,
+      "lead_size": 0,
+      "raw_size": 32,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "0A",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 24,
+      "lead_size": 0,
+      "raw_size": 16,
+      "families": [
+        "general_matter",
+        "numeric"
+      ]
+    },
+    {
+      "code": "0B",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "0C",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "0D",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "digest"
+      ]
+    },
+    {
+      "code": "0E",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "digest"
+      ]
+    },
+    {
+      "code": "0F",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "digest"
+      ]
+    },
+    {
+      "code": "0G",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "digest"
+      ]
+    },
+    {
+      "code": "0H",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 8,
+      "lead_size": 0,
+      "raw_size": 4,
+      "families": [
+        "numeric"
+      ]
+    },
+    {
+      "code": "0I",
+      "hard_size": 2,
+      "soft_size": 0,
+      "full_size": 88,
+      "lead_size": 0,
+      "raw_size": 64,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "1AAA",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 48,
+      "lead_size": 0,
+      "raw_size": 33,
+      "families": [
+        "general_matter",
+        "non_transferable"
+      ]
+    },
+    {
+      "code": "1AAB",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 48,
+      "lead_size": 0,
+      "raw_size": 33,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "1AAC",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 80,
+      "lead_size": 0,
+      "raw_size": 57,
+      "families": [
+        "non_transferable"
+      ]
+    },
+    {
+      "code": "1AAD",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 80,
+      "lead_size": 0,
+      "raw_size": 57,
+      "families": []
+    },
+    {
+      "code": "1AAE",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 56,
+      "lead_size": 0,
+      "raw_size": 39,
+      "families": []
+    },
+    {
+      "code": "1AAF",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 8,
+      "lead_size": 0,
+      "raw_size": 3,
+      "families": []
+    },
+    {
+      "code": "1AAG",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 36,
+      "lead_size": 0,
+      "raw_size": 24,
+      "families": []
+    },
+    {
+      "code": "1AAH",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 100,
+      "lead_size": 0,
+      "raw_size": 72,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "1AAI",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 48,
+      "lead_size": 0,
+      "raw_size": 33,
+      "families": [
+        "general_matter",
+        "non_transferable"
+      ]
+    },
+    {
+      "code": "1AAJ",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 48,
+      "lead_size": 0,
+      "raw_size": 33,
+      "families": [
+        "general_matter"
+      ]
+    },
+    {
+      "code": "2AAA",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 8,
+      "lead_size": 1,
+      "raw_size": 2,
+      "families": []
+    },
+    {
+      "code": "3AAA",
+      "hard_size": 4,
+      "soft_size": 0,
+      "full_size": 8,
+      "lead_size": 2,
+      "raw_size": 1,
+      "families": []
+    },
+    {
+      "code": "4A",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": null,
+      "lead_size": 0,
+      "raw_size": null,
+      "families": [
+        "general_matter",
+        "base64_text"
+      ]
+    },
+    {
+      "code": "5A",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": null,
+      "lead_size": 1,
+      "raw_size": null,
+      "families": [
+        "general_matter",
+        "base64_text"
+      ]
+    },
+    {
+      "code": "6A",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": null,
+      "lead_size": 2,
+      "raw_size": null,
+      "families": [
+        "general_matter",
+        "base64_text"
+      ]
+    },
+    {
+      "code": "7AAA",
+      "hard_size": 4,
+      "soft_size": 4,
+      "full_size": null,
+      "lead_size": 0,
+      "raw_size": null,
+      "families": [
+        "general_matter",
+        "base64_text"
+      ]
+    },
+    {
+      "code": "8AAA",
+      "hard_size": 4,
+      "soft_size": 4,
+      "full_size": null,
+      "lead_size": 1,
+      "raw_size": null,
+      "families": [
+        "general_matter",
+        "base64_text"
+      ]
+    },
+    {
+      "code": "9AAA",
+      "hard_size": 4,
+      "soft_size": 4,
+      "full_size": null,
+      "lead_size": 2,
+      "raw_size": null,
+      "families": [
+        "general_matter",
+        "base64_text"
+      ]
+    },
+    {
+      "code": "4B",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": null,
+      "lead_size": 0,
+      "raw_size": null,
+      "families": []
+    },
+    {
+      "code": "5B",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": null,
+      "lead_size": 1,
+      "raw_size": null,
+      "families": []
+    },
+    {
+      "code": "6B",
+      "hard_size": 2,
+      "soft_size": 2,
+      "full_size": null,
+      "lead_size": 2,
+      "raw_size": null,
+      "families": []
+    },
+    {
+      "code": "7AAB",
+      "hard_size": 4,
+      "soft_size": 4,
+      "full_size": null,
+      "lead_size": 0,
+      "raw_size": null,
+      "families": []
+    },
+    {
+      "code": "8AAB",
+      "hard_size": 4,
+      "soft_size": 4,
+      "full_size": null,
+      "lead_size": 1,
+      "raw_size": null,
+      "families": []
+    },
+    {
+      "code": "9AAB",
+      "hard_size": 4,
+      "soft_size": 4,
+      "full_size": null,
+      "lead_size": 2,
+      "raw_size": null,
+      "families": []
+    }
+  ],
+  "hard_selectors": [
+    {
+      "selector": "A",
+      "hard_size": 1
+    },
+    {
+      "selector": "B",
+      "hard_size": 1
+    },
+    {
+      "selector": "C",
+      "hard_size": 1
+    },
+    {
+      "selector": "D",
+      "hard_size": 1
+    },
+    {
+      "selector": "E",
+      "hard_size": 1
+    },
+    {
+      "selector": "F",
+      "hard_size": 1
+    },
+    {
+      "selector": "G",
+      "hard_size": 1
+    },
+    {
+      "selector": "H",
+      "hard_size": 1
+    },
+    {
+      "selector": "I",
+      "hard_size": 1
+    },
+    {
+      "selector": "J",
+      "hard_size": 1
+    },
+    {
+      "selector": "K",
+      "hard_size": 1
+    },
+    {
+      "selector": "L",
+      "hard_size": 1
+    },
+    {
+      "selector": "M",
+      "hard_size": 1
+    },
+    {
+      "selector": "N",
+      "hard_size": 1
+    },
+    {
+      "selector": "O",
+      "hard_size": 1
+    },
+    {
+      "selector": "P",
+      "hard_size": 1
+    },
+    {
+      "selector": "Q",
+      "hard_size": 1
+    },
+    {
+      "selector": "R",
+      "hard_size": 1
+    },
+    {
+      "selector": "S",
+      "hard_size": 1
+    },
+    {
+      "selector": "T",
+      "hard_size": 1
+    },
+    {
+      "selector": "U",
+      "hard_size": 1
+    },
+    {
+      "selector": "V",
+      "hard_size": 1
+    },
+    {
+      "selector": "W",
+      "hard_size": 1
+    },
+    {
+      "selector": "X",
+      "hard_size": 1
+    },
+    {
+      "selector": "Y",
+      "hard_size": 1
+    },
+    {
+      "selector": "Z",
+      "hard_size": 1
+    },
+    {
+      "selector": "a",
+      "hard_size": 1
+    },
+    {
+      "selector": "b",
+      "hard_size": 1
+    },
+    {
+      "selector": "c",
+      "hard_size": 1
+    },
+    {
+      "selector": "d",
+      "hard_size": 1
+    },
+    {
+      "selector": "e",
+      "hard_size": 1
+    },
+    {
+      "selector": "f",
+      "hard_size": 1
+    },
+    {
+      "selector": "g",
+      "hard_size": 1
+    },
+    {
+      "selector": "h",
+      "hard_size": 1
+    },
+    {
+      "selector": "i",
+      "hard_size": 1
+    },
+    {
+      "selector": "j",
+      "hard_size": 1
+    },
+    {
+      "selector": "k",
+      "hard_size": 1
+    },
+    {
+      "selector": "l",
+      "hard_size": 1
+    },
+    {
+      "selector": "m",
+      "hard_size": 1
+    },
+    {
+      "selector": "n",
+      "hard_size": 1
+    },
+    {
+      "selector": "o",
+      "hard_size": 1
+    },
+    {
+      "selector": "p",
+      "hard_size": 1
+    },
+    {
+      "selector": "q",
+      "hard_size": 1
+    },
+    {
+      "selector": "r",
+      "hard_size": 1
+    },
+    {
+      "selector": "s",
+      "hard_size": 1
+    },
+    {
+      "selector": "t",
+      "hard_size": 1
+    },
+    {
+      "selector": "u",
+      "hard_size": 1
+    },
+    {
+      "selector": "v",
+      "hard_size": 1
+    },
+    {
+      "selector": "w",
+      "hard_size": 1
+    },
+    {
+      "selector": "x",
+      "hard_size": 1
+    },
+    {
+      "selector": "y",
+      "hard_size": 1
+    },
+    {
+      "selector": "z",
+      "hard_size": 1
+    },
+    {
+      "selector": "0",
+      "hard_size": 2
+    },
+    {
+      "selector": "1",
+      "hard_size": 4
+    },
+    {
+      "selector": "2",
+      "hard_size": 4
+    },
+    {
+      "selector": "3",
+      "hard_size": 4
+    },
+    {
+      "selector": "4",
+      "hard_size": 2
+    },
+    {
+      "selector": "5",
+      "hard_size": 2
+    },
+    {
+      "selector": "6",
+      "hard_size": 2
+    },
+    {
+      "selector": "7",
+      "hard_size": 4
+    },
+    {
+      "selector": "8",
+      "hard_size": 4
+    },
+    {
+      "selector": "9",
+      "hard_size": 4
+    }
+  ],
+  "rejected_cases": [
+    {
+      "operation": "Matter({ qb64 })",
+      "input": "RAAA",
+      "hard_code": "R",
+      "reference_error_category": "Error",
+      "rust_error_category": "UnsupportedCode"
+    }
+  ]
+}

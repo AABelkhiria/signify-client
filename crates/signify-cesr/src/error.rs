@@ -43,6 +43,18 @@ pub enum CesrError {
     },
     /// URL-safe Base64 has non-zero unused bits and is not canonical.
     NonCanonicalBase64,
+    /// A CESR derivation code contains a byte outside the permitted code alphabet.
+    InvalidCodeCharacter {
+        /// Zero-based byte offset of the invalid character.
+        index: usize,
+        /// Invalid byte.
+        byte: u8,
+    },
+    /// A syntactically complete derivation code is absent from the supported table.
+    UnsupportedCode {
+        /// Complete rejected code, bounded by derivation-code parsing to at most four ASCII bytes.
+        code: String,
+    },
     /// An integer cannot be represented by the selected Rust integer type.
     IntegerOverflow {
         /// Stable name of the conversion being performed.
@@ -86,6 +98,10 @@ impl fmt::Display for CesrError {
                 write!(formatter, "invalid URL-safe Base64 padding at offset {index}")
             }
             Self::NonCanonicalBase64 => formatter.write_str("non-canonical URL-safe Base64 encoding"),
+            Self::InvalidCodeCharacter { index, byte } => {
+                write!(formatter, "invalid CESR code byte 0x{byte:02x} at offset {index}")
+            }
+            Self::UnsupportedCode { code } => write!(formatter, "unsupported CESR code {code}"),
             Self::IntegerOverflow { context } => {
                 write!(formatter, "integer overflow while decoding {context}")
             }
