@@ -1,0 +1,544 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-09",
+  "sources": [
+    "src/keri/core/tholder.ts",
+    "test/core/tholder.test.ts"
+  ],
+  "cases": [
+    {
+      "name": "numeric_hex_b",
+      "input_kind": "sith_string",
+      "input": "b",
+      "weighted": false,
+      "size": 11,
+      "sith": "b",
+      "json": "\"b\"",
+      "limen_hex": "4d41414c",
+      "num": 11,
+      "satisfaction": [
+        {
+          "indices": [
+            1,
+            2,
+            3
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "result": true
+        }
+      ]
+    },
+    {
+      "name": "numeric_number_11",
+      "input_kind": "sith_number",
+      "input": 11,
+      "weighted": false,
+      "size": 11,
+      "sith": "b",
+      "json": "\"b\"",
+      "limen_hex": "4d41414c",
+      "num": 11,
+      "satisfaction": [
+        {
+          "indices": [
+            1,
+            2,
+            3
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "result": true
+        }
+      ]
+    },
+    {
+      "name": "numeric_thold_2",
+      "input_kind": "thold_number",
+      "input": 2,
+      "weighted": false,
+      "size": 2,
+      "sith": "2",
+      "json": "\"2\"",
+      "limen_hex": "4d414143",
+      "num": 2,
+      "satisfaction": [
+        {
+          "indices": [
+            1
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            1,
+            2
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "result": true
+        }
+      ]
+    },
+    {
+      "name": "numeric_zero",
+      "input_kind": "sith_number",
+      "input": 0,
+      "weighted": false,
+      "size": 0,
+      "sith": "0",
+      "json": "\"0\"",
+      "limen_hex": "4d414141",
+      "num": 0,
+      "satisfaction": [
+        {
+          "indices": [],
+          "result": false
+        },
+        {
+          "indices": [
+            0
+          ],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "single_clause",
+      "input_kind": "sith_value",
+      "input": [
+        "1/2",
+        "1/2",
+        "1/4",
+        "1/4",
+        "1/4"
+      ],
+      "weighted": true,
+      "size": 5,
+      "sith": [
+        "1/2",
+        "1/2",
+        "1/4",
+        "1/4",
+        "1/4"
+      ],
+      "json": "[\"1/2\",\"1/2\",\"1/4\",\"1/4\",\"1/4\"]",
+      "limen_hex": null,
+      "num": null,
+      "satisfaction": [
+        {
+          "indices": [
+            0,
+            1
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            0,
+            2,
+            4
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            0,
+            0,
+            1,
+            1,
+            2
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            0
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            2,
+            3,
+            4
+          ],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "multiple_clauses",
+      "input_kind": "sith_value",
+      "input": [
+        [
+          "1/2",
+          "1/2",
+          "1/2"
+        ],
+        [
+          "1/3",
+          "1/3",
+          "1/3",
+          "1/3"
+        ]
+      ],
+      "weighted": true,
+      "size": 7,
+      "sith": [
+        [
+          "1/2",
+          "1/2",
+          "1/2"
+        ],
+        [
+          "1/3",
+          "1/3",
+          "1/3",
+          "1/3"
+        ]
+      ],
+      "json": "[[\"1/2\",\"1/2\",\"1/2\"],[\"1/3\",\"1/3\",\"1/3\",\"1/3\"]]",
+      "limen_hex": null,
+      "num": null,
+      "satisfaction": [
+        {
+          "indices": [
+            0,
+            2,
+            3,
+            5,
+            6
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            0,
+            1
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            4,
+            5,
+            6
+          ],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "json_clauses",
+      "input_kind": "sith_json",
+      "input": "[[\"1/2\", \"1/2\", \"1/4\", \"1/4\", \"1/4\"], [\"1/1\", \"1\"]]",
+      "weighted": true,
+      "size": 7,
+      "sith": [
+        [
+          "1/2",
+          "1/2",
+          "1/4",
+          "1/4",
+          "1/4"
+        ],
+        [
+          "1",
+          "1"
+        ]
+      ],
+      "json": "[[\"1/2\",\"1/2\",\"1/4\",\"1/4\",\"1/4\"],[\"1\",\"1\"]]",
+      "limen_hex": null,
+      "num": null,
+      "satisfaction": [
+        {
+          "indices": [
+            1,
+            2,
+            3,
+            5
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            0,
+            1,
+            6
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            0,
+            1
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            5,
+            6
+          ],
+          "result": false
+        },
+        {
+          "indices": [],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "decimal_weights",
+      "input_kind": "sith_value",
+      "input": [
+        "0.1",
+        "0.9"
+      ],
+      "weighted": true,
+      "size": 2,
+      "sith": [
+        "1/10",
+        "9/10"
+      ],
+      "json": "[\"1/10\",\"9/10\"]",
+      "limen_hex": null,
+      "num": null,
+      "satisfaction": [
+        {
+          "indices": [
+            0
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            1
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            0,
+            1
+          ],
+          "result": true
+        }
+      ]
+    },
+    {
+      "name": "zero_weight",
+      "input_kind": "sith_value",
+      "input": [
+        "1",
+        "0"
+      ],
+      "weighted": true,
+      "size": 2,
+      "sith": [
+        "1",
+        "0"
+      ],
+      "json": "[\"1\",\"0\"]",
+      "limen_hex": null,
+      "num": null,
+      "satisfaction": [
+        {
+          "indices": [
+            0
+          ],
+          "result": true
+        },
+        {
+          "indices": [
+            1
+          ],
+          "result": false
+        },
+        {
+          "indices": [
+            0,
+            1
+          ],
+          "result": true
+        }
+      ]
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "missing_expression",
+      "input_kind": "missing",
+      "input": null,
+      "reference_error_category": "Error",
+      "reference_error_message": "Missing threshold expression",
+      "rust_error_category": "EmptyExpression"
+    },
+    {
+      "name": "negative_numeric",
+      "input_kind": "sith_number",
+      "input": -1,
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-positive int threshold = {thold}.",
+      "rust_error_category": "Unrepresentable"
+    },
+    {
+      "name": "empty_weight_list",
+      "input_kind": "sith_value",
+      "input": [],
+      "reference_error_category": "Error",
+      "reference_error_message": "Empty weight list",
+      "rust_error_category": "EmptyThreshold"
+    },
+    {
+      "name": "mixed_clause_shape",
+      "input_kind": "sith_value",
+      "input": [
+        "1/2",
+        "1/2",
+        [
+          "1/3",
+          "1/3",
+          "1/3"
+        ]
+      ],
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid sith, some weights in clause true,true,false are non string",
+      "rust_error_category": "InvalidExpressionShape"
+    },
+    {
+      "name": "clause_below_one",
+      "input_kind": "sith_value",
+      "input": [
+        [
+          "1/2",
+          "1/2"
+        ],
+        [
+          "1/4",
+          "1/4",
+          "1/4"
+        ]
+      ],
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid sith clause: 0.5,0.5,0.25,0.25,0.25all clause weight sums must be >= 1",
+      "rust_error_category": "ClauseBelowOne"
+    },
+    {
+      "name": "invalid_weight",
+      "input_kind": "sith_value",
+      "input": [
+        "nope"
+      ],
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid argument",
+      "rust_error_category": "InvalidWeight"
+    },
+    {
+      "name": "zero_denominator",
+      "input_kind": "sith_value",
+      "input": [
+        "1/0"
+      ],
+      "reference_error_category": "Error",
+      "reference_error_message": "Division by Zero",
+      "rust_error_category": "InvalidWeight"
+    },
+    {
+      "name": "numeric_limen",
+      "input_kind": "limen",
+      "input": "MAAL",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid whole number",
+      "rust_error_category": "ReferenceUnsupported"
+    }
+  ],
+  "reference_quirks": {
+    "greater_than_one_weight": {
+      "input": [
+        "2"
+      ],
+      "sith": [
+        "2"
+      ],
+      "satisfies_zero": true,
+      "rust_error_category": "WeightOutOfRange"
+    },
+    "negative_weight": {
+      "input": [
+        "-1",
+        "2"
+      ],
+      "sith": [
+        "-1",
+        "2"
+      ],
+      "satisfies_all": true,
+      "rust_error_category": "InvalidWeight"
+    },
+    "partial_numeric_hex": {
+      "input": "bzz",
+      "sith": "b",
+      "num": 11,
+      "rust_error_category": "InvalidHexCharacter"
+    },
+    "out_of_range_signature_index": {
+      "input": [
+        "1"
+      ],
+      "indices": [
+        3
+      ],
+      "result": false,
+      "rust_error_category": "IndexOutOfRange"
+    }
+  }
+}

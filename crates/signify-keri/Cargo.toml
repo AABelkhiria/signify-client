@@ -9,9 +9,19 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+serde_json.workspace = true
 signify-cesr = { path = "../signify-cesr" }
 signify-crypto = { path = "../signify-crypto" }
 signify-types = { path = "../signify-types" }
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+serde.workspace = true
+
+[[bench]]
+name = "threshold"
+harness = false
 
 [lints]
 workspace = true

@@ -10,6 +10,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4.13"
 signify-cesr = { path = "../crates/signify-cesr" }
+signify-keri = { path = "../crates/signify-keri" }
 
 [[bin]]
 name = "foundations"
@@ -70,6 +71,13 @@ bench = false
 [[bin]]
 name = "path"
 path = "fuzz_targets/path.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "threshold"
+path = "fuzz_targets/threshold.rs"
 test = false
 doc = false
 bench = false

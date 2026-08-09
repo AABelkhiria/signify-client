@@ -488,6 +488,10 @@ dependencies = [
 name = "signify-keri"
 version = "0.0.0"
 dependencies = [
+ "criterion",
+ "proptest",
+ "serde",
+ "serde_json",
  "signify-cesr",
  "signify-crypto",
  "signify-types",
