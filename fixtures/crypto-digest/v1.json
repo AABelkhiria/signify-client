@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-11",
+  "sources": [
+    "src/keri/core/diger.ts",
+    "src/keri/core/matter.ts",
+    "test/core/diger.test.ts"
+  ],
+  "algorithm_dependency": "@noble/hashes 1.8.0 blake3 with dkLen 32",
+  "binary_derivation": "qb2_hex is decodeBase64Url(reference-produced qb64) because Matter._bexfil is unimplemented; qb64_round_trip is accepted by the pinned Diger constructor",
+  "cases": [
+    {
+      "name": "upstream_unit_serialization",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "code": "E",
+      "raw_hex": "b0b92f7881543efb77f3186d8186094420a90063bb5a38c7551dfb3dac2febb1",
+      "qb64": "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux",
+      "qb64_bytes_hex": "454c43354c33694256443737645f4d5962594747435551677151426a75316f34783155642d7a32734c2d7578",
+      "qb2_hex": "10b0b92f7881543efb77f3186d8186094420a90063bb5a38c7551dfb3dac2febb1",
+      "qb64_round_trip": "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": false
+    },
+    {
+      "name": "empty_serialization",
+      "serialization_hex": "",
+      "code": "E",
+      "raw_hex": "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+      "qb64": "EK8TSbn1-aGmoEBN6jbcyUmbyyXJrcESt8yak8rkHzJi",
+      "qb64_bytes_hex": "454b385453626e312d61476d6f45424e366a626379556d627979584a72634553743879616b38726b487a4a69",
+      "qb2_hex": "10af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+      "qb64_round_trip": "EK8TSbn1-aGmoEBN6jbcyUmbyyXJrcESt8yak8rkHzJi",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": false
+    },
+    {
+      "name": "all_byte_values",
+      "serialization_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+      "code": "E",
+      "raw_hex": "4a495ba42461748eca8fdad618f976aa726cc2903de9fcb40735a786ac1c196b",
+      "qb64": "EEpJW6QkYXSOyo_a1hj5dqpybMKQPen8tAc1p4asHBlr",
+      "qb64_bytes_hex": "4545704a5736516b5958534f796f5f6131686a3564717079624d4b5150656e38744163317034617348426c72",
+      "qb2_hex": "104a495ba42461748eca8fdad618f976aa726cc2903de9fcb40735a786ac1c196b",
+      "qb64_round_trip": "EEpJW6QkYXSOyo_a1hj5dqpybMKQPen8tAc1p4asHBlr",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": false
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "missing_material_without_serialization",
+      "reference_error_category": "EmptyMaterialError",
+      "reference_error_message": "[object Object]",
+      "rust_error_category": "Unrepresentable"
+    },
+    {
+      "name": "short_raw_without_serialization",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=E expected 32 got 31.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "unsupported_sha3_raw",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code = H for digester.",
+      "rust_error_category": "UnsupportedDigestAlgorithm"
+    },
+    {
+      "name": "qb2_constructor",
+      "reference_error_category": "Error",
+      "reference_error_message": "qb2 not yet supported: 16,176,185,47,120,129,84,62,251,119,243,24,109,129,134,9,68,32,169,0,99,187,90,56,199,85,29,251,61,172,47,235,177",
+      "rust_error_category": "ReferenceUnsupported"
+    },
+    {
+      "name": "compare_without_other_digest",
+      "reference_error_category": "Error",
+      "reference_error_message": "Both dig and diger may not be None.",
+      "rust_error_category": "MissingComparisonDigest"
+    }
+  ],
+  "reference_quirks": {
+    "compare_identical_instance": {
+      "reference_result": false,
+      "rust_result": true,
+      "rust_decision": "implement documented digest equality semantics"
+    },
+    "compare_equal_copy": {
+      "reference_result": false,
+      "rust_result": true,
+      "rust_decision": "implement documented digest equality semantics"
+    },
+    "compare_equal_qb64_bytes": {
+      "reference_result": false,
+      "rust_result": true,
+      "rust_decision": "typed Digest input avoids byte/string coercion"
+    },
+    "compare_different_same_algorithm": {
+      "reference_result": false,
+      "rust_result": false
+    },
+    "excess_raw_truncation": {
+      "input_raw_hex": "0000000000000000000000000000000000000000000000000000000000000000ff",
+      "retained_raw_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+      "qb64": "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "rust_error_category": "TrailingMaterial"
+    },
+    "invalid_raw_falls_back_to_serialization": {
+      "invalid_raw_length": 31,
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "derived_qb64": "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux",
+      "rust_decision": "separate raw construction and derivation methods make conflicting sources unrepresentable"
+    },
+    "encoded_code_is_not_validated": {
+      "unsupported_digest_code": "H",
+      "unsupported_digest_qb64": "HLC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux",
+      "unsupported_digest_verifies_with_blake3": true,
+      "non_digest_code": "D",
+      "non_digest_qb64": "DLC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux",
+      "non_digest_verifies_with_blake3": true,
+      "rust_unsupported_error_category": "UnsupportedDigestAlgorithm",
+      "rust_invalid_error_category": "InvalidDigestCode",
+      "rust_decision": "validate the parsed CESR code before selecting a digest algorithm"
+    }
+  }
+}

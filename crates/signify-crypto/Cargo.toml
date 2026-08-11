@@ -9,7 +9,18 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+blake3 = { version = "1.8.6", default-features = false }
 signify-cesr = { path = "../signify-cesr" }
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "digest"
+harness = false
 
 [lints]
 workspace = true
