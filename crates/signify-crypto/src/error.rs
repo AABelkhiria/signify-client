@@ -26,6 +26,40 @@ pub enum CryptoError {
         /// Rejected, bounded digest derivation code.
         code: &'static str,
     },
+    /// Qualified material used a code that cannot represent a verification key.
+    InvalidVerificationCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// Qualified material selected a verification algorithm absent from the pinned reference.
+    UnsupportedVerificationAlgorithm {
+        /// Rejected, bounded verification-key derivation code.
+        code: &'static str,
+    },
+    /// Public verification-key bytes are not a valid point for the selected algorithm.
+    InvalidVerificationKey {
+        /// Stable algorithm name without key material.
+        algorithm: &'static str,
+    },
+    /// A detached signature has the wrong byte width for the selected algorithm.
+    InvalidSignatureLength {
+        /// Stable algorithm name.
+        algorithm: &'static str,
+        /// Required signature width.
+        expected: usize,
+        /// Supplied signature width.
+        actual: usize,
+    },
+    /// A fixed-width detached signature is not a valid scalar encoding.
+    InvalidSignatureEncoding {
+        /// Stable algorithm name.
+        algorithm: &'static str,
+    },
+    /// A structurally valid signature did not authenticate the complete serialization.
+    VerificationFailed {
+        /// Stable algorithm name.
+        algorithm: &'static str,
+    },
 }
 
 impl fmt::Display for CryptoError {
@@ -38,6 +72,32 @@ impl fmt::Display for CryptoError {
             Self::UnsupportedDigestAlgorithm { code } => {
                 write!(formatter, "digest algorithm for CESR code {code} is unsupported")
             }
+            Self::InvalidVerificationCode { code } => {
+                write!(
+                    formatter,
+                    "CESR derivation code {code} is not verification-key material"
+                )
+            }
+            Self::UnsupportedVerificationAlgorithm { code } => {
+                write!(formatter, "verification algorithm for CESR code {code} is unsupported")
+            }
+            Self::InvalidVerificationKey { algorithm } => {
+                write!(formatter, "invalid {algorithm} public verification key")
+            }
+            Self::InvalidSignatureLength {
+                algorithm,
+                expected,
+                actual,
+            } => write!(
+                formatter,
+                "invalid {algorithm} signature length: expected {expected} bytes, got {actual}"
+            ),
+            Self::InvalidSignatureEncoding { algorithm } => {
+                write!(formatter, "invalid {algorithm} signature encoding")
+            }
+            Self::VerificationFailed { algorithm } => {
+                write!(formatter, "{algorithm} signature verification failed")
+            }
         }
     }
 }
@@ -46,7 +106,14 @@ impl Error for CryptoError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Cesr { source } => Some(source.as_ref()),
-            Self::InvalidDigestCode { .. } | Self::UnsupportedDigestAlgorithm { .. } => None,
+            Self::InvalidDigestCode { .. }
+            | Self::UnsupportedDigestAlgorithm { .. }
+            | Self::InvalidVerificationCode { .. }
+            | Self::UnsupportedVerificationAlgorithm { .. }
+            | Self::InvalidVerificationKey { .. }
+            | Self::InvalidSignatureLength { .. }
+            | Self::InvalidSignatureEncoding { .. }
+            | Self::VerificationFailed { .. } => None,
         }
     }
 }

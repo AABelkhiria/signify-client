@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-11",
+  "sources": [
+    "src/keri/core/verfer.ts",
+    "src/keri/core/matter.ts",
+    "test/core/verfer.test.ts"
+  ],
+  "algorithm_dependencies": "libsodium-wrappers-sumo 0.8.4 Ed25519; @noble/curves 1.9.7 p256 with SHA-256",
+  "binary_derivation": "qb2_hex is decodeBase64Url(reference-produced qb64) because Matter._bexfil is unimplemented; qb64_round_trip is accepted by the pinned Verfer constructor",
+  "cases": [
+    {
+      "name": "ed25519_nontransferable",
+      "code": "B",
+      "raw_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "qb64": "BAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4",
+      "qb64_bytes_hex": "42414f6842375f7a7a68432d48584464474f644c774a6c6e354e59776d36554e58783363686d515356544734",
+      "qb2_hex": "0403a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "qb64_round_trip": "BAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_hex": "78ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6caf18943c429c3003fd4a526bb7ab20e61da912f4ec86b633e7aaccf0823370e",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": false
+    },
+    {
+      "name": "ed25519_transferable",
+      "code": "D",
+      "raw_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "qb64": "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4",
+      "qb64_bytes_hex": "44414f6842375f7a7a68432d48584464474f644c774a6c6e354e59776d36554e58783363686d515356544734",
+      "qb2_hex": "0c03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "qb64_round_trip": "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_hex": "78ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6caf18943c429c3003fd4a526bb7ab20e61da912f4ec86b633e7aaccf0823370e",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": false
+    },
+    {
+      "name": "p256_nontransferable",
+      "code": "1AAI",
+      "raw_hex": "03e6e52814e44e4104397fd8ab78b72b1649bdc1daacf7eefdcaca57071f130bd0",
+      "qb64": "1AAIA-blKBTkTkEEOX_Yq3i3KxZJvcHarPfu_crKVwcfEwvQ",
+      "qb64_bytes_hex": "31414149412d626c4b42546b546b45454f585f59713369334b785a4a76634861725066755f63724b5677636645777651",
+      "qb2_hex": "d4000803e6e52814e44e4104397fd8ab78b72b1649bdc1daacf7eefdcaca57071f130bd0",
+      "qb64_round_trip": "1AAIA-blKBTkTkEEOX_Yq3i3KxZJvcHarPfu_crKVwcfEwvQ",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_hex": "3851b45dc02cae80a1ade2e3951acbff24bd906ea333438a638226bd10aaa44da7fe7bdc9548471c2042d5b1c59ec3eaa76dcfae0fddf55578e2e0215e597331",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": true
+    },
+    {
+      "name": "p256_transferable",
+      "code": "1AAJ",
+      "raw_hex": "03e6e52814e44e4104397fd8ab78b72b1649bdc1daacf7eefdcaca57071f130bd0",
+      "qb64": "1AAJA-blKBTkTkEEOX_Yq3i3KxZJvcHarPfu_crKVwcfEwvQ",
+      "qb64_bytes_hex": "3141414a412d626c4b42546b546b45454f585f59713369334b785a4a76634861725066755f63724b5677636645777651",
+      "qb2_hex": "d4000903e6e52814e44e4104397fd8ab78b72b1649bdc1daacf7eefdcaca57071f130bd0",
+      "qb64_round_trip": "1AAJA-blKBTkTkEEOX_Yq3i3KxZJvcHarPfu_crKVwcfEwvQ",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_hex": "3851b45dc02cae80a1ade2e3951acbff24bd906ea333438a638226bd10aaa44da7fe7bdc9548471c2042d5b1c59ec3eaa76dcfae0fddf55578e2e0215e597331",
+      "verifies_serialization": true,
+      "verifies_changed_serialization": true
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "unsupported_secp256k1",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code = 1AAB for verifier.",
+      "rust_error_category": "UnsupportedVerificationAlgorithm"
+    },
+    {
+      "name": "short_ed25519_key",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=D expected 32 got 31.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "digest_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code = E for verifier.",
+      "rust_error_category": "InvalidVerificationCode"
+    },
+    {
+      "name": "qb2_constructor",
+      "reference_error_category": "Error",
+      "reference_error_message": "qb2 not yet supported: 12,3,161,7,191,243,206,16,190,29,112,221,24,231,75,192,153,103,228,214,48,155,165,13,95,29,220,134,100,18,85,49,184",
+      "rust_error_category": "ReferenceUnsupported"
+    }
+  ],
+  "verification_edges": {
+    "p256_signature_is_high_s": true,
+    "p256_high_s_signature_hex": "3851b45dc02cae80a1ade2e3951acbff24bd906ea333438a638226bd10aaa44da7fe7bdc9548471c2042d5b1c59ec3eaa76dcfae0fddf55578e2e0215e597331",
+    "p256_low_s_signature_hex": "3851b45dc02cae80a1ade2e3951acbff24bd906ea333438a638226bd10aaa44d580184226ab7b8e4dfbd2a4e3a613c1515792aff9739a92f7ad6eaa19e09b220",
+    "p256_accepts_high_s": true,
+    "p256_accepts_low_s": true,
+    "ed25519_truncated_signature": {
+      "result": null,
+      "error_category": "TypeError"
+    },
+    "p256_truncated_signature": {
+      "result": false,
+      "error_category": null
+    }
+  },
+  "safe_p256_divergence": {
+    "decision": "SHA-256 over the complete serialization",
+    "signature_hex": "e672499089617f1e8d28537ba5127801b53a5dd7555e0514400811b61ed94dfb56e5b4c80da5605a933de581bdc3b9f1101f3c3ab1fe6181d95511787a4d17cd",
+    "signature_is_high_s": false,
+    "high_s_signature_hex": "e672499089617f1e8d28537ba5127801b53a5dd7555e0514400811b61ed94dfba91a4b36f25a9fa66cc21a7e423c460eacc7be72f5193d031a64b94a82160d84",
+    "noble_full_message_verifies": true,
+    "noble_full_message_verifies_changed": false,
+    "noble_full_message_verifies_high_s": true,
+    "pinned_verfer_verifies_safe_signature": false,
+    "safe_mode_verifies_pinned_signature": false
+  },
+  "reference_quirks": {
+    "excess_raw_truncation": {
+      "input_raw_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8ff",
+      "retained_raw_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "qb64": "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4",
+      "rust_error_category": "TrailingMaterial"
+    },
+    "weak_ed25519_key_accepted_at_construction": {
+      "raw_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+      "qb64": "DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "verification_result": false,
+      "rust_error_category": "InvalidVerificationKey",
+      "rust_decision": "reject weak Ed25519 public keys during construction"
+    },
+    "invalid_p256_key_accepted_at_construction": {
+      "raw_hex": "000000000000000000000000000000000000000000000000000000000000000000",
+      "qb64": "1AAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "verification_result": false,
+      "rust_error_category": "InvalidVerificationKey",
+      "rust_decision": "reject invalid SEC1 P-256 points during construction"
+    }
+  }
+}
