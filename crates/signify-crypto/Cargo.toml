@@ -10,9 +10,11 @@ categories.workspace = true
 
 [dependencies]
 blake3 = { version = "1.8.6", default-features = false }
-ed25519-dalek = { version = "3.0.0", default-features = false }
+ed25519-dalek = { version = "3.0.0", default-features = false, features = ["zeroize"] }
+getrandom = { version = "0.3.4", default-features = false, features = ["std"] }
 p256 = { version = "0.14.0", default-features = false, features = ["ecdsa"] }
 signify-cesr = { path = "../signify-cesr" }
+zeroize.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
@@ -30,6 +32,10 @@ harness = false
 
 [[bench]]
 name = "signature"
+harness = false
+
+[[bench]]
+name = "signer"
 harness = false
 
 [lints]

@@ -46,6 +46,16 @@ pub enum CryptoError {
         /// Rejected, bounded indexed derivation code.
         code: &'static str,
     },
+    /// Qualified material used a code that cannot represent a private signing seed.
+    InvalidSigningCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// Qualified material selected a private signing algorithm absent from the pinned reference.
+    UnsupportedSigningAlgorithm {
+        /// Rejected, bounded signing-seed derivation code.
+        code: &'static str,
+    },
     /// A signature was associated with a verifier for a different algorithm.
     SignatureVerifierMismatch {
         /// Algorithm selected by the signature derivation code.
@@ -76,6 +86,18 @@ pub enum CryptoError {
     VerificationFailed {
         /// Stable algorithm name.
         algorithm: &'static str,
+    },
+    /// The operating system could not provide cryptographically secure random bytes.
+    EntropyUnavailable {
+        /// Underlying operating-system randomness failure.
+        source: Box<dyn Error + Send + Sync>,
+    },
+    /// An established cryptographic primitive rejected a signing operation.
+    SigningFailed {
+        /// Stable algorithm name.
+        algorithm: &'static str,
+        /// Underlying primitive failure.
+        source: Box<dyn Error + Send + Sync>,
     },
 }
 
@@ -110,6 +132,15 @@ impl fmt::Display for CryptoError {
                     "CESR indexed derivation code {code} is not signature material"
                 )
             }
+            Self::InvalidSigningCode { code } => {
+                write!(
+                    formatter,
+                    "CESR derivation code {code} is not private signing-seed material"
+                )
+            }
+            Self::UnsupportedSigningAlgorithm { code } => {
+                write!(formatter, "signing algorithm for CESR seed code {code} is unsupported")
+            }
             Self::SignatureVerifierMismatch {
                 signature_algorithm,
                 verifier_algorithm,
@@ -134,6 +165,12 @@ impl fmt::Display for CryptoError {
             Self::VerificationFailed { algorithm } => {
                 write!(formatter, "{algorithm} signature verification failed")
             }
+            Self::EntropyUnavailable { .. } => {
+                formatter.write_str("operating-system cryptographic randomness is unavailable")
+            }
+            Self::SigningFailed { algorithm, .. } => {
+                write!(formatter, "{algorithm} signing failed")
+            }
         }
     }
 }
@@ -142,12 +179,15 @@ impl Error for CryptoError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Cesr { source } => Some(source.as_ref()),
+            Self::EntropyUnavailable { source } | Self::SigningFailed { source, .. } => Some(source.as_ref()),
             Self::InvalidDigestCode { .. }
             | Self::UnsupportedDigestAlgorithm { .. }
             | Self::InvalidVerificationCode { .. }
             | Self::UnsupportedVerificationAlgorithm { .. }
             | Self::InvalidSignatureCode { .. }
             | Self::InvalidIndexedSignatureCode { .. }
+            | Self::InvalidSigningCode { .. }
+            | Self::UnsupportedSigningAlgorithm { .. }
             | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }
             | Self::InvalidSignatureLength { .. }

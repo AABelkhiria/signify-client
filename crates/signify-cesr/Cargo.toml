@@ -10,7 +10,7 @@ categories.workspace = true
 
 [dependencies]
 base64.workspace = true
-zeroize = { version = "1.9.0", default-features = false, features = ["alloc"] }
+zeroize.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

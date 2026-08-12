@@ -5,6 +5,7 @@
 pub mod digest;
 pub mod error;
 pub mod signature;
+pub mod signer;
 pub mod verifier;
 
 pub use error::CryptoError;

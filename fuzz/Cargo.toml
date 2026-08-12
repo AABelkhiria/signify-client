@@ -104,6 +104,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "signer"
+path = "fuzz_targets/signer.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
