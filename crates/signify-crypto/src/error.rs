@@ -36,6 +36,18 @@ pub enum CryptoError {
         /// Rejected, bounded verification-key derivation code.
         code: &'static str,
     },
+    /// Qualified material used a code that cannot represent an unindexed signature.
+    InvalidSignatureCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// An unindexed signature was associated with a verifier for a different algorithm.
+    SignatureVerifierMismatch {
+        /// Algorithm selected by the signature derivation code.
+        signature_algorithm: &'static str,
+        /// Algorithm selected by the verification key derivation code.
+        verifier_algorithm: &'static str,
+    },
     /// Public verification-key bytes are not a valid point for the selected algorithm.
     InvalidVerificationKey {
         /// Stable algorithm name without key material.
@@ -81,6 +93,19 @@ impl fmt::Display for CryptoError {
             Self::UnsupportedVerificationAlgorithm { code } => {
                 write!(formatter, "verification algorithm for CESR code {code} is unsupported")
             }
+            Self::InvalidSignatureCode { code } => {
+                write!(
+                    formatter,
+                    "CESR derivation code {code} is not unindexed-signature material"
+                )
+            }
+            Self::SignatureVerifierMismatch {
+                signature_algorithm,
+                verifier_algorithm,
+            } => write!(
+                formatter,
+                "{signature_algorithm} signature cannot be associated with {verifier_algorithm} verifier"
+            ),
             Self::InvalidVerificationKey { algorithm } => {
                 write!(formatter, "invalid {algorithm} public verification key")
             }
@@ -110,6 +135,8 @@ impl Error for CryptoError {
             | Self::UnsupportedDigestAlgorithm { .. }
             | Self::InvalidVerificationCode { .. }
             | Self::UnsupportedVerificationAlgorithm { .. }
+            | Self::InvalidSignatureCode { .. }
+            | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }
             | Self::InvalidSignatureLength { .. }
             | Self::InvalidSignatureEncoding { .. }

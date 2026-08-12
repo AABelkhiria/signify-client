@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-12",
+  "sources": [
+    "src/keri/core/cigar.ts",
+    "src/keri/core/matter.ts",
+    "test/core/signer.test.ts",
+    "test/end/ending.test.ts"
+  ],
+  "binary_derivation": "qb2_hex is decodeBase64Url(reference-produced qb64) because Matter._bexfil is unimplemented; qb64_round_trip is accepted by the pinned Cigar constructor",
+  "cases": [
+    {
+      "name": "ed25519_with_verifier",
+      "code": "0B",
+      "raw_hex": "78ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6caf18943c429c3003fd4a526bb7ab20e61da912f4ec86b633e7aaccf0823370e",
+      "qb64": "0BB43fz0GkIj6INCvq732d7FBZxt3Gw08S1mak9TeRgStsrxiUPEKcMAP9SlJrt6sg5h2pEvTshrYz56rM8IIzcO",
+      "qb64_bytes_hex": "3042423433667a30476b496a36494e437671373332643746425a7874334777303853316d616b39546552675374737278695550454b634d415039536c4a727436736735683270457654736872597a3536724d3849497a634f",
+      "qb2_hex": "d01078ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6caf18943c429c3003fd4a526bb7ab20e61da912f4ec86b633e7aaccf0823370e",
+      "qb64_round_trip": "0BB43fz0GkIj6INCvq732d7FBZxt3Gw08S1mak9TeRgStsrxiUPEKcMAP9SlJrt6sg5h2pEvTshrYz56rM8IIzcO",
+      "verifier_qb64": "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4"
+    },
+    {
+      "name": "p256_with_verifier",
+      "code": "0I",
+      "raw_hex": "e672499089617f1e8d28537ba5127801b53a5dd7555e0514400811b61ed94dfb56e5b4c80da5605a933de581bdc3b9f1101f3c3ab1fe6181d95511787a4d17cd",
+      "qb64": "0IDmckmQiWF_Ho0oU3ulEngBtTpd11VeBRRACBG2HtlN-1bltMgNpWBakz3lgb3DufEQHzw6sf5hgdlVEXh6TRfN",
+      "qb64_bytes_hex": "3049446d636b6d516957465f486f306f5533756c456e67427454706431315665425252414342473248746c4e2d31626c744d674e705742616b7a336c6762334475664551487a77367366356867646c56455868365452664e",
+      "qb2_hex": "d080e672499089617f1e8d28537ba5127801b53a5dd7555e0514400811b61ed94dfb56e5b4c80da5605a933de581bdc3b9f1101f3c3ab1fe6181d95511787a4d17cd",
+      "qb64_round_trip": "0IDmckmQiWF_Ho0oU3ulEngBtTpd11VeBRRACBG2HtlN-1bltMgNpWBakz3lgb3DufEQHzw6sf5hgdlVEXh6TRfN",
+      "verifier_qb64": "1AAJA-blKBTkTkEEOX_Yq3i3KxZJvcHarPfu_crKVwcfEwvQ"
+    },
+    {
+      "name": "secp256k1_without_verifier",
+      "code": "0C",
+      "raw_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "qb64": "0CAAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4_",
+      "qb64_bytes_hex": "3043414141514944424155474277674a4367734d4451345045424553457851564668635947526f62484230654879416849694d6b4a53596e4b436b714b7977744c6938774d54497a4e4455324e7a67354f6a73385054345f",
+      "qb2_hex": "d020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "qb64_round_trip": "0CAAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4_",
+      "verifier_qb64": null
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "short_ed25519_signature",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=0B expected 64 got 63.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "empty_material",
+      "reference_error_category": "EmptyMaterialError",
+      "reference_error_message": "[object Object]",
+      "rust_error_category": "EmptyInput"
+    },
+    {
+      "name": "qb2_constructor",
+      "reference_error_category": "Error",
+      "reference_error_message": "qb2 not yet supported: 208,16,120,221,252,244,26,66,35,232,131,66,190,174,247,217,222,197,5,156,109,220,108,52,241,45,102,106,79,83,121,24,18,182,202,241,137,67,196,41,195,0,63,212,165,38,187,122,178,14,97,218,145,47,78,200,107,99,62,122,172,207,8,35,55,14",
+      "rust_error_category": "ReferenceUnsupported"
+    }
+  ],
+  "reference_quirks": {
+    "excess_raw_truncation": {
+      "input_raw_hex": "78ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6caf18943c429c3003fd4a526bb7ab20e61da912f4ec86b633e7aaccf0823370eff",
+      "retained_raw_hex": "78ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6caf18943c429c3003fd4a526bb7ab20e61da912f4ec86b633e7aaccf0823370e",
+      "qb64": "0BB43fz0GkIj6INCvq732d7FBZxt3Gw08S1mak9TeRgStsrxiUPEKcMAP9SlJrt6sg5h2pEvTshrYz56rM8IIzcO",
+      "rust_error_category": "TrailingMaterial"
+    },
+    "non_signature_code_accepted": {
+      "input_code": "E",
+      "retained_raw_hex": "78ddfcf41a4223e88342beaef7d9dec5059c6ddc6c34f12d666a4f53791812b6",
+      "qb64": "EHjd_PQaQiPog0K-rvfZ3sUFnG3cbDTxLWZqT1N5GBK2",
+      "rust_error_category": "InvalidSignatureCode",
+      "rust_decision": "reject non-signature derivation codes"
+    },
+    "mismatched_verifier_accepted": {
+      "signature_code": "0B",
+      "verifier_code": "1AAJ",
+      "rust_error_category": "SignatureVerifierMismatch",
+      "rust_decision": "reject verifier/signature algorithm mismatches"
+    },
+    "mutable_verifier_reassignment": {
+      "cleared_verifier_is_undefined": true,
+      "reassigned_verifier_qb64": "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4",
+      "rust_decision": "use immutable fallible association"
+    }
+  }
+}
