@@ -41,7 +41,12 @@ pub enum CryptoError {
         /// Rejected, bounded derivation code.
         code: &'static str,
     },
-    /// An unindexed signature was associated with a verifier for a different algorithm.
+    /// Indexed material used a code that cannot represent an indexed signature.
+    InvalidIndexedSignatureCode {
+        /// Rejected, bounded indexed derivation code.
+        code: &'static str,
+    },
+    /// A signature was associated with a verifier for a different algorithm.
     SignatureVerifierMismatch {
         /// Algorithm selected by the signature derivation code.
         signature_algorithm: &'static str,
@@ -99,6 +104,12 @@ impl fmt::Display for CryptoError {
                     "CESR derivation code {code} is not unindexed-signature material"
                 )
             }
+            Self::InvalidIndexedSignatureCode { code } => {
+                write!(
+                    formatter,
+                    "CESR indexed derivation code {code} is not signature material"
+                )
+            }
             Self::SignatureVerifierMismatch {
                 signature_algorithm,
                 verifier_algorithm,
@@ -136,6 +147,7 @@ impl Error for CryptoError {
             | Self::InvalidVerificationCode { .. }
             | Self::UnsupportedVerificationAlgorithm { .. }
             | Self::InvalidSignatureCode { .. }
+            | Self::InvalidIndexedSignatureCode { .. }
             | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }
             | Self::InvalidSignatureLength { .. }
