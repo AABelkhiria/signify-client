@@ -9,6 +9,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+argon2.workspace = true
 blake3 = { version = "1.8.6", default-features = false }
 ed25519-dalek = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 getrandom = { version = "0.3.4", default-features = false, features = ["std"] }
@@ -36,6 +37,10 @@ harness = false
 
 [[bench]]
 name = "signer"
+harness = false
+
+[[bench]]
+name = "salt"
 harness = false
 
 [lints]

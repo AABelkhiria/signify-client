@@ -56,6 +56,32 @@ pub enum CryptoError {
         /// Rejected, bounded signing-seed derivation code.
         code: &'static str,
     },
+    /// Qualified material used a code that cannot represent a key-derivation salt.
+    InvalidSaltCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// A deterministic key-derivation path exceeds the documented byte ceiling.
+    DerivationPathTooLong {
+        /// Maximum accepted UTF-8 byte length.
+        maximum: usize,
+        /// Supplied UTF-8 byte length.
+        actual: usize,
+    },
+    /// Memory required by the selected key-derivation profile could not be reserved.
+    KeyDerivationMemoryUnavailable {
+        /// Number of bytes required by the selected profile.
+        required: usize,
+        /// Underlying allocation failure.
+        source: Box<dyn Error + Send + Sync>,
+    },
+    /// The established key-derivation primitive rejected the operation.
+    KeyDerivationFailed {
+        /// Stable primitive name without secret inputs.
+        algorithm: &'static str,
+        /// Underlying primitive failure.
+        source: Box<dyn Error + Send + Sync>,
+    },
     /// A signature was associated with a verifier for a different algorithm.
     SignatureVerifierMismatch {
         /// Algorithm selected by the signature derivation code.
@@ -141,6 +167,23 @@ impl fmt::Display for CryptoError {
             Self::UnsupportedSigningAlgorithm { code } => {
                 write!(formatter, "signing algorithm for CESR seed code {code} is unsupported")
             }
+            Self::InvalidSaltCode { code } => {
+                write!(
+                    formatter,
+                    "CESR derivation code {code} is not key-derivation salt material"
+                )
+            }
+            Self::DerivationPathTooLong { maximum, actual } => write!(
+                formatter,
+                "key-derivation path is too long: maximum {maximum} UTF-8 bytes, got {actual}"
+            ),
+            Self::KeyDerivationMemoryUnavailable { required, .. } => write!(
+                formatter,
+                "key-derivation memory is unavailable for the required {required} bytes"
+            ),
+            Self::KeyDerivationFailed { algorithm, .. } => {
+                write!(formatter, "{algorithm} key derivation failed")
+            }
             Self::SignatureVerifierMismatch {
                 signature_algorithm,
                 verifier_algorithm,
@@ -179,7 +222,10 @@ impl Error for CryptoError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Cesr { source } => Some(source.as_ref()),
-            Self::EntropyUnavailable { source } | Self::SigningFailed { source, .. } => Some(source.as_ref()),
+            Self::EntropyUnavailable { source }
+            | Self::SigningFailed { source, .. }
+            | Self::KeyDerivationMemoryUnavailable { source, .. }
+            | Self::KeyDerivationFailed { source, .. } => Some(source.as_ref()),
             Self::InvalidDigestCode { .. }
             | Self::UnsupportedDigestAlgorithm { .. }
             | Self::InvalidVerificationCode { .. }
@@ -188,6 +234,8 @@ impl Error for CryptoError {
             | Self::InvalidIndexedSignatureCode { .. }
             | Self::InvalidSigningCode { .. }
             | Self::UnsupportedSigningAlgorithm { .. }
+            | Self::InvalidSaltCode { .. }
+            | Self::DerivationPathTooLong { .. }
             | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }
             | Self::InvalidSignatureLength { .. }

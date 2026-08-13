@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-13",
+  "sources": [
+    "src/keri/core/salter.ts",
+    "src/keri/core/signer.ts",
+    "src/keri/core/matter.ts",
+    "test/core/salter.test.ts"
+  ],
+  "algorithm_dependencies": "libsodium-wrappers-sumo 0.8.4 crypto_pwhash Argon2id v1.3 with one lane",
+  "binary_derivation": "salt_qb2_hex is decodeBase64Url(reference-produced qb64) because the pinned Matter qb2 constructor is unimplemented; qb64 salt, signer, and signature round trips are accepted by pinned constructors",
+  "secret_fixture_policy": "salt and derived seeds are deterministic public test material only and must never be used as production secrets",
+  "profile_parameters": {
+    "temporary": {
+      "iterations": 1,
+      "memory_bytes": 8192
+    },
+    "low": {
+      "iterations": 2,
+      "memory_bytes": 67108864
+    },
+    "med": {
+      "iterations": 3,
+      "memory_bytes": 268435456
+    },
+    "high": {
+      "iterations": 4,
+      "memory_bytes": 1073741824
+    },
+    "parallelism": 1,
+    "algorithm": "Argon2id v1.3"
+  },
+  "cases": [
+    {
+      "name": "temporary_empty_path",
+      "path": "",
+      "path_utf8_hex": "",
+      "tier": "low",
+      "temporary": true,
+      "transferable": true,
+      "salt_code": "0A",
+      "salt_raw_hex": "30313233343536373839616263646566",
+      "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "salt_qb64_bytes_hex": "304141774d54497a4e4455324e7a673559574a6a5a47566d",
+      "salt_qb2_hex": "d00030313233343536373839616263646566",
+      "salt_qb64_round_trip": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "seed_code": "A",
+      "seed_raw_hex": "d440eba67886df93d643dcb8a69b02af68c16d284cd6f68659553e245bf9efc0",
+      "seed_qb64": "ANRA66Z4ht-T1kPcuKabAq9owW0oTNb2hllVPiRb-e_A",
+      "seed_qb64_round_trip": "ANRA66Z4ht-T1kPcuKabAq9owW0oTNb2hllVPiRb-e_A",
+      "verifier_code": "D",
+      "verifier_qb64": "DBpNgYR-NBQku9R4SiCqWOANBA69nZr-bpkB22N4wLIh",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_code": "0B",
+      "signature_raw_hex": "5eadba9a9d7b91c6d1939ea809817a7a02c01f68cd205aca4928ad0a7950c798655c64d199700bf3a637fc25437df6ccfc8d8dce9c38e3a39cb2f46e235a5e05",
+      "signature_qb64": "0BBerbqanXuRxtGTnqgJgXp6AsAfaM0gWspJKK0KeVDHmGVcZNGZcAvzpjf8JUN99sz8jY3OnDjjo5yy9G4jWl4F",
+      "signature_qb64_round_trip": "0BBerbqanXuRxtGTnqgJgXp6AsAfaM0gWspJKK0KeVDHmGVcZNGZcAvzpjf8JUN99sz8jY3OnDjjo5yy9G4jWl4F",
+      "verifies_serialization": true
+    },
+    {
+      "name": "temporary_controller_path",
+      "path": "signify:controller00",
+      "path_utf8_hex": "7369676e6966793a636f6e74726f6c6c65723030",
+      "tier": "low",
+      "temporary": true,
+      "transferable": true,
+      "salt_code": "0A",
+      "salt_raw_hex": "30313233343536373839616263646566",
+      "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "salt_qb64_bytes_hex": "304141774d54497a4e4455324e7a673559574a6a5a47566d",
+      "salt_qb2_hex": "d00030313233343536373839616263646566",
+      "salt_qb64_round_trip": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "seed_code": "A",
+      "seed_raw_hex": "1e7935d6046360ee0a089e1df5a0a93255c46bd4a9fda81e8ad9d565be664269",
+      "seed_qb64": "AB55NdYEY2DuCgieHfWgqTJVxGvUqf2oHorZ1WW-ZkJp",
+      "seed_qb64_round_trip": "AB55NdYEY2DuCgieHfWgqTJVxGvUqf2oHorZ1WW-ZkJp",
+      "verifier_code": "D",
+      "verifier_qb64": "DGqb6Qp6628m65QuIWoU7w9uvg4DqxszvVa3TRBP-g3v",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_code": "0B",
+      "signature_raw_hex": "e768be15cd82d1b490aaa453c036febc531579d1181cdf5bb3d5ad84fbc63cc7f0d12f4d6e78bd55a48224fe917f4808669427ddd71db6ce3c295fcd1b57810f",
+      "signature_qb64": "0BDnaL4VzYLRtJCqpFPANv68UxV50Rgc31uz1a2E-8Y8x_DRL01ueL1VpIIk_pF_SAhmlCfd1x22zjwpX80bV4EP",
+      "signature_qb64_round_trip": "0BDnaL4VzYLRtJCqpFPANv68UxV50Rgc31uz1a2E-8Y8x_DRL01ueL1VpIIk_pF_SAhmlCfd1x22zjwpX80bV4EP",
+      "verifies_serialization": true
+    },
+    {
+      "name": "temporary_utf8_nontransferable",
+      "path": "signify:clé/α",
+      "path_utf8_hex": "7369676e6966793a636cc3a92fceb1",
+      "tier": "med",
+      "temporary": true,
+      "transferable": false,
+      "salt_code": "0A",
+      "salt_raw_hex": "30313233343536373839616263646566",
+      "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "salt_qb64_bytes_hex": "304141774d54497a4e4455324e7a673559574a6a5a47566d",
+      "salt_qb2_hex": "d00030313233343536373839616263646566",
+      "salt_qb64_round_trip": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "seed_code": "A",
+      "seed_raw_hex": "ef9d5c431f220fd74d2ff293ac06d2985c7ec65802d6ee59f44fd49a63d01e56",
+      "seed_qb64": "AO-dXEMfIg_XTS_yk6wG0phcfsZYAtbuWfRP1Jpj0B5W",
+      "seed_qb64_round_trip": "AO-dXEMfIg_XTS_yk6wG0phcfsZYAtbuWfRP1Jpj0B5W",
+      "verifier_code": "B",
+      "verifier_qb64": "BJDY_snvNY_7epvH7_axEEo7FHTdumSR-JYF-1ks_FoY",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_code": "0B",
+      "signature_raw_hex": "b780e2b29cc89af991bb9d75758f1a579338335cf47db820d5915a522a32a6c81e28eb785186cd2c44d3a0abc116d89d448b2bedd58c2d1d16a214c95c72480a",
+      "signature_qb64": "0BC3gOKynMia-ZG7nXV1jxpXkzgzXPR9uCDVkVpSKjKmyB4o63hRhs0sRNOgq8EW2J1Eiyvt1YwtHRaiFMlcckgK",
+      "signature_qb64_round_trip": "0BC3gOKynMia-ZG7nXV1jxpXkzgzXPR9uCDVkVpSKjKmyB4o63hRhs0sRNOgq8EW2J1Eiyvt1YwtHRaiFMlcckgK",
+      "verifies_serialization": true
+    },
+    {
+      "name": "low_empty_path",
+      "path": "",
+      "path_utf8_hex": "",
+      "tier": "low",
+      "temporary": false,
+      "transferable": true,
+      "salt_code": "0A",
+      "salt_raw_hex": "30313233343536373839616263646566",
+      "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "salt_qb64_bytes_hex": "304141774d54497a4e4455324e7a673559574a6a5a47566d",
+      "salt_qb2_hex": "d00030313233343536373839616263646566",
+      "salt_qb64_round_trip": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "seed_code": "A",
+      "seed_raw_hex": "f86580ba5808b9bac61e840d1daca75c825763406013fd0234748c74d30119e9",
+      "seed_qb64": "APhlgLpYCLm6xh6EDR2sp1yCV2NAYBP9AjR0jHTTARnp",
+      "seed_qb64_round_trip": "APhlgLpYCLm6xh6EDR2sp1yCV2NAYBP9AjR0jHTTARnp",
+      "verifier_code": "D",
+      "verifier_qb64": "DN54yRad_BTqgZYUSi_NthRBQrxSnqQdJXWI5UHcGOQt",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_code": "0B",
+      "signature_raw_hex": "3cf52718b9989443e57c2fd913ac4beeae0bf925cab2e3f5a1643823b3d94db70673e98df6f45093232328c9309a91d1f8c98508942a2fd0d2ff30b2e33cd00e",
+      "signature_qb64": "0BA89ScYuZiUQ-V8L9kTrEvurgv5Jcqy4_WhZDgjs9lNtwZz6Y329FCTIyMoyTCakdH4yYUIlCov0NL_MLLjPNAO",
+      "signature_qb64_round_trip": "0BA89ScYuZiUQ-V8L9kTrEvurgv5Jcqy4_WhZDgjs9lNtwZz6Y329FCTIyMoyTCakdH4yYUIlCov0NL_MLLjPNAO",
+      "verifies_serialization": true
+    },
+    {
+      "name": "low_controller_path",
+      "path": "signify:controller00",
+      "path_utf8_hex": "7369676e6966793a636f6e74726f6c6c65723030",
+      "tier": "low",
+      "temporary": false,
+      "transferable": true,
+      "salt_code": "0A",
+      "salt_raw_hex": "30313233343536373839616263646566",
+      "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "salt_qb64_bytes_hex": "304141774d54497a4e4455324e7a673559574a6a5a47566d",
+      "salt_qb2_hex": "d00030313233343536373839616263646566",
+      "salt_qb64_round_trip": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "seed_code": "A",
+      "seed_raw_hex": "475dd42bd0c88ee1073088c964978fdf3f68d07f2c97e0c5c4f155d3f7bf9988",
+      "seed_qb64": "AEdd1CvQyI7hBzCIyWSXj98_aNB_LJfgxcTxVdP3v5mI",
+      "seed_qb64_round_trip": "AEdd1CvQyI7hBzCIyWSXj98_aNB_LJfgxcTxVdP3v5mI",
+      "verifier_code": "D",
+      "verifier_qb64": "DMVCX7CtEX7KgHtNLKQdSuqZhAs0m-tt9KSVI1kv1sYV",
+      "serialization_hex": "6162636465666768696a6b6c6d6e6f707172737475767778797a30313233343536373839",
+      "signature_code": "0B",
+      "signature_raw_hex": "df3c2aaf56e3c352fc2c0bd5a4b88198ccea9f7b577ab5d9c511dd8f857bc40b8d3554d7eb8c52f237e8848aaa512a4e276bb7f0a8cebadf7fb5b09ea3fa270a",
+      "signature_qb64": "0BDfPCqvVuPDUvwsC9WkuIGYzOqfe1d6tdnFEd2PhXvEC401VNfrjFLyN-iEiqpRKk4na7fwqM6633-1sJ6j-icK",
+      "signature_qb64_round_trip": "0BDfPCqvVuPDUvwsC9WkuIGYzOqfe1d6tdnFEd2PhXvEC401VNfrjFLyN-iEiqpRKk4na7fwqM6633-1sJ6j-icK",
+      "verifies_serialization": true
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "short_salt",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=0A expected 16 got 15.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "invalid_digest_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "invalid code for Salter, only Salt_128 accepted",
+      "rust_error_category": "InvalidSaltCode"
+    },
+    {
+      "name": "unsupported_tier",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported security tier = unknown.",
+      "rust_error_category": "UnrepresentableSecurityTier"
+    },
+    {
+      "name": "qb2_constructor",
+      "reference_error_category": "Error",
+      "reference_error_message": "qb2 not yet supported: 208,0,48,49,50,51,52,53,54,55,56,57,97,98,99,100,101,102",
+      "rust_error_category": "ReferenceUnsupported"
+    }
+  ],
+  "reference_quirks": {
+    "excess_raw_truncation": {
+      "input_raw_hex": "30313233343536373839616263646566ff",
+      "retained_raw_hex": "30313233343536373839616263646566",
+      "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+      "rust_error_category": "TrailingMaterial"
+    },
+    "null_tier_defaults_low": {
+      "resulting_tier": "low",
+      "rust_decision": "SecurityTier is non-null and defaults through its Default implementation"
+    },
+    "secret_exposure": {
+      "reference_raw_and_qb64_are_public": true,
+      "rust_decision": "Salt exposes no raw bytes and returns only explicit zeroizing qb64/qb2 export buffers"
+    },
+    "path_bound": {
+      "reference_has_no_explicit_bound": true,
+      "rust_maximum_utf8_bytes": 4096,
+      "rust_error_category": "DerivationPathTooLong"
+    }
+  }
+}

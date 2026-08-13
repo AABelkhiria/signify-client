@@ -111,6 +111,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "salt"
+path = "fuzz_targets/salt.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

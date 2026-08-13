@@ -4,6 +4,7 @@
 
 pub mod digest;
 pub mod error;
+pub mod salt;
 pub mod signature;
 pub mod signer;
 pub mod verifier;
