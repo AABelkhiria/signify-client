@@ -2,6 +2,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod cipher;
 pub mod digest;
 pub mod error;
 pub mod salt;

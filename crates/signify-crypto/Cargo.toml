@@ -43,5 +43,9 @@ harness = false
 name = "salt"
 harness = false
 
+[[bench]]
+name = "cipher"
+harness = false
+
 [lints]
 workspace = true

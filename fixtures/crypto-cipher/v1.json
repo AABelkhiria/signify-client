@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-14",
+  "sources": [
+    "src/keri/core/cipher.ts",
+    "src/keri/core/matter.ts",
+    "test/core/encrypter.test.ts",
+    "test/core/decrypter.test.ts"
+  ],
+  "binary_derivation": "qb2_hex is decodeBase64Url(reference-produced qb64) because Matter._bexfil is unimplemented; qb64_round_trip and raw_round_trip are accepted by the pinned Cipher constructor",
+  "cases": [
+    {
+      "name": "stored_seed_ciphertext",
+      "plaintext_kind": "qualified_seed",
+      "code": "P",
+      "raw_hex": "cf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973ade933aa382b3e832d286ebc0590f3ea06f564130",
+      "raw_size": 92,
+      "qb64": "PM9jOGWNYfjM_oLXJNaQ8UlFSAV5ACjsUY7J16xfzrlpc9Ve3A5WYrZ4o_NHtP5lhp78Usspl9fyFdnCdItNd5JyqZ6dt8SXOt6TOqOCs-gy0obrwFkPPqBvVkEw",
+      "qb64_bytes_hex": "504d396a4f47574e59666a4d5f6f4c584a4e615138556c465341563541436a735559374a313678667a726c70633956653341355759725a346f5f4e487450356c68703738557373706c39667946646e436449744e64354a79715a3664743853584f7436544f714f43732d6779306f627277466b5050714276566b4577",
+      "qb2_hex": "3ccf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973ade933aa382b3e832d286ebc0590f3ea06f564130",
+      "qb64_round_trip": "PM9jOGWNYfjM_oLXJNaQ8UlFSAV5ACjsUY7J16xfzrlpc9Ve3A5WYrZ4o_NHtP5lhp78Usspl9fyFdnCdItNd5JyqZ6dt8SXOt6TOqOCs-gy0obrwFkPPqBvVkEw",
+      "raw_round_trip": "PM9jOGWNYfjM_oLXJNaQ8UlFSAV5ACjsUY7J16xfzrlpc9Ve3A5WYrZ4o_NHtP5lhp78Usspl9fyFdnCdItNd5JyqZ6dt8SXOt6TOqOCs-gy0obrwFkPPqBvVkEw"
+    },
+    {
+      "name": "stored_salt_ciphertext",
+      "plaintext_kind": "qualified_salt",
+      "code": "1AAH",
+      "raw_hex": "8e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62e",
+      "raw_size": 72,
+      "qb64": "1AAHjlR2QR9J5Et67Wy-ZaVdTryN6T6ohg44r73GLRPnHw-5S3ABFkhWyIwLOI6TXUB_5CT13S8JvknxLxBaF8ANPK9FSOPD8tYu",
+      "qb64_bytes_hex": "314141486a6c52325152394a354574363757792d5a6156645472794e3654366f68673434723733474c52506e48772d3553334142466b68577949774c4f4936545855425f354354313353384a766b6e784c7842614638414e504b3946534f504438745975",
+      "qb2_hex": "d400078e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62e",
+      "qb64_round_trip": "1AAHjlR2QR9J5Et67Wy-ZaVdTryN6T6ohg44r73GLRPnHw-5S3ABFkhWyIwLOI6TXUB_5CT13S8JvknxLxBaF8ANPK9FSOPD8tYu",
+      "raw_round_trip": "1AAHjlR2QR9J5Et67Wy-ZaVdTryN6T6ohg44r73GLRPnHw-5S3ABFkhWyIwLOI6TXUB_5CT13S8JvknxLxBaF8ANPK9FSOPD8tYu"
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "empty_material",
+      "reference_error_category": "EmptyMaterialError",
+      "reference_error_message": "[object Object]",
+      "rust_error_category": "EmptyInput"
+    },
+    {
+      "name": "short_seed_ciphertext",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=P expected 92 got 91.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "short_salt_ciphertext",
+      "reference_error_category": "Error",
+      "reference_error_message": "Not enougth raw bytes for code=1AAH expected 72 got 71.",
+      "rust_error_category": "Truncated"
+    },
+    {
+      "name": "non_cipher_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported Cipher code == E",
+      "rust_error_category": "InvalidCiphertextCode"
+    },
+    {
+      "name": "qb2_constructor",
+      "reference_error_category": "Error",
+      "reference_error_message": "qb2 not yet supported: 60,207,99,56,101,141,97,248,204,254,130,215,36,214,144,241,73,69,72,5,121,0,40,236,81,142,201,215,172,95,206,185,105,115,213,94,220,14,86,98,182,120,163,243,71,180,254,101,134,158,252,82,203,41,151,215,242,21,217,194,116,139,77,119,146,114,169,158,157,183,196,151,58,222,147,58,163,130,179,232,50,210,134,235,192,89,15,62,160,111,86,65,48",
+      "rust_error_category": "ReferenceUnsupported"
+    }
+  ],
+  "reference_quirks": {
+    "excess_seed_raw_truncation": {
+      "input_raw_hex": "cf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973ade933aa382b3e832d286ebc0590f3ea06f564130ff",
+      "retained_raw_hex": "cf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973ade933aa382b3e832d286ebc0590f3ea06f564130",
+      "qb64": "PM9jOGWNYfjM_oLXJNaQ8UlFSAV5ACjsUY7J16xfzrlpc9Ve3A5WYrZ4o_NHtP5lhp78Usspl9fyFdnCdItNd5JyqZ6dt8SXOt6TOqOCs-gy0obrwFkPPqBvVkEw",
+      "rust_error_category": "TrailingMaterial"
+    },
+    "excess_salt_raw_truncation": {
+      "input_raw_hex": "8e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62eff",
+      "retained_raw_hex": "8e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62e",
+      "qb64": "1AAHjlR2QR9J5Et67Wy-ZaVdTryN6T6ohg44r73GLRPnHw-5S3ABFkhWyIwLOI6TXUB_5CT13S8JvknxLxBaF8ANPK9FSOPD8tYu",
+      "rust_error_category": "TrailingMaterial"
+    },
+    "raw_seed_inference_misclassifies_and_truncates": {
+      "input_raw_hex": "cf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973ade933aa382b3e832d286ebc0590f3ea06f564130",
+      "reference_code": "1AAH",
+      "retained_raw_hex": "cf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973a",
+      "qb64": "1AAHz2M4ZY1h-Mz-gtck1pDxSUVIBXkAKOxRjsnXrF_OuWlz1V7cDlZitnij80e0_mWGnvxSyymX1_IV2cJ0i013knKpnp23xJc6",
+      "rust_code": "P",
+      "rust_decision": "infer the unique correct code from the exact 92-byte width without truncation"
+    },
+    "raw_salt_inference": {
+      "input_raw_hex": "8e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62e",
+      "reference_code": "1AAH",
+      "retained_raw_hex": "8e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62e",
+      "qb64": "1AAHjlR2QR9J5Et67Wy-ZaVdTryN6T6ohg44r73GLRPnHw-5S3ABFkhWyIwLOI6TXUB_5CT13S8JvknxLxBaF8ANPK9FSOPD8tYu",
+      "rust_code": "1AAH"
+    }
+  }
+}

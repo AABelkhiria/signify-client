@@ -61,6 +61,16 @@ pub enum CryptoError {
         /// Rejected, bounded derivation code.
         code: &'static str,
     },
+    /// Qualified material used a code that cannot represent supported ciphertext.
+    InvalidCiphertextCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// Raw ciphertext inference received neither supported fixed width.
+    InvalidCiphertextLength {
+        /// Supplied raw ciphertext width.
+        actual: usize,
+    },
     /// A deterministic key-derivation path exceeds the documented byte ceiling.
     DerivationPathTooLong {
         /// Maximum accepted UTF-8 byte length.
@@ -173,6 +183,13 @@ impl fmt::Display for CryptoError {
                     "CESR derivation code {code} is not key-derivation salt material"
                 )
             }
+            Self::InvalidCiphertextCode { code } => {
+                write!(formatter, "CESR derivation code {code} is not supported ciphertext")
+            }
+            Self::InvalidCiphertextLength { actual } => write!(
+                formatter,
+                "invalid raw ciphertext length: expected 72 or 92 bytes, got {actual}"
+            ),
             Self::DerivationPathTooLong { maximum, actual } => write!(
                 formatter,
                 "key-derivation path is too long: maximum {maximum} UTF-8 bytes, got {actual}"
@@ -235,6 +252,8 @@ impl Error for CryptoError {
             | Self::InvalidSigningCode { .. }
             | Self::UnsupportedSigningAlgorithm { .. }
             | Self::InvalidSaltCode { .. }
+            | Self::InvalidCiphertextCode { .. }
+            | Self::InvalidCiphertextLength { .. }
             | Self::DerivationPathTooLong { .. }
             | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }
