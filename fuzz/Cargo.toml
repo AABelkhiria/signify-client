@@ -146,6 +146,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "said"
+path = "fuzz_targets/said.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

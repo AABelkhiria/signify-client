@@ -31,5 +31,9 @@ harness = false
 name = "serder"
 harness = false
 
+[[bench]]
+name = "said"
+harness = false
+
 [lints]
 workspace = true

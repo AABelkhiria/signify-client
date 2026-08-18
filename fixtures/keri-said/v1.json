@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-18",
+  "sources": [
+    "src/keri/core/saider.ts",
+    "test/core/saider.test.ts"
+  ],
+  "dummy_character": "#",
+  "default_label": "d",
+  "cases": [
+    {
+      "name": "pinned_rep_message",
+      "label": "d",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"rep\",\"d\":\"\",\"dt\":\"2020-08-22T17:50:12.988921+00:00\",\"r\":\"logs/processor\",\"a\":{\"d\":\"EBabiu_JCkE0GbiglDXNB5C4NQq-hiGgxhHKXBxkiojg\",\"i\":\"EB0_D51cTh_q6uOQ-byFiv5oNXZ-cxdqCqBAa4JmBLtb\",\"name\":\"John Jones\",\"role\":\"Founder\"}}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"v\":\"KERI10JSON000124_\",\"t\":\"rep\",\"d\":\"############################################\",\"dt\":\"2020-08-22T17:50:12.988921+00:00\",\"r\":\"logs/processor\",\"a\":{\"d\":\"EBabiu_JCkE0GbiglDXNB5C4NQq-hiGgxhHKXBxkiojg\",\"i\":\"EB0_D51cTh_q6uOQ-byFiv5oNXZ-cxdqCqBAa4JmBLtb\",\"name\":\"John Jones\",\"role\":\"Founder\"}}",
+      "preimage_hex": "7b2276223a224b45524931304a534f4e3030303132345f222c2274223a22726570222c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c226474223a22323032302d30382d32325431373a35303a31322e3938383932312b30303a3030222c2272223a226c6f67732f70726f636573736f72222c2261223a7b2264223a224542616269755f4a436b4530476269676c44584e423543344e51712d686947677868484b5842786b696f6a67222c2269223a224542305f4435316354685f7136754f512d6279466976356f4e585a2d637864714371424161344a6d424c7462222c226e616d65223a224a6f686e204a6f6e6573222c22726f6c65223a22466f756e646572227d7d",
+      "preimage_byte_size": 292,
+      "said": "ELzewBpZHSENRP-sL_G_2Ji4YDdNkns9AzFzufleJqdw",
+      "said_code": "E",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000124_\",\"t\":\"rep\",\"d\":\"ELzewBpZHSENRP-sL_G_2Ji4YDdNkns9AzFzufleJqdw\",\"dt\":\"2020-08-22T17:50:12.988921+00:00\",\"r\":\"logs/processor\",\"a\":{\"d\":\"EBabiu_JCkE0GbiglDXNB5C4NQq-hiGgxhHKXBxkiojg\",\"i\":\"EB0_D51cTh_q6uOQ-byFiv5oNXZ-cxdqCqBAa4JmBLtb\",\"name\":\"John Jones\",\"role\":\"Founder\"}}",
+      "completed_version_string": "KERI10JSON000124_"
+    },
+    {
+      "name": "version_less_block",
+      "label": "d",
+      "input_sad_json": "{\"d\":\"\",\"i\":\"EB0_D51cTh_q6uOQ-byFiv5oNXZ-cxdqCqBAa4JmBLtb\",\"name\":\"John Jones\"}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"d\":\"############################################\",\"i\":\"EB0_D51cTh_q6uOQ-byFiv5oNXZ-cxdqCqBAa4JmBLtb\",\"name\":\"John Jones\"}",
+      "preimage_hex": "7b2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2269223a224542305f4435316354685f7136754f512d6279466976356f4e585a2d637864714371424161344a6d424c7462222c226e616d65223a224a6f686e204a6f6e6573227d",
+      "preimage_byte_size": 123,
+      "said": "EKMziJHwuy7bm7XhtQtFE1kduVFoxm3fp45Iyt-MQT1K",
+      "said_code": "E",
+      "completed_sad_json": "{\"d\":\"EKMziJHwuy7bm7XhtQtFE1kduVFoxm3fp45Iyt-MQT1K\",\"i\":\"EB0_D51cTh_q6uOQ-byFiv5oNXZ-cxdqCqBAa4JmBLtb\",\"name\":\"John Jones\"}",
+      "completed_version_string": null
+    },
+    {
+      "name": "custom_label",
+      "label": "id",
+      "input_sad_json": "{\"id\":\"\",\"name\":\"John Jones\",\"role\":\"Founder\"}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"id\":\"############################################\",\"name\":\"John Jones\",\"role\":\"Founder\"}",
+      "preimage_hex": "7b226964223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c226e616d65223a224a6f686e204a6f6e6573222c22726f6c65223a22466f756e646572227d",
+      "preimage_byte_size": 90,
+      "said": "EF7vcoQlUukrWJIJXQZurjflYvccS6QAbd6WqP9KkOCZ",
+      "said_code": "E",
+      "completed_sad_json": "{\"id\":\"EF7vcoQlUukrWJIJXQZurjflYvccS6QAbd6WqP9KkOCZ\",\"name\":\"John Jones\",\"role\":\"Founder\"}",
+      "completed_version_string": null
+    }
+  ],
+  "verification": {
+    "completed_default": true,
+    "completed_prefixed": true,
+    "completed_prefixed_versioned": true,
+    "tampered_content_default": false,
+    "restamped_version_prefixed_versioned": false
+  },
+  "rejected_cases": [
+    {
+      "name": "saidify_missing_label",
+      "reference_error_category": "Error",
+      "reference_error_message": "Missing id field labeled=d in sad.",
+      "rust_error_category": "MissingLabelField"
+    },
+    {
+      "name": "unsupported_digest_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported digest code = H.",
+      "rust_error_category": "UnrepresentableInRust"
+    }
+  ],
+  "reference_quirks": {
+    "default_verify_ignores_the_identifier_field": {
+      "empty_identifier_accepted": true,
+      "unrelated_identifier_accepted": true,
+      "unrelated_identifier_rejected_when_prefixed": false,
+      "note": "derivation replaces the identifier field with a placeholder before hashing, so the field's actual content is never checked unless the caller passes prefixed=true; a caller who writes verify(sad) has not verified what the message claims about itself",
+      "rust_decision": "SaidVerification::strict is the default and requires the identifier field to match; the reference behavior is available only as the explicitly named digest_only policy",
+      "rust_error_category": "LabelFieldMismatch"
+    },
+    "derive_appends_a_missing_label": {
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"rep\"}",
+      "reference_result_json": "{\"v\":\"KERI10JSON000056_\",\"t\":\"rep\",\"d\":\"############################################\"}",
+      "note": "the public derive() inserts the absent label at the end of the field order and sizes the version string around it, silently changing the bytes being committed to; only saidify() checks first",
+      "rust_error_category": "MissingLabelField"
+    },
+    "constructor_super_called_twice": {
+      "name": "constructor_with_existing_identifier",
+      "reference_error_category": "ReferenceError",
+      "reference_error_message": "Super constructor may only be called once",
+      "rust_error_category": "UnreachableInRust",
+      "note": "when the identifier field is already populated and no code is passed, the constructor calls super() twice, so the natural 'parse a received message and check its SAID' path throws; callers must construct from qb64 and call verify() instead"
+    }
+  }
+}

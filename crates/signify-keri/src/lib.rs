@@ -3,5 +3,6 @@
 #![forbid(unsafe_code)]
 
 pub mod event;
+pub mod said;
 pub mod serialization;
 pub mod threshold;
