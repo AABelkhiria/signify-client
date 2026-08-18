@@ -1,13 +1,13 @@
-//! Typed X25519 encrypters and CESR-qualified ciphertext material.
+//! Typed X25519 encrypters, decrypters, and CESR-qualified ciphertext material.
 //!
 //! The pinned TypeScript `Cipher` supports the two fixed X25519 sealed-box ciphertext codes used
-//! to wrap qualified signing seeds and salts. This module models those payload forms explicitly
-//! and provides anonymous sealed-box encryption for a validated X25519 recipient key. Decryption
-//! belongs to a later roadmap item.
+//! to wrap qualified signing seeds and salts. This module models those payload forms explicitly,
+//! provides anonymous sealed-box encryption for a validated X25519 recipient key, and recovers
+//! the wrapped [`Signer`] or [`Salt`] through a secret-owning [`Decrypter`].
 
 use std::{fmt, str::FromStr};
 
-use nacl_sealed_box::{PublicKey as X25519PublicKey, seal_with_rng};
+use nacl_sealed_box::{Plaintext, PublicKey as X25519PublicKey, SecretKey as X25519SecretKey, seal_with_rng, unseal};
 use rand_core::{TryCryptoRng, TryRng};
 use signify_cesr::{
     CesrError,
@@ -19,13 +19,16 @@ use zeroize::Zeroizing;
 
 use crate::{
     CryptoError,
-    salt::Salt,
+    salt::{Salt, SecurityTier},
     signer::Signer,
     verifier::{KeyTransferability, VerificationKey},
 };
 
 /// Raw byte width of an X25519 public encryption key.
 pub const X25519_PUBLIC_KEY_SIZE: usize = 32;
+
+/// Raw byte width of an X25519 private decryption key.
+pub const X25519_PRIVATE_KEY_SIZE: usize = 32;
 
 const SEALED_BOX_ALGORITHM: &str = "X25519/XSalsa20-Poly1305 sealed box";
 
@@ -764,6 +767,316 @@ impl fmt::Display for Ciphertext {
     }
 }
 
+/// One secret X25519 private key for opening anonymous sealed boxes.
+///
+/// The key is qualified CESR material with the private-decryption code `O`. It can be constructed
+/// from strict raw, qb64, qb64-byte, or qb2 material, or derived from an Ed25519 [`Signer`] with
+/// the exact libsodium seed-to-Curve25519 conversion. Typed [`Decrypter::decrypt_seed`] and
+/// [`Decrypter::decrypt_salt`] operations replace the pinned reference's nullable, code-dispatched
+/// `decrypt`, so a caller states which secret kind it expects and receives the already validated
+/// secret-owning type.
+///
+/// The decrypter is deliberately not `Clone`, exposes no raw bytes, redacts `Debug`, and zeroizes
+/// its owned key material on drop. Qualified exports use explicit `expose_` methods returning
+/// [`Zeroizing`] buffers because encrypted key-state workflows must persist qualified private-key
+/// material.
+///
+/// ```
+/// use signify_crypto::{
+///     cipher::{Decrypter, Encrypter},
+///     salt::{Salt, SecurityTier},
+///     signer::Signer,
+///     verifier::KeyTransferability,
+/// };
+///
+/// # fn main() -> Result<(), signify_crypto::CryptoError> {
+/// let recipient = Signer::from_seed(&[7_u8; 32], KeyTransferability::Transferable)?;
+/// let encrypter = Encrypter::from_verification_key(recipient.verifier())?;
+/// let ciphertext = encrypter.encrypt_salt(&Salt::from_raw(&[5_u8; 16], SecurityTier::Low)?)?;
+///
+/// let decrypter = Decrypter::from_signer(&recipient);
+/// let recovered = decrypter.decrypt_salt(&ciphertext, SecurityTier::Low)?;
+/// assert_eq!(recovered.tier(), SecurityTier::Low);
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Secret decryption keys cannot be duplicated through `Clone`:
+///
+/// ```compile_fail
+/// fn require_clone<T: Clone>() {}
+/// require_clone::<signify_crypto::cipher::Decrypter>();
+/// ```
+pub struct Decrypter {
+    raw: Zeroizing<[u8; X25519_PRIVATE_KEY_SIZE]>,
+    key: X25519SecretKey,
+}
+
+/// One decrypter parsed from the front of a raw, qb64, or qb2 stream.
+pub struct ParsedDecrypter {
+    decrypter: Decrypter,
+    consumed: usize,
+}
+
+impl ParsedDecrypter {
+    /// Borrows the parsed decrypter.
+    #[must_use]
+    pub const fn decrypter(&self) -> &Decrypter {
+        &self.decrypter
+    }
+
+    /// Returns how many input bytes or characters the parse consumed.
+    #[must_use]
+    pub const fn consumed(&self) -> usize {
+        self.consumed
+    }
+
+    /// Splits this parse result into the decrypter and its consumed length.
+    #[must_use]
+    pub fn into_parts(self) -> (Decrypter, usize) {
+        (self.decrypter, self.consumed)
+    }
+}
+
+impl Decrypter {
+    /// Constructs one decrypter from exactly 32 raw X25519 private-key bytes.
+    ///
+    /// The caller's buffer is not erased; it must be cleared by its owner after use.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed size error for the wrong width.
+    pub fn from_raw(input: &[u8]) -> Result<Self, CryptoError> {
+        let parsed = Self::parse_raw_prefix(input)?;
+        reject_trailing("X25519 private decryption key", input.len(), parsed.consumed)?;
+        Ok(parsed.decrypter)
+    }
+
+    /// Parses one fixed-width X25519 private key from the beginning of a raw byte stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed truncation or CESR-size error.
+    pub fn parse_raw_prefix(input: &[u8]) -> Result<ParsedDecrypter, CryptoError> {
+        Self::from_parsed_material(QualifiedMaterial::parse_raw_prefix(
+            DerivationCode::X25519_PRIVATE,
+            input,
+            X25519_PRIVATE_KEY_SIZE,
+        )?)
+    }
+
+    /// Derives the X25519 private key belonging to an Ed25519 signer's seed.
+    ///
+    /// The conversion hashes the seed with SHA-512 and clamps the first half, matching
+    /// libsodium's `crypto_sign_ed25519_sk_to_curve25519` byte-for-byte, so the derived key opens
+    /// sealed boxes addressed to [`Encrypter::from_verification_key`] of the same signer.
+    #[must_use]
+    pub fn from_signer(signer: &Signer) -> Self {
+        let raw = signer.to_x25519_private_bytes();
+        let key = X25519SecretKey::from_bytes(*raw);
+        Self { raw, key }
+    }
+
+    /// Parses one canonical qb64 X25519 private key from the beginning of `input`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed CESR or code error.
+    pub fn parse_qb64(input: &str) -> Result<ParsedDecrypter, CryptoError> {
+        Self::from_parsed_material(QualifiedMaterial::parse_qb64(input)?)
+    }
+
+    /// Parses exactly one canonical qb64 X25519 private key.
+    ///
+    /// # Errors
+    ///
+    /// Returns any error from [`Self::parse_qb64`] and rejects trailing characters.
+    pub fn from_qb64(input: &str) -> Result<Self, CryptoError> {
+        let parsed = Self::parse_qb64(input)?;
+        reject_trailing(
+            "X25519 private decryption key qualified Base64",
+            input.len(),
+            parsed.consumed,
+        )?;
+        Ok(parsed.decrypter)
+    }
+
+    /// Parses one UTF-8 qb64 X25519 private key from the beginning of a byte stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed UTF-8, CESR, or code error.
+    pub fn parse_qb64_bytes(input: &[u8]) -> Result<ParsedDecrypter, CryptoError> {
+        Self::from_parsed_material(QualifiedMaterial::parse_qb64_bytes(input)?)
+    }
+
+    /// Parses exactly one UTF-8 qb64 X25519 private key from bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns any error from [`Self::parse_qb64_bytes`] and rejects trailing bytes.
+    pub fn from_qb64_bytes(input: &[u8]) -> Result<Self, CryptoError> {
+        let parsed = Self::parse_qb64_bytes(input)?;
+        reject_trailing(
+            "X25519 private decryption key qualified Base64 bytes",
+            input.len(),
+            parsed.consumed,
+        )?;
+        Ok(parsed.decrypter)
+    }
+
+    /// Parses one canonical qualified-binary X25519 private key from an input prefix.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed CESR or code error.
+    pub fn parse_qb2(input: &[u8]) -> Result<ParsedDecrypter, CryptoError> {
+        Self::from_parsed_material(QualifiedMaterial::parse_qb2(input)?)
+    }
+
+    /// Parses exactly one canonical qualified-binary X25519 private key.
+    ///
+    /// # Errors
+    ///
+    /// Returns any error from [`Self::parse_qb2`] and rejects trailing bytes.
+    pub fn from_qb2(input: &[u8]) -> Result<Self, CryptoError> {
+        let parsed = Self::parse_qb2(input)?;
+        reject_trailing(
+            "X25519 private decryption key qualified binary",
+            input.len(),
+            parsed.consumed,
+        )?;
+        Ok(parsed.decrypter)
+    }
+
+    /// Returns the X25519 private-key derivation code (`O`) without exposing key bytes.
+    #[must_use]
+    pub const fn code(&self) -> DerivationCode {
+        DerivationCode::X25519_PRIVATE
+    }
+
+    /// Encodes the private key as canonical qualified Base64 in a zeroizing buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed error if the shared fixed-code table is internally inconsistent.
+    pub fn expose_qb64(&self) -> Result<Zeroizing<String>, CryptoError> {
+        Ok(Zeroizing::new(self.material()?.qb64()?))
+    }
+
+    /// Encodes the private key as UTF-8 qualified-Base64 bytes in a zeroizing buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed error if the shared fixed-code table is internally inconsistent.
+    pub fn expose_qb64_bytes(&self) -> Result<Zeroizing<Vec<u8>>, CryptoError> {
+        Ok(Zeroizing::new(self.material()?.qb64_bytes()?))
+    }
+
+    /// Encodes the private key as canonical qualified binary in a zeroizing buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed error if the shared fixed-code table is internally inconsistent.
+    pub fn expose_qb2(&self) -> Result<Zeroizing<Vec<u8>>, CryptoError> {
+        Ok(Zeroizing::new(self.material()?.qb2()?))
+    }
+
+    /// Opens a seed sealed box and reconstructs the wrapped Ed25519 signer.
+    ///
+    /// `transferability` selects the derived verifier's code exactly as the pinned reference's
+    /// `transferable` argument does; the wrapped seed itself does not record it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CryptoError::CiphertextKindMismatch`] when `ciphertext` does not carry the seed
+    /// code `P`, and otherwise the deliberately detail-free
+    /// [`CryptoError::DecryptionFailed`] for any authentication or recovered-plaintext failure.
+    pub fn decrypt_seed(
+        &self,
+        ciphertext: &Ciphertext,
+        transferability: KeyTransferability,
+    ) -> Result<Signer, CryptoError> {
+        let plaintext = self.open(CiphertextKind::QualifiedSeed, ciphertext)?;
+        Signer::from_qb64_bytes(plaintext.as_bytes(), transferability).map_err(|_| CryptoError::DecryptionFailed {
+            algorithm: SEALED_BOX_ALGORITHM,
+        })
+    }
+
+    /// Opens a salt sealed box and reconstructs the wrapped key-derivation salt.
+    ///
+    /// `tier` assigns the recovered salt's security tier explicitly; the wrapped salt does not
+    /// record one, and the pinned reference silently applies its default low tier.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CryptoError::CiphertextKindMismatch`] when `ciphertext` does not carry the salt
+    /// code `1AAH`, and otherwise the deliberately detail-free
+    /// [`CryptoError::DecryptionFailed`] for any authentication or recovered-plaintext failure.
+    pub fn decrypt_salt(&self, ciphertext: &Ciphertext, tier: SecurityTier) -> Result<Salt, CryptoError> {
+        let plaintext = self.open(CiphertextKind::QualifiedSalt, ciphertext)?;
+        Salt::from_qb64_bytes(plaintext.as_bytes(), tier).map_err(|_| CryptoError::DecryptionFailed {
+            algorithm: SEALED_BOX_ALGORITHM,
+        })
+    }
+
+    fn open(&self, expected: CiphertextKind, ciphertext: &Ciphertext) -> Result<Plaintext, CryptoError> {
+        if ciphertext.kind() != expected {
+            return Err(CryptoError::CiphertextKindMismatch {
+                expected: expected.code().as_str(),
+                actual: ciphertext.code().as_str(),
+            });
+        }
+        unseal(&self.key, ciphertext.raw()).map_err(|_| CryptoError::DecryptionFailed {
+            algorithm: SEALED_BOX_ALGORITHM,
+        })
+    }
+
+    fn material(&self) -> Result<QualifiedMaterial, CryptoError> {
+        Ok(QualifiedMaterial::new(self.code(), self.raw.as_slice())?)
+    }
+
+    fn from_parsed_material(parsed: ParsedMaterial) -> Result<ParsedDecrypter, CryptoError> {
+        let (material, consumed) = parsed.into_parts();
+        if material.code() != DerivationCode::X25519_PRIVATE {
+            return Err(CryptoError::InvalidDecrypterCode {
+                code: material.code().as_str(),
+            });
+        }
+        let raw = Zeroizing::new(<[u8; X25519_PRIVATE_KEY_SIZE]>::try_from(material.raw()).map_err(|_| {
+            CryptoError::from(CesrError::RawSizeMismatch {
+                context: "X25519 private decryption key raw material",
+                expected: X25519_PRIVATE_KEY_SIZE,
+                actual: material.raw().len(),
+            })
+        })?);
+        let key = X25519SecretKey::from_bytes(*raw);
+        Ok(ParsedDecrypter {
+            decrypter: Decrypter { raw, key },
+            consumed,
+        })
+    }
+}
+
+impl fmt::Debug for Decrypter {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Decrypter")
+            .field("algorithm", &"X25519")
+            .finish_non_exhaustive()
+    }
+}
+
+impl fmt::Debug for ParsedDecrypter {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ParsedDecrypter")
+            .field("decrypter", &self.decrypter)
+            .field("consumed", &self.consumed)
+            .finish()
+    }
+}
+
 fn reject_trailing(context: &'static str, total: usize, consumed: usize) -> Result<(), CryptoError> {
     let trailing = total
         .checked_sub(consumed)
@@ -1020,6 +1333,174 @@ mod tests {
         assert!(debug.contains("raw_length: 72"));
         assert!(!debug.contains("171"));
         assert!(!debug.contains("abab"));
+        Ok(())
+    }
+
+    const REFERENCE_DECRYPTER_QB64: &str = "OLCFxqMz1z1UUS0TEJnvZP_zXHcuYdQsSGBWdOZeY5VQ";
+    const REFERENCE_SALT_QB64: &str = "0AA2CGQNobs5jXCNoMATSody";
+
+    #[test]
+    fn seed_conversion_matches_the_reference_private_key_exactly() -> Result<(), CryptoError> {
+        let signer = Signer::from_seed(&CRYPT_SEED, KeyTransferability::Transferable)?;
+        let decrypter = Decrypter::from_signer(&signer);
+        assert_eq!(decrypter.code(), DerivationCode::X25519_PRIVATE);
+        assert_eq!(decrypter.expose_qb64()?.as_str(), REFERENCE_DECRYPTER_QB64);
+
+        let reparsed = Decrypter::from_qb64(REFERENCE_DECRYPTER_QB64)?;
+        assert_eq!(reparsed.expose_qb64()?.as_str(), REFERENCE_DECRYPTER_QB64);
+        assert_eq!(
+            Decrypter::from_qb64_bytes(decrypter.expose_qb64_bytes()?.as_ref())?.expose_qb2()?,
+            decrypter.expose_qb2()?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn stored_reference_ciphertexts_decrypt_to_exact_secrets() -> Result<(), CryptoError> {
+        let decrypter = Decrypter::from_qb64(REFERENCE_DECRYPTER_QB64)?;
+
+        let seed_cipher = Ciphertext::from_qb64(SEED_QB64)?;
+        let recovered = decrypter.decrypt_seed(&seed_cipher, KeyTransferability::Transferable)?;
+        assert_eq!(recovered.verifier().qb64()?, {
+            let expected = Signer::from_qb64(REFERENCE_SEED_QB64, KeyTransferability::Transferable)?;
+            expected.verifier().qb64()?
+        });
+        assert!(recovered.is_transferable());
+        let non_transferable = decrypter.decrypt_seed(&seed_cipher, KeyTransferability::NonTransferable)?;
+        assert!(!non_transferable.is_transferable());
+
+        let salt_cipher = Ciphertext::from_qb64(SALT_QB64)?;
+        let salt = decrypter.decrypt_salt(&salt_cipher, SecurityTier::Low)?;
+        assert_eq!(salt.expose_qb64()?.as_str(), REFERENCE_SALT_QB64);
+        assert_eq!(salt.tier(), SecurityTier::Low);
+        Ok(())
+    }
+
+    #[test]
+    fn decrypter_stream_parsers_preserve_boundaries() -> Result<(), CryptoError> {
+        let decrypter = Decrypter::from_qb64(REFERENCE_DECRYPTER_QB64)?;
+
+        let text_stream = format!("{REFERENCE_DECRYPTER_QB64}ABCD");
+        let parsed_text = Decrypter::parse_qb64(&text_stream)?;
+        assert_eq!(
+            parsed_text.decrypter().expose_qb64()?.as_str(),
+            REFERENCE_DECRYPTER_QB64
+        );
+        assert_eq!(parsed_text.consumed(), REFERENCE_DECRYPTER_QB64.len());
+        assert!(Decrypter::from_qb64(&text_stream).is_err());
+
+        let qb64_bytes = decrypter.expose_qb64_bytes()?;
+        let parsed_bytes = Decrypter::parse_qb64_bytes(qb64_bytes.as_ref())?;
+        assert_eq!(parsed_bytes.consumed(), qb64_bytes.len());
+
+        let raw = QualifiedMaterial::parse_qb64(REFERENCE_DECRYPTER_QB64)?;
+        let mut raw_stream = raw.into_parts().0.raw().to_vec();
+        raw_stream.extend_from_slice(&[1, 2, 3]);
+        let parsed_raw = Decrypter::parse_raw_prefix(&raw_stream)?;
+        let (parsed_decrypter, consumed) = parsed_raw.into_parts();
+        assert_eq!(consumed, X25519_PRIVATE_KEY_SIZE);
+        assert_eq!(parsed_decrypter.expose_qb64()?.as_str(), REFERENCE_DECRYPTER_QB64);
+        assert!(Decrypter::from_raw(&raw_stream).is_err());
+
+        let mut qb2_stream = decrypter.expose_qb2()?.to_vec();
+        let qb2_length = qb2_stream.len();
+        qb2_stream.extend_from_slice(&[1, 2, 3]);
+        let parsed_qb2 = Decrypter::parse_qb2(&qb2_stream)?;
+        assert_eq!(parsed_qb2.consumed(), qb2_length);
+        assert!(Decrypter::from_qb2(&qb2_stream).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn kind_mismatch_is_typed_and_precedes_decryption() -> Result<(), CryptoError> {
+        let decrypter = Decrypter::from_qb64(REFERENCE_DECRYPTER_QB64)?;
+        let seed_cipher = Ciphertext::from_qb64(SEED_QB64)?;
+        let salt_cipher = Ciphertext::from_qb64(SALT_QB64)?;
+        assert!(matches!(
+            decrypter.decrypt_seed(&salt_cipher, KeyTransferability::Transferable),
+            Err(CryptoError::CiphertextKindMismatch {
+                expected: "P",
+                actual: "1AAH",
+            })
+        ));
+        assert!(matches!(
+            decrypter.decrypt_salt(&seed_cipher, SecurityTier::Low),
+            Err(CryptoError::CiphertextKindMismatch {
+                expected: "1AAH",
+                actual: "P",
+            })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn tampering_wrong_keys_and_wrong_plaintext_fail_indistinguishably() -> Result<(), CryptoError> {
+        let decrypter = Decrypter::from_qb64(REFERENCE_DECRYPTER_QB64)?;
+
+        for (qb64, region) in [(SEED_QB64, 0_usize), (SEED_QB64, 60), (SALT_QB64, 40)] {
+            let original = Ciphertext::from_qb64(qb64)?;
+            let mut tampered_raw = original.raw().to_vec();
+            if let Some(byte) = tampered_raw.get_mut(region) {
+                *byte ^= 0x01;
+            }
+            let tampered = Ciphertext::from_raw(original.kind(), &tampered_raw)?;
+            let result = match original.kind() {
+                CiphertextKind::QualifiedSeed => decrypter
+                    .decrypt_seed(&tampered, KeyTransferability::Transferable)
+                    .map(|_| ()),
+                _ => decrypter.decrypt_salt(&tampered, SecurityTier::Low).map(|_| ()),
+            };
+            assert!(matches!(
+                result,
+                Err(CryptoError::DecryptionFailed { algorithm }) if algorithm == SEALED_BOX_ALGORITHM
+            ));
+        }
+
+        let wrong_key = Decrypter::from_signer(&Signer::from_seed(&[3_u8; 32], KeyTransferability::Transferable)?);
+        assert!(matches!(
+            wrong_key.decrypt_seed(&Ciphertext::from_qb64(SEED_QB64)?, KeyTransferability::Transferable),
+            Err(CryptoError::DecryptionFailed { .. })
+        ));
+
+        // A sealed box that authenticates but wraps non-seed plaintext must fail identically.
+        let recipient = Signer::from_seed(&CRYPT_SEED, KeyTransferability::Transferable)?;
+        let encrypter = Encrypter::from_verification_key(recipient.verifier())?;
+        let wrong_shape = encrypter.encrypt_with_ephemeral_secret(
+            CiphertextKind::QualifiedSeed,
+            recipient.verifier().qb64()?.as_bytes(),
+            Zeroizing::new([11_u8; X25519_PUBLIC_KEY_SIZE]),
+        )?;
+        assert!(matches!(
+            decrypter.decrypt_seed(&wrong_shape, KeyTransferability::Transferable),
+            Err(CryptoError::DecryptionFailed { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn invalid_decrypter_material_is_rejected() -> Result<(), CryptoError> {
+        let digest = QualifiedMaterial::new(DerivationCode::BLAKE3_256, &[9_u8; 32])?;
+        assert!(matches!(
+            Decrypter::from_qb64(&digest.qb64()?),
+            Err(CryptoError::InvalidDecrypterCode { code: "E" })
+        ));
+        assert!(matches!(
+            Decrypter::from_qb2(&digest.qb2()?),
+            Err(CryptoError::InvalidDecrypterCode { code: "E" })
+        ));
+        assert!(Decrypter::from_raw(&[1_u8; X25519_PRIVATE_KEY_SIZE - 1]).is_err());
+        assert!(Decrypter::from_qb64("").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn decrypter_debug_omits_secret_bytes() -> Result<(), CryptoError> {
+        let decrypter = Decrypter::from_qb64(REFERENCE_DECRYPTER_QB64)?;
+        let debug = format!("{decrypter:?}");
+        assert!(debug.contains("X25519"));
+        assert!(!debug.contains("OLCFxqMz"));
+        let parsed_debug = format!("{:?}", Decrypter::parse_qb64(REFERENCE_DECRYPTER_QB64)?);
+        assert!(!parsed_debug.contains("OLCFxqMz"));
         Ok(())
     }
 }

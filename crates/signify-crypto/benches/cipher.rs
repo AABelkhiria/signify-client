@@ -4,7 +4,8 @@ use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use signify_crypto::{
-    cipher::{Ciphertext, CiphertextKind, Encrypter, SEED_CIPHERTEXT_RAW_SIZE},
+    cipher::{Ciphertext, CiphertextKind, Decrypter, Encrypter, SEED_CIPHERTEXT_RAW_SIZE},
+    salt::{Salt, SecurityTier},
     signer::Signer,
     verifier::KeyTransferability,
 };
@@ -33,6 +34,25 @@ fn benchmark_ciphertext(criterion: &mut Criterion) {
             criterion.bench_function("encrypter_seal_qualified_seed_44_bytes", |bencher| {
                 bencher.iter(|| encrypter.encrypt_seed_qb64(black_box(seed_qb64)));
             });
+
+            criterion.bench_function("decrypter_ed25519_seed_to_x25519_private", |bencher| {
+                bencher.iter(|| Decrypter::from_signer(black_box(&signer)));
+            });
+
+            let decrypter = Decrypter::from_signer(&signer);
+            if let Ok(seed_ciphertext) = encrypter.encrypt_seed_qb64(seed_qb64) {
+                criterion.bench_function("decrypter_open_seed_box_92_bytes", |bencher| {
+                    bencher
+                        .iter(|| decrypter.decrypt_seed(black_box(&seed_ciphertext), KeyTransferability::Transferable));
+                });
+            }
+            if let Ok(salt) = Salt::from_raw(&[0x36_u8; 16], SecurityTier::Low)
+                && let Ok(salt_ciphertext) = encrypter.encrypt_salt(&salt)
+            {
+                criterion.bench_function("decrypter_open_salt_box_72_bytes", |bencher| {
+                    bencher.iter(|| decrypter.decrypt_salt(black_box(&salt_ciphertext), SecurityTier::Low));
+                });
+            }
         }
     }
 }

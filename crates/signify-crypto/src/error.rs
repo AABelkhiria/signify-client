@@ -86,6 +86,27 @@ pub enum CryptoError {
         /// Stable algorithm name without key material.
         algorithm: &'static str,
     },
+    /// Qualified material used a code that cannot represent an X25519 private decryption key.
+    InvalidDecrypterCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// A ciphertext's kind does not match the requested decryption operation.
+    CiphertextKindMismatch {
+        /// Ciphertext derivation code required by the requested operation.
+        expected: &'static str,
+        /// Ciphertext derivation code actually supplied.
+        actual: &'static str,
+    },
+    /// Sealed-box opening or recovered-plaintext validation failed.
+    ///
+    /// This variant deliberately carries no source or stage detail: authentication failure,
+    /// malformed sealed-box framing, and unexpected recovered-plaintext shape are reported
+    /// identically so the error cannot be used as a decryption oracle.
+    DecryptionFailed {
+        /// Stable algorithm name without secret material.
+        algorithm: &'static str,
+    },
     /// A deterministic key-derivation path exceeds the documented byte ceiling.
     DerivationPathTooLong {
         /// Maximum accepted UTF-8 byte length.
@@ -228,6 +249,21 @@ impl fmt::Display for CryptoError {
                     "invalid or non-contributory {algorithm} public encryption key"
                 )
             }
+            Self::InvalidDecrypterCode { code } => {
+                write!(
+                    formatter,
+                    "CESR derivation code {code} is not an X25519 private decryption key"
+                )
+            }
+            Self::CiphertextKindMismatch { expected, actual } => {
+                write!(
+                    formatter,
+                    "ciphertext code {actual} does not match the requested operation's code {expected}"
+                )
+            }
+            Self::DecryptionFailed { algorithm } => {
+                write!(formatter, "{algorithm} decryption failed")
+            }
             Self::DerivationPathTooLong { maximum, actual } => write!(
                 formatter,
                 "key-derivation path is too long: maximum {maximum} UTF-8 bytes, got {actual}"
@@ -299,6 +335,9 @@ impl Error for CryptoError {
             | Self::InvalidEncrypterCode { .. }
             | Self::UnsupportedEncryptionKey { .. }
             | Self::InvalidEncryptionKey { .. }
+            | Self::InvalidDecrypterCode { .. }
+            | Self::CiphertextKindMismatch { .. }
+            | Self::DecryptionFailed { .. }
             | Self::DerivationPathTooLong { .. }
             | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }

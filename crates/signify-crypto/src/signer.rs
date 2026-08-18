@@ -310,6 +310,22 @@ impl Signer {
         self.verifier.is_transferable()
     }
 
+    /// Converts this Ed25519 signing seed to its X25519 private decryption key.
+    ///
+    /// The output is the first SHA-512 half of the seed with the standard X25519 clamp applied,
+    /// matching libsodium's `crypto_sign_ed25519_sk_to_curve25519` byte-for-byte. Clamping is key
+    /// formatting for exact reference parity, not a hand-rolled primitive; the corresponding
+    /// public key is the verifier's Montgomery form. Crate-internal so secret material stays
+    /// inside secret-owning types.
+    pub(crate) fn to_x25519_private_bytes(&self) -> Zeroizing<[u8; ED25519_SEED_SIZE]> {
+        let mut scalar = Zeroizing::new(self.signing_key.to_scalar_bytes());
+        let [first, .., last] = &mut *scalar;
+        *first &= 0b1111_1000;
+        *last &= 0b0111_1111;
+        *last |= 0b0100_0000;
+        scalar
+    }
+
     /// Produces an unindexed Ed25519 signature associated with this signer's public verifier.
     ///
     /// # Errors

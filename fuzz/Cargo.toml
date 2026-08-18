@@ -132,6 +132,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "decrypter"
+path = "fuzz_targets/decrypter.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-18",
+  "sources": [
+    "src/keri/core/decrypter.ts",
+    "src/keri/core/cipher.ts",
+    "src/keri/core/signer.ts",
+    "src/keri/core/salter.ts",
+    "test/core/decrypter.test.ts"
+  ],
+  "algorithm_dependencies": "libsodium-wrappers-sumo 0.8.4 crypto_sign_ed25519_sk_to_curve25519 and crypto_box_seal_open",
+  "secret_fixture_policy": "all fixed seeds, salts, and private keys are deterministic public test material and must never be used as production secrets",
+  "conversion": {
+    "crypt_seed_hex": "682c237c8a702212c4337432a6e11819f066322c79c4c23140f540152ea21acf",
+    "crypt_signer_qb64": "AGgsI3yKcCISxDN0MqbhGBnwZjIsecTCMUD1QBUuohrP",
+    "x25519_private_raw_hex": "b085c6a333d73d54512d131099ef64fff35c772e61d42c48605674e65e639550",
+    "decrypter_code": "O",
+    "decrypter_qb64": "OLCFxqMz1z1UUS0TEJnvZP_zXHcuYdQsSGBWdOZeY5VQ",
+    "from_seed_param_qb64": "OLCFxqMz1z1UUS0TEJnvZP_zXHcuYdQsSGBWdOZeY5VQ",
+    "from_seed_param_matches_raw": true
+  },
+  "stored_reference_ciphertexts": [
+    {
+      "name": "stored_seed_cipher",
+      "qb64": "PM9jOGWNYfjM_oLXJNaQ8UlFSAV5ACjsUY7J16xfzrlpc9Ve3A5WYrZ4o_NHtP5lhp78Usspl9fyFdnCdItNd5JyqZ6dt8SXOt6TOqOCs-gy0obrwFkPPqBvVkEw",
+      "code": "P",
+      "raw_hex": "cf6338658d61f8ccfe82d724d690f149454805790028ec518ec9d7ac5fceb96973d55edc0e5662b678a3f347b4fe65869efc52cb2997d7f215d9c2748b4d779272a99e9db7c4973ade933aa382b3e832d286ebc0590f3ea06f564130",
+      "decrypted_qb64": "ABg7MMQPKnZG-uOiRWVlH5ZvzilHheNYhtoE8NzeBsAr",
+      "decrypted_code": "A",
+      "transferable_verfer_code": "D",
+      "non_transferable_verfer_code": "B",
+      "ser_and_cipher_paths_agree": true,
+      "expected_seed_qb64": "ABg7MMQPKnZG-uOiRWVlH5ZvzilHheNYhtoE8NzeBsAr"
+    },
+    {
+      "name": "stored_salt_cipher",
+      "qb64": "1AAHjlR2QR9J5Et67Wy-ZaVdTryN6T6ohg44r73GLRPnHw-5S3ABFkhWyIwLOI6TXUB_5CT13S8JvknxLxBaF8ANPK9FSOPD8tYu",
+      "code": "1AAH",
+      "raw_hex": "8e5476411f49e44b7aed6cbe65a55d4ebc8de93ea8860e38afbdc62d13e71f0fb94b7001164856c88c0b388e935d407fe424f5dd2f09be49f12f105a17c00d3caf4548e3c3f2d62e",
+      "decrypted_qb64": "0AA2CGQNobs5jXCNoMATSody",
+      "decrypted_code": "0A",
+      "expected_salt_qb64": "0AA2CGQNobs5jXCNoMATSody"
+    }
+  ],
+  "rust_ciphertexts_opened_by_reference_decrypter": [
+    {
+      "name": "fixed_ephemeral_07_seed",
+      "qb64": "PBO-T-rq8gTH_TNY_JwAchiB0XQngSgifsZ0839_6XttzG8cehOC0KYRK_IJh20mnNHMu9QmTEFdMSV-VY13PwMUlyZnoE3_0x-sip0x_7K5J9JfzbLXFBvu7eqQ",
+      "decrypted_qb64": "ABg7MMQPKnZG-uOiRWVlH5ZvzilHheNYhtoE8NzeBsAr",
+      "decrypted_code": "A"
+    },
+    {
+      "name": "fixed_ephemeral_08_salt",
+      "qb64": "1AAHMdSras7slhE3kXA3k25gcW-sVzr-lNnahKgCBEjfwRKrWrKDCDCEa3V8DhzqI1blWMiIGpY432PbGS__nGpEj-rZ5HMqrVls",
+      "decrypted_qb64": "0AA2CGQNobs5jXCNoMATSody",
+      "decrypted_code": "0A"
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "empty_decrypter",
+      "reference_error_category": "EmptyMaterialError",
+      "reference_error_message": "[object Object]",
+      "rust_error_category": "Cesr"
+    },
+    {
+      "name": "unsupported_decrypter_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported decrypter code = A.",
+      "rust_error_category": "InvalidDecrypterCode"
+    },
+    {
+      "name": "salt_material_as_seed_parameter",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported signer code = 0A.",
+      "rust_error_category": "InvalidSigningCode"
+    },
+    {
+      "name": "decrypt_without_input",
+      "reference_error_category": "EmptyMaterialError",
+      "reference_error_message": "[object Object]",
+      "rust_error_category": "UnrepresentableInRust"
+    },
+    {
+      "name": "tampered_seed_ciphertext",
+      "reference_error_category": "Error",
+      "reference_error_message": "incorrect key pair for the given ciphertext",
+      "rust_error_category": "DecryptionFailed"
+    }
+  ],
+  "reference_quirks": {
+    "excess_raw_truncation": {
+      "input_raw_hex": "b085c6a333d73d54512d131099ef64fff35c772e61d42c48605674e65e639550aa",
+      "reference_qb64": "OLCFxqMz1z1UUS0TEJnvZP_zXHcuYdQsSGBWdOZeY5VQ",
+      "truncated_to_reference_key": true,
+      "rust_decision": "reject excess raw bytes with a typed trailing-material error",
+      "rust_error_category": "Cesr"
+    },
+    "data_driven_kind_dispatch": {
+      "note": "the reference decrypt returns a Salter or Signer selected by the ciphertext code, so a caller cannot state which secret kind it expects",
+      "salt_cipher_decrypts_to_code": "0A",
+      "rust_decision": "typed decrypt_seed/decrypt_salt operations reject a mismatched ciphertext kind before opening",
+      "rust_error_category": "CiphertextKindMismatch"
+    },
+    "distinguishable_failure_stages": {
+      "note": "the reference throws different error classes for tampered ciphertexts and for authenticated boxes wrapping unexpected plaintext",
+      "wrong_shape_cipher_code": "P",
+      "wrong_shape_error": {
+        "name": "authenticated_wrong_shape_plaintext",
+        "reference_error_category": "Error",
+        "reference_error_message": "Unsupported signer code = E.",
+        "rust_error_category": "DecryptionFailed"
+      },
+      "rust_decision": "authentication failure and recovered-plaintext failure return one detail-free DecryptionFailed error"
+    }
+  }
+}
