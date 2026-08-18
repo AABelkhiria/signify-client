@@ -15,6 +15,15 @@
 //! behaviors are recorded as defects in `fixtures/keri-version/` and are deliberately not
 //! reproduced.
 
+mod event;
+mod sad;
+
+pub use event::{
+    IDENTIFIER_LABEL, KEYS_LABEL, KIND_LABEL, NEXT_KEYS_LABEL, SAID_LABEL, SEQUENCE_LABEL, SerializationError,
+    SerializedEvent, VERSION_LABEL,
+};
+pub use sad::{MAX_NESTING_DEPTH, MAX_SAFE_INTEGER, MAX_SERIALIZED_BYTES, MIN_SAFE_INTEGER, Sad, SadError, SadValue};
+
 use core::fmt;
 use std::error::Error;
 use std::str::FromStr;

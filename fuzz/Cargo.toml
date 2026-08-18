@@ -139,6 +139,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "serder"
+path = "fuzz_targets/serder.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

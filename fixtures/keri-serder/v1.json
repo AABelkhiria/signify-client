@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-18",
+  "sources": [
+    "src/keri/core/serder.ts",
+    "test/core/serder.test.ts"
+  ],
+  "notes": "pinned_non_ascii_anchor reproduces the unit test's mutation sequence, in which two Prefixer derivations rewrite i and d before the anchor is added",
+  "blake3_prefix": "ECHOi6qRaswNpvytpCtpvEh2cB2aLAwVHBLFinno3YVW",
+  "cases": [
+    {
+      "name": "pinned_inception",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw": "{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303064335f222c2274223a22696370222c2264223a22222c2269223a22222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "byte_size": 211,
+      "reference_size_accessor": 211,
+      "version_string": "KERI10JSON0000d3_",
+      "proto": "KERI",
+      "kind": "JSON",
+      "said": "",
+      "pre": ""
+    },
+    {
+      "name": "pinned_non_ascii_anchor",
+      "input_sad_json": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":{\"n\":\"Lenksjö\"}}",
+      "raw": "{\"v\":\"KERI10JSON000139_\",\"t\":\"icp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":{\"n\":\"Lenksjö\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303133395f222c2274223a22696370222c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2269223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a7b226e223a224c656e6b736ac3b6227d7d",
+      "byte_size": 313,
+      "reference_size_accessor": 312,
+      "version_string": "KERI10JSON000139_",
+      "proto": "KERI",
+      "kind": "JSON",
+      "said": "############################################",
+      "pre": "############################################"
+    },
+    {
+      "name": "pinned_interaction",
+      "input_sad_json": "{\"v\":\"KERI10JSON00013b_\",\"t\":\"ixn\",\"d\":\"EDMbT6cc2P4aPozDJhat1T_S-G98Gc7Jj8K0qxAL7EuC\",\"i\":\"EDKLs7y-U4N_EIv_oqJqdmWOvR5Y-nSEHJPrprT1RLFb\",\"s\":\"39\",\"p\":\"EI696dhEGo9cDK7MpvSsPkNkVhF4pwwgof3GaRVVESXb\",\"a\":[{\"i\":\"EFMXIFSIyEL6JTCyZAbO3nHgSdOw5UbLH9fAr9zO8_LH\",\"s\":\"0\",\"d\":\"EFMXIFSIyEL6JTCyZAbO3nHgSdOw5UbLH9fAr9zO8_LH\"}]}",
+      "raw": "{\"v\":\"KERI10JSON00013b_\",\"t\":\"ixn\",\"d\":\"EDMbT6cc2P4aPozDJhat1T_S-G98Gc7Jj8K0qxAL7EuC\",\"i\":\"EDKLs7y-U4N_EIv_oqJqdmWOvR5Y-nSEHJPrprT1RLFb\",\"s\":\"39\",\"p\":\"EI696dhEGo9cDK7MpvSsPkNkVhF4pwwgof3GaRVVESXb\",\"a\":[{\"i\":\"EFMXIFSIyEL6JTCyZAbO3nHgSdOw5UbLH9fAr9zO8_LH\",\"s\":\"0\",\"d\":\"EFMXIFSIyEL6JTCyZAbO3nHgSdOw5UbLH9fAr9zO8_LH\"}]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303133625f222c2274223a2269786e222c2264223a2245444d625436636332503461506f7a444a68617431545f532d4739384763374a6a384b307178414c37457543222c2269223a2245444b4c7337792d55344e5f4549765f6f714a71646d574f765235592d6e5345484a507270725431524c4662222c2273223a223339222c2270223a224549363936646845476f3963444b374d70765373506b4e6b56684634707777676f6633476152565645535862222c2261223a5b7b2269223a2245464d584946534979454c364a5443795a41624f336e486753644f773555624c4839664172397a4f385f4c48222c2273223a2230222c2264223a2245464d584946534979454c364a5443795a41624f336e486753644f773555624c4839664172397a4f385f4c48227d5d7d",
+      "byte_size": 315,
+      "reference_size_accessor": 315,
+      "version_string": "KERI10JSON00013b_",
+      "proto": "KERI",
+      "kind": "JSON",
+      "said": "EDMbT6cc2P4aPozDJhat1T_S-G98Gc7Jj8K0qxAL7EuC",
+      "pre": "EDKLs7y-U4N_EIv_oqJqdmWOvR5Y-nSEHJPrprT1RLFb"
+    }
+  ],
+  "encoding_cases": [
+    {
+      "name": "escape_matrix",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"quote\":\"\\\"\",\"backslash\":\"\\\\\",\"solidus\":\"/\",\"del\":\"\",\"latin\":\"Lenksjö\",\"cjk\":\"漢字\",\"astral\":\"😀\",\"line_separator\":\" \",\"paragraph_separator\":\" \",\"c00\":\"\\u0000\",\"c01\":\"\\u0001\",\"c02\":\"\\u0002\",\"c03\":\"\\u0003\",\"c04\":\"\\u0004\",\"c05\":\"\\u0005\",\"c06\":\"\\u0006\",\"c07\":\"\\u0007\",\"c08\":\"\\b\",\"c09\":\"\\t\",\"c0a\":\"\\n\",\"c0b\":\"\\u000b\",\"c0c\":\"\\f\",\"c0d\":\"\\r\",\"c0e\":\"\\u000e\",\"c0f\":\"\\u000f\",\"c10\":\"\\u0010\",\"c11\":\"\\u0011\",\"c12\":\"\\u0012\",\"c13\":\"\\u0013\",\"c14\":\"\\u0014\",\"c15\":\"\\u0015\",\"c16\":\"\\u0016\",\"c17\":\"\\u0017\",\"c18\":\"\\u0018\",\"c19\":\"\\u0019\",\"c1a\":\"\\u001a\",\"c1b\":\"\\u001b\",\"c1c\":\"\\u001c\",\"c1d\":\"\\u001d\",\"c1e\":\"\\u001e\",\"c1f\":\"\\u001f\"}",
+      "raw": "{\"v\":\"KERI10JSON000000_\",\"quote\":\"\\\"\",\"backslash\":\"\\\\\",\"solidus\":\"/\",\"del\":\"\",\"latin\":\"Lenksjö\",\"cjk\":\"漢字\",\"astral\":\"😀\",\"line_separator\":\" \",\"paragraph_separator\":\" \",\"c00\":\"\\u0000\",\"c01\":\"\\u0001\",\"c02\":\"\\u0002\",\"c03\":\"\\u0003\",\"c04\":\"\\u0004\",\"c05\":\"\\u0005\",\"c06\":\"\\u0006\",\"c07\":\"\\u0007\",\"c08\":\"\\b\",\"c09\":\"\\t\",\"c0a\":\"\\n\",\"c0b\":\"\\u000b\",\"c0c\":\"\\f\",\"c0d\":\"\\r\",\"c0e\":\"\\u000e\",\"c0f\":\"\\u000f\",\"c10\":\"\\u0010\",\"c11\":\"\\u0011\",\"c12\":\"\\u0012\",\"c13\":\"\\u0013\",\"c14\":\"\\u0014\",\"c15\":\"\\u0015\",\"c16\":\"\\u0016\",\"c17\":\"\\u0017\",\"c18\":\"\\u0018\",\"c19\":\"\\u0019\",\"c1a\":\"\\u001a\",\"c1b\":\"\\u001b\",\"c1c\":\"\\u001c\",\"c1d\":\"\\u001d\",\"c1e\":\"\\u001e\",\"c1f\":\"\\u001f\"}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303030305f222c2271756f7465223a225c22222c226261636b736c617368223a225c5c222c22736f6c69647573223a222f222c2264656c223a227f222c226c6174696e223a224c656e6b736ac3b6222c22636a6b223a22e6bca2e5ad97222c2261737472616c223a22f09f9880222c226c696e655f736570617261746f72223a22e280a8222c227061726167726170685f736570617261746f72223a22e280a9222c22633030223a225c7530303030222c22633031223a225c7530303031222c22633032223a225c7530303032222c22633033223a225c7530303033222c22633034223a225c7530303034222c22633035223a225c7530303035222c22633036223a225c7530303036222c22633037223a225c7530303037222c22633038223a225c62222c22633039223a225c74222c22633061223a225c6e222c22633062223a225c7530303062222c22633063223a225c66222c22633064223a225c72222c22633065223a225c7530303065222c22633066223a225c7530303066222c22633130223a225c7530303130222c22633131223a225c7530303131222c22633132223a225c7530303132222c22633133223a225c7530303133222c22633134223a225c7530303134222c22633135223a225c7530303135222c22633136223a225c7530303136222c22633137223a225c7530303137222c22633138223a225c7530303138222c22633139223a225c7530303139222c22633161223a225c7530303161222c22633162223a225c7530303162222c22633163223a225c7530303163222c22633164223a225c7530303164222c22633165223a225c7530303165222c22633166223a225c7530303166227d"
+    },
+    {
+      "name": "value_shapes",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"empty_object\":{},\"empty_array\":[],\"nested\":{\"a\":[{\"b\":[]}]},\"null_value\":null,\"true_value\":true,\"false_value\":false,\"zero\":0,\"negative\":-17,\"max_safe\":9007199254740991,\"min_safe\":-9007199254740991}",
+      "raw": "{\"v\":\"KERI10JSON000000_\",\"empty_object\":{},\"empty_array\":[],\"nested\":{\"a\":[{\"b\":[]}]},\"null_value\":null,\"true_value\":true,\"false_value\":false,\"zero\":0,\"negative\":-17,\"max_safe\":9007199254740991,\"min_safe\":-9007199254740991}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303030305f222c22656d7074795f6f626a656374223a7b7d2c22656d7074795f6172726179223a5b5d2c226e6573746564223a7b2261223a5b7b2262223a5b5d7d5d7d2c226e756c6c5f76616c7565223a6e756c6c2c22747275655f76616c7565223a747275652c2266616c73655f76616c7565223a66616c73652c227a65726f223a302c226e65676174697665223a2d31372c226d61785f73616665223a393030373139393235343734303939312c226d696e5f73616665223a2d393030373139393235343734303939317d"
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "missing_version_field",
+      "reference_error_category": "Error",
+      "reference_error_message": "Missing or empty version string",
+      "rust_error_category": "MissingVersionField"
+    },
+    {
+      "name": "malformed_version_string",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid version string = NOPE10JSON000000_",
+      "rust_error_category": "Version"
+    },
+    {
+      "name": "unsupported_kind",
+      "reference_error_category": "Error",
+      "reference_error_message": "unsupported event encoding",
+      "rust_error_category": "UnsupportedSerializationKind"
+    }
+  ],
+  "reference_quirks": {
+    "version_field_not_first": {
+      "input_sad_json": "{\"t\":\"icp\",\"v\":\"KERI10JSON000000_\"}",
+      "reference_raw": "{\"t\":\"icp\",\"v\":\"KERI10JSON000023_\"}",
+      "note": "the reference sizes and emits a message whose version string is not the first field, so a stream parser cannot sniff it",
+      "rust_error_category": "VersionFieldNotFirst"
+    },
+    "numeric_key_hoisting": {
+      "input_sad_json": "{\"0\":3,\"1\":2,\"v\":\"KERI10JSON000000_\",\"b\":1}",
+      "reference_raw": "{\"0\":3,\"1\":2,\"v\":\"KERI10JSON000000_\",\"b\":1}",
+      "note": "JavaScript objects order array-index-like keys numerically ahead of the rest; keripy dicts and the Rust port preserve insertion order",
+      "rust_raw": "{\"v\":\"KERI10JSON000000_\",\"b\":1,\"1\":2,\"0\":3}"
+    },
+    "duplicate_field_last_wins": {
+      "input_raw": "{\"v\":\"KERI10JSON000000_\",\"a\":1,\"a\":2}",
+      "reference_reparsed": "{\"v\":\"KERI10JSON000000_\",\"a\":2}",
+      "note": "JSON.parse keeps the last value at the first position; Rust rejects the ambiguity",
+      "rust_error_category": "DuplicateField"
+    },
+    "embedded_version_string_undersizes": {
+      "input_sad_json": "{\"v\":\"XXKERI10JSON000000_YY\",\"t\":\"icp\"}",
+      "reference_raw": "{\"v\":\"KERI10JSON000027_\",\"t\":\"icp\"}",
+      "reference_byte_size": 35,
+      "reference_declared_size": "KERI10JSON000027_",
+      "note": "the reference's unanchored version regex accepts a padded version string, computes the size while the longer value is still present, then substitutes a 17-byte one, so the declared size overstates the message by the padding width",
+      "rust_error_category": "Version"
+    },
+    "utf16_size_accessor": {
+      "raw": "{\"v\":\"KERI10JSON000139_\",\"t\":\"icp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":{\"n\":\"Lenksjö\"}}",
+      "reference_size_accessor": 312,
+      "byte_size": 313,
+      "note": "Serder.size reports a JavaScript string length, so it undercounts every non-ASCII message; the version string itself correctly counts UTF-8 bytes"
+    },
+    "number_renormalization": {
+      "input_raw": "{\"v\":\"KERI10JSON000000_\",\"a\":1.50,\"b\":1e2,\"c\":9007199254740993,\"d\":3.0}",
+      "reference_reparsed": "{\"v\":\"KERI10JSON000000_\",\"a\":1.5,\"b\":100,\"c\":9007199254740992,\"d\":3}",
+      "note": "JSON.parse/stringify re-spells numbers through IEEE-754, changing bytes and therefore any SAID computed over them; Rust rejects fractional, exponent, and unsafe-magnitude numbers instead",
+      "rust_error_categories": [
+        "UnsupportedNumber",
+        "IntegerOutOfRangeAt"
+      ]
+    }
+  }
+}
