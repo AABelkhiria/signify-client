@@ -369,6 +369,15 @@ impl VerificationKey {
         }
     }
 
+    pub(crate) fn x25519_public_bytes(&self) -> Result<[u8; ED25519_PUBLIC_KEY_SIZE], CryptoError> {
+        match &self.material {
+            VerificationMaterial::Ed25519 { key, .. } => Ok(key.to_montgomery().to_bytes()),
+            VerificationMaterial::EcdsaP256 { .. } => Err(CryptoError::UnsupportedEncryptionKey {
+                algorithm: VerificationAlgorithm::EcdsaP256.name(),
+            }),
+        }
+    }
+
     fn material(&self) -> Result<QualifiedMaterial, CryptoError> {
         Ok(QualifiedMaterial::new(self.code(), self.raw())?)
     }

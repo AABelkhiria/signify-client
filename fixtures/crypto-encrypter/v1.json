@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-14",
+  "sources": [
+    "src/keri/core/encrypter.ts",
+    "src/keri/core/cipher.ts",
+    "src/keri/core/signer.ts",
+    "src/keri/core/verfer.ts",
+    "test/core/encrypter.test.ts",
+    "test/core/decrypter.test.ts"
+  ],
+  "algorithm_dependencies": "libsodium-wrappers-sumo 0.8.4 Ed25519-to-X25519 conversion and crypto_box_seal_open",
+  "secret_fixture_policy": "all fixed seeds and ephemeral secrets are deterministic public test material and must never be used as production secrets",
+  "encrypter": {
+    "code": "C",
+    "raw_hex": "017b5abdd736ae6102b70eb81273698e8d776de382d51523a2837dbdd59e0911",
+    "qb64": "CAF7Wr3XNq5hArcOuBJzaY6Nd23jgtUVI6KDfb3VngkR",
+    "verifier_qb64": "DCa7mK96FwxkU0TdF54Yqg3qBDXUWpOhQ_Mtr7E77yZB",
+    "from_verifier_qb64": "CAF7Wr3XNq5hArcOuBJzaY6Nd23jgtUVI6KDfb3VngkR",
+    "crypt_seed_qb64": "AGgsI3yKcCISxDN0MqbhGBnwZjIsecTCMUD1QBUuohrP",
+    "verifies_crypt_seed": true,
+    "rejects_other_valid_seed": true
+  },
+  "rust_ciphertexts_accepted_by_reference": [
+    {
+      "name": "fixed_ephemeral_07_seed",
+      "ephemeral_secret_hex": "0707070707070707070707070707070707070707070707070707070707070707",
+      "plaintext_kind": "qualified_seed",
+      "plaintext_qb64": "ABg7MMQPKnZG-uOiRWVlH5ZvzilHheNYhtoE8NzeBsAr",
+      "code": "P",
+      "raw_hex": "13be4feaeaf204c7fd3358fc9c00721881d174278128227ec674f37f7fe97b6dcc6f1c7a1382d0a6112bf209876d269cd1ccbbd4264c415d31257e558d773f0314972667a04dffd31fac8a9d31ffb2b927d25fcdb2d7141beeedea90",
+      "qb64": "PBO-T-rq8gTH_TNY_JwAchiB0XQngSgifsZ0839_6XttzG8cehOC0KYRK_IJh20mnNHMu9QmTEFdMSV-VY13PwMUlyZnoE3_0x-sip0x_7K5J9JfzbLXFBvu7eqQ",
+      "opened_plaintext_hex": "414267374d4d51504b6e5a472d754f695257566c48355a767a696c4868654e5968746f45384e7a6542734172"
+    },
+    {
+      "name": "fixed_ephemeral_08_salt",
+      "ephemeral_secret_hex": "0808080808080808080808080808080808080808080808080808080808080808",
+      "plaintext_kind": "qualified_salt",
+      "plaintext_qb64": "0AA2CGQNobs5jXCNoMATSody",
+      "code": "1AAH",
+      "raw_hex": "31d4ab6aceec961137917037936e60716fac573afe94d9da84a8020448dfc112ab5ab2830830846b757c0e1cea2356e558c8881a9638df63db192fff9c6a448fead9e4732aad596c",
+      "qb64": "1AAHMdSras7slhE3kXA3k25gcW-sVzr-lNnahKgCBEjfwRKrWrKDCDCEa3V8DhzqI1blWMiIGpY432PbGS__nGpEj-rZ5HMqrVls",
+      "opened_plaintext_hex": "304141324347514e6f6273356a58434e6f4d4154536f6479"
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "empty_encrypter",
+      "reference_error_category": "EmptyMaterialError",
+      "reference_error_message": "[object Object]",
+      "rust_error_category": "EmptyInput"
+    },
+    {
+      "name": "p256_verifier",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported verkey derivation code = 1AAJ.",
+      "rust_error_category": "UnsupportedEncryptionKey"
+    },
+    {
+      "name": "missing_plaintext",
+      "reference_error_category": "Error",
+      "reference_error_message": "Neither ser nor matter are provided.",
+      "rust_error_category": "TypedPlaintextRequired"
+    }
+  ],
+  "reference_quirks": {
+    "arbitrary_matter_is_labeled_as_seed": {
+      "input_code": "E",
+      "reference_cipher_code": "P",
+      "rust_decision": "encrypt_seed_qb64 strictly accepts only canonical Ed25519 seed material; salt encryption requires a typed Salt",
+      "rust_error_category": "InvalidSigningCode"
+    },
+    "public_key_validation": {
+      "reference_accepts_non_contributory_raw_key": true,
+      "rust_decision": "reject non-contributory X25519 public keys before sealed-box encryption",
+      "rust_error_category": "InvalidEncryptionKey"
+    }
+  }
+}

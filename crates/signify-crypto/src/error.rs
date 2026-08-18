@@ -71,6 +71,21 @@ pub enum CryptoError {
         /// Supplied raw ciphertext width.
         actual: usize,
     },
+    /// Qualified material used a code that cannot represent an X25519 encryption key.
+    InvalidEncrypterCode {
+        /// Rejected, bounded derivation code.
+        code: &'static str,
+    },
+    /// A verification-key algorithm cannot be converted to the X25519 encryption domain.
+    UnsupportedEncryptionKey {
+        /// Stable source algorithm name without key material.
+        algorithm: &'static str,
+    },
+    /// Public X25519 material is non-contributory and unsafe for key agreement.
+    InvalidEncryptionKey {
+        /// Stable algorithm name without key material.
+        algorithm: &'static str,
+    },
     /// A deterministic key-derivation path exceeds the documented byte ceiling.
     DerivationPathTooLong {
         /// Maximum accepted UTF-8 byte length.
@@ -135,9 +150,20 @@ pub enum CryptoError {
         /// Underlying primitive failure.
         source: Box<dyn Error + Send + Sync>,
     },
+    /// An established sealed-box primitive rejected an encryption operation.
+    EncryptionFailed {
+        /// Stable algorithm name without secret material.
+        algorithm: &'static str,
+        /// Underlying primitive failure.
+        source: Box<dyn Error + Send + Sync>,
+    },
 }
 
 impl fmt::Display for CryptoError {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "one exhaustive match keeps every public error variant's stable message auditable"
+    )]
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Cesr { source } => write!(formatter, "CESR cryptographic material error: {source}"),
@@ -190,6 +216,18 @@ impl fmt::Display for CryptoError {
                 formatter,
                 "invalid raw ciphertext length: expected 72 or 92 bytes, got {actual}"
             ),
+            Self::InvalidEncrypterCode { code } => {
+                write!(formatter, "CESR derivation code {code} is not an X25519 encryption key")
+            }
+            Self::UnsupportedEncryptionKey { algorithm } => {
+                write!(formatter, "{algorithm} verification keys cannot be converted to X25519")
+            }
+            Self::InvalidEncryptionKey { algorithm } => {
+                write!(
+                    formatter,
+                    "invalid or non-contributory {algorithm} public encryption key"
+                )
+            }
             Self::DerivationPathTooLong { maximum, actual } => write!(
                 formatter,
                 "key-derivation path is too long: maximum {maximum} UTF-8 bytes, got {actual}"
@@ -231,6 +269,9 @@ impl fmt::Display for CryptoError {
             Self::SigningFailed { algorithm, .. } => {
                 write!(formatter, "{algorithm} signing failed")
             }
+            Self::EncryptionFailed { algorithm, .. } => {
+                write!(formatter, "{algorithm} encryption failed")
+            }
         }
     }
 }
@@ -241,6 +282,7 @@ impl Error for CryptoError {
             Self::Cesr { source } => Some(source.as_ref()),
             Self::EntropyUnavailable { source }
             | Self::SigningFailed { source, .. }
+            | Self::EncryptionFailed { source, .. }
             | Self::KeyDerivationMemoryUnavailable { source, .. }
             | Self::KeyDerivationFailed { source, .. } => Some(source.as_ref()),
             Self::InvalidDigestCode { .. }
@@ -254,6 +296,9 @@ impl Error for CryptoError {
             | Self::InvalidSaltCode { .. }
             | Self::InvalidCiphertextCode { .. }
             | Self::InvalidCiphertextLength { .. }
+            | Self::InvalidEncrypterCode { .. }
+            | Self::UnsupportedEncryptionKey { .. }
+            | Self::InvalidEncryptionKey { .. }
             | Self::DerivationPathTooLong { .. }
             | Self::SignatureVerifierMismatch { .. }
             | Self::InvalidVerificationKey { .. }
