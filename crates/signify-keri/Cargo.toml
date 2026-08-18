@@ -23,5 +23,9 @@ serde.workspace = true
 name = "threshold"
 harness = false
 
+[[bench]]
+name = "version"
+harness = false
+
 [lints]
 workspace = true

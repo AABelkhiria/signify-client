@@ -2,4 +2,6 @@
 
 #![forbid(unsafe_code)]
 
+pub mod event;
+pub mod serialization;
 pub mod threshold;

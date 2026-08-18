@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-18",
+  "sources": [
+    "src/keri/core/core.ts",
+    "test/core/serder.test.ts"
+  ],
+  "constants": {
+    "verfullsize": 17,
+    "minsniffsize": 29,
+    "minsigsize": 4,
+    "verex": "(KERI|ACDC)([0-9a-f])([0-9a-f])([A-Z]{4})([0-9a-f]{6})_",
+    "protocols": [
+      "KERI",
+      "ACDC"
+    ],
+    "serializations": [
+      "JSON"
+    ]
+  },
+  "ilks": {
+    "icp": "icp",
+    "rot": "rot",
+    "ixn": "ixn",
+    "dip": "dip",
+    "drt": "drt",
+    "rct": "rct",
+    "vrc": "vrc",
+    "rpy": "rpy",
+    "exn": "exn",
+    "vcp": "vcp",
+    "iss": "iss",
+    "rev": "rev",
+    "bis": "bis",
+    "brv": "brv"
+  },
+  "default_versify": {
+    "no_arguments": "KERI10JSON000000_",
+    "acdc_defaults": "ACDC10JSON000000_"
+  },
+  "versify_cases": [
+    {
+      "name": "keri_v1_json_empty",
+      "protocol": "KERI",
+      "major": 1,
+      "minor": 0,
+      "kind": "JSON",
+      "size": 0,
+      "output": "KERI10JSON000000_"
+    },
+    {
+      "name": "keri_v1_json_serder_size",
+      "protocol": "KERI",
+      "major": 1,
+      "minor": 0,
+      "kind": "JSON",
+      "size": 284,
+      "output": "KERI10JSON00011c_"
+    },
+    {
+      "name": "acdc_v1_json_251",
+      "protocol": "ACDC",
+      "major": 1,
+      "minor": 0,
+      "kind": "JSON",
+      "size": 251,
+      "output": "ACDC10JSON0000fb_"
+    },
+    {
+      "name": "keri_v1_json_max_size",
+      "protocol": "KERI",
+      "major": 1,
+      "minor": 0,
+      "kind": "JSON",
+      "size": 16777215,
+      "output": "KERI10JSONffffff_"
+    },
+    {
+      "name": "keri_v2_1_json",
+      "protocol": "KERI",
+      "major": 2,
+      "minor": 1,
+      "kind": "JSON",
+      "size": 291,
+      "output": "KERI21JSON000123_"
+    },
+    {
+      "name": "keri_vf_f_json",
+      "protocol": "KERI",
+      "major": 15,
+      "minor": 15,
+      "kind": "JSON",
+      "size": 0,
+      "output": "KERIffJSON000000_"
+    }
+  ],
+  "deversify_cases": [
+    {
+      "name": "serder_unit_test_vector",
+      "input": "KERI10JSON00011c_",
+      "protocol": "KERI",
+      "kind": "JSON",
+      "major": "1",
+      "minor": "0",
+      "size_hex": "00011c"
+    },
+    {
+      "name": "keri_empty_size",
+      "input": "KERI10JSON000000_",
+      "protocol": "KERI",
+      "kind": "JSON",
+      "major": "1",
+      "minor": "0",
+      "size_hex": "000000"
+    },
+    {
+      "name": "acdc_251",
+      "input": "ACDC10JSON0000fb_",
+      "protocol": "ACDC",
+      "kind": "JSON",
+      "major": "1",
+      "minor": "0",
+      "size_hex": "0000fb"
+    },
+    {
+      "name": "keri_max_size",
+      "input": "KERI10JSONffffff_",
+      "protocol": "KERI",
+      "kind": "JSON",
+      "major": "1",
+      "minor": "0",
+      "size_hex": "ffffff"
+    },
+    {
+      "name": "unsupported_version_2_1_accepted",
+      "input": "KERI21JSON000123_",
+      "protocol": "KERI",
+      "kind": "JSON",
+      "major": "2",
+      "minor": "1",
+      "size_hex": "000123"
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "empty_input",
+      "input": "",
+      "reference_error_message": "Invalid version string = ",
+      "rust_error_category": "InvalidLength"
+    },
+    {
+      "name": "missing_terminator",
+      "input": "KERI10JSON000000",
+      "reference_error_message": "Invalid version string = KERI10JSON000000",
+      "rust_error_category": "InvalidLength"
+    },
+    {
+      "name": "wrong_terminator",
+      "input": "KERI10JSON000000-",
+      "reference_error_message": "Invalid version string = KERI10JSON000000-",
+      "rust_error_category": "MissingTerminator"
+    },
+    {
+      "name": "unknown_protocol",
+      "input": "XERI10JSON000000_",
+      "reference_error_message": "Invalid version string = XERI10JSON000000_",
+      "rust_error_category": "UnsupportedProtocol"
+    },
+    {
+      "name": "unsupported_kind_cbor",
+      "input": "KERI10CBOR000000_",
+      "reference_error_message": "Invalid serialization kind = CBOR",
+      "rust_error_category": "UnsupportedSerialization"
+    },
+    {
+      "name": "lowercase_kind",
+      "input": "KERI10json000000_",
+      "reference_error_message": "Invalid version string = KERI10json000000_",
+      "rust_error_category": "UnsupportedSerialization"
+    },
+    {
+      "name": "uppercase_major_digit",
+      "input": "KERIA0JSON000000_",
+      "reference_error_message": "Invalid version string = KERIA0JSON000000_",
+      "rust_error_category": "InvalidVersionDigit"
+    },
+    {
+      "name": "uppercase_size_digit",
+      "input": "KERI10JSON00011C_",
+      "reference_error_message": "Invalid version string = KERI10JSON00011C_",
+      "rust_error_category": "InvalidSizeDigit"
+    },
+    {
+      "name": "non_hex_size_digit",
+      "input": "KERI10JSON00011G_",
+      "reference_error_message": "Invalid version string = KERI10JSON00011G_",
+      "rust_error_category": "InvalidSizeDigit"
+    }
+  ],
+  "reference_quirks": {
+    "unanchored_match": {
+      "input": "XXKERI10JSON00011c_YY",
+      "protocol": "KERI",
+      "kind": "JSON",
+      "size_hex": "00011c",
+      "rust_error_category": "InvalidLength"
+    },
+    "hex_digit_decimal_coercion": {
+      "input": "KERIa0JSON000000_",
+      "major": "NaN",
+      "minor": "0",
+      "rust_major": 10,
+      "note": "the reference coerces the hexadecimal major digit with decimal semantics"
+    },
+    "aliased_version_objects": {
+      "inputs": [
+        "XXKERI10JSON00011c_YY",
+        "KERIa0JSON000000_",
+        "KERI21JSON000000_"
+      ],
+      "all_returns_are_one_object": true,
+      "note": "every deversify result aliases the same mutable Version singleton"
+    },
+    "shared_default_version_mutation": {
+      "input": "KERI21JSON000000_",
+      "returns_shared_singleton": true,
+      "default_versify_after_parse": "KERI21JSON000000_",
+      "note": "deversify mutates and returns the module-global Vrsn_1_0 default"
+    },
+    "size_overflow_emission": {
+      "size": 16777216,
+      "output": "KERI10JSON1000000_",
+      "rust_error_category": "SizeOutOfRange"
+    },
+    "negative_size_emission": {
+      "size": -1,
+      "output": "KERI10JSON0000-1_",
+      "rust_error_category": "Unrepresentable"
+    },
+    "major_overflow_emission": {
+      "major": 16,
+      "output": "KERI100JSON000000_",
+      "rust_error_category": "VersionComponentOutOfRange"
+    }
+  }
+}

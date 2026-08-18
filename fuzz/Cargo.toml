@@ -125,6 +125,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "version"
+path = "fuzz_targets/version.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
