@@ -1,0 +1,829 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-19",
+  "sources": [
+    "src/keri/core/eventing.ts",
+    "test/core/eventing.test.ts"
+  ],
+  "keys": {
+    "transferable": "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+    "non_transferable": "BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+    "second": "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ",
+    "next_digest": "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W",
+    "multisig": [
+      "DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2",
+      "DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX",
+      "DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU"
+    ],
+    "next_digests": [
+      "EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy",
+      "EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk"
+    ],
+    "witnesses": [
+      "BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln",
+      "BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp",
+      "BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN"
+    ]
+  },
+  "cases": [
+    {
+      "name": "pinned_non_transferable_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ]
+      },
+      "event_kind": "icp",
+      "identifier": "BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+      "said": "EMW0zK3bagYPO6gx3w7Ua90f-I7x5kGIaI4Xeq9W8_As",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0000fd_",
+      "raw": "{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EMW0zK3bagYPO6gx3w7Ua90f-I7x5kGIaI4Xeq9W8_As\",\"i\":\"BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303066645f222c2274223a22696370222c2264223a22454d57307a4b3362616759504f36677833773755613930662d493778356b47496149345865713957385f4173222c2269223a22424673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848222c2273223a2230222c226b74223a2231222c226b223a5b22424673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2230222c226e223a5b5d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 253
+    },
+    {
+      "name": "pinned_transferable_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ]
+      },
+      "event_kind": "icp",
+      "identifier": "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+      "said": "EPLRRJFe2FHdXKVTkSEX4xb4x-YaPFJ2Xds1vhtNTd4n",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0000fd_",
+      "raw": "{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EPLRRJFe2FHdXKVTkSEX4xb4x-YaPFJ2Xds1vhtNTd4n\",\"i\":\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303066645f222c2274223a22696370222c2264223a2245504c52524a466532464864584b56546b53455834786234782d596150464a32586473317668744e5464346e222c2269223a22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848222c2273223a2230222c226b74223a2231222c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2230222c226e223a5b5d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 253
+    },
+    {
+      "name": "pinned_self_addressing_inception_text",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "code": "E",
+        "intive": false
+      },
+      "event_kind": "icp",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON00012b_",
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303132625f222c2274223a22696370222c2264223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2230222c226b74223a2231222c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 299
+    },
+    {
+      "name": "pinned_self_addressing_inception_integer",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "code": "E",
+        "intive": true
+      },
+      "event_kind": "icp",
+      "identifier": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "said": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON000125_",
+      "raw": "{\"v\":\"KERI10JSON000125_\",\"t\":\"icp\",\"d\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"s\":\"0\",\"kt\":1,\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":1,\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":0,\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303132355f222c2274223a22696370222c2264223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c2273223a2230222c226b74223a312c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a312c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a302c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 293
+    },
+    {
+      "name": "multisig_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2",
+          "DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX",
+          "DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU"
+        ],
+        "isith": 2,
+        "ndigs": [
+          "EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy",
+          "EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk"
+        ],
+        "nsith": 1,
+        "code": "E"
+      },
+      "event_kind": "icp",
+      "identifier": "EC8dwJFRgA-rX88Ooxfc0tm7yttGf1gTVqp5X1CfkRwX",
+      "said": "EC8dwJFRgA-rX88Ooxfc0tm7yttGf1gTVqp5X1CfkRwX",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0001b8_",
+      "raw": "{\"v\":\"KERI10JSON0001b8_\",\"t\":\"icp\",\"d\":\"EC8dwJFRgA-rX88Ooxfc0tm7yttGf1gTVqp5X1CfkRwX\",\"i\":\"EC8dwJFRgA-rX88Ooxfc0tm7yttGf1gTVqp5X1CfkRwX\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2\",\"DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX\",\"DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU\"],\"nt\":\"1\",\"n\":[\"EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy\",\"EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303162385f222c2274223a22696370222c2264223a2245433864774a465267412d725838384f6f78666330746d37797474476631675456717035583143666b527758222c2269223a2245433864774a465267412d725838384f6f78666330746d37797474476631675456717035583143666b527758222c2273223a2230222c226b74223a2232222c226b223a5b224442334d42485241366270507778592d517079775855774e522d375743454f35506d555a56337859426b6b32222c2244495567686c564f5569563865464c733563502d773668574d4a6f734836544c61583942714f534936385758222c22444272634e624c5738326b6e385970484b336f4a7a475f6144696939305532516e32514c51696d436d4f5755225d2c226e74223a2231222c226e223a5b22454e39337a7a46695f4a486b5f5339465934724b494558635375612d7a6f3159304e6c787443334572734479222c224544576e624d5f6171586d5a387534346335336f624737336e4d424862613261637a664a332d61426a784d6b225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 440
+    },
+    {
+      "name": "weighted_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2",
+          "DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX",
+          "DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU"
+        ],
+        "isith": [
+          "1/2",
+          "1/2",
+          "1/2"
+        ],
+        "ndigs": [
+          "EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy",
+          "EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk"
+        ],
+        "nsith": 1,
+        "code": "E"
+      },
+      "event_kind": "icp",
+      "identifier": "EPfRPnWwNT2uRilKyPyZJYHbHaQAcJKGFkzBADDgCGS-",
+      "said": "EPfRPnWwNT2uRilKyPyZJYHbHaQAcJKGFkzBADDgCGS-",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0001c8_",
+      "raw": "{\"v\":\"KERI10JSON0001c8_\",\"t\":\"icp\",\"d\":\"EPfRPnWwNT2uRilKyPyZJYHbHaQAcJKGFkzBADDgCGS-\",\"i\":\"EPfRPnWwNT2uRilKyPyZJYHbHaQAcJKGFkzBADDgCGS-\",\"s\":\"0\",\"kt\":[\"1/2\",\"1/2\",\"1/2\"],\"k\":[\"DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2\",\"DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX\",\"DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU\"],\"nt\":\"1\",\"n\":[\"EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy\",\"EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303163385f222c2274223a22696370222c2264223a2245506652506e57774e54327552696c4b7950795a4a59486248615141634a4b47466b7a42414444674347532d222c2269223a2245506652506e57774e54327552696c4b7950795a4a59486248615141634a4b47466b7a42414444674347532d222c2273223a2230222c226b74223a5b22312f32222c22312f32222c22312f32225d2c226b223a5b224442334d42485241366270507778592d517079775855774e522d375743454f35506d555a56337859426b6b32222c2244495567686c564f5569563865464c733563502d773668574d4a6f734836544c61583942714f534936385758222c22444272634e624c5738326b6e385970484b336f4a7a475f6144696939305532516e32514c51696d436d4f5755225d2c226e74223a2231222c226e223a5b22454e39337a7a46695f4a486b5f5339465934724b494558635375612d7a6f3159304e6c787443334572734479222c224544576e624d5f6171586d5a387534346335336f624737336e4d424862613261637a664a332d61426a784d6b225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 456
+    },
+    {
+      "name": "multi_clause_weighted_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2",
+          "DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX",
+          "DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU"
+        ],
+        "isith": [
+          [
+            "1/2",
+            "1/2"
+          ],
+          [
+            "1"
+          ]
+        ],
+        "ndigs": [
+          "EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy",
+          "EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk"
+        ],
+        "nsith": 1,
+        "code": "E"
+      },
+      "event_kind": "icp",
+      "identifier": "EAAzezLoWzyXLly_7uz4KZjRRL3o8VD5tzCB8U7UxciI",
+      "said": "EAAzezLoWzyXLly_7uz4KZjRRL3o8VD5tzCB8U7UxciI",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0001ca_",
+      "raw": "{\"v\":\"KERI10JSON0001ca_\",\"t\":\"icp\",\"d\":\"EAAzezLoWzyXLly_7uz4KZjRRL3o8VD5tzCB8U7UxciI\",\"i\":\"EAAzezLoWzyXLly_7uz4KZjRRL3o8VD5tzCB8U7UxciI\",\"s\":\"0\",\"kt\":[[\"1/2\",\"1/2\"],[\"1\"]],\"k\":[\"DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2\",\"DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX\",\"DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU\"],\"nt\":\"1\",\"n\":[\"EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy\",\"EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303163615f222c2274223a22696370222c2264223a224541417a657a4c6f577a79584c6c795f37757a344b5a6a52524c336f38564435747a43423855375578636949222c2269223a224541417a657a4c6f577a79584c6c795f37757a344b5a6a52524c336f38564435747a43423855375578636949222c2273223a2230222c226b74223a5b5b22312f32222c22312f32225d2c5b2231225d5d2c226b223a5b224442334d42485241366270507778592d517079775855774e522d375743454f35506d555a56337859426b6b32222c2244495567686c564f5569563865464c733563502d773668574d4a6f734836544c61583942714f534936385758222c22444272634e624c5738326b6e385970484b336f4a7a475f6144696939305532516e32514c51696d436d4f5755225d2c226e74223a2231222c226e223a5b22454e39337a7a46695f4a486b5f5339465934724b494558635375612d7a6f3159304e6c787443334572734479222c224544576e624d5f6171586d5a387534346335336f624737336e4d424862613261637a664a332d61426a784d6b225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 458
+    },
+    {
+      "name": "witnessed_inception_default_toad",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "wits": [
+          "BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln",
+          "BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp",
+          "BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN"
+        ],
+        "code": "E"
+      },
+      "event_kind": "icp",
+      "identifier": "EP_kIy8tEuz_APP1iR9kui6wHn8C_UiXxHUA7H8XuC0u",
+      "said": "EP_kIy8tEuz_APP1iR9kui6wHn8C_UiXxHUA7H8XuC0u",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0001b7_",
+      "raw": "{\"v\":\"KERI10JSON0001b7_\",\"t\":\"icp\",\"d\":\"EP_kIy8tEuz_APP1iR9kui6wHn8C_UiXxHUA7H8XuC0u\",\"i\":\"EP_kIy8tEuz_APP1iR9kui6wHn8C_UiXxHUA7H8XuC0u\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"3\",\"b\":[\"BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln\",\"BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp\",\"BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN\"],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303162375f222c2274223a22696370222c2264223a2245505f6b4979387445757a5f415050316952396b75693677486e38435f556958784855413748385875433075222c2269223a2245505f6b4979387445757a5f415050316952396b75693677486e38435f556958784855413748385875433075222c2273223a2230222c226b74223a2231222c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2233222c2262223a5b2242415f3443702d65444e69734c3754794e46666543724e6375706a52506543796a622d636d4e6f4d34496c6e222c22424836774f3278374a545573713762496761637832466676715354514d30387a48576d377547544533357a70222c22424842465a6a6d3065525057507a54726c714b654f323576364b774d6f6d383839483278686e49497732494e225d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 439
+    },
+    {
+      "name": "witnessed_inception_integer_toad",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "wits": [
+          "BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln",
+          "BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp",
+          "BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN"
+        ],
+        "toad": 2,
+        "code": "E",
+        "intive": true
+      },
+      "event_kind": "icp",
+      "identifier": "EIBgWlPgNSG-JPxVLVqySRRd8QYAvqsn7vMhiuqvgg0D",
+      "said": "EIBgWlPgNSG-JPxVLVqySRRd8QYAvqsn7vMhiuqvgg0D",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0001b1_",
+      "raw": "{\"v\":\"KERI10JSON0001b1_\",\"t\":\"icp\",\"d\":\"EIBgWlPgNSG-JPxVLVqySRRd8QYAvqsn7vMhiuqvgg0D\",\"i\":\"EIBgWlPgNSG-JPxVLVqySRRd8QYAvqsn7vMhiuqvgg0D\",\"s\":\"0\",\"kt\":1,\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":1,\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":2,\"b\":[\"BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln\",\"BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp\",\"BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN\"],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303162315f222c2274223a22696370222c2264223a2245494267576c50674e53472d4a5078564c56717953525264385159417671736e37764d686975717667673044222c2269223a2245494267576c50674e53472d4a5078564c56717953525264385159417671736e37764d686975717667673044222c2273223a2230222c226b74223a312c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a312c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a322c2262223a5b2242415f3443702d65444e69734c3754794e46666543724e6375706a52506543796a622d636d4e6f4d34496c6e222c22424836774f3278374a545573713762496761637832466676715354514d30387a48576d377547544533357a70222c22424842465a6a6d3065525057507a54726c714b654f323576364b774d6f6d383839483278686e49497732494e225d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 433
+    },
+    {
+      "name": "configured_and_anchored_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "cnfg": [
+          "EO",
+          "DND"
+        ],
+        "data": [
+          {
+            "i": "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+            "s": "0"
+          }
+        ],
+        "code": "E"
+      },
+      "event_kind": "icp",
+      "identifier": "EPAUxv42c9SEMpXgMUMlsDBZjHjXqrQTYZvFn2jC7TGi",
+      "said": "EPAUxv42c9SEMpXgMUMlsDBZjHjXqrQTYZvFn2jC7TGi",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON000171_",
+      "raw": "{\"v\":\"KERI10JSON000171_\",\"t\":\"icp\",\"d\":\"EPAUxv42c9SEMpXgMUMlsDBZjHjXqrQTYZvFn2jC7TGi\",\"i\":\"EPAUxv42c9SEMpXgMUMlsDBZjHjXqrQTYZvFn2jC7TGi\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"b\":[],\"c\":[\"EO\",\"DND\"],\"a\":[{\"i\":\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\",\"s\":\"0\"}]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303137315f222c2274223a22696370222c2264223a224550415578763432633953454d7058674d554d6c7344425a6a486a5871725154595a76466e326a4337544769222c2269223a224550415578763432633953454d7058674d554d6c7344425a6a486a5871725154595a76466e326a4337544769222c2273223a2230222c226b74223a2231222c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c2262223a5b5d2c2263223a5b22454f222c22444e44225d2c2261223a5b7b2269223a22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848222c2273223a2230227d5d7d",
+      "raw_byte_size": 369
+    },
+    {
+      "name": "abandoned_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [],
+        "code": "E"
+      },
+      "event_kind": "icp",
+      "identifier": "EMnZV0Coo4PxMZ8R3PvVOun_7bP7ggnBfNvV2xAd4sJf",
+      "said": "EMnZV0Coo4PxMZ8R3PvVOun_7bP7ggnBfNvV2xAd4sJf",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON0000fd_",
+      "raw": "{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EMnZV0Coo4PxMZ8R3PvVOun_7bP7ggnBfNvV2xAd4sJf\",\"i\":\"EMnZV0Coo4PxMZ8R3PvVOun_7bP7ggnBfNvV2xAd4sJf\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303066645f222c2274223a22696370222c2264223a22454d6e5a5630436f6f3450784d5a3852335076564f756e5f3762503767676e42664e76563278416434734a66222c2269223a22454d6e5a5630436f6f3450784d5a3852335076564f756e5f3762503767676e42664e76563278416434734a66222c2273223a2230222c226b74223a2231222c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2230222c226e223a5b5d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 253
+    },
+    {
+      "name": "delegated_inception",
+      "inputs": {
+        "builder": "incept",
+        "keys": [
+          "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "delpre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"
+      },
+      "event_kind": "dip",
+      "identifier": "EB8MUdqNW6WFeOCLWJs-ma_09uOF4NuItdAxDIQywg6O",
+      "said": "EB8MUdqNW6WFeOCLWJs-ma_09uOF4NuItdAxDIQywg6O",
+      "sequence_number": "0",
+      "version_string": "KERI10JSON00015f_",
+      "raw": "{\"v\":\"KERI10JSON00015f_\",\"t\":\"dip\",\"d\":\"EB8MUdqNW6WFeOCLWJs-ma_09uOF4NuItdAxDIQywg6O\",\"i\":\"EB8MUdqNW6WFeOCLWJs-ma_09uOF4NuItdAxDIQywg6O\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[],\"di\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303135665f222c2274223a22646970222c2264223a224542384d5564714e57365746654f434c574a732d6d615f3039754f46344e754974644178444951797767364f222c2269223a224542384d5564714e57365746654f434c574a732d6d615f3039754f46344e754974644178444951797767364f222c2273223a2230222c226b74223a2231222c226b223a5b22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d2c226469223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043227d",
+      "raw_byte_size": 351
+    },
+    {
+      "name": "rotation",
+      "inputs": {
+        "builder": "rotate",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "keys": [
+          "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "sn": 1,
+        "isith": 1,
+        "nsith": 1
+      },
+      "event_kind": "rot",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EJBSact5NCDcWgVXg-Ukc2-Y9xrb4ZA21I1vpOovd1Rs",
+      "sequence_number": "1",
+      "version_string": "KERI10JSON000160_",
+      "raw": "{\"v\":\"KERI10JSON000160_\",\"t\":\"rot\",\"d\":\"EJBSact5NCDcWgVXg-Ukc2-Y9xrb4ZA21I1vpOovd1Rs\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303136305f222c2274223a22726f74222c2264223a22454a4253616374354e43446357675658672d556b63322d5939787262345a413231493176704f6f7664315273222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c226b74223a2231222c226b223a5b22444234475776727537336a575a4b704e674d51703861794452696e304e4730596d6e5f525851505f762d5051225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c226272223a5b5d2c226261223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 352
+    },
+    {
+      "name": "delegated_rotation",
+      "inputs": {
+        "builder": "rotate",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "keys": [
+          "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "sn": 1,
+        "isith": 1,
+        "nsith": 1,
+        "ilk": "drt"
+      },
+      "event_kind": "drt",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "ENihZOujIgPq98Omr754nAFXXpWY7aOqBmFBZoyo6jQJ",
+      "sequence_number": "1",
+      "version_string": "KERI10JSON000160_",
+      "raw": "{\"v\":\"KERI10JSON000160_\",\"t\":\"drt\",\"d\":\"ENihZOujIgPq98Omr754nAFXXpWY7aOqBmFBZoyo6jQJ\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303136305f222c2274223a22647274222c2264223a22454e69685a4f756a4967507139384f6d723735346e4146585870575937614f71426d46425a6f796f366a514a222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c226b74223a2231222c226b223a5b22444234475776727537336a575a4b704e674d51703861794452696e304e4730596d6e5f525851505f762d5051225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c226272223a5b5d2c226261223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 352
+    },
+    {
+      "name": "rotation_text_encoding",
+      "inputs": {
+        "builder": "rotate",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "keys": [
+          "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "sn": 1,
+        "isith": 1,
+        "nsith": 1,
+        "intive": false
+      },
+      "event_kind": "rot",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EJBSact5NCDcWgVXg-Ukc2-Y9xrb4ZA21I1vpOovd1Rs",
+      "sequence_number": "1",
+      "version_string": "KERI10JSON000160_",
+      "raw": "{\"v\":\"KERI10JSON000160_\",\"t\":\"rot\",\"d\":\"EJBSact5NCDcWgVXg-Ukc2-Y9xrb4ZA21I1vpOovd1Rs\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303136305f222c2274223a22726f74222c2264223a22454a4253616374354e43446357675658672d556b63322d5939787262345a413231493176704f6f7664315273222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c226b74223a2231222c226b223a5b22444234475776727537336a575a4b704e674d51703861794452696e304e4730596d6e5f525851505f762d5051225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c226272223a5b5d2c226261223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 352
+    },
+    {
+      "name": "rotation_high_sequence_number",
+      "inputs": {
+        "builder": "rotate",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "keys": [
+          "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "sn": 255,
+        "isith": 1,
+        "nsith": 1
+      },
+      "event_kind": "rot",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EO6T_o_ADss6NPjHeuRxmMFTMHai2MSofGSWvoiwkevb",
+      "sequence_number": "ff",
+      "version_string": "KERI10JSON000161_",
+      "raw": "{\"v\":\"KERI10JSON000161_\",\"t\":\"rot\",\"d\":\"EO6T_o_ADss6NPjHeuRxmMFTMHai2MSofGSWvoiwkevb\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"ff\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303136315f222c2274223a22726f74222c2264223a22454f36545f6f5f41447373364e506a48657552786d4d46544d486169324d536f66475357766f69776b657662222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a226666222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c226b74223a2231222c226b223a5b22444234475776727537336a575a4b704e674d51703861794452696e304e4730596d6e5f525851505f762d5051225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c226272223a5b5d2c226261223a5b5d2c2261223a5b5d7d",
+      "raw_byte_size": 353
+    },
+    {
+      "name": "rotation_with_witness_changes",
+      "inputs": {
+        "builder": "rotate",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "keys": [
+          "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "sn": 1,
+        "isith": 1,
+        "nsith": 1,
+        "wits": [
+          "BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln",
+          "BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp"
+        ],
+        "cuts": [
+          "BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln"
+        ],
+        "adds": [
+          "BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN"
+        ]
+      },
+      "event_kind": "rot",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EDzXAv5Z9eLp90Qx1QY1XC69bfofyDqS_qknj2V67Zfr",
+      "sequence_number": "1",
+      "version_string": "KERI10JSON0001ba_",
+      "raw": "{\"v\":\"KERI10JSON0001ba_\",\"t\":\"rot\",\"d\":\"EDzXAv5Z9eLp90Qx1QY1XC69bfofyDqS_qknj2V67Zfr\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":2,\"br\":[\"BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln\"],\"ba\":[\"BHBFZjm0eRPWPzTrlqKeO25v6KwMom889H2xhnIIw2IN\"],\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303162615f222c2274223a22726f74222c2264223a2245447a584176355a39654c7039305178315159315843363962666f66794471535f716b6e6a325636375a6672222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c226b74223a2231222c226b223a5b22444234475776727537336a575a4b704e674d51703861794452696e304e4730596d6e5f525851505f762d5051225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a322c226272223a5b2242415f3443702d65444e69734c3754794e46666543724e6375706a52506543796a622d636d4e6f4d34496c6e225d2c226261223a5b22424842465a6a6d3065525057507a54726c714b654f323576364b774d6f6d383839483278686e49497732494e225d2c2261223a5b5d7d",
+      "raw_byte_size": 442
+    },
+    {
+      "name": "rotation_with_anchors",
+      "inputs": {
+        "builder": "rotate",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "keys": [
+          "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ"
+        ],
+        "ndigs": [
+          "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W"
+        ],
+        "sn": 1,
+        "isith": 1,
+        "nsith": 1,
+        "data": [
+          {
+            "i": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+            "s": "1",
+            "d": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"
+          }
+        ]
+      },
+      "event_kind": "rot",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EH5d7zcFk4XqDQJ5GVrcvyQXFNn8RcsXiVhyfDenimLB",
+      "sequence_number": "1",
+      "version_string": "KERI10JSON0001cf_",
+      "raw": "{\"v\":\"KERI10JSON0001cf_\",\"t\":\"rot\",\"d\":\"EH5d7zcFk4XqDQJ5GVrcvyQXFNn8RcsXiVhyfDenimLB\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[{\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"d\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303163665f222c2274223a22726f74222c2264223a2245483564377a63466b34587144514a354756726376795158464e6e3852637358695668796644656e696d4c42222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c226b74223a2231222c226b223a5b22444234475776727537336a575a4b704e674d51703861794452696e304e4730596d6e5f525851505f762d5051225d2c226e74223a2231222c226e223a5b224549662d454e773750724d35327734482d53374e4755327156496672615856496c5639684541614d48673757225d2c226274223a2230222c226272223a5b5d2c226261223a5b5d2c2261223a5b7b2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2264223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043227d5d7d",
+      "raw_byte_size": 463
+    },
+    {
+      "name": "interaction",
+      "inputs": {
+        "builder": "interact",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "sn": 1,
+        "data": []
+      },
+      "event_kind": "ixn",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EE9ytQHQMApxLDgwUaAF1TPceDRJL6WzJ52dgKyCSL0i",
+      "sequence_number": "1",
+      "version_string": "KERI10JSON0000cb_",
+      "raw": "{\"v\":\"KERI10JSON0000cb_\",\"t\":\"ixn\",\"d\":\"EE9ytQHQMApxLDgwUaAF1TPceDRJL6WzJ52dgKyCSL0i\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"a\":[]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303063625f222c2274223a2269786e222c2264223a2245453979745148514d4170784c44677755614146315450636544524a4c36577a4a353264674b7943534c3069222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2231222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2261223a5b5d7d",
+      "raw_byte_size": 203
+    },
+    {
+      "name": "interaction_with_anchors",
+      "inputs": {
+        "builder": "interact",
+        "pre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "dig": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+        "sn": 2,
+        "data": [
+          {
+            "i": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+            "s": "0",
+            "d": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"
+          }
+        ]
+      },
+      "event_kind": "ixn",
+      "identifier": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+      "said": "EPyIGlZKZuS1p2i71W1QfNjo4UF-O1XOuL3A9HZRi4vX",
+      "sequence_number": "2",
+      "version_string": "KERI10JSON00013a_",
+      "raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EPyIGlZKZuS1p2i71W1QfNjo4UF-O1XOuL3A9HZRi4vX\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"2\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"a\":[{\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"0\",\"d\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}]}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303133615f222c2274223a2269786e222c2264223a2245507949476c5a4b5a7553317032693731573151664e6a6f3455462d4f31584f754c334139485a5269347658222c2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2232222c2270223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2261223a5b7b2269223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043222c2273223a2230222c2264223a2245414b43784d4f756f527a524556487348436b4c696c42725558547679656e4269754d325174563842423043227d5d7d",
+      "raw_byte_size": 314
+    }
+  ],
+  "ample_table": [
+    {
+      "witnesses": 0,
+      "weak": 0,
+      "strong": 0
+    },
+    {
+      "witnesses": 1,
+      "weak": 1,
+      "strong": 1
+    },
+    {
+      "witnesses": 2,
+      "weak": 2,
+      "strong": 2
+    },
+    {
+      "witnesses": 3,
+      "weak": 3,
+      "strong": 3
+    },
+    {
+      "witnesses": 4,
+      "weak": 3,
+      "strong": 3
+    },
+    {
+      "witnesses": 5,
+      "weak": 4,
+      "strong": 4
+    },
+    {
+      "witnesses": 6,
+      "weak": 4,
+      "strong": 5
+    },
+    {
+      "witnesses": 7,
+      "weak": 5,
+      "strong": 5
+    },
+    {
+      "witnesses": 8,
+      "weak": 6,
+      "strong": 6
+    },
+    {
+      "witnesses": 9,
+      "weak": 6,
+      "strong": 7
+    },
+    {
+      "witnesses": 10,
+      "weak": 7,
+      "strong": 7
+    },
+    {
+      "witnesses": 16,
+      "weak": 11,
+      "strong": 11
+    },
+    {
+      "witnesses": 17,
+      "weak": 12,
+      "strong": 12
+    },
+    {
+      "witnesses": 100,
+      "weak": 67,
+      "strong": 67
+    }
+  ],
+  "ample_explicit": [
+    {
+      "witnesses": 4,
+      "faults": 1,
+      "weak": 3,
+      "strong": 3
+    },
+    {
+      "witnesses": 3,
+      "faults": 0,
+      "weak": 2,
+      "strong": 3
+    },
+    {
+      "witnesses": 0,
+      "faults": 5,
+      "weak": 0,
+      "strong": 0
+    },
+    {
+      "witnesses": 1,
+      "faults": 0,
+      "weak": 1,
+      "strong": 1
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "signing_threshold_zero",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid sith = 0 less than 1.",
+      "rust_error_category": "SigningThresholdIsZero"
+    },
+    {
+      "name": "signing_threshold_exceeds_keys",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid sith = 2 for keys DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+      "rust_error_category": "SigningThresholdExceedsKeys"
+    },
+    {
+      "name": "duplicate_witnesses",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid wits = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln,BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln, has duplicates.",
+      "rust_error_category": "DuplicateWitness"
+    },
+    {
+      "name": "witness_threshold_zero_with_witnesses",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid toad = 0 for wits = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln",
+      "rust_error_category": "InvalidWitnessThreshold"
+    },
+    {
+      "name": "witness_threshold_exceeds_witnesses",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid toad = 2 for wits = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln",
+      "rust_error_category": "InvalidWitnessThreshold"
+    },
+    {
+      "name": "witness_threshold_without_witnesses",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid toad = 1 for wits = ",
+      "rust_error_category": "InvalidWitnessThreshold"
+    },
+    {
+      "name": "non_transferable_prefix_with_next_keys",
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-empty nxt = EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W for non-transferable code = B",
+      "rust_error_category": "Prefix"
+    },
+    {
+      "name": "non_transferable_prefix_with_witnesses",
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-empty b =BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln for non-transferable code = B",
+      "rust_error_category": "Prefix"
+    },
+    {
+      "name": "non_transferable_prefix_with_anchors",
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-empty a = B for non-transferable code = B",
+      "rust_error_category": "Prefix"
+    },
+    {
+      "name": "delegated_inception_with_basic_prefix",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid derivation code = D for delegation. Must be digestive",
+      "rust_error_category": "DelegatedPrefixMustBeDigestive"
+    },
+    {
+      "name": "rotation_sequence_number_zero",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid sn = 0x0 for rot or drt.",
+      "rust_error_category": "SequenceNumberTooSmall"
+    },
+    {
+      "name": "rotation_non_rotation_ilk",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid ilk = icp for rot or drt.",
+      "rust_error_category": "UnrepresentableInRust"
+    },
+    {
+      "name": "rotation_duplicate_cuts",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid cuts = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln,BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln, has duplicates.",
+      "rust_error_category": "DuplicateWitness"
+    },
+    {
+      "name": "rotation_duplicate_adds",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid adds = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln,BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln, has duplicates.",
+      "rust_error_category": "DuplicateWitness"
+    },
+    {
+      "name": "rotation_witness_added_twice",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid member combination among wits = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln, and adds = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln.",
+      "rust_error_category": "ConflictingWitnessLists"
+    },
+    {
+      "name": "rotation_witness_cut_and_added",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid member combination among cuts = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln, and adds = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln.",
+      "rust_error_category": "ConflictingWitnessLists"
+    },
+    {
+      "name": "rotation_cut_not_a_witness",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid member combination among wits = BA_4Cp-eDNisL7TyNFfeCrNcupjRPeCyjb-cmNoM4Iln, cuts = BH6wO2x7JTUsq7bIgacx2FfvqSTQM08zHWm7uGTE35zp, and adds = .",
+      "rust_error_category": "WitnessCutNotPresent"
+    },
+    {
+      "name": "interaction_sequence_number_zero",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid sn = 0x0 for ixn.",
+      "rust_error_category": "SequenceNumberTooSmall"
+    },
+    {
+      "name": "ample_impossible_fault_count",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid f=2 is too big for n=4.",
+      "rust_error_category": "FaultToleranceTooHigh"
+    }
+  ],
+  "reference_quirks": {
+    "multi_key_inception_needs_an_explicit_code": {
+      "name": "multi_key_inception_without_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Empty Material",
+      "rust_error_category": "Accepted",
+      "note": "with more than one key and no explicit code the prefix branch falls through to `new Prefixer({code: undefined}, sad)`, whose second super() call receives the still-empty identifier field; multisig inception is therefore unreachable through the documented path",
+      "rust_decision": "Rust defaults the derivation to Blake3_256 whenever a basic prefix cannot represent the event, so the same inputs produce the event the reference would build with code: E",
+      "rust_equivalent_case": "multisig_inception"
+    },
+    "next_threshold_encoding_follows_the_current_threshold": {
+      "weighted_current_numeric_next_integer_encoding": {
+        "raw": "{\"v\":\"KERI10JSON0001c6_\",\"t\":\"icp\",\"d\":\"ECRgQ5nRLKoxpuDHfWlx_CqMYvjkID3T6N6C1h2060S0\",\"i\":\"ECRgQ5nRLKoxpuDHfWlx_CqMYvjkID3T6N6C1h2060S0\",\"s\":\"0\",\"kt\":[\"1/2\",\"1/2\",\"1/2\"],\"k\":[\"DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2\",\"DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX\",\"DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU\"],\"nt\":\"1\",\"n\":[\"EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy\",\"EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk\"],\"bt\":0,\"b\":[],\"c\":[],\"a\":[]}",
+        "kt": [
+          "1/2",
+          "1/2",
+          "1/2"
+        ],
+        "nt": "1",
+        "nt_type": "string"
+      },
+      "note": "the next-threshold field tests `tholder.num` -- the *current* threshold -- before writing `ntholder.num`, so a weighted current threshold silently forces the next one to text even under integer encoding",
+      "rust_decision": "reproduced exactly: this changes the bytes the identifier commits to"
+    },
+    "numeric_current_weighted_next_drops_the_field": {
+      "raw": "{\"v\":\"KERI10JSON0001ab_\",\"t\":\"icp\",\"d\":\"EODd4hO0ACT8vlYcPDR7Jb8eDVEBU0nSou8Q4UBTiipZ\",\"i\":\"EODd4hO0ACT8vlYcPDR7Jb8eDVEBU0nSou8Q4UBTiipZ\",\"s\":\"0\",\"kt\":2,\"k\":[\"DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2\",\"DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX\",\"DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU\"],\"n\":[\"EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy\",\"EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk\"],\"bt\":0,\"b\":[],\"c\":[],\"a\":[]}",
+      "contains_next_threshold": false,
+      "note": "the same condition then writes ntholder.num, which is undefined for a weighted threshold, and JSON.stringify drops the key entirely -- the event has no `nt` field at all and its SAID commits to that malformed shape",
+      "rust_error_category": "UnrepresentableNextThreshold"
+    },
+    "next_threshold_validated_against_the_current_key_count": {
+      "name": "valid_next_threshold_rejected",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid nsith = 2 for keys EN93zzFi_JHk_S9FY4rKIEXcSua-zo1Y0NlxtC3ErsDy,EDWnbM_aqXmZ8u44c53obG73nMBHba2aczfJ3-aBjxMk",
+      "rust_error_category": "Accepted",
+      "note": "incept compares the next threshold's size against keys.length instead of ndigs.length -- the error message even interpolates ndigs -- so a single-key identifier cannot commit to a 2-of-2 rotation",
+      "rust_decision": "Rust validates the next threshold against the next-key digest count",
+      "unsatisfiable_accepted": {
+        "raw": "{\"v\":\"KERI10JSON00015b_\",\"t\":\"icp\",\"d\":\"EHUJ7pu7oHIuXu9yeX7_bnXSYx9UgiXfiSbyKozUsUmK\",\"i\":\"EHUJ7pu7oHIuXu9yeX7_bnXSYx9UgiXfiSbyKozUsUmK\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DB3MBHRA6bpPwxY-QpywXUwNR-7WCEO5PmUZV3xYBkk2\",\"DIUghlVOUiV8eFLs5cP-w6hWMJosH6TLaX9BqOSI68WX\",\"DBrcNbLW82kn8YpHK3oJzG_aDii90U2Qn2QLQimCmOWU\"],\"nt\":\"2\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "nt": "2",
+        "n": []
+      },
+      "unsatisfiable_note": "the same comparison accepts a 2-of-nothing next threshold, an event committing to a rotation no key set can ever satisfy; Rust rejects it as NextThresholdExceedsDigests"
+    },
+    "auto_selected_basic_prefix_skips_its_own_checks": {
+      "non_transferable_with_next_keys": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EMTZHDyA4sCB4Ti-mJ2E2UU9WvrlByQ1O5haGWEnJYXB\",\"i\":\"BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "non_transferable_with_anchors": "{\"v\":\"KERI10JSON000106_\",\"t\":\"icp\",\"d\":\"EGfytUYgOKApxJQvYui2bOkE1tnL5yQ5NXbD3FhgevFv\",\"i\":\"BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[{\"i\":\"x\"}]}",
+      "note": "when the derivation is inferred from a single key the reference *parses* that key instead of deriving from the event, so the non-transferable emptiness checks never run; the result is an identifier that can never rotate yet commits to next keys",
+      "rust_decision": "Rust always derives, so the same checks apply however the derivation was chosen",
+      "rust_error_category": "Prefix"
+    },
+    "rotation_cannot_abandon_an_identifier": {
+      "default_next_threshold": {
+        "name": "rotation_without_next_keys",
+        "reference_error_category": "Error",
+        "reference_error_message": "Signing threshold failure: 1 number of signers not equal to or greater than sith = 1 for keys = DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ",
+        "rust_error_category": "Accepted"
+      },
+      "explicit_zero": {
+        "name": "rotation_with_zero_next_threshold",
+        "reference_error_category": "Error",
+        "reference_error_message": "Invalid sith = 0 less than 1.",
+        "rust_error_category": "Accepted"
+      },
+      "note": "rotate defaults the next threshold to at least one and rejects an explicit zero, so no rotation it builds can ever be the last one; inception has no such restriction",
+      "rust_decision": "Rust allows an empty next-key commitment in a rotation, as inception already does"
+    },
+    "rotation_ignores_the_configuration_argument": {
+      "fields": "v,t,d,i,s,p,kt,k,nt,n,bt,br,ba,a",
+      "note": "RotateArgs accepts cnfg and never writes it; a caller who sets configuration traits on a rotation silently gets none",
+      "rust_decision": "the rotation builder exposes no configuration setter"
+    },
+    "rotation_omits_absent_identifier_and_prior": {
+      "missing_identifier": "{\"v\":\"KERI10JSON00012d_\",\"t\":\"rot\",\"d\":\"EHQAWJcYze5FZrwDbtnJEKydBUc3qLbIXZHhs_nK0uRB\",\"s\":\"1\",\"p\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+      "missing_prior": "{\"v\":\"KERI10JSON00012d_\",\"t\":\"rot\",\"d\":\"ECHiA2wi63iM39doJfQyv2H_DynBh4o1PUo_1efR44Yn\",\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"1\",\"kt\":\"1\",\"k\":[\"DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ\"],\"nt\":\"1\",\"n\":[\"EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+      "note": "both fields are optional and an absent one is simply not written, producing an event with no `i` or no `p` whose SAID commits to that shape",
+      "rust_decision": "both are required constructor arguments"
+    }
+  }
+}

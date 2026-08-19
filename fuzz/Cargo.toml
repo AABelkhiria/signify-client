@@ -160,6 +160,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "eventing"
+path = "fuzz_targets/eventing.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
