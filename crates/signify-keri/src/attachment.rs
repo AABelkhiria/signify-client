@@ -9,23 +9,25 @@
 //! It ports `messagize` from `src/keri/core/eventing.ts` together with the two seal-source
 //! serializers in `src/keri/core/utils.ts`.
 //!
-//! # Scope
+//! # References
 //!
-//! Only the attachment kinds the pinned reference can actually emit are built here. Its witness
-//! signature and non-transferable receipt paths are unreachable: both guard with
-//! `!(verfer.code in NonTransDex)`, and because `in` tests an object's *property keys* — which are
-//! names like `Ed25519N`, not code values like `B` — the guard is true for every key, so any
-//! signature carrying a verifier is rejected as "transferable" whether it is or not. Both paths
-//! also write `ControllerIdxSigs` rather than the witness or receipt-couple counter, so anything
-//! that did get through would be misparsed by a peer. Those two group kinds are therefore recorded
-//! `BLOCKED` in `PORTING.md` rather than invented here, because there is no reference behavior to
-//! verify a Rust encoding against.
+//! Controller signature groups, both seal kinds, seal-source couples/triples, and pipelined
+//! framing are verified against the pinned `signify-ts` reference. Witness indexed-signature
+//! groups and non-transferable receipt couples are verified against the pinned `keripy` reference
+//! instead (ADR 0009): the TypeScript paths for both are unreachable — they guard with
+//! `!(verfer.code in NonTransDex)`, and because JavaScript's `in` tests an object's *property
+//! keys* rather than its values, every signature carrying a verifier is rejected — and both write
+//! the controller counter rather than their own. keripy's `messagize` implements both correctly:
+//! the witness group is introduced by the `-B` (`WitnessIdxSigs`) counter, the receipt group by
+//! `-C` (`NonTransReceiptCouples`) followed by verification-key/signature couples, and a
+//! transferable key in either is refused.
 
 use signify_cesr::CesrError;
 use signify_cesr::counter::{Counter, CounterCode};
 use signify_cesr::sequence::SequenceNumber;
 use signify_crypto::CryptoError;
-use signify_crypto::signature::IndexedSignature;
+use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
+use signify_crypto::verifier::VerificationKey;
 
 use crate::prefix::{IdentifierPrefix, PrefixError};
 use crate::said::{Said, SaidError};
@@ -99,6 +101,58 @@ impl SignatureSeal {
             }
         }
         Ok(bytes)
+    }
+}
+
+/// A witness or watcher receipt: a non-transferable verification key coupled with its unindexed
+/// signature over the event.
+///
+/// Encoded inside a `NonTransReceiptCouples` (`-C`) group as the key's qualified form followed by
+/// the signature's. Construction refuses a transferable key — a receipt is a standalone
+/// attestation, so its key must be self-certifying with no rotation history to consult — which is
+/// the reference's `messagize`-time `ValueError` moved to where the invalid value would first
+/// exist.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReceiptCouple {
+    verifier: VerificationKey,
+    signature: UnindexedSignature,
+}
+
+impl ReceiptCouple {
+    /// Couples a non-transferable verification key with its signature.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AttachmentError::TransferableReceiptKey`] when the key's derivation code is
+    /// transferable, and [`AttachmentError::Crypto`] when the signature and key algorithms do not
+    /// match.
+    pub fn new(verifier: VerificationKey, signature: UnindexedSignature) -> Result<Self, AttachmentError> {
+        if verifier.is_transferable() {
+            return Err(AttachmentError::TransferableReceiptKey);
+        }
+        let signature = signature
+            .with_verifier(verifier.clone())
+            .map_err(AttachmentError::crypto)?;
+        Ok(Self { verifier, signature })
+    }
+
+    /// Returns the receiptor's verification key.
+    #[must_use]
+    pub const fn verifier(&self) -> &VerificationKey {
+        &self.verifier
+    }
+
+    /// Returns the receiptor's signature.
+    #[must_use]
+    pub const fn signature(&self) -> &UnindexedSignature {
+        &self.signature
+    }
+
+    /// Encodes the couple: the qualified key followed by the qualified signature.
+    fn encode_into(&self, bytes: &mut Vec<u8>) -> Result<(), AttachmentError> {
+        bytes.extend_from_slice(&self.verifier.qb64_bytes().map_err(AttachmentError::crypto)?);
+        bytes.extend_from_slice(&self.signature.qb64_bytes().map_err(AttachmentError::crypto)?);
+        Ok(())
     }
 }
 
@@ -269,6 +323,8 @@ impl SignedMessage {
 pub struct SignedMessageBuilder<'a> {
     event: &'a SerializedEvent,
     controller_signatures: Vec<IndexedSignature>,
+    witness_signatures: Vec<IndexedSignature>,
+    receipt_couples: Vec<ReceiptCouple>,
     seal: Option<SignatureSeal>,
     framing: AttachmentFraming,
 }
@@ -280,6 +336,8 @@ impl<'a> SignedMessageBuilder<'a> {
         Self {
             event,
             controller_signatures: Vec::new(),
+            witness_signatures: Vec::new(),
+            receipt_couples: Vec::new(),
             seal: None,
             framing: AttachmentFraming::Plain,
         }
@@ -287,10 +345,30 @@ impl<'a> SignedMessageBuilder<'a> {
 
     /// Attaches the controller's indexed signatures.
     ///
-    /// At least one signature is required: an unsigned message asserts nothing.
+    /// At least one signature of some kind — controller, witness, or receipt — is required: an
+    /// unsigned message asserts nothing.
     #[must_use]
     pub fn controller_signatures(mut self, signatures: Vec<IndexedSignature>) -> Self {
         self.controller_signatures = signatures;
+        self
+    }
+
+    /// Attaches witness indexed signatures, written as a `WitnessIdxSigs` (`-B`) group.
+    ///
+    /// A witness signature's index names its position in the event's witness list. A signature
+    /// carrying a transferable verifier is refused at [`build`](Self::build): a witness is
+    /// identified by a self-certifying, non-transferable key.
+    #[must_use]
+    pub fn witness_signatures(mut self, signatures: Vec<IndexedSignature>) -> Self {
+        self.witness_signatures = signatures;
+        self
+    }
+
+    /// Attaches non-transferable receipt couples, written as a `NonTransReceiptCouples` (`-C`)
+    /// group.
+    #[must_use]
+    pub fn receipt_couples(mut self, couples: Vec<ReceiptCouple>) -> Self {
+        self.receipt_couples = couples;
         self
     }
 
@@ -310,29 +388,65 @@ impl<'a> SignedMessageBuilder<'a> {
 
     /// Composes the message.
     ///
+    /// Groups are written in the reference order: the controller group (preceded by its seal, if
+    /// any), then witness signatures, then receipt couples.
+    ///
     /// # Errors
     ///
-    /// Returns [`AttachmentError::MissingSignatures`] when no signature was attached,
-    /// [`AttachmentError::TooManySignatures`] when the count exceeds what a counter can express,
-    /// [`AttachmentError::NonIntegralQuadlets`] when a pipelined stream is not a whole number of
-    /// quadlets, and layered failures for material that cannot be encoded.
+    /// Returns [`AttachmentError::MissingSignatures`] when no signature of any kind was attached,
+    /// [`AttachmentError::SealWithoutControllerSignatures`] when a seal has no controller group to
+    /// bind, [`AttachmentError::TransferableWitnessKey`] when a witness signature carries a
+    /// transferable verifier, [`AttachmentError::TooManySignatures`] when a count exceeds what a
+    /// counter can express, [`AttachmentError::NonIntegralQuadlets`] when a pipelined stream is
+    /// not a whole number of quadlets, and layered failures for material that cannot be encoded.
     pub fn build(self) -> Result<SignedMessage, AttachmentError> {
-        if self.controller_signatures.is_empty() {
+        if self.controller_signatures.is_empty()
+            && self.witness_signatures.is_empty()
+            && self.receipt_couples.is_empty()
+        {
             return Err(AttachmentError::MissingSignatures);
         }
+        // The reference silently drops a seal when there are no controller signatures to bind it
+        // to; a silently missing authorization is refused here instead.
+        if self.seal.is_some() && self.controller_signatures.is_empty() {
+            return Err(AttachmentError::SealWithoutControllerSignatures);
+        }
 
-        let mut attachments = match &self.seal {
-            Some(seal) => seal.encode()?,
-            None => Vec::new(),
-        };
+        let mut attachments = Vec::new();
+        if !self.controller_signatures.is_empty() {
+            if let Some(seal) = &self.seal {
+                attachments = seal.encode()?;
+            }
+            attachments.extend_from_slice(&counter_bytes(
+                CounterCode::CONTROLLER_INDEXED_SIGNATURES,
+                checked_count(self.controller_signatures.len())?,
+            )?);
+            for signature in &self.controller_signatures {
+                attachments.extend_from_slice(&signature.qb64_bytes().map_err(AttachmentError::crypto)?);
+            }
+        }
 
-        let count =
-            u32::try_from(self.controller_signatures.len()).map_err(|_| AttachmentError::TooManySignatures {
-                count: self.controller_signatures.len(),
-            })?;
-        attachments.extend_from_slice(&counter_bytes(CounterCode::CONTROLLER_INDEXED_SIGNATURES, count)?);
-        for signature in &self.controller_signatures {
-            attachments.extend_from_slice(&signature.qb64_bytes().map_err(AttachmentError::crypto)?);
+        if !self.witness_signatures.is_empty() {
+            attachments.extend_from_slice(&counter_bytes(
+                CounterCode::WITNESS_INDEXED_SIGNATURES,
+                checked_count(self.witness_signatures.len())?,
+            )?);
+            for (index, signature) in self.witness_signatures.iter().enumerate() {
+                if signature.verifier().is_some_and(VerificationKey::is_transferable) {
+                    return Err(AttachmentError::TransferableWitnessKey { index });
+                }
+                attachments.extend_from_slice(&signature.qb64_bytes().map_err(AttachmentError::crypto)?);
+            }
+        }
+
+        if !self.receipt_couples.is_empty() {
+            attachments.extend_from_slice(&counter_bytes(
+                CounterCode::NON_TRANSFERABLE_RECEIPT_COUPLES,
+                checked_count(self.receipt_couples.len())?,
+            )?);
+            for couple in &self.receipt_couples {
+                couple.encode_into(&mut attachments)?;
+            }
         }
 
         let attachments = frame(attachments, self.framing)?;
@@ -345,6 +459,11 @@ impl<'a> SignedMessageBuilder<'a> {
             event_length: event.len(),
         })
     }
+}
+
+/// Converts a group's element count into counter range.
+fn checked_count(count: usize) -> Result<u32, AttachmentError> {
+    u32::try_from(count).map_err(|_| AttachmentError::TooManySignatures { count })
 }
 
 /// Encodes one counter as qualified Base64 bytes.
@@ -393,6 +512,18 @@ pub enum AttachmentError {
         /// Stream length in bytes.
         length: usize,
     },
+    /// A seal was set with no controller signatures to bind it to.
+    ///
+    /// The reference silently drops the seal in this case; that loses the authorization binding,
+    /// so it is refused here instead.
+    SealWithoutControllerSignatures,
+    /// A witness signature carries a transferable verifier.
+    TransferableWitnessKey {
+        /// Position of the rejected signature in the witness group.
+        index: usize,
+    },
+    /// A receipt couple was given a transferable verification key.
+    TransferableReceiptKey,
     /// Identifier-prefix material could not be encoded.
     Prefix {
         /// Underlying prefix failure.
@@ -452,6 +583,14 @@ impl fmt::Display for AttachmentError {
                 formatter,
                 "pipelined attachments of {length} bytes are not a whole number of quadlets"
             ),
+            Self::SealWithoutControllerSignatures => formatter.write_str("a seal needs controller signatures to bind"),
+            Self::TransferableWitnessKey { index } => write!(
+                formatter,
+                "witness signature {index} carries a transferable verifier; a witness key must be non-transferable"
+            ),
+            Self::TransferableReceiptKey => {
+                formatter.write_str("a receipt couple needs a non-transferable verification key")
+            }
             Self::Prefix { .. } => formatter.write_str("identifier prefix material is invalid"),
             Self::Said { .. } => formatter.write_str("self-addressing identifier material is invalid"),
             Self::Crypto { .. } => formatter.write_str("signature material is invalid"),
@@ -486,6 +625,14 @@ mod tests {
     );
     const SIGNATURE: &str = "AABB3MJGmBXxSEryNHw3YwZZLRl_6Ws4Me2WFq8PrQ6WlluSOpPqbwXuiG9RvNWZkqeW8A_0VRjokGMVRZ3m-c0I";
     const IDENTIFIER: &str = "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL";
+
+    /// Witness material from `fixtures/keri-attachment-keripy/v1.json` (seed bytes `0..31`).
+    const WITNESS_KEY: &str = "BAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+    const TRANSFERABLE_KEY: &str = "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+    const WITNESS_SIGNATURE: &str =
+        "AACeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
+    const RECEIPT_SIGNATURE: &str =
+        "0BCeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
 
     fn event() -> Result<SerializedEvent, Box<dyn Error>> {
         Ok(SerializedEvent::parse(EVENT.as_bytes())?)
@@ -676,9 +823,125 @@ mod tests {
             AttachmentError::MissingSignatures,
             AttachmentError::TooManySignatures { count: 9 },
             AttachmentError::NonIntegralQuadlets { length: 7 },
+            AttachmentError::SealWithoutControllerSignatures,
+            AttachmentError::TransferableWitnessKey { index: 2 },
+            AttachmentError::TransferableReceiptKey,
         ] {
             assert!(!error.to_string().is_empty());
             assert!(error.source().is_none());
         }
+    }
+
+    fn witness_signature() -> Result<IndexedSignature, Box<dyn Error>> {
+        Ok(IndexedSignature::from_qb64(WITNESS_SIGNATURE)?.with_verifier(VerificationKey::from_qb64(WITNESS_KEY)?)?)
+    }
+
+    fn receipt_couple() -> Result<ReceiptCouple, Box<dyn Error>> {
+        Ok(ReceiptCouple::new(
+            VerificationKey::from_qb64(WITNESS_KEY)?,
+            UnindexedSignature::from_qb64(RECEIPT_SIGNATURE)?,
+        )?)
+    }
+
+    #[test]
+    fn witness_signatures_form_their_own_counted_group() -> Result<(), Box<dyn Error>> {
+        let event = event()?;
+        let message = SignedMessageBuilder::new(&event)
+            .witness_signatures(vec![witness_signature()?])
+            .build()?;
+        assert_eq!(
+            core::str::from_utf8(message.attachments())?,
+            format!("-BAB{WITNESS_SIGNATURE}")
+        );
+
+        let two = SignedMessageBuilder::new(&event)
+            .witness_signatures(vec![witness_signature()?, witness_signature()?])
+            .build()?;
+        assert!(two.attachments().starts_with(b"-BAC"));
+        Ok(())
+    }
+
+    #[test]
+    fn a_witness_signature_may_omit_its_verifier_but_not_carry_a_transferable_one() -> Result<(), Box<dyn Error>> {
+        let event = event()?;
+        // Without a verifier there is nothing to test, as in the reference.
+        let bare = IndexedSignature::from_qb64(WITNESS_SIGNATURE)?;
+        assert!(
+            SignedMessageBuilder::new(&event)
+                .witness_signatures(vec![bare])
+                .build()
+                .is_ok()
+        );
+
+        let transferable = IndexedSignature::from_qb64(WITNESS_SIGNATURE)?
+            .with_verifier(VerificationKey::from_qb64(TRANSFERABLE_KEY)?)?;
+        assert!(matches!(
+            SignedMessageBuilder::new(&event)
+                .witness_signatures(vec![witness_signature()?, transferable])
+                .build(),
+            Err(AttachmentError::TransferableWitnessKey { index: 1 })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn receipt_couples_write_the_key_then_the_signature() -> Result<(), Box<dyn Error>> {
+        let event = event()?;
+        let couple = receipt_couple()?;
+        assert_eq!(couple.verifier().qb64()?, WITNESS_KEY);
+        assert_eq!(couple.signature().qb64()?, RECEIPT_SIGNATURE);
+
+        let message = SignedMessageBuilder::new(&event)
+            .receipt_couples(vec![couple])
+            .build()?;
+        assert_eq!(
+            core::str::from_utf8(message.attachments())?,
+            format!("-CAB{WITNESS_KEY}{RECEIPT_SIGNATURE}")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_receipt_couple_refuses_a_transferable_key() -> Result<(), Box<dyn Error>> {
+        assert!(matches!(
+            ReceiptCouple::new(
+                VerificationKey::from_qb64(TRANSFERABLE_KEY)?,
+                UnindexedSignature::from_qb64(RECEIPT_SIGNATURE)?,
+            ),
+            Err(AttachmentError::TransferableReceiptKey)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn groups_are_written_controller_then_witness_then_receipt() -> Result<(), Box<dyn Error>> {
+        let event = event()?;
+        let message = SignedMessageBuilder::new(&event)
+            .controller_signatures(vec![signature()?])
+            .witness_signatures(vec![witness_signature()?])
+            .receipt_couples(vec![receipt_couple()?])
+            .build()?;
+        assert_eq!(
+            core::str::from_utf8(message.attachments())?,
+            format!("-AAB{SIGNATURE}-BAB{WITNESS_SIGNATURE}-CAB{WITNESS_KEY}{RECEIPT_SIGNATURE}")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_seal_needs_a_controller_group_to_bind() -> Result<(), Box<dyn Error>> {
+        // The reference silently drops the seal here; losing an authorization binding silently is
+        // refused instead.
+        let event = event()?;
+        assert!(matches!(
+            SignedMessageBuilder::new(&event)
+                .witness_signatures(vec![witness_signature()?])
+                .seal(SignatureSeal::Last {
+                    identifier: identifier()?,
+                })
+                .build(),
+            Err(AttachmentError::SealWithoutControllerSignatures)
+        ));
+        Ok(())
     }
 }

@@ -2,9 +2,11 @@
 
 use proptest::{prelude::*, test_runner::TestCaseError};
 use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::signature::IndexedSignature;
+use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
+use signify_crypto::verifier::VerificationKey;
 use signify_keri::attachment::{
-    AttachmentError, AttachmentFraming, SealSourceCouple, SealSourceTriple, SignatureSeal, SignedMessageBuilder,
+    AttachmentError, AttachmentFraming, ReceiptCouple, SealSourceCouple, SealSourceTriple, SignatureSeal,
+    SignedMessageBuilder,
 };
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
@@ -18,6 +20,28 @@ const EVENT: &str = concat!(
 );
 const SIGNATURE: &str = "AABB3MJGmBXxSEryNHw3YwZZLRl_6Ws4Me2WFq8PrQ6WlluSOpPqbwXuiG9RvNWZkqeW8A_0VRjokGMVRZ3m-c0I";
 const IDENTIFIER: &str = "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL";
+
+/// Witness material from `fixtures/keri-attachment-keripy/v1.json`.
+const WITNESS_KEY: &str = "BAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+const TRANSFERABLE_KEY: &str = "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+const WITNESS_SIGNATURE: &str =
+    "AACeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
+const RECEIPT_SIGNATURE: &str =
+    "0BCeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
+
+fn witness_signature() -> Result<IndexedSignature, TestCaseError> {
+    fail(
+        fail(IndexedSignature::from_qb64(WITNESS_SIGNATURE))?
+            .with_verifier(fail(VerificationKey::from_qb64(WITNESS_KEY))?),
+    )
+}
+
+fn receipt_couple() -> Result<ReceiptCouple, TestCaseError> {
+    fail(ReceiptCouple::new(
+        fail(VerificationKey::from_qb64(WITNESS_KEY))?,
+        fail(UnindexedSignature::from_qb64(RECEIPT_SIGNATURE))?,
+    ))
+}
 
 fn fail<T, E: core::fmt::Display>(result: Result<T, E>) -> Result<T, TestCaseError> {
     result.map_err(|error| TestCaseError::fail(error.to_string()))
@@ -213,6 +237,72 @@ proptest! {
         let other_bytes = fail(other.attachment(framing(pipelined)))?;
         prop_assert_eq!(other_bytes.len(), couple_bytes.len());
         prop_assert_ne!(other_bytes, couple_bytes);
+    }
+
+    /// Any mix of controller, witness, and receipt groups composes in the fixed reference order,
+    /// with each counter carrying its group's count, and the invariants that hold for controller
+    /// messages hold for the mix too.
+    #[test]
+    fn signature_groups_compose_in_reference_order(
+        controller_count in 0_usize..=4,
+        witness_count in 0_usize..=4,
+        receipt_count in 0_usize..=4,
+        pipelined in any::<bool>(),
+    ) {
+        prop_assume!(controller_count + witness_count + receipt_count > 0);
+        let event = fail(SerializedEvent::parse(EVENT.as_bytes()))?;
+        let message = fail(
+            SignedMessageBuilder::new(&event)
+                .controller_signatures(core::iter::repeat_n(fail(IndexedSignature::from_qb64(SIGNATURE))?, controller_count).collect())
+                .witness_signatures(core::iter::repeat_n(witness_signature()?, witness_count).collect())
+                .receipt_couples(core::iter::repeat_n(receipt_couple()?, receipt_count).collect())
+                .framing(framing(pipelined))
+                .build(),
+        )?;
+
+        prop_assert_eq!(message.event(), event.raw());
+        prop_assert!(message.attachments().len().is_multiple_of(4));
+        let attachments = fail(core::str::from_utf8(message.attachments()))?;
+
+        // Each present group is introduced by its own counter carrying its count; counts are
+        // Base64, so 1 is B, 2 is C, and so on.
+        let letter = |count: usize| ['A', 'B', 'C', 'D', 'E'].get(count).copied().unwrap_or('?');
+        let controller_at = attachments.find(&format!("-AA{}", letter(controller_count)));
+        let witness_at = attachments.find(&format!("-BA{}", letter(witness_count)));
+        let receipt_at = attachments.find(&format!("-CA{}", letter(receipt_count)));
+        prop_assert_eq!(controller_at.is_some(), controller_count > 0);
+        prop_assert_eq!(witness_at.is_some(), witness_count > 0);
+        prop_assert_eq!(receipt_at.is_some(), receipt_count > 0);
+        // Groups appear in the fixed order: controller, then witness, then receipt couples.
+        let positions: Vec<usize> = [controller_at, witness_at, receipt_at].into_iter().flatten().collect();
+        prop_assert!(positions.is_sorted(), "groups out of reference order");
+
+        // The material inside each group is the count times its fixed-width members.
+        prop_assert_eq!(attachments.matches(WITNESS_SIGNATURE).count(), witness_count);
+        prop_assert_eq!(attachments.matches(RECEIPT_SIGNATURE).count(), receipt_count);
+        prop_assert_eq!(attachments.matches(WITNESS_KEY).count(), receipt_count);
+    }
+
+    /// A transferable verifier anywhere in the witness group is refused, and names its position.
+    #[test]
+    fn a_transferable_witness_key_is_refused_wherever_it_sits(
+        witness_count in 1_usize..=5,
+        bad_index in 0_usize..=4,
+    ) {
+        prop_assume!(bad_index < witness_count);
+        let event = fail(SerializedEvent::parse(EVENT.as_bytes()))?;
+        let transferable = fail(
+            fail(IndexedSignature::from_qb64(WITNESS_SIGNATURE))?
+                .with_verifier(fail(VerificationKey::from_qb64(TRANSFERABLE_KEY))?),
+        )?;
+        let mut signatures: Vec<IndexedSignature> = Vec::new();
+        for index in 0..witness_count {
+            signatures.push(if index == bad_index { transferable.clone() } else { witness_signature()? });
+        }
+        match SignedMessageBuilder::new(&event).witness_signatures(signatures).build() {
+            Err(AttachmentError::TransferableWitnessKey { index }) => prop_assert_eq!(index, bad_index),
+            other => prop_assert!(false, "expected TransferableWitnessKey, got {:?}", other.map(|_| ())),
+        }
     }
 
     /// An unsigned message is always refused, whatever else is attached.

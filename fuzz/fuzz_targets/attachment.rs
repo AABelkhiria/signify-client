@@ -3,9 +3,11 @@
 
 use libfuzzer_sys::fuzz_target;
 use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::signature::IndexedSignature;
+use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
+use signify_crypto::verifier::VerificationKey;
 use signify_keri::attachment::{
-    AttachmentError, AttachmentFraming, SealSourceCouple, SealSourceTriple, SignatureSeal, SignedMessageBuilder,
+    AttachmentError, AttachmentFraming, ReceiptCouple, SealSourceCouple, SealSourceTriple, SignatureSeal,
+    SignedMessageBuilder,
 };
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
@@ -13,6 +15,12 @@ use signify_keri::serialization::SerializedEvent;
 
 const SIGNATURE: &str = "AABB3MJGmBXxSEryNHw3YwZZLRl_6Ws4Me2WFq8PrQ6WlluSOpPqbwXuiG9RvNWZkqeW8A_0VRjokGMVRZ3m-c0I";
 const IDENTIFIER: &str = "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL";
+const WITNESS_KEY: &str = "BAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+const TRANSFERABLE_KEY: &str = "DAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+const WITNESS_SIGNATURE: &str =
+    "AACeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
+const RECEIPT_SIGNATURE: &str =
+    "0BCeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
 
 /// Reads one byte from the fuzz input, cycling when it runs out.
 fn byte(data: &[u8], index: usize) -> u8 {
@@ -31,9 +39,28 @@ fuzz_target!(|data: &[u8]| {
         return;
     };
     let Ok(said) = Said::from_qb64(IDENTIFIER) else { return };
+    let Ok(witness_key) = VerificationKey::from_qb64(WITNESS_KEY) else {
+        return;
+    };
+    let Ok(transferable_key) = VerificationKey::from_qb64(TRANSFERABLE_KEY) else {
+        return;
+    };
+    let Ok(witness_signature) = IndexedSignature::from_qb64(WITNESS_SIGNATURE) else {
+        return;
+    };
+    let Ok(receipt_signature) = UnindexedSignature::from_qb64(RECEIPT_SIGNATURE) else {
+        return;
+    };
+    let Ok(receipt_couple) = ReceiptCouple::new(witness_key.clone(), receipt_signature) else {
+        return;
+    };
 
     let signature_count = usize::from(byte(data, 0) % 9);
     let flags = byte(data, 1);
+    let witness_count = usize::from(byte(data, 10) % 5);
+    let receipt_count = usize::from(byte(data, 11) % 5);
+    // Flag 8 poisons the last witness signature with a transferable verifier.
+    let poison_witness = flags & 8 != 0 && witness_count > 0;
     let sequence_number = u128::from(u64::from_le_bytes([
         byte(data, 2),
         byte(data, 3),
@@ -52,10 +79,26 @@ fuzz_target!(|data: &[u8]| {
 
     // The event half comes straight from the fuzz input, so only a well-formed one gets this far.
     if let Ok(event) = SerializedEvent::parse(data) {
+        let mut witness_signatures: Vec<IndexedSignature> = Vec::new();
+        for index in 0..witness_count {
+            let verifier = if poison_witness && index == witness_count - 1 {
+                transferable_key.clone()
+            } else {
+                witness_key.clone()
+            };
+            let Ok(with_verifier) = witness_signature.clone().with_verifier(verifier) else {
+                return;
+            };
+            witness_signatures.push(with_verifier);
+        }
+
         let mut builder = SignedMessageBuilder::new(&event)
             .controller_signatures(core::iter::repeat_n(signature.clone(), signature_count).collect())
+            .witness_signatures(witness_signatures)
+            .receipt_couples(core::iter::repeat_n(receipt_couple.clone(), receipt_count).collect())
             .framing(framing);
-        if flags & 2 != 0 {
+        let sealed = flags & 2 != 0;
+        if sealed {
             builder = builder.seal(if flags & 4 == 0 {
                 SignatureSeal::Event {
                     identifier: identifier.clone(),
@@ -71,7 +114,15 @@ fuzz_target!(|data: &[u8]| {
 
         match builder.build() {
             Ok(message) => {
-                assert!(signature_count > 0, "an unsigned message was accepted");
+                assert!(
+                    signature_count + witness_count + receipt_count > 0,
+                    "an unsigned message was accepted"
+                );
+                assert!(
+                    signature_count > 0 || !sealed,
+                    "a seal without a controller group was accepted"
+                );
+                assert!(!poison_witness, "a transferable witness key was accepted");
                 // The event survives attachment untouched and still parses on its own.
                 assert_eq!(message.event(), event.raw(), "attaching disturbed the event");
                 match SerializedEvent::parse(message.event()) {
@@ -95,7 +146,10 @@ fuzz_target!(|data: &[u8]| {
             Err(error) => assert!(
                 matches!(
                     error,
-                    AttachmentError::MissingSignatures | AttachmentError::TooManySignatures { .. }
+                    AttachmentError::MissingSignatures
+                        | AttachmentError::TooManySignatures { .. }
+                        | AttachmentError::SealWithoutControllerSignatures
+                        | AttachmentError::TransferableWitnessKey { .. }
                 ),
                 "unexpected attachment failure: {error}",
             ),

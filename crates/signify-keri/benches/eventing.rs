@@ -10,9 +10,10 @@ use std::hint::black_box;
 use criterion::{Criterion, criterion_group, criterion_main};
 use signify_cesr::sequence::SequenceNumber;
 use signify_crypto::digest::Digest;
-use signify_crypto::signature::IndexedSignature;
+use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
 use signify_crypto::verifier::VerificationKey;
-use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
+use signify_keri::attachment::{ReceiptCouple, SignatureSeal, SignedMessageBuilder};
+use signify_keri::event::KeyEvent;
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::reply::ReplyBuilder;
@@ -31,6 +32,11 @@ const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
 const BENCH_SIGNATURE: &str =
     "AABB3MJGmBXxSEryNHw3YwZZLRl_6Ws4Me2WFq8PrQ6WlluSOpPqbwXuiG9RvNWZkqeW8A_0VRjokGMVRZ3m-c0I";
 const BENCH_IDENTIFIER: &str = "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL";
+const BENCH_WITNESS_KEY: &str = "BAOhB7_zzhC-HXDdGOdLwJln5NYwm6UNXx3chmQSVTG4";
+const BENCH_WITNESS_SIGNATURE: &str =
+    "AACeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
+const BENCH_RECEIPT_SIGNATURE: &str =
+    "0BCeNL17UI34xJZBhC7GUkw8SoJoCIVSx4Kv6tHVroHY7AvRUWIy1bIpzA8VkvxLl6bJxD4Xr4IXiLrTXi66aBcG";
 
 fn benchmark_eventing(criterion: &mut Criterion) {
     let (Ok(key), Ok(second), Ok(digest), Ok(witness)) = (
@@ -112,7 +118,11 @@ fn benchmark_eventing(criterion: &mut Criterion) {
         bencher.iter(|| Timestamp::parse(black_box(STAMP)));
     });
 
-    // Every message a controller sends is composed once with its signatures attached.
+    benchmark_attachments(criterion, &root);
+}
+
+/// Every message a controller sends is composed once with its signatures attached.
+fn benchmark_attachments(criterion: &mut Criterion, root: &KeyEvent) {
     if let (Ok(event), Ok(signature)) = (
         SerializedEvent::parse(root.raw()),
         IndexedSignature::from_qb64(BENCH_SIGNATURE),
@@ -138,6 +148,26 @@ fn benchmark_eventing(criterion: &mut Criterion) {
                             sequence_number: SequenceNumber::new(0),
                             said,
                         })
+                        .build()
+                });
+            });
+        }
+
+        // A witnessed message carries all three group kinds at once.
+        if let (Ok(witness_key), Ok(witness_signature), Ok(receipt_signature)) = (
+            VerificationKey::from_qb64(BENCH_WITNESS_KEY),
+            IndexedSignature::from_qb64(BENCH_WITNESS_SIGNATURE),
+            UnindexedSignature::from_qb64(BENCH_RECEIPT_SIGNATURE),
+        ) && let (Ok(witness), Ok(receipt)) = (
+            witness_signature.with_verifier(witness_key.clone()),
+            ReceiptCouple::new(witness_key, receipt_signature),
+        ) {
+            criterion.bench_function("attach_witness_and_receipt_groups", |bencher| {
+                bencher.iter(|| {
+                    SignedMessageBuilder::new(black_box(&event))
+                        .controller_signatures(vec![signature.clone()])
+                        .witness_signatures(vec![witness.clone()])
+                        .receipt_couples(vec![receipt.clone()])
                         .build()
                 });
             });
