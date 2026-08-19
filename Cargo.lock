@@ -944,6 +944,10 @@ dependencies = [
 name = "signify-http"
 version = "0.0.0"
 dependencies = [
+ "criterion",
+ "proptest",
+ "serde",
+ "serde_json",
  "signify-crypto",
 ]
 

@@ -11,6 +11,7 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4.13"
 signify-cesr = { path = "../crates/signify-cesr" }
 signify-crypto = { path = "../crates/signify-crypto" }
+signify-http = { path = "../crates/signify-http" }
 signify-keri = { path = "../crates/signify-keri" }
 
 [[bin]]
@@ -184,6 +185,13 @@ bench = false
 [[bin]]
 name = "exchange"
 path = "fuzz_targets/exchange.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ending"
+path = "fuzz_targets/ending.rs"
 test = false
 doc = false
 bench = false

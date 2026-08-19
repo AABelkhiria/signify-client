@@ -657,6 +657,7 @@ dependencies = [
  "libfuzzer-sys",
  "signify-cesr",
  "signify-crypto",
+ "signify-http",
  "signify-keri",
 ]
 
@@ -674,6 +675,13 @@ dependencies = [
  "signify-cesr",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "signify-http"
+version = "0.0.0"
+dependencies = [
+ "signify-crypto",
 ]
 
 [[package]]
