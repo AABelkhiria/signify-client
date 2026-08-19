@@ -153,6 +153,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "prefix"
+path = "fuzz_targets/prefix.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

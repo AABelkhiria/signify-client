@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-19",
+  "sources": [
+    "src/keri/core/prefixer.ts",
+    "test/core/prefixer.test.ts",
+    "test/core/serder.test.ts"
+  ],
+  "dummy_character": "#",
+  "supported_codes": [
+    "B",
+    "D",
+    "E"
+  ],
+  "incepting_ilks": [
+    "icp",
+    "dip",
+    "vcp"
+  ],
+  "cases": [
+    {
+      "name": "pinned_prefixer_test_self_addressing",
+      "derivation_code": "E",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[]}",
+      "prefix": "ELEjyRTtmfyp4VpTBTkv_b6KONMS1V8-EW-aGJ5P_QMo",
+      "prefix_code": "E",
+      "transferable": true,
+      "digestive": true,
+      "dummied_sad_json": "{\"v\":\"KERI10JSON0000ed_\",\"i\":\"############################################\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[],\"d\":\"############################################\"}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"v\":\"KERI10JSON0000ed_\",\"i\":\"############################################\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[],\"d\":\"############################################\"}",
+      "preimage_hex": "7b2276223a224b45524931304a534f4e3030303065645f222c2269223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2273223a2230222c2274223a22696370222c226b74223a2231222c226b223a5b22444b78793273677a66706c79722d746777497853313966324f63684648744c775057443376346f59696d4278225d2c226e223a22222c227774223a2230222c2277223a5b5d2c2263223a5b5d2c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323227d",
+      "preimage_byte_size": 237
+    },
+    {
+      "name": "pinned_prefixer_test_basic_transferable",
+      "derivation_code": "D",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[]}",
+      "prefix": "DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "prefix_code": "D",
+      "transferable": true,
+      "digestive": false,
+      "dummied_sad_json": null,
+      "placeholder": null,
+      "placeholder_width": null,
+      "preimage": null,
+      "preimage_hex": null,
+      "preimage_byte_size": null
+    },
+    {
+      "name": "pinned_serder_test_self_addressing",
+      "derivation_code": "E",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "prefix": "ECHOi6qRaswNpvytpCtpvEh2cB2aLAwVHBLFinno3YVW",
+      "prefix_code": "E",
+      "transferable": true,
+      "digestive": true,
+      "dummied_sad_json": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "preimage_hex": "7b2276223a224b45524931304a534f4e3030303132625f222c2274223a22696370222c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2269223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "preimage_byte_size": 299
+    },
+    {
+      "name": "pinned_serder_test_basic_transferable",
+      "derivation_code": "D",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "prefix": "DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e",
+      "prefix_code": "D",
+      "transferable": true,
+      "digestive": false,
+      "dummied_sad_json": null,
+      "placeholder": null,
+      "placeholder_width": null,
+      "preimage": null,
+      "preimage_hex": null,
+      "preimage_byte_size": null
+    },
+    {
+      "name": "basic_non_transferable",
+      "derivation_code": "B",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[]}",
+      "prefix": "BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "prefix_code": "B",
+      "transferable": false,
+      "digestive": false,
+      "dummied_sad_json": null,
+      "placeholder": null,
+      "placeholder_width": null,
+      "preimage": null,
+      "preimage_hex": null,
+      "preimage_byte_size": null
+    },
+    {
+      "name": "delegated_inception",
+      "derivation_code": "E",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"dip\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "prefix": "EOTV5EwMt5eKjH9Yql9VpMrh8cwL73gXXIs9hRkXwIZ6",
+      "prefix_code": "E",
+      "transferable": true,
+      "digestive": true,
+      "dummied_sad_json": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"dip\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"dip\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "preimage_hex": "7b2276223a224b45524931304a534f4e3030303132625f222c2274223a22646970222c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2269223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "preimage_byte_size": 299
+    },
+    {
+      "name": "registry_inception",
+      "derivation_code": "E",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "prefix": "EDWM-hesyf3BFDIdQ8kceeaJlruZz6nkWA9sNy--E3P_",
+      "prefix_code": "E",
+      "transferable": true,
+      "digestive": true,
+      "dummied_sad_json": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"vcp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"vcp\",\"d\":\"############################################\",\"i\":\"############################################\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "preimage_hex": "7b2276223a224b45524931304a534f4e3030303132625f222c2274223a22766370222c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2269223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d",
+      "preimage_byte_size": 299
+    },
+    {
+      "name": "both_identifier_fields_absent",
+      "derivation_code": "E",
+      "input_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "prefix": "EJm82N9JHTM_YQiA3gMLH4LYesiFlycU97SO-yzR2zuH",
+      "prefix_code": "E",
+      "transferable": true,
+      "digestive": true,
+      "dummied_sad_json": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[],\"i\":\"############################################\",\"d\":\"############################################\"}",
+      "placeholder": "############################################",
+      "placeholder_width": 44,
+      "preimage": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[],\"i\":\"############################################\",\"d\":\"############################################\"}",
+      "preimage_hex": "7b2276223a224b45524931304a534f4e3030303132625f222c2274223a22696370222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d2c2269223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323222c2264223a222323232323232323232323232323232323232323232323232323232323232323232323232323232323232323227d",
+      "preimage_byte_size": 299
+    }
+  ],
+  "completed_events": [
+    {
+      "name": "pinned_prefixer_test_self_addressing",
+      "derivation_code": "E",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"ELEjyRTtmfyp4VpTBTkv_b6KONMS1V8-EW-aGJ5P_QMo\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[],\"d\":\"ELEjyRTtmfyp4VpTBTkv_b6KONMS1V8-EW-aGJ5P_QMo\"}",
+      "reference_rederived_prefix": "ELEjyRTtmfyp4VpTBTkv_b6KONMS1V8-EW-aGJ5P_QMo",
+      "matches_original": true
+    },
+    {
+      "name": "pinned_prefixer_test_basic_transferable",
+      "derivation_code": "D",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[]}",
+      "reference_rederived_prefix": "DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "matches_original": true
+    },
+    {
+      "name": "pinned_serder_test_self_addressing",
+      "derivation_code": "E",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"d\":\"ECHOi6qRaswNpvytpCtpvEh2cB2aLAwVHBLFinno3YVW\",\"i\":\"ECHOi6qRaswNpvytpCtpvEh2cB2aLAwVHBLFinno3YVW\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "reference_rederived_prefix": "ECHOi6qRaswNpvytpCtpvEh2cB2aLAwVHBLFinno3YVW",
+      "matches_original": true
+    },
+    {
+      "name": "pinned_serder_test_basic_transferable",
+      "derivation_code": "D",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "reference_rederived_prefix": "DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e",
+      "matches_original": true
+    },
+    {
+      "name": "basic_non_transferable",
+      "derivation_code": "B",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[]}",
+      "reference_rederived_prefix": "BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "matches_original": true
+    },
+    {
+      "name": "delegated_inception",
+      "derivation_code": "E",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"dip\",\"d\":\"EOTV5EwMt5eKjH9Yql9VpMrh8cwL73gXXIs9hRkXwIZ6\",\"i\":\"EOTV5EwMt5eKjH9Yql9VpMrh8cwL73gXXIs9hRkXwIZ6\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "reference_rederived_prefix": "EOTV5EwMt5eKjH9Yql9VpMrh8cwL73gXXIs9hRkXwIZ6",
+      "matches_original": true
+    },
+    {
+      "name": "registry_inception",
+      "derivation_code": "E",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"vcp\",\"d\":\"EDWM-hesyf3BFDIdQ8kceeaJlruZz6nkWA9sNy--E3P_\",\"i\":\"EDWM-hesyf3BFDIdQ8kceeaJlruZz6nkWA9sNy--E3P_\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "reference_rederived_prefix": "EDWM-hesyf3BFDIdQ8kceeaJlruZz6nkWA9sNy--E3P_",
+      "matches_original": true
+    },
+    {
+      "name": "both_identifier_fields_absent",
+      "derivation_code": "E",
+      "completed_sad_json": "{\"v\":\"KERI10JSON000000_\",\"t\":\"icp\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[],\"i\":\"EJm82N9JHTM_YQiA3gMLH4LYesiFlycU97SO-yzR2zuH\",\"d\":\"EJm82N9JHTM_YQiA3gMLH4LYesiFlycU97SO-yzR2zuH\"}",
+      "reference_rederived_prefix": "EJm82N9JHTM_YQiA3gMLH4LYesiFlycU97SO-yzR2zuH",
+      "matches_original": true
+    }
+  ],
+  "parsed_prefixes": [
+    {
+      "qb64": "DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "code": "D",
+      "transferable": true,
+      "digestive": false
+    },
+    {
+      "qb64": "BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "code": "B",
+      "transferable": false,
+      "digestive": false
+    },
+    {
+      "qb64": "ELEjyRTtmfyp4VpTBTkv_b6KONMS1V8-EW-aGJ5P_QMo",
+      "code": "E",
+      "transferable": true,
+      "digestive": true
+    }
+  ],
+  "rejected_cases": [
+    {
+      "name": "two_keys",
+      "reference_error_category": "Error",
+      "reference_error_message": "Basic derivation needs at most 1 key got 2 keys instead",
+      "rust_error_category": "KeyCount"
+    },
+    {
+      "name": "zero_keys",
+      "reference_error_category": "Error",
+      "reference_error_message": "Basic derivation needs at most 1 key got 0 keys instead",
+      "rust_error_category": "KeyCount"
+    },
+    {
+      "name": "missing_keys_field",
+      "reference_error_category": "TypeError",
+      "reference_error_message": "Cannot read properties of undefined (reading 'length')",
+      "rust_error_category": "MissingKeysField"
+    },
+    {
+      "name": "malformed_key",
+      "reference_error_category": "Error",
+      "reference_error_message": "Error extracting public key = Error: Unsupported code n",
+      "rust_error_category": "Crypto"
+    },
+    {
+      "name": "non_transferable_derivation_with_transferable_key",
+      "reference_error_category": "Error",
+      "reference_error_message": "Mismatch derivation code = D",
+      "rust_error_category": "KeyCodeMismatch"
+    },
+    {
+      "name": "non_transferable_with_next_keys",
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-empty nxt = EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj for non-transferable code = B",
+      "rust_error_category": "NonTransferableFieldNotEmpty"
+    },
+    {
+      "name": "non_transferable_with_backers",
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-empty b =DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx for non-transferable code = B",
+      "rust_error_category": "NonTransferableFieldNotEmpty"
+    },
+    {
+      "name": "non_transferable_with_anchors",
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-empty a = B for non-transferable code = B",
+      "rust_error_category": "NonTransferableFieldNotEmpty"
+    },
+    {
+      "name": "non_incepting_event_kind",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid ilk = rot to derive pre.",
+      "rust_error_category": "NonInceptingEventKind"
+    },
+    {
+      "name": "missing_event_kind",
+      "reference_error_category": "Error",
+      "reference_error_message": "Invalid ilk = undefined to derive pre.",
+      "rust_error_category": "MissingEventKind"
+    },
+    {
+      "name": "missing_version_string",
+      "reference_error_category": "Error",
+      "reference_error_message": "Missing or empty version string",
+      "rust_error_category": "Serialization"
+    },
+    {
+      "name": "unsupported_derivation_code",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code = H for prefixer.",
+      "rust_error_category": "UnsupportedCode"
+    },
+    {
+      "name": "p256_key_cannot_form_a_prefix",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code = 1AAJ for prefixer.",
+      "rust_error_category": "KeyCodeMismatch"
+    },
+    {
+      "name": "non_prefix_qualified_material",
+      "reference_error_category": "Error",
+      "reference_error_message": "Unsupported code = undefined for prefixer.",
+      "rust_error_category": "UnsupportedCode"
+    }
+  ],
+  "reference_quirks": {
+    "public_derive_and_verify_gate_on_the_identifier_field": {
+      "reference_error_category": "Error",
+      "reference_error_message": "Non-incepting ilk  for prefix derivation",
+      "verify_accepted_when_identifier_field_is_the_ilk": true,
+      "verify_prefixed_when_identifier_field_is_the_ilk": false,
+      "verify_prefixed_on_a_completed_event": "Non-incepting ilk ELEjyRTtmfyp4VpTBTkv_b6KONMS1V8-EW-aGJ5P_QMo for prefix derivation",
+      "note": "derive(sad) and verify(sad) compare sad['i'], the identifier field, against the icp ilk instead of sad['t']; every real event throws, and verify(sad, true) can never return true because reaching the comparison requires i to be the literal text 'icp', which the comparison then rejects",
+      "rust_decision": "Rust gates self-addressing derivation on the event kind field and makes PrefixVerification::Strict -- the check the prefixed flag intends -- the default"
+    },
+    "transferable_key_code_check_is_a_no_op": {
+      "requested_code": "D",
+      "key": "BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "reference_prefix": "BKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx",
+      "reference_prefix_code": "B",
+      "reference_transferable": false,
+      "note": "the check is written `verfer.code in [MtrDex.Ed25519]`, which tests array property keys and is never true, so a non-transferable key passed to the transferable derivation silently yields a non-transferable prefix",
+      "rust_error_category": "KeyCodeMismatch"
+    },
+    "non_transferable_verify_skips_backers_and_anchors": {
+      "reference_verify_with_next_keys": false,
+      "reference_verify_with_backers": true,
+      "reference_verify_with_anchors": true,
+      "note": "_verify_ed25519N checks only the next-key field, so it accepts an event carrying backers or anchors that its own _derive_ed25519N would have rejected",
+      "rust_decision": "Rust verifies by re-deriving, so every invariant derivation enforces is enforced on verification too",
+      "rust_error_category": "NonTransferableFieldNotEmpty"
+    },
+    "verify_mutates_the_callers_event": {
+      "result": true,
+      "event_before_json": "{\"v\":\"KERI10JSON000000_\",\"i\":\"icp\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[]}",
+      "event_after_json": "{\"v\":\"KERI10JSON0000ed_\",\"i\":\"############################################\",\"s\":\"0\",\"t\":\"icp\",\"kt\":\"1\",\"k\":[\"DKxy2sgzfplyr-tgwIxS19f2OchFHtLwPWD3v4oYimBx\"],\"n\":\"\",\"wt\":\"0\",\"w\":[],\"c\":[],\"d\":\"############################################\"}",
+      "note": "self-addressing verification calls the same _derive_blake3_256 that overwrites the identifier and SAID fields with placeholder characters and restamps the version string, so verifying destroys the caller's event",
+      "rust_decision": "Rust borrows the data and clones internally; the caller's event is unchanged"
+    },
+    "constructor_super_called_twice": {
+      "name": "constructor_with_existing_identifier",
+      "reference_error_category": "ReferenceError",
+      "reference_error_message": "Super constructor may only be called once",
+      "rust_error_category": "UnreachableInRust",
+      "note": "when no code is passed and the identifier field is already populated, the constructor calls super() twice, so the natural 'recover the derivation of a received event' path throws; callers must construct from qb64 and call verify() instead"
+    }
+  }
+}
