@@ -537,6 +537,8 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "nacl-sealed-box"
 version = "0.2.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bea64675c10d590660da7c07cfe73b437fd83e08d4c3eec19e4a32b84785e6b"
 dependencies = [
  "blake2",
  "cipher",
