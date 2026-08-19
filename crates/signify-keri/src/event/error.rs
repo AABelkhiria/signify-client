@@ -3,6 +3,7 @@
 use core::fmt;
 use std::error::Error;
 
+use signify_cesr::CesrError;
 use signify_crypto::CryptoError;
 
 use crate::prefix::PrefixError;
@@ -82,10 +83,72 @@ pub enum EventError {
         /// Requested derivation code.
         code: &'static str,
     },
-    /// A reply's route exceeds the accepted bound.
+    /// A message route exceeds the accepted bound.
     RouteTooLong {
         /// Rejected route length in bytes.
         length: usize,
+    },
+    /// An exchange payload carries the identifier label, which names the recipient.
+    ///
+    /// The reference merges the payload over the recipient it just wrote, so a payload field
+    /// silently replaces the addressee inside the attribute block while the top-level recipient
+    /// field still names someone else; see `PORTING.md` §9.
+    PayloadOverridesRecipient {
+        /// Field label the payload may not carry.
+        label: &'static str,
+    },
+    /// Two embeds in one exchange message share a label.
+    DuplicateEmbedLabel {
+        /// Bounded copy of the repeated label.
+        label: String,
+    },
+    /// An embed label collides with one the embeds block itself writes.
+    ///
+    /// The identifier label carries the block's own SAID, and a version label makes the block look
+    /// like a versioned message to the SAID machinery. The reference destroys the embed in the
+    /// first case and throws in the second.
+    ReservedEmbedLabel {
+        /// Label that may not be used.
+        label: &'static str,
+    },
+    /// An embed label is not a usable attachment-path component.
+    ///
+    /// A label must be nonempty, within the unpadded URL-safe Base64 alphabet, free of the `-`
+    /// path separator, and not purely numeric.
+    InvalidEmbedLabel {
+        /// Bounded copy of the rejected label.
+        label: String,
+        /// Underlying path-component failure.
+        source: Box<CesrError>,
+    },
+    /// An embed label exceeds the accepted bound.
+    EmbedLabelTooLong {
+        /// Rejected label length in bytes.
+        length: usize,
+    },
+    /// A transposed attachment is not a whole number of CESR quadlets.
+    ///
+    /// The reference divides its length by four and rounds down, so the trailing bytes fall
+    /// outside the count and corrupt the stream that follows.
+    NonIntegralAttachment {
+        /// Bounded copy of the embed label whose attachment is misaligned.
+        label: String,
+        /// Attachment length in bytes.
+        length: usize,
+    },
+    /// A transposed attachment holds a byte outside the CESR text domain.
+    InvalidAttachmentText {
+        /// Bounded copy of the embed label whose attachment is invalid.
+        label: String,
+        /// Offset of the first offending byte.
+        offset: usize,
+    },
+    /// A transposed attachment needs more quadlets than its counter can express.
+    AttachmentTooLarge {
+        /// Bounded copy of the embed label whose attachment is oversized.
+        label: String,
+        /// Quadlets the pathed group would need.
+        quadlets: usize,
     },
     /// A length, count, or threshold exceeded the range the protocol can encode.
     ValueOutOfRange {
@@ -116,6 +179,11 @@ pub enum EventError {
     Crypto {
         /// Underlying cryptographic failure.
         source: Box<CryptoError>,
+    },
+    /// Counter or path material could not be encoded.
+    Cesr {
+        /// Underlying encoding failure.
+        source: Box<CesrError>,
     },
 }
 
@@ -149,6 +217,17 @@ impl EventError {
             source: Box::new(source),
         }
     }
+
+    pub(crate) fn cesr(source: CesrError) -> Self {
+        Self::Cesr {
+            source: Box::new(source),
+        }
+    }
+}
+
+/// Copies at most thirty-two characters of a caller-supplied label into an error.
+pub(crate) fn bounded_label(label: &str) -> String {
+    label.chars().take(32).collect()
 }
 
 impl fmt::Display for EventError {
@@ -192,8 +271,40 @@ impl fmt::Display for EventError {
             ),
             Self::RouteTooLong { length } => write!(
                 formatter,
-                "reply route of {length} bytes exceeds the maximum of {}",
+                "message route of {length} bytes exceeds the maximum of {}",
                 crate::event::reply::MAX_ROUTE_BYTES
+            ),
+            Self::PayloadOverridesRecipient { label } => write!(
+                formatter,
+                "an exchange payload may not carry the {label:?} field, which names the recipient"
+            ),
+            Self::DuplicateEmbedLabel { label } => {
+                write!(formatter, "embed label {label:?} appears more than once")
+            }
+            Self::ReservedEmbedLabel { label } => write!(
+                formatter,
+                "embed label {label:?} is reserved by the embeds block itself"
+            ),
+            Self::InvalidEmbedLabel { label, .. } => write!(
+                formatter,
+                "embed label {label:?} is not a usable attachment-path component"
+            ),
+            Self::EmbedLabelTooLong { length } => write!(
+                formatter,
+                "embed label of {length} bytes exceeds the maximum of {}",
+                crate::event::exchange::MAX_EMBED_LABEL_BYTES
+            ),
+            Self::NonIntegralAttachment { label, length } => write!(
+                formatter,
+                "attachment of {length} bytes for embed {label:?} is not a whole number of quadlets"
+            ),
+            Self::InvalidAttachmentText { label, offset } => write!(
+                formatter,
+                "attachment for embed {label:?} holds a non-CESR byte at offset {offset}"
+            ),
+            Self::AttachmentTooLarge { label, quadlets } => write!(
+                formatter,
+                "attachment for embed {label:?} needs {quadlets} quadlets, more than its counter can express"
             ),
             Self::ValueOutOfRange { context } => write!(formatter, "{context} exceeds its encodable range"),
             Self::Prefix { .. } => formatter.write_str("identifier prefix derivation failed"),
@@ -201,6 +312,7 @@ impl fmt::Display for EventError {
             Self::Sad { .. } => formatter.write_str("self-addressing data is invalid"),
             Self::Serialization { .. } => formatter.write_str("event serialization failed"),
             Self::Crypto { .. } => formatter.write_str("key or digest material is invalid"),
+            Self::Cesr { .. } => formatter.write_str("counter or path material is invalid"),
         }
     }
 }
@@ -213,6 +325,7 @@ impl Error for EventError {
             Self::Sad { source } => Some(source.as_ref()),
             Self::Serialization { source } => Some(source.as_ref()),
             Self::Crypto { source } => Some(source.as_ref()),
+            Self::InvalidEmbedLabel { source, .. } | Self::Cesr { source } => Some(source.as_ref()),
             _ => None,
         }
     }

@@ -181,6 +181,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "exchange"
+path = "fuzz_targets/exchange.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

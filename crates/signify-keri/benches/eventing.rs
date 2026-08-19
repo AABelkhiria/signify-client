@@ -14,6 +14,7 @@ use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
 use signify_crypto::verifier::VerificationKey;
 use signify_keri::attachment::{ReceiptCouple, SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::KeyEvent;
+use signify_keri::event::exchange::{ExchangeBuilder, ExchangeEmbed};
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::reply::ReplyBuilder;
@@ -29,6 +30,7 @@ const SECOND_KEY: &str = "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";
 const NEXT_DIGEST: &str = "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W";
 const WITNESS: &str = "BB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
+const EXCHANGE_STAMP: &str = "2023-08-30T17:22:54.183000+00:00";
 const BENCH_SIGNATURE: &str =
     "AABB3MJGmBXxSEryNHw3YwZZLRl_6Ws4Me2WFq8PrQ6WlluSOpPqbwXuiG9RvNWZkqeW8A_0VRjokGMVRZ3m-c0I";
 const BENCH_IDENTIFIER: &str = "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL";
@@ -119,6 +121,54 @@ fn benchmark_eventing(criterion: &mut Criterion) {
     });
 
     benchmark_attachments(criterion, &root);
+    benchmark_exchange(criterion, &root);
+}
+
+/// Every multisig step and every IPEX step is one exchange message, and a grant carries three
+/// embeds whose SAIDs are derived over the whole block.
+fn benchmark_exchange(criterion: &mut Criterion, root: &KeyEvent) {
+    let (Ok(sender), Ok(recipient), Ok(stamp), Ok(embedded)) = (
+        IdentifierPrefix::from_qb64(BENCH_IDENTIFIER),
+        IdentifierPrefix::from_qb64(WITNESS),
+        Timestamp::parse(EXCHANGE_STAMP),
+        SerializedEvent::parse(root.raw()),
+    ) else {
+        return;
+    };
+    let builder = || ExchangeBuilder::new("/ipex/grant", sender.clone(), recipient.clone(), stamp.clone());
+
+    criterion.bench_function("exchange_without_embeds", |bencher| {
+        bencher.iter(|| {
+            let mut payload = Sad::new();
+            let _ = payload.insert("m", SadValue::text(""));
+            black_box(builder()).payload(payload).build()
+        });
+    });
+
+    let Ok(attached) = ExchangeEmbed::new("acdc", &embedded)
+        .and_then(|embed| embed.with_attachment(format!("-AAB{BENCH_SIGNATURE}").into_bytes()))
+    else {
+        return;
+    };
+
+    criterion.bench_function("exchange_with_one_embed", |bencher| {
+        bencher.iter(|| black_box(builder()).embeds(vec![attached.clone()]).build());
+    });
+
+    let (Ok(iss), Ok(anc)) = (
+        ExchangeEmbed::new("iss", &embedded),
+        ExchangeEmbed::new("anc", &embedded),
+    ) else {
+        return;
+    };
+
+    criterion.bench_function("exchange_with_three_embeds", |bencher| {
+        bencher.iter(|| {
+            black_box(builder())
+                .embeds(vec![attached.clone(), iss.clone(), anc.clone()])
+                .build()
+        });
+    });
 }
 
 /// Every message a controller sends is composed once with its signatures attached.

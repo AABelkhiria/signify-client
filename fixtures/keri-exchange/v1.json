@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-19",
+  "sources": [
+    "src/keri/app/exchanging.ts",
+    "test/app/exchanging.test.ts"
+  ],
+  "embedded_events": {
+    "icp": "{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+    "vcp": "{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]}"
+  },
+  "signature": "AAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI",
+  "cases": [
+    {
+      "name": "no_embeds",
+      "route": "/multisig/vcp",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [],
+      "said": "EMnkYcJu8N7T_oQGeilsHdbLdBK7MOlkgc7UmHOXJsWI",
+      "embeds_said": null,
+      "version_string": "KERI10JSON000147_",
+      "raw": "{\"v\":\"KERI10JSON000147_\",\"t\":\"exn\",\"d\":\"EMnkYcJu8N7T_oQGeilsHdbLdBK7MOlkgc7UmHOXJsWI\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303134375f222c2274223a2265786e222c2264223a22454d6e6b59634a75384e37545f6f514765696c734864624c64424b374d4f6c6b676337556d484f584a735749222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f766370222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b7d7d",
+      "raw_byte_size": 327,
+      "attachments": "",
+      "attachments_length": 0,
+      "reparse": {
+        "raw_identical": true,
+        "size": 327,
+        "said": "EMnkYcJu8N7T_oQGeilsHdbLdBK7MOlkgc7UmHOXJsWI"
+      }
+    },
+    {
+      "name": "ipex_apply_payload",
+      "route": "/ipex/apply",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{\"m\":\"\",\"s\":\"EMwcy7QflVQyLzZlaXWQY-mllTaqxL_G5rZAAmn6vNBd\",\"a\":{}}",
+      "modifiers_json": "{}",
+      "embeds": [],
+      "said": "EHg03O6tCe88fH4uBsfbroXBfv3sdwcBtTFc4MSEYv7z",
+      "embeds_said": null,
+      "version_string": "KERI10JSON000186_",
+      "raw": "{\"v\":\"KERI10JSON000186_\",\"t\":\"exn\",\"d\":\"EHg03O6tCe88fH4uBsfbroXBfv3sdwcBtTFc4MSEYv7z\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"m\":\"\",\"s\":\"EMwcy7QflVQyLzZlaXWQY-mllTaqxL_G5rZAAmn6vNBd\",\"a\":{}},\"e\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303138365f222c2274223a2265786e222c2264223a2245486730334f3674436538386648347542736662726f5842667633736477634274544663344d53455976377a222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f697065782f6170706c79222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c226d223a22222c2273223a22454d7763793751666c5651794c7a5a6c61585751592d6d6c6c546171784c5f4735725a41416d6e36764e4264222c2261223a7b7d7d2c2265223a7b7d7d",
+      "raw_byte_size": 390,
+      "attachments": "",
+      "attachments_length": 0,
+      "reparse": {
+        "raw_identical": true,
+        "size": 390,
+        "said": "EHg03O6tCe88fH4uBsfbroXBfv3sdwcBtTFc4MSEYv7z"
+      }
+    },
+    {
+      "name": "prior_and_modifiers",
+      "route": "/ipex/offer",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": "EMnkYcJu8N7T_oQGeilsHdbLdBK7MOlkgc7UmHOXJsWI",
+      "payload_json": "{\"m\":\"please review\"}",
+      "modifiers_json": "{\"usage\":\"test\",\"count\":3}",
+      "embeds": [],
+      "said": "EOcxOW4UyMdxJ-fHToOUUPpvCB6AaQp6ck9PuSlwHbae",
+      "embeds_said": null,
+      "version_string": "KERI10JSON00019d_",
+      "raw": "{\"v\":\"KERI10JSON00019d_\",\"t\":\"exn\",\"d\":\"EOcxOW4UyMdxJ-fHToOUUPpvCB6AaQp6ck9PuSlwHbae\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"EMnkYcJu8N7T_oQGeilsHdbLdBK7MOlkgc7UmHOXJsWI\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/ipex/offer\",\"q\":{\"usage\":\"test\",\"count\":3},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"m\":\"please review\"},\"e\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303139645f222c2274223a2265786e222c2264223a22454f63784f573455794d64784a2d6648546f4f55555070764342364161517036636b395075536c7748626165222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22454d6e6b59634a75384e37545f6f514765696c734864624c64424b374d4f6c6b676337556d484f584a735749222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f697065782f6f66666572222c2271223a7b227573616765223a2274657374222c22636f756e74223a337d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c226d223a22706c6561736520726576696577227d2c2265223a7b7d7d",
+      "raw_byte_size": 413,
+      "attachments": "",
+      "attachments_length": 0,
+      "reparse": {
+        "raw_identical": true,
+        "size": 413,
+        "said": "EOcxOW4UyMdxJ-fHToOUUPpvCB6AaQp6ck9PuSlwHbae"
+      }
+    },
+    {
+      "name": "basic_prefix_sender",
+      "route": "/multisig/rpy",
+      "sender": "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [],
+      "said": "EMqAyY5q5yfVlAsAgh38QAvcmnRBvn-BXf3FdWIScDG-",
+      "embeds_said": null,
+      "version_string": "KERI10JSON000147_",
+      "raw": "{\"v\":\"KERI10JSON000147_\",\"t\":\"exn\",\"d\":\"EMqAyY5q5yfVlAsAgh38QAvcmnRBvn-BXf3FdWIScDG-\",\"i\":\"DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303134375f222c2274223a2265786e222c2264223a22454d714179593571357966566c41734167683338514176636d6e5242766e2d4258663346645749536344472d222c2269223a22444673384242783836757974494d3044324268734535727271564954386566386d666c704e6365486f345848222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f727079222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b7d7d",
+      "raw_byte_size": 327,
+      "attachments": "",
+      "attachments_length": 0,
+      "reparse": {
+        "raw_identical": true,
+        "size": 327,
+        "said": "EMqAyY5q5yfVlAsAgh38QAvcmnRBvn-BXf3FdWIScDG-"
+      }
+    },
+    {
+      "name": "embed_without_attachment",
+      "route": "/multisig/vcp",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [
+        {
+          "label": "vcp",
+          "event_raw": "{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]}",
+          "attachment": null
+        }
+      ],
+      "said": "EJZwsaGRPAIzFan2VbyWy-iTGuk2v_Ac-5uuVF4juemB",
+      "embeds_said": "EHmraAtIyUNqa3cicLjFJ63sjYBwsXWMtPzBbiPUCB18",
+      "version_string": "KERI10JSON0001c9_",
+      "raw": "{\"v\":\"KERI10JSON0001c9_\",\"t\":\"exn\",\"d\":\"EJZwsaGRPAIzFan2VbyWy-iTGuk2v_Ac-5uuVF4juemB\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"vcp\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"d\":\"EHmraAtIyUNqa3cicLjFJ63sjYBwsXWMtPzBbiPUCB18\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303163395f222c2274223a2265786e222c2264223a22454a5a77736147525041497a46616e3256627957792d695447756b32765f41632d3575755646346a75656d42222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f766370222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b22766370223a7b2276223a224b45524931304a534f4e3030303034395f222c2274223a22766370222c2264223a22222c2269223a22222c2273223a2230222c226274223a2230222c2262223a5b5d7d2c2264223a2245486d726141744979554e7161336369634c6a464a3633736a5942777358574d74507a426269505543423138227d7d",
+      "raw_byte_size": 457,
+      "attachments": "",
+      "attachments_length": 0,
+      "reparse": {
+        "raw_identical": true,
+        "size": 457,
+        "said": "EJZwsaGRPAIzFan2VbyWy-iTGuk2v_Ac-5uuVF4juemB"
+      }
+    },
+    {
+      "name": "embed_with_signature_group",
+      "route": "/multisig/icp",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [
+        {
+          "label": "icp",
+          "event_raw": "{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+          "attachment": "-AABAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
+        },
+        {
+          "label": "vcp",
+          "event_raw": "{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]}",
+          "attachment": null
+        }
+      ],
+      "said": "EMwaL7XF2qOOeD1iok4YK3VrcRiJR-sk253TUs0F32ER",
+      "embeds_said": "EDPWpKtMoPwro_Of8TQzpNMGdtmfyWzqTcRKQ01fGFRi",
+      "version_string": "KERI10JSON0002a3_",
+      "raw": "{\"v\":\"KERI10JSON0002a3_\",\"t\":\"exn\",\"d\":\"EMwaL7XF2qOOeD1iok4YK3VrcRiJR-sk253TUs0F32ER\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"icp\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"vcp\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"d\":\"EDPWpKtMoPwro_Of8TQzpNMGdtmfyWzqTcRKQ01fGFRi\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303261335f222c2274223a2265786e222c2264223a22454d77614c37584632714f4f654431696f6b34594b3356726352694a522d736b323533545573304633324552222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f696370222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b22696370223a7b2276223a224b45524931304a534f4e3030303064335f222c2274223a22696370222c2264223a22222c2269223a22222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d2c22766370223a7b2276223a224b45524931304a534f4e3030303034395f222c2274223a22766370222c2264223a22222c2269223a22222c2273223a2230222c226274223a2230222c2262223a5b5d7d2c2264223a2245445057704b744d6f5077726f5f4f663854517a704e4d4764746d6679577a715463524b5130316647465269227d7d",
+      "raw_byte_size": 675,
+      "attachments": "-LAa5AACAA-e-icp-AABAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI",
+      "attachments_length": 108,
+      "reparse": {
+        "raw_identical": true,
+        "size": 675,
+        "said": "EMwaL7XF2qOOeD1iok4YK3VrcRiJR-sk253TUs0F32ER"
+      }
+    },
+    {
+      "name": "embed_with_bare_signature",
+      "route": "/multisig/icp",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [
+        {
+          "label": "icp",
+          "event_raw": "{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+          "attachment": "AAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
+        }
+      ],
+      "said": "EM4gQuLISr0TeiYadej08zlr9vmZZFrNLM_rsOSj0-e6",
+      "embeds_said": "EBizoZIws8udMEvRMYT9UJ9H-01nIRruZpL4XoYXjs0I",
+      "version_string": "KERI10JSON000253_",
+      "raw": "{\"v\":\"KERI10JSON000253_\",\"t\":\"exn\",\"d\":\"EM4gQuLISr0TeiYadej08zlr9vmZZFrNLM_rsOSj0-e6\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"icp\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"d\":\"EBizoZIws8udMEvRMYT9UJ9H-01nIRruZpL4XoYXjs0I\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303235335f222c2274223a2265786e222c2264223a22454d346751754c49537230546569596164656a30387a6c7239766d5a5a46724e4c4d5f72734f536a302d6536222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f696370222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b22696370223a7b2276223a224b45524931304a534f4e3030303064335f222c2274223a22696370222c2264223a22222c2269223a22222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d2c2264223a224542697a6f5a4977733875644d4576524d595439554a39482d30316e495272755a704c34586f59586a733049227d7d",
+      "raw_byte_size": 595,
+      "attachments": "-LAZ5AACAA-e-icpAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI",
+      "attachments_length": 104,
+      "reparse": {
+        "raw_identical": true,
+        "size": 595,
+        "said": "EM4gQuLISr0TeiYadej08zlr9vmZZFrNLM_rsOSj0-e6"
+      }
+    },
+    {
+      "name": "two_attachments",
+      "route": "/ipex/grant",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [
+        {
+          "label": "acdc",
+          "event_raw": "{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]}",
+          "attachment": "-AABAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
+        },
+        {
+          "label": "iss",
+          "event_raw": "{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+          "attachment": "-AABAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
+        }
+      ],
+      "said": "EA0H3SbdaDFraxdKAVPcwuz6iegYUfb3KRajxqXLBK9J",
+      "embeds_said": "EIiJXqB-CgPLP9dQf-MIQLAvjidQvX4lbR4sAiQ82b5s",
+      "version_string": "KERI10JSON0002a2_",
+      "raw": "{\"v\":\"KERI10JSON0002a2_\",\"t\":\"exn\",\"d\":\"EA0H3SbdaDFraxdKAVPcwuz6iegYUfb3KRajxqXLBK9J\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"acdc\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"iss\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"d\":\"EIiJXqB-CgPLP9dQf-MIQLAvjidQvX4lbR4sAiQ82b5s\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303261325f222c2274223a2265786e222c2264223a224541304833536264614446726178644b4156506377757a3669656759556662334b52616a7871584c424b394a222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f697065782f6772616e74222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b2261636463223a7b2276223a224b45524931304a534f4e3030303034395f222c2274223a22766370222c2264223a22222c2269223a22222c2273223a2230222c226274223a2230222c2262223a5b5d7d2c22697373223a7b2276223a224b45524931304a534f4e3030303064335f222c2274223a22696370222c2264223a22222c2269223a22222c2273223a2230222c226b74223a2231222c226b223a5b2244415544716b6d6e2d68716c514b4438572d46414561354a55764a4332493979617245656d2d414145673365225d2c226e74223a2231222c226e223a5b2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a225d2c226274223a2230222c2262223a5b5d2c2263223a5b5d2c2261223a5b5d7d2c2264223a224549694a5871422d4367504c50396451662d4d49514c41766a6964517658346c625234734169513832623573227d7d",
+      "raw_byte_size": 674,
+      "attachments": "-LAa4AACA-e-acdc-AABAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI-LAa5AACAA-e-iss-AABAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI",
+      "attachments_length": 216,
+      "reparse": {
+        "raw_identical": true,
+        "size": 674,
+        "said": "EA0H3SbdaDFraxdKAVPcwuz6iegYUfb3KRajxqXLBK9J"
+      }
+    },
+    {
+      "name": "empty_attachment",
+      "route": "/multisig/vcp",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [
+        {
+          "label": "vcp",
+          "event_raw": "{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]}",
+          "attachment": ""
+        }
+      ],
+      "said": "EJZwsaGRPAIzFan2VbyWy-iTGuk2v_Ac-5uuVF4juemB",
+      "embeds_said": "EHmraAtIyUNqa3cicLjFJ63sjYBwsXWMtPzBbiPUCB18",
+      "version_string": "KERI10JSON0001c9_",
+      "raw": "{\"v\":\"KERI10JSON0001c9_\",\"t\":\"exn\",\"d\":\"EJZwsaGRPAIzFan2VbyWy-iTGuk2v_Ac-5uuVF4juemB\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"vcp\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"d\":\"EHmraAtIyUNqa3cicLjFJ63sjYBwsXWMtPzBbiPUCB18\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303163395f222c2274223a2265786e222c2264223a22454a5a77736147525041497a46616e3256627957792d695447756b32765f41632d3575755646346a75656d42222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f766370222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b22766370223a7b2276223a224b45524931304a534f4e3030303034395f222c2274223a22766370222c2264223a22222c2269223a22222c2273223a2230222c226274223a2230222c2262223a5b5d7d2c2264223a2245486d726141744979554e7161336369634c6a464a3633736a5942777358574d74507a426269505543423138227d7d",
+      "raw_byte_size": 457,
+      "attachments": "-LAD5AACAA-e-vcp",
+      "attachments_length": 16,
+      "reparse": {
+        "raw_identical": true,
+        "size": 457,
+        "said": "EJZwsaGRPAIzFan2VbyWy-iTGuk2v_Ac-5uuVF4juemB"
+      }
+    },
+    {
+      "name": "non_ascii_payload",
+      "route": "/multisig/rpy",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{\"m\":\"héllo — ünïcode\"}",
+      "modifiers_json": "{}",
+      "embeds": [],
+      "said": "ECr8QvLXHT855NMSwr8ArG0os-uLBHlLO3iMoVlIdYqV",
+      "embeds_said": null,
+      "version_string": "KERI10JSON000162_",
+      "raw": "{\"v\":\"KERI10JSON000162_\",\"t\":\"exn\",\"d\":\"ECr8QvLXHT855NMSwr8ArG0os-uLBHlLO3iMoVlIdYqV\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"m\":\"héllo — ünïcode\"},\"e\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303136325f222c2274223a2265786e222c2264223a224543723851764c5848543835354e4d53777238417247306f732d754c42486c4c4f33694d6f566c4964597156222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f727079222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c226d223a2268c3a96c6c6f20e2809420c3bc6ec3af636f6465227d2c2265223a7b7d7d",
+      "raw_byte_size": 354,
+      "attachments": "",
+      "attachments_length": 0,
+      "reparse": {
+        "raw_identical": true,
+        "size": 354,
+        "said": "ECr8QvLXHT855NMSwr8ArG0os-uLBHlLO3iMoVlIdYqV"
+      }
+    },
+    {
+      "name": "wide_quadlet_count",
+      "route": "/multisig/exn",
+      "sender": "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL",
+      "recipient": "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj",
+      "timestamp": "2023-08-30T17:22:54.183000+00:00",
+      "prior": null,
+      "payload_json": "{}",
+      "modifiers_json": "{}",
+      "embeds": [
+        {
+          "label": "exn",
+          "event_raw": "{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]}",
+          "attachment": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      ],
+      "said": "EBhlS48EFxtjVYycUUJXO8Jm2bTWQKg6Znc2QZoC26Nz",
+      "embeds_said": "EOgEGcqRFQB4h0i7ZurLQSsHXUX7j_0E8pcRLFFXC_1S",
+      "version_string": "KERI10JSON0001c9_",
+      "raw": "{\"v\":\"KERI10JSON0001c9_\",\"t\":\"exn\",\"d\":\"EBhlS48EFxtjVYycUUJXO8Jm2bTWQKg6Znc2QZoC26Nz\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"d\":\"EOgEGcqRFQB4h0i7ZurLQSsHXUX7j_0E8pcRLFFXC_1S\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303163395f222c2274223a2265786e222c2264223a224542686c533438454678746a5659796355554a584f384a6d32625457514b67365a6e6332515a6f4332364e7a222c2269223a224549666c4c3448343133347a596f524d366c733651303836524c435f4268664e466835756b2d57787668734c222c227270223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a222c2270223a22222c226474223a22323032332d30382d33305431373a32323a35342e3138333030302b30303a3030222c2272223a222f6d756c74697369672f65786e222c2271223a7b7d2c2261223a7b2269223a2245414b55522d4c6d4c48574d7758544c575131516a7848726968426d7777725632745961534737684f72576a227d2c2265223a7b2265786e223a7b2276223a224b45524931304a534f4e3030303034395f222c2274223a22766370222c2264223a22222c2269223a22222c2273223a2230222c226274223a2230222c2262223a5b5d7d2c2264223a22454f67454763715246514234683069375a75724c51537348585558376a5f3045387063524c464658435f3153227d7d",
+      "raw_byte_size": 457,
+      "attachments": "-LBn5AACAA-e-exnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "attachments_length": 416,
+      "reparse": {
+        "raw_identical": true,
+        "size": 457,
+        "said": "EBhlS48EFxtjVYycUUJXO8Jm2bTWQKg6Znc2QZoC26Nz"
+      }
+    }
+  ],
+  "upstream_unit_test": {
+    "source": "test/app/exchanging.test.ts",
+    "sender": "test",
+    "recipient": "",
+    "timestamp": "2023-08-30T17:22:54.183Z",
+    "no_embeds": {
+      "said": "EPWm8LWxxQXmXlB8gbTZKDy7NIwXxpx49N_ZYTa5QkJV",
+      "raw": "{\"v\":\"KERI10JSON0000bf_\",\"t\":\"exn\",\"d\":\"EPWm8LWxxQXmXlB8gbTZKDy7NIwXxpx49N_ZYTa5QkJV\",\"i\":\"test\",\"rp\":\"\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183Z\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"\"},\"e\":{}}",
+      "attachments": ""
+    },
+    "with_embeds": {
+      "said": "EOK2xNjB5xlSvizCUrkFKbdF4j1nsGpvt6TR1HL0wvaY",
+      "embeds_said": "EDPWpKtMoPwro_Of8TQzpNMGdtmfyWzqTcRKQ01fGFRi",
+      "raw": "{\"v\":\"KERI10JSON00021b_\",\"t\":\"exn\",\"d\":\"EOK2xNjB5xlSvizCUrkFKbdF4j1nsGpvt6TR1HL0wvaY\",\"i\":\"test\",\"rp\":\"\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183Z\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"\"},\"e\":{\"icp\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"vcp\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"d\":\"EDPWpKtMoPwro_Of8TQzpNMGdtmfyWzqTcRKQ01fGFRi\"}}",
+      "attachments": "-LAZ5AACAA-e-icpAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
+    },
+    "note": "the asserted identifiers are only reachable from an unvalidated sender, recipient, and timestamp",
+    "rust_decision": "sender and recipient are identifier prefixes and the timestamp is validated, so each of these three inputs is refused; the same message shape is proven byte for byte in `cases` using real prefixes and the reference's own stamp format"
+  },
+  "count_boundary": {
+    "path_quadlets": 3,
+    "max_accepted": {
+      "quadlets": 4095,
+      "attachment_length": 16368,
+      "attachments_prefix": "-L__5AACAA-e-icp",
+      "attachments_length": 16384,
+      "attachments_sha256": "727a34072cee83627e668cee83ebb0189873605ca08399b22d7460fc7ef60bef"
+    },
+    "rejected": {
+      "quadlets": 4096,
+      "threw": true,
+      "error_category": "Error",
+      "error_message": "Invalid count=4096 for code=-L."
+    }
+  },
+  "reference_quirks": {
+    "the_timestamp_defaults_to_the_system_clock": {
+      "shape": "9999-99-99T99:99:99.999999+99:99",
+      "length": 32,
+      "note": "with no stamp the reference calls new Date().toISOString() and rewrites the trailing Z as 000+00:00, so the message -- and therefore its SAID -- depends on when it was built",
+      "rust_decision": "the timestamp is a required, validated parameter; a protocol crate never reads the clock"
+    },
+    "sender_and_recipient_are_unvalidated_text": {
+      "raw": "{\"v\":\"KERI10JSON0000d4_\",\"t\":\"exn\",\"d\":\"EBSZvubYoj5bFKzcgOazvAyeZPt2u2Aa8IYCO_ZqVUrU\",\"i\":\"test\",\"rp\":\"not-a-prefix\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":{},\"a\":{\"i\":\"not-a-prefix\"},\"e\":{}}",
+      "note": "neither field is parsed, so an exchange can name a sender and a recipient that are not identifiers at all, and every recipient must then accept the SAID that commits to them",
+      "rust_decision": "both are IdentifierPrefix values, so an unparsable identifier cannot reach a message"
+    },
+    "the_payload_overrides_the_recipient": {
+      "raw": "{\"v\":\"KERI10JSON000144_\",\"t\":\"exn\",\"d\":\"EEeBb9vHG73UyHFVS3zOK1ynfm4xcCqG4g6Z7k4lefDo\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":{},\"a\":{\"i\":\"EOTHERTHANTHERECIPIENT_00000000000000000000\",\"m\":\"hi\"},\"e\":{}}",
+      "note": "the attribute block is built as {...{i: recipient}, ...payload}, so a payload field named i silently readdresses the attributes while rp still names the original recipient",
+      "rust_error_category": "PayloadOverridesRecipient"
+    },
+    "an_embed_labelled_d_destroys_itself": {
+      "raw": "{\"v\":\"KERI10JSON00016e_\",\"t\":\"exn\",\"d\":\"ECTxVycNaE2-LWTfd7-P_d1OpHz_Mvn8e-rjT-MucnW_\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"d\":\"EIeKlm9B5ul5vsHu_-OpjNmSf1kn1iMsyTb7rpuE4Ylc\"}}",
+      "note": "the embeds block's own identifier field is written after the embeds, so an embed labelled d is overwritten by the block SAID and the embedded message disappears entirely",
+      "rust_error_category": "ReservedEmbedLabel"
+    },
+    "an_embed_labelled_v_throws": {
+      "threw": true,
+      "error_category": "Error",
+      "error_message": "Invalid version string = [object Object]",
+      "note": "a v at the top of the embeds block makes the SAID machinery treat the block as a versioned message and try to parse an object as a version string",
+      "rust_error_category": "ReservedEmbedLabel"
+    },
+    "a_separator_in_a_label_changes_the_path": {
+      "attachments": "-LAE5AACAA-e-a-bAAAA",
+      "note": "the label is written into the attachment path unescaped, so a-b yields -e-a-b, which parses back as three components naming a different field; the reference's own separator check never runs on it",
+      "rust_error_category": "InvalidEmbedLabel"
+    },
+    "an_empty_label_is_accepted": {
+      "attachments": "-LAD4AABA-e-AAAA",
+      "note": "an empty label produces the path -e-, an identity step that names no field",
+      "rust_error_category": "InvalidEmbedLabel"
+    },
+    "numeric_labels_are_hoisted": {
+      "raw": "{\"v\":\"KERI10JSON000258_\",\"t\":\"exn\",\"d\":\"EG9AiQM3tHwzV9quyeuvII6MstMdQcAhmzFQTmgBHawf\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":{},\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{\"1\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"2\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"a\":{\"v\":\"KERI10JSON000049_\",\"t\":\"vcp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"bt\":\"0\",\"b\":[]},\"d\":\"EJNPthPnJ6Aoy32SPEyiO3P5Qw-s0m9RPl33bXJjegdg\"}}",
+      "note": "JavaScript enumerates array-index-like keys first, so the embeds block is written 1, 2, a regardless of insertion order, and a numeric label is an ordinal rather than a field in an attachment path",
+      "rust_error_category": "InvalidEmbedLabel"
+    },
+    "a_misaligned_attachment_truncates_its_count": {
+      "attachments": "-LAD5AACAA-e-icpABC",
+      "note": "the count is Math.floor(length / 4), so the trailing bytes fall outside the group a parser reads and corrupt whatever follows",
+      "rust_error_category": "NonIntegralAttachment"
+    },
+    "a_non_cesr_attachment_is_embedded_verbatim": {
+      "attachments": "-LAE5AACAA-e-icp{\"a\"",
+      "note": "the attachment is concatenated without inspection, so arbitrary bytes are injected into the CESR stream a recipient parses",
+      "rust_error_category": "InvalidAttachmentText"
+    },
+    "the_payload_and_modifiers_need_not_be_maps": {
+      "string_payload": "{\"v\":\"KERI10JSON000164_\",\"t\":\"exn\",\"d\":\"EBGG1dFLgQq1D09ET0_0p243BoomtcLBePn2eJKzv5uw\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":{},\"a\":{\"0\":\"h\",\"1\":\"e\",\"2\":\"l\",\"3\":\"l\",\"4\":\"o\",\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{}}",
+      "array_payload": "{\"v\":\"KERI10JSON000148_\",\"t\":\"exn\",\"d\":\"ELjKkMBmwx9yEdVsVdh0GMkh8kEaiHAjf3CXGCl-mEM5\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":{},\"a\":{\"0\":1,\"1\":2,\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{}}",
+      "null_modifiers": "{\"v\":\"KERI10JSON00013e_\",\"t\":\"exn\",\"d\":\"EH_2ngzY_ZIZQid3P6dF6V_OPaOous__VQwTzxk0rxc_\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":null,\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{}}",
+      "string_modifiers": "{\"v\":\"KERI10JSON000140_\",\"t\":\"exn\",\"d\":\"EOgHS7Mb63jpOwUT0Lfw789MRd4bilq7jxsRIA7nGe2S\",\"i\":\"EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL\",\"rp\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/x\",\"q\":\"mods\",\"a\":{\"i\":\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"},\"e\":{}}",
+      "note": "both arguments are typed Dict<any> and written through unchanged; spreading a string into the attribute block even produces one field per character",
+      "rust_decision": "both are field maps, the only shape the protocol defines"
+    }
+  }
+}
