@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "ae92eceb8e776ad57669707bff7f84db9390b711",
+  "generated_on": "2026-08-19",
+  "sources": [
+    "src/keri/core/eventing.ts",
+    "test/app/aiding.test.ts"
+  ],
+  "exported_builders": [
+    "ample",
+    "incept",
+    "interact",
+    "messagize",
+    "reply",
+    "rotate"
+  ],
+  "ilks": [
+    "bis",
+    "brv",
+    "dip",
+    "drt",
+    "exn",
+    "icp",
+    "iss",
+    "ixn",
+    "rct",
+    "rev",
+    "rot",
+    "rpy",
+    "vcp",
+    "vrc"
+  ],
+  "cases": [
+    {
+      "name": "end_role_add",
+      "route": "/end/role/add",
+      "timestamp": "2021-06-27T21:26:21.233257+00:00",
+      "attributes_json": "{\"cid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"role\":\"agent\"}",
+      "said": "EGSzZ1QwvZwrb8-JaV6hOUp5DBqYOgYNWqiWHwVO2dyr",
+      "version_string": "KERI10JSON0000dc_",
+      "raw": "{\"v\":\"KERI10JSON0000dc_\",\"t\":\"rpy\",\"d\":\"EGSzZ1QwvZwrb8-JaV6hOUp5DBqYOgYNWqiWHwVO2dyr\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"role\":\"agent\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303064635f222c2274223a22727079222c2264223a224547537a5a315177765a777262382d4a615636684f557035444271594f67594e577169574877564f32647972222c226474223a22323032312d30362d32375432313a32363a32312e3233333235372b30303a3030222c2272223a222f656e642f726f6c652f616464222c2261223a7b22636964223a22454c55765a38614a45484151452d306e736576795954503938724262474a5572546a35616e2d70436d77724b222c22726f6c65223a226167656e74227d7d",
+      "raw_byte_size": 220
+    },
+    {
+      "name": "loc_scheme",
+      "route": "/loc/scheme",
+      "timestamp": "2021-06-27T21:26:21.233257+00:00",
+      "attributes_json": "{\"eid\":\"EHgwVwQT15OJvilVvW57HE4w0-GPs_Stj2OFoAHZSysY\",\"url\":\"https://test.com\",\"scheme\":\"https\"}",
+      "said": "ENcFhO8u3Ahignxbuz5RQM0PH008LhKplWSVWueQdJz6",
+      "version_string": "KERI10JSON0000f5_",
+      "raw": "{\"v\":\"KERI10JSON0000f5_\",\"t\":\"rpy\",\"d\":\"ENcFhO8u3Ahignxbuz5RQM0PH008LhKplWSVWueQdJz6\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/loc/scheme\",\"a\":{\"eid\":\"EHgwVwQT15OJvilVvW57HE4w0-GPs_Stj2OFoAHZSysY\",\"url\":\"https://test.com\",\"scheme\":\"https\"}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303066355f222c2274223a22727079222c2264223a22454e6346684f387533416869676e7862757a3552514d3050483030384c684b706c57535657756551644a7a36222c226474223a22323032312d30362d32375432313a32363a32312e3233333235372b30303a3030222c2272223a222f6c6f632f736368656d65222c2261223a7b22656964223a22454867775677515431354f4a76696c567657353748453477302d4750735f53746a324f466f41485a53797359222c2275726c223a2268747470733a2f2f746573742e636f6d222c22736368656d65223a226874747073227d7d",
+      "raw_byte_size": 245
+    },
+    {
+      "name": "empty_route_and_attributes",
+      "route": "",
+      "timestamp": "2021-06-27T21:26:21.233257+00:00",
+      "attributes_json": "{}",
+      "said": "EOgYi0AO-lgeSXZJV9i5MDjlyOQoYEjC1D7avtVA5x7Q",
+      "version_string": "KERI10JSON00008c_",
+      "raw": "{\"v\":\"KERI10JSON00008c_\",\"t\":\"rpy\",\"d\":\"EOgYi0AO-lgeSXZJV9i5MDjlyOQoYEjC1D7avtVA5x7Q\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"\",\"a\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303038635f222c2274223a22727079222c2264223a22454f67596930414f2d6c676553585a4a563969354d446a6c794f516f59456a43314437617674564135783751222c226474223a22323032312d30362d32375432313a32363a32312e3233333235372b30303a3030222c2272223a22222c2261223a7b7d7d",
+      "raw_byte_size": 140
+    },
+    {
+      "name": "nested_attributes",
+      "route": "/x",
+      "timestamp": "2021-06-27T21:26:21.233257+00:00",
+      "attributes_json": "{\"a\":{\"b\":[1,\"z\"]}}",
+      "said": "EH9YxYvcFyTWH_oAOqizyXH8rue8Z5PIJIFDrSzlh2Dz",
+      "version_string": "KERI10JSON00009f_",
+      "raw": "{\"v\":\"KERI10JSON00009f_\",\"t\":\"rpy\",\"d\":\"EH9YxYvcFyTWH_oAOqizyXH8rue8Z5PIJIFDrSzlh2Dz\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/x\",\"a\":{\"a\":{\"b\":[1,\"z\"]}}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303039665f222c2274223a22727079222c2264223a22454839597859766346795457485f6f414f71697a79584838727565385a3550494a49464472537a6c6832447a222c226474223a22323032312d30362d32375432313a32363a32312e3233333235372b30303a3030222c2272223a222f78222c2261223a7b2261223a7b2262223a5b312c227a225d7d7d7d",
+      "raw_byte_size": 159
+    },
+    {
+      "name": "non_ascii_route",
+      "route": "/ünïcode",
+      "timestamp": "2021-06-27T21:26:21.233257+00:00",
+      "attributes_json": "{}",
+      "said": "EK6uCzofeKdKc7gpnV362eCPC_7Spk-UkglieGzpDyaJ",
+      "version_string": "KERI10JSON000096_",
+      "raw": "{\"v\":\"KERI10JSON000096_\",\"t\":\"rpy\",\"d\":\"EK6uCzofeKdKc7gpnV362eCPC_7Spk-UkglieGzpDyaJ\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/ünïcode\",\"a\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303039365f222c2274223a22727079222c2264223a22454b3675437a6f66654b644b633767706e56333632654350435f3753706b2d556b676c6965477a704479614a222c226474223a22323032312d30362d32375432313a32363a32312e3233333235372b30303a3030222c2272223a222fc3bc6ec3af636f6465222c2261223a7b7d7d",
+      "raw_byte_size": 150
+    },
+    {
+      "name": "one_microsecond_later",
+      "route": "/x",
+      "timestamp": "2021-06-27T21:26:21.233258+00:00",
+      "attributes_json": "{}",
+      "said": "ELGFFdEJDLXZ8wcY-CTBBDhuNfmVHcbQZ03D1lFwBw_3",
+      "version_string": "KERI10JSON00008e_",
+      "raw": "{\"v\":\"KERI10JSON00008e_\",\"t\":\"rpy\",\"d\":\"ELGFFdEJDLXZ8wcY-CTBBDhuNfmVHcbQZ03D1lFwBw_3\",\"dt\":\"2021-06-27T21:26:21.233258+00:00\",\"r\":\"/x\",\"a\":{}}",
+      "raw_hex": "7b2276223a224b45524931304a534f4e3030303038655f222c2274223a22727079222c2264223a22454c47464664454a444c585a387763592d435442424468754e666d56486362515a303344316c467742775f33222c226474223a22323032312d30362d32375432313a32363a32312e3233333235382b30303a3030222c2272223a222f78222c2261223a7b7d7d",
+      "raw_byte_size": 142
+    }
+  ],
+  "reference_quirks": {
+    "the_timestamp_defaults_to_the_system_clock": {
+      "shape": "9999-99-99T99:99:99.999999+99:99",
+      "length": 32,
+      "note": "with no stamp the reference calls new Date().toISOString() and rewrites the trailing Z as 000+00:00, so the message -- and therefore its SAID -- depends on when it was built",
+      "rust_decision": "the timestamp is a required, validated parameter; a protocol crate never reads the clock"
+    },
+    "any_string_is_accepted_as_a_timestamp": {
+      "garbage": "{\"v\":\"KERI10JSON00007d_\",\"t\":\"rpy\",\"d\":\"EMVuizcK1P6nrihybs9KcbsHqzHQcCR5sezx7sDrfOdt\",\"dt\":\"not-a-timestamp\",\"r\":\"/x\",\"a\":{}}",
+      "empty": "{\"v\":\"KERI10JSON00006e_\",\"t\":\"rpy\",\"d\":\"ELLQnJxgNC1YBbnKhuHJRCSTAGdgkj89Lh_MiJz04omY\",\"dt\":\"\",\"r\":\"/x\",\"a\":{}}",
+      "note": "the stamp is interpolated without validation, so a typo becomes part of the message the SAID commits to and every recipient must accept",
+      "rust_error_category": "TimestampError"
+    },
+    "attributes_need_not_be_a_map": {
+      "string": "{\"v\":\"KERI10JSON000093_\",\"t\":\"rpy\",\"d\":\"EKZltX1oXMZeAtsaOs8m-U60P0N1U6Ew_PP5afpd2ocj\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/x\",\"a\":\"hello\"}",
+      "array": "{\"v\":\"KERI10JSON000091_\",\"t\":\"rpy\",\"d\":\"EA85zvls5cgMewB8_6WfmUa19B4TH3hmG6p6IVs5y00r\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/x\",\"a\":[1,2]}",
+      "number": "{\"v\":\"KERI10JSON00008e_\",\"t\":\"rpy\",\"d\":\"EGESW23FOmxjoT60mbiMu7zDbgKDKDZekISeFTA_t7SF\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/x\",\"a\":42}",
+      "note": "the data argument is typed `any` and is written through unchanged, so a reply can assert a bare string, array, or number where the protocol expects an attribute block",
+      "rust_decision": "attributes are a field map, which is the only shape the protocol defines"
+    },
+    "null_attributes_become_an_empty_map": {
+      "raw": "{\"v\":\"KERI10JSON00008e_\",\"t\":\"rpy\",\"d\":\"EO0DUOy4AtxEaKkwcwEJiz3gqdQ2nkUj7Uq8JAh7i-3T\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/x\",\"a\":{}}",
+      "note": "the guard is `data == undefined`, whose loose equality also matches null, so null silently becomes {} rather than being written as null",
+      "rust_decision": "attributes default to an empty map and cannot be null"
+    },
+    "the_post_derivation_check_is_unreachable": {
+      "note": "reply() re-verifies the SAID it just derived with prefixed and versioned both true; saidify has already written that exact identifier and version string, so the throw is dead code",
+      "rust_decision": "Rust derives once; the property tests assert the same invariant the check intends"
+    }
+  }
+}

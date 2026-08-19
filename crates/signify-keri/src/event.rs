@@ -6,8 +6,10 @@
 //! [`KeyEvent`] carrying the exact wire bytes together with the identifier and SAID a caller needs
 //! for the next event in the log.
 //!
-//! Receipt, query, reply, and exchange events arrive with Roadmap 3.6, and CESR attachments with
-//! Roadmap 3.7.
+//! Roadmap 3.6 adds [`reply`], the only supporting event builder the pinned reference exports.
+//! Receipt, validator-receipt, and key-state messages have no builder there at all, and the `qry`
+//! ilk is absent from its table entirely, so those are recorded `N/A` in `PORTING.md` §5.3 rather
+//! than invented here. Exchange messages are Roadmap 3.8 and CESR attachments Roadmap 3.7.
 
 pub mod config;
 mod error;
@@ -15,9 +17,12 @@ pub mod inception;
 pub mod interaction;
 mod key_event;
 pub mod kind;
+pub mod reply;
 pub mod rotation;
+pub mod timestamp;
 pub mod witness;
 
 pub use config::ConfigurationTrait;
 pub use error::EventError;
 pub use key_event::{KeyEvent, ThresholdEncoding};
+pub use timestamp::{Timestamp, TimestampError};

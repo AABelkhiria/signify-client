@@ -82,6 +82,11 @@ pub enum EventError {
         /// Requested derivation code.
         code: &'static str,
     },
+    /// A reply's route exceeds the accepted bound.
+    RouteTooLong {
+        /// Rejected route length in bytes.
+        length: usize,
+    },
     /// A length, count, or threshold exceeded the range the protocol can encode.
     ValueOutOfRange {
         /// Stable name of the quantity that overflowed.
@@ -184,6 +189,11 @@ impl fmt::Display for EventError {
             Self::DelegatedPrefixMustBeDigestive { code } => write!(
                 formatter,
                 "delegated inception needs a self-addressing prefix, not derivation code {code}"
+            ),
+            Self::RouteTooLong { length } => write!(
+                formatter,
+                "reply route of {length} bytes exceeds the maximum of {}",
+                crate::event::reply::MAX_ROUTE_BYTES
             ),
             Self::ValueOutOfRange { context } => write!(formatter, "{context} exceeds its encodable range"),
             Self::Prefix { .. } => formatter.write_str("identifier prefix derivation failed"),

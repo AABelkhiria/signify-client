@@ -12,14 +12,18 @@ use signify_crypto::digest::Digest;
 use signify_crypto::verifier::VerificationKey;
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
+use signify_keri::event::reply::ReplyBuilder;
 use signify_keri::event::rotation::RotationBuilder;
+use signify_keri::event::timestamp::Timestamp;
 use signify_keri::event::witness::{AmpleMode, ample};
 use signify_keri::prefix::{IdentifierPrefix, PrefixDerivation};
+use signify_keri::serialization::{Sad, SadValue};
 
 const KEY: &str = "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH";
 const SECOND_KEY: &str = "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";
 const NEXT_DIGEST: &str = "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W";
 const WITNESS: &str = "BB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";
+const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
 
 fn benchmark_eventing(criterion: &mut Criterion) {
     let (Ok(key), Ok(second), Ok(digest), Ok(witness)) = (
@@ -80,6 +84,25 @@ fn benchmark_eventing(criterion: &mut Criterion) {
 
     criterion.bench_function("ample_default_threshold", |bencher| {
         bencher.iter(|| ample(black_box(64), None, AmpleMode::Weak));
+    });
+
+    // A reply is built once per endpoint authorisation and its timestamp is parsed from whatever
+    // the caller's time library produced, so both are on the path of every such operation.
+    if let Ok(stamp) = Timestamp::parse(STAMP) {
+        criterion.bench_function("reply_end_role", |bencher| {
+            bencher.iter(|| {
+                let mut attributes = Sad::new();
+                let _ = attributes.insert("cid", SadValue::text(KEY));
+                let _ = attributes.insert("role", SadValue::text("agent"));
+                ReplyBuilder::new(black_box("/end/role/add"), stamp.clone())
+                    .attributes(attributes)
+                    .build()
+            });
+        });
+    }
+
+    criterion.bench_function("timestamp_parse", |bencher| {
+        bencher.iter(|| Timestamp::parse(black_box(STAMP)));
     });
 }
 
