@@ -2,6 +2,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod attachment;
 pub mod event;
 pub mod prefix;
 pub mod said;

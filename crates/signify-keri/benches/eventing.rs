@@ -8,8 +8,11 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use signify_cesr::sequence::SequenceNumber;
 use signify_crypto::digest::Digest;
+use signify_crypto::signature::IndexedSignature;
 use signify_crypto::verifier::VerificationKey;
+use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::reply::ReplyBuilder;
@@ -17,13 +20,17 @@ use signify_keri::event::rotation::RotationBuilder;
 use signify_keri::event::timestamp::Timestamp;
 use signify_keri::event::witness::{AmpleMode, ample};
 use signify_keri::prefix::{IdentifierPrefix, PrefixDerivation};
-use signify_keri::serialization::{Sad, SadValue};
+use signify_keri::said::Said;
+use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 
 const KEY: &str = "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH";
 const SECOND_KEY: &str = "DB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";
 const NEXT_DIGEST: &str = "EIf-ENw7PrM52w4H-S7NGU2qVIfraXVIlV9hEAaMHg7W";
 const WITNESS: &str = "BB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
+const BENCH_SIGNATURE: &str =
+    "AABB3MJGmBXxSEryNHw3YwZZLRl_6Ws4Me2WFq8PrQ6WlluSOpPqbwXuiG9RvNWZkqeW8A_0VRjokGMVRZ3m-c0I";
+const BENCH_IDENTIFIER: &str = "EIflL4H4134zYoRM6ls6Q086RLC_BhfNFh5uk-WxvhsL";
 
 fn benchmark_eventing(criterion: &mut Criterion) {
     let (Ok(key), Ok(second), Ok(digest), Ok(witness)) = (
@@ -104,6 +111,38 @@ fn benchmark_eventing(criterion: &mut Criterion) {
     criterion.bench_function("timestamp_parse", |bencher| {
         bencher.iter(|| Timestamp::parse(black_box(STAMP)));
     });
+
+    // Every message a controller sends is composed once with its signatures attached.
+    if let (Ok(event), Ok(signature)) = (
+        SerializedEvent::parse(root.raw()),
+        IndexedSignature::from_qb64(BENCH_SIGNATURE),
+    ) {
+        criterion.bench_function("attach_controller_signature", |bencher| {
+            bencher.iter(|| {
+                SignedMessageBuilder::new(black_box(&event))
+                    .controller_signatures(vec![signature.clone()])
+                    .build()
+            });
+        });
+
+        if let (Ok(identifier), Ok(said)) = (
+            IdentifierPrefix::from_qb64(BENCH_IDENTIFIER),
+            Said::from_qb64(BENCH_IDENTIFIER),
+        ) {
+            criterion.bench_function("attach_seal_and_signature", |bencher| {
+                bencher.iter(|| {
+                    SignedMessageBuilder::new(black_box(&event))
+                        .controller_signatures(vec![signature.clone()])
+                        .seal(SignatureSeal::Event {
+                            identifier: identifier.clone(),
+                            sequence_number: SequenceNumber::new(0),
+                            said,
+                        })
+                        .build()
+                });
+            });
+        }
+    }
 }
 
 criterion_group!(benches, benchmark_eventing);
