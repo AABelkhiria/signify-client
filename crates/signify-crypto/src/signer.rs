@@ -409,6 +409,18 @@ impl Signer {
         Ok(Self { signing_key, verifier })
     }
 
+    /// Exports the qualified seed for sealing, without leaving this crate.
+    ///
+    /// This is the one place a signer's seed is materialized. It is crate-private on purpose: the
+    /// only caller is [`Encrypter::encrypt_signer`](crate::cipher::Encrypter::encrypt_signer),
+    /// which seals the bytes immediately, so no seed ever crosses a crate boundary. The buffer
+    /// zeroizes on drop.
+    pub(crate) fn expose_qualified_seed_bytes(&self) -> Result<Zeroizing<Vec<u8>>, CryptoError> {
+        let seed = Zeroizing::new(self.signing_key.to_bytes());
+        let material = QualifiedMaterial::new(DerivationCode::ED25519_SEED, seed.as_ref())?;
+        Ok(Zeroizing::new(material.qb64_bytes()?))
+    }
+
     fn sign_raw(&self, serialization: &[u8]) -> Result<[u8; 64], CryptoError> {
         self.signing_key
             .try_sign(serialization)

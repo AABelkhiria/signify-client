@@ -4,6 +4,7 @@
 
 pub mod attachment;
 pub mod event;
+pub mod manager;
 pub mod prefix;
 pub mod said;
 pub mod serialization;

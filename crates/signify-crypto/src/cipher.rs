@@ -382,6 +382,24 @@ impl Encrypter {
         self.encrypt(CiphertextKind::QualifiedSeed, seed_qb64)
     }
 
+    /// Encrypts one private signer's qualified seed in a libsodium-compatible sealed box.
+    ///
+    /// This is the sealing a key manager does before storing a private key. It takes the signer
+    /// rather than its seed because [`Signer`] deliberately exposes none: the seed is materialized
+    /// inside this crate, sealed, and zeroized, so it never crosses a crate boundary. The
+    /// ciphertext is byte-compatible with the reference's `encrypter.encrypt(null, signer)`, which
+    /// seals the same qualified seed.
+    ///
+    /// Each call obtains a fresh ephemeral secret from the operating-system CSPRNG.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed CESR-encoding, entropy, primitive, or ciphertext-construction error.
+    pub fn encrypt_signer(&self, signer: &Signer) -> Result<Ciphertext, CryptoError> {
+        let plaintext = signer.expose_qualified_seed_bytes()?;
+        self.encrypt(CiphertextKind::QualifiedSeed, plaintext.as_ref())
+    }
+
     /// Encrypts one validated 128-bit salt in a libsodium-compatible sealed box.
     ///
     /// Each call obtains a fresh ephemeral secret from the operating-system CSPRNG.
@@ -1243,6 +1261,36 @@ mod tests {
         assert_eq!(salt.code(), DerivationCode::X25519_CIPHER_SALT);
         assert_eq!(salt.raw().len(), SALT_CIPHERTEXT_RAW_SIZE);
         assert_eq!(salt.to_string(), SALT_QB64);
+        Ok(())
+    }
+
+    #[test]
+    fn a_signer_seals_without_its_seed_leaving_the_crate() -> Result<(), CryptoError> {
+        // A key manager stores a private key by sealing it. `Signer` exposes no seed, so the
+        // sealing has to happen here; this proves it seals exactly the qualified seed the
+        // reference seals, by sealing the same signer both ways and opening both.
+        let recipient = Signer::from_seed(&CRYPT_SEED, KeyTransferability::Transferable)?;
+        let encrypter = Encrypter::from_verification_key(recipient.verifier())?;
+        let decrypter = Decrypter::from_signer(&recipient);
+        let signer = Signer::from_seed(&REFERENCE_SALT_RAW.repeat(2), KeyTransferability::Transferable)?;
+
+        let sealed = encrypter.encrypt_signer(&signer)?;
+        let opened = decrypter.decrypt_seed(&sealed, KeyTransferability::Transferable)?;
+        assert_eq!(opened.verifier().qb64()?, signer.verifier().qb64()?);
+        assert_eq!(sealed.kind(), CiphertextKind::QualifiedSeed);
+
+        // The same signer sealed through the seed-taking method opens to the same key, so the two
+        // paths agree on the plaintext even though the ciphertexts differ by their ephemeral key.
+        let seed = signer.expose_qualified_seed_bytes()?;
+        let also_sealed = encrypter.encrypt_seed_qb64(seed.as_ref())?;
+        let also_opened = decrypter.decrypt_seed(&also_sealed, KeyTransferability::Transferable)?;
+        assert_eq!(also_opened.verifier().qb64()?, signer.verifier().qb64()?);
+
+        // A non-transferable signer seals the same way; transferability is not in the seed.
+        let non_transferable = Signer::from_seed(&REFERENCE_SALT_RAW.repeat(2), KeyTransferability::NonTransferable)?;
+        let sealed = encrypter.encrypt_signer(&non_transferable)?;
+        let opened = decrypter.decrypt_seed(&sealed, KeyTransferability::NonTransferable)?;
+        assert_eq!(opened.verifier().qb64()?, non_transferable.verifier().qb64()?);
         Ok(())
     }
 

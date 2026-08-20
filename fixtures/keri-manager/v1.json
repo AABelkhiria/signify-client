@@ -1,0 +1,997 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-20",
+  "sources": [
+    "src/keri/core/manager.ts",
+    "test/core/manager.test.ts",
+    "test/app/controller.test.ts"
+  ],
+  "provenance": {
+    "salt_raw": "0123456789abcdef",
+    "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+    "encryption_identifier": "BCa7mK96FwxkU0TdF54Yqg3qBDXUWpOhQ_Mtr7E77yZB",
+    "serialization": "{\"vs\":\"KERI10JSON0000fb_\",\"pre\":\"EvEnZMhz52iTrJU8qKwtDxzmypyosgG70m6LIjkiCdoI\",\"sn\":\"0\",\"ilk\":\"icp\",\"sith\":\"1\",\"keys\":[\"DSuhyBcPZEZLK-fcw5tzHn2N46wRCG_ZOoeKtWTOunRA\"],\"nxt\":\"EPYuj8mq_PYYsoBKkzX1kxSPGYBWaIya3slgCOyOtlqU\",\"toad\":\"0\",\"wits\":[],\"cnfg\":[]}-AABAApYcYd1cppVg7Inh2YCslWKhUwh59TrPpIoqWxN2A38NCbTljvmBPBjSGIFDBNOvVjHpdZlty3Hgk6ilF8pVpAQ",
+    "note": "the salt and encryption seed are the pinned unit test's own public constants; the temporary Argon2 profile is used wherever the reference's `temp` flag is set"
+  },
+  "salty_creator_cases": [
+    {
+      "name": "empty_stem_temporary",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "",
+        "tier": "low"
+      },
+      "paths": [
+        "0"
+      ],
+      "private_keys": [
+        "AOVkNmL_dZ5pjvp-_nS5EJbs0xe32MODcOUOym-0aCBL"
+      ],
+      "public_keys": [
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "the pinned SaltyCreator unit test's temporary case"
+    },
+    {
+      "name": "empty_stem_production",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": false
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "",
+        "tier": "low"
+      },
+      "paths": [
+        "0"
+      ],
+      "private_keys": [
+        "AO0hmkIVsjCoJY1oUe3-QqHlMBVIhFX1tQfN_8SPKiNF"
+      ],
+      "public_keys": [
+        "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "the same path under the production profile"
+    },
+    {
+      "name": "empty_stem_non_transferable",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "transferable": false,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "",
+        "tier": "low"
+      },
+      "paths": [
+        "0"
+      ],
+      "private_keys": [
+        "AOVkNmL_dZ5pjvp-_nS5EJbs0xe32MODcOUOym-0aCBL"
+      ],
+      "public_keys": [
+        "BB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+      ],
+      "public_key_codes": [
+        "B"
+      ]
+    },
+    {
+      "name": "empty_stem_ignores_rotation_and_key_indices",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 7,
+        "kidx": 9,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "",
+        "tier": "low"
+      },
+      "paths": [
+        "0"
+      ],
+      "private_keys": [
+        "AOVkNmL_dZ5pjvp-_nS5EJbs0xe32MODcOUOym-0aCBL"
+      ],
+      "public_keys": [
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "the path is the prefix index alone, so this is the same key as empty_stem_temporary"
+    },
+    {
+      "name": "empty_stem_prefix_index",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "transferable": true,
+        "pidx": 26,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "",
+        "tier": "low"
+      },
+      "paths": [
+        "1a"
+      ],
+      "private_keys": [
+        "AOf2kicXihcIoYUlRNOsy2JeS6QwRJxFO8muUJqWnB52"
+      ],
+      "public_keys": [
+        "DMHNuSrnwoudStxJ_qdlzRP5TLracABRPpiUGrIiUdyR"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "the prefix index is the only index in the path"
+    },
+    {
+      "name": "stem_inception",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "red00"
+      ],
+      "private_keys": [
+        "ABF25MQSNR7MiQkiDLHMjuEvYxkvdGw_k_NsIPMLsijt"
+      ],
+      "public_keys": [
+        "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM"
+      ],
+      "public_key_codes": [
+        "D"
+      ]
+    },
+    {
+      "name": "stem_next",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 1,
+        "kidx": 1,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "red11"
+      ],
+      "private_keys": [
+        "AMiEJoTpCJHYCIfncGJwGQJuTSU2nMXte7JKVLErbWG9"
+      ],
+      "public_keys": [
+        "DBzZ6vejSNAZpXv1SDRnIF_P1UqcW5d2pu2U-v-uhXvE"
+      ],
+      "public_key_codes": [
+        "D"
+      ]
+    },
+    {
+      "name": "stem_three_keys",
+      "input": {
+        "stem": "red",
+        "count": 3,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "red00",
+        "red01",
+        "red02"
+      ],
+      "private_keys": [
+        "ABF25MQSNR7MiQkiDLHMjuEvYxkvdGw_k_NsIPMLsijt",
+        "ALhpYuHZCZed2JCjA0oPJ1HuCidCY6u8SwYPZOQzHYyb",
+        "AO0SZkAIJuRyy1OajN-pVLhob-lYgHRNX4z22VdGOg0n"
+      ],
+      "public_keys": [
+        "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM",
+        "DBp9GcN-IBwcDgOtn_s8GhL4gVX1xvDHTA9lJSgFLTkO",
+        "DNTkuHx8fk9loywqS0Izev8xWyVGnUtU4hYnJp2EfPEE"
+      ],
+      "public_key_codes": [
+        "D",
+        "D",
+        "D"
+      ],
+      "note": "the key index advances by one per key"
+    },
+    {
+      "name": "stem_hexadecimal_indices",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 10,
+        "kidx": 27,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "reda1b"
+      ],
+      "private_keys": [
+        "AJMHNYh57PzV2zdwl8OTIPz2WCc2NC_E3oNMOo7UMtC1"
+      ],
+      "public_keys": [
+        "DBpo5eLVVdi6-8_u5FKaQQJa4S7YYW1N5BCP0-075cW6"
+      ],
+      "public_key_codes": [
+        "D"
+      ]
+    },
+    {
+      "name": "stem_witness_zero",
+      "input": {
+        "stem": "wit0",
+        "count": 1,
+        "transferable": false,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "wit0",
+        "tier": "low"
+      },
+      "paths": [
+        "wit000"
+      ],
+      "private_keys": [
+        "AKX30Yh_ncuHBfw4BZ7dn29ivSBjItkOaKmXRWX34ZQh"
+      ],
+      "public_keys": [
+        "BOTNI4RzN706NecNdqTlGEcMSTWiFUvesEqmxWR_op8n"
+      ],
+      "public_key_codes": [
+        "B"
+      ]
+    },
+    {
+      "name": "stem_witness_one",
+      "input": {
+        "stem": "wit1",
+        "count": 1,
+        "transferable": false,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "wit1",
+        "tier": "low"
+      },
+      "paths": [
+        "wit100"
+      ],
+      "private_keys": [
+        "AAEb_wIyuB5l1adhtzvNQrsDVYhf1Aw2ToDW-F5uWPm9"
+      ],
+      "public_keys": [
+        "BAB_5xNXH4hoxDCtAHPFPDedZ6YwTo8mbdw_v0AOHOMt"
+      ],
+      "public_key_codes": [
+        "B"
+      ]
+    },
+    {
+      "name": "explicit_codes",
+      "input": {
+        "stem": "red",
+        "count": 2,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "red00",
+        "red01"
+      ],
+      "private_keys": [
+        "ABF25MQSNR7MiQkiDLHMjuEvYxkvdGw_k_NsIPMLsijt",
+        "ALhpYuHZCZed2JCjA0oPJ1HuCidCY6u8SwYPZOQzHYyb"
+      ],
+      "public_keys": [
+        "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM",
+        "DBp9GcN-IBwcDgOtn_s8GhL4gVX1xvDHTA9lJSgFLTkO"
+      ],
+      "public_key_codes": [
+        "D",
+        "D"
+      ],
+      "note": "the only code the reference supports, which is why Rust takes a count"
+    },
+    {
+      "name": "high_tier_stem",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 0,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "high"
+      },
+      "paths": [
+        "red00"
+      ],
+      "private_keys": [
+        "ABF25MQSNR7MiQkiDLHMjuEvYxkvdGw_k_NsIPMLsijt"
+      ],
+      "public_keys": [
+        "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "temp overrides the tier, so this equals stem_inception"
+    }
+  ],
+  "randy_creator_shape": {
+    "count": 3,
+    "private_key_length": 44,
+    "private_key_code": "A",
+    "public_key_code": "D",
+    "transferable": true,
+    "paths": null,
+    "distinct": 3,
+    "salt": "",
+    "stem": "",
+    "tier": "",
+    "note": "a randy creator reports an empty salt, stem, and tier, and produces no paths"
+  },
+  "creatory": {
+    "salty_is_the_default": true,
+    "explicit_salty": true,
+    "explicit_randy": true,
+    "algos": [
+      "randy",
+      "salty",
+      "group",
+      "extern"
+    ]
+  },
+  "rotation_keys": [
+    {
+      "ridx": 0,
+      "key": "EABC.00000000000000000000000000000000"
+    },
+    {
+      "ridx": 1,
+      "key": "EABC.00000000000000000000000000000001"
+    },
+    {
+      "ridx": 9,
+      "key": "EABC.00000000000000000000000000000009"
+    },
+    {
+      "ridx": 10,
+      "key": "EABC.0000000000000000000000000000000a"
+    },
+    {
+      "ridx": 26,
+      "key": "EABC.0000000000000000000000000000001a"
+    },
+    {
+      "ridx": 255,
+      "key": "EABC.000000000000000000000000000000ff"
+    }
+  ],
+  "encrypted_manager": {
+    "inception": {
+      "prefix": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI",
+      "public_keys": [
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+      ],
+      "next_digests": [
+        "ENmcKrctbztF36MttN7seUYJqH2IMnkavBgGLR6Mj2-B"
+      ],
+      "pidx_after": 1,
+      "sealed_key_present": true
+    },
+    "signatures": {
+      "indexed_by_position": [
+        "AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+      ],
+      "indexed_at_three": [
+        "ADCRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+      ],
+      "current_list_only": [
+        {
+          "qb64": "BACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI",
+          "index": 0,
+          "ondex": null
+        }
+      ],
+      "both_lists_at_zero": [
+        {
+          "qb64": "AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI",
+          "index": 0,
+          "ondex": 0
+        }
+      ],
+      "unindexed": [
+        "0BCRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+      ],
+      "by_verification_key": [
+        "AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+      ]
+    },
+    "after_inception": {
+      "globals": {
+        "aeid": "BCa7mK96FwxkU0TdF54Yqg3qBDXUWpOhQ_Mtr7E77yZB",
+        "pidx": "1",
+        "tier": "low",
+        "algo": "salty",
+        "salt": {
+          "code": "1AAH",
+          "length": 100,
+          "decrypts_to": "0AAwMTIzNDU2Nzg5YWJjZGVm"
+        }
+      },
+      "identifiers": {
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI": {
+          "parameters": {
+            "pidx": 0,
+            "algo": "salty",
+            "stem": "",
+            "tier": "low",
+            "salt_is_present": true,
+            "salt_decrypts_to": "0AAwMTIzNDU2Nzg5YWJjZGVm"
+          },
+          "situation": {
+            "old": {
+              "pubs": [],
+              "ridx": 0,
+              "kidx": 0,
+              "dt_shape": ""
+            },
+            "new": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 0,
+              "kidx": 0,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            },
+            "nxt": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 1,
+              "kidx": 1,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            }
+          },
+          "key_sets": [
+            {
+              "ridx": 0,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000000",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            },
+            {
+              "ridx": 1,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000001",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            }
+          ],
+          "paths": []
+        }
+      }
+    },
+    "rotations": [
+      {
+        "round": 0,
+        "public_keys": [
+          "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+        ],
+        "next_digests": [
+          "ECl1Env_5PQHqVMpHgoqg9H9mT7ENtk0Q499cmMT6Fvz"
+        ]
+      },
+      {
+        "round": 1,
+        "public_keys": [
+          "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+        ],
+        "next_digests": [
+          "ECl1Env_5PQHqVMpHgoqg9H9mT7ENtk0Q499cmMT6Fvz"
+        ]
+      }
+    ],
+    "after_rotation": {
+      "globals": {
+        "aeid": "BCa7mK96FwxkU0TdF54Yqg3qBDXUWpOhQ_Mtr7E77yZB",
+        "pidx": "1",
+        "tier": "low",
+        "algo": "salty",
+        "salt": {
+          "code": "1AAH",
+          "length": 100,
+          "decrypts_to": "0AAwMTIzNDU2Nzg5YWJjZGVm"
+        }
+      },
+      "identifiers": {
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI": {
+          "parameters": {
+            "pidx": 0,
+            "algo": "salty",
+            "stem": "",
+            "tier": "low",
+            "salt_is_present": true,
+            "salt_decrypts_to": "0AAwMTIzNDU2Nzg5YWJjZGVm"
+          },
+          "situation": {
+            "old": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 1,
+              "kidx": 1,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            },
+            "new": {
+              "pubs": [
+                "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+              ],
+              "ridx": 2,
+              "kidx": 2,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            },
+            "nxt": {
+              "pubs": [
+                "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+              ],
+              "ridx": 3,
+              "kidx": 3,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            }
+          },
+          "key_sets": [
+            {
+              "ridx": 0,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000000",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            },
+            {
+              "ridx": 1,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000001",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            },
+            {
+              "ridx": 2,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000002",
+              "pubs": [
+                "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+              ]
+            },
+            {
+              "ridx": 3,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000003",
+              "pubs": [
+                "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+              ]
+            }
+          ],
+          "paths": []
+        }
+      }
+    },
+    "retired_key_erased": true
+  },
+  "unencrypted_manager": {
+    "inception": {
+      "prefix": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI",
+      "next_digests": [
+        "ENmcKrctbztF36MttN7seUYJqH2IMnkavBgGLR6Mj2-B"
+      ],
+      "encrypter_is_absent": true
+    },
+    "signature": [
+      "AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+    ],
+    "after_inception": {
+      "globals": {
+        "aeid": null,
+        "pidx": "1",
+        "tier": "low",
+        "algo": "salty",
+        "salt": null
+      },
+      "identifiers": {
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI": {
+          "parameters": {
+            "pidx": 0,
+            "algo": "salty",
+            "stem": "",
+            "tier": "low",
+            "salt_is_present": false,
+            "salt_decrypts_to": null
+          },
+          "situation": {
+            "old": {
+              "pubs": [],
+              "ridx": 0,
+              "kidx": 0,
+              "dt_shape": ""
+            },
+            "new": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 0,
+              "kidx": 0,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            },
+            "nxt": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 1,
+              "kidx": 1,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            }
+          },
+          "key_sets": [
+            {
+              "ridx": 0,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000000",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            },
+            {
+              "ridx": 1,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000001",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "pub": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI",
+              "path": "0",
+              "code": "A",
+              "tier": "low",
+              "temp": true
+            },
+            {
+              "pub": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI",
+              "path": "0",
+              "code": "A",
+              "tier": "low",
+              "temp": true
+            }
+          ]
+        }
+      }
+    },
+    "after_rotation": {
+      "globals": {
+        "aeid": null,
+        "pidx": "1",
+        "tier": "low",
+        "algo": "salty",
+        "salt": null
+      },
+      "identifiers": {
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI": {
+          "parameters": {
+            "pidx": 0,
+            "algo": "salty",
+            "stem": "",
+            "tier": "low",
+            "salt_is_present": false,
+            "salt_decrypts_to": null
+          },
+          "situation": {
+            "old": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 0,
+              "kidx": 0,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            },
+            "new": {
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ],
+              "ridx": 1,
+              "kidx": 1,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            },
+            "nxt": {
+              "pubs": [
+                "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+              ],
+              "ridx": 2,
+              "kidx": 2,
+              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+            }
+          },
+          "key_sets": [
+            {
+              "ridx": 0,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000000",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            },
+            {
+              "ridx": 1,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000001",
+              "pubs": [
+                "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+              ]
+            },
+            {
+              "ridx": 2,
+              "key": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI.00000000000000000000000000000002",
+              "pubs": [
+                "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "pub": "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI",
+              "path": "0",
+              "code": "A",
+              "tier": "low",
+              "temp": true
+            },
+            {
+              "pub": "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe",
+              "path": "0",
+              "code": "",
+              "tier": "low",
+              "temp": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "stemmed_identifiers": [
+    {
+      "name": "red",
+      "prefix": "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM",
+      "public_key_code": "D",
+      "next_public_keys": [
+        "DBzZ6vejSNAZpXv1SDRnIF_P1UqcW5d2pu2U-v-uhXvE"
+      ],
+      "next_digests": [
+        "EIGjhyyBRcqCkPE9bmkph7morew0wW0ak-rQ-dHCH-M2"
+      ]
+    },
+    {
+      "name": "wit0",
+      "prefix": "BOTNI4RzN706NecNdqTlGEcMSTWiFUvesEqmxWR_op8n",
+      "public_key_code": "B",
+      "next_public_keys": [],
+      "next_digests": []
+    },
+    {
+      "name": "wit1",
+      "prefix": "BAB_5xNXH4hoxDCtAHPFPDedZ6YwTo8mbdw_v0AOHOMt",
+      "public_key_code": "B",
+      "next_public_keys": [],
+      "next_digests": []
+    }
+  ],
+  "reassignment": {
+    "from": "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM",
+    "to": "DCu5o5cxzv1lgMqxMVG3IcCNK4lpFfpMM-9rfkY3XVUc",
+    "source_situation_removed": true,
+    "destination_situation_present": true,
+    "source_alias": "DCu5o5cxzv1lgMqxMVG3IcCNK4lpFfpMM-9rfkY3XVUc",
+    "destination_key_set": [
+      "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM"
+    ]
+  },
+  "rejected_cases": [
+    {
+      "name": "randy_without_encryption",
+      "note": "a randy manager with no encryption",
+      "reference_error_message": "Invalid Manager configuration, encryption must be used with Randy key creation."
+    },
+    {
+      "name": "unsupported_algorithm_group",
+      "note": "the group algorithm has no creator",
+      "reference_error_message": "unsupported algo=group"
+    },
+    {
+      "name": "unsupported_algorithm_extern",
+      "note": "the external algorithm has no creator",
+      "reference_error_message": "unsupported algo=extern"
+    },
+    {
+      "name": "rotate_unknown_prefix",
+      "note": "rotating an identifier the manager does not hold",
+      "reference_error_message": "Attempt to rotate nonexistent pre=DUNKNOWN."
+    },
+    {
+      "name": "sign_without_keys",
+      "note": "a signing request naming neither public keys nor verification keys",
+      "reference_error_message": "pubs or verfers required"
+    },
+    {
+      "name": "incept_without_current_keys",
+      "note": "an inception with no signing keys, which reads position zero of an empty list",
+      "reference_error_message": "Cannot read properties of undefined (reading 'qb64')"
+    },
+    {
+      "name": "incept_negative_count",
+      "note": "a negative key count",
+      "reference_error_message": "Invalid icount=-1 must be >= 0."
+    },
+    {
+      "name": "rotate_abandoned",
+      "note": "rotating an identifier that committed to no next keys",
+      "reference_error_message": "Attempt to rotate nontransferable pre=DP29V3W6jcXZT1fm5AMX7OJWkoLVhM36BsNi0R-ckjU9."
+    },
+    {
+      "name": "move_onto_existing",
+      "note": "reassigning onto a prefix that is already held",
+      "reference_error_message": "Preexistent new pre=DFYa_RTBJi-nAT5LiCghnHskX6-hBvCdlrh5y-C9F2Rb may not clobber."
+    },
+    {
+      "name": "passcode_too_short",
+      "note": "a passcode below twenty-one characters",
+      "reference_error_message": "Bran (passcode seed material) too short."
+    }
+  ],
+  "reference_quirks": {
+    "empty_stem_reuses_the_key": {
+      "current": [
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+      ],
+      "next": [
+        "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"
+      ],
+      "identical": true,
+      "note": "with an empty stem the derivation path drops the rotation and key indices, so the identifier commits to the key it is already using and pre-rotation protects nothing",
+      "rust_decision": "reproduced exactly, because changing it would derive different identifiers; DerivationPath::reuses_keys_across_rotations reports the condition"
+    },
+    "rotation_forgets_the_derivation_code": {
+      "pub": "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe",
+      "path": "0",
+      "code": "",
+      "tier": "low",
+      "temp": false,
+      "signing_fails": "Cannot read properties of undefined (reading 'hs')",
+      "note": "rotate stores a PubPath without setting `code`, so it stays the class default of the empty string and regenerating the key for signing throws",
+      "rust_decision": "there is no separate code to forget: this port derives Ed25519 only, and a stored path carries the profile it was derived under"
+    },
+    "public_key_lot_timestamp": {
+      "shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)",
+      "note": "`new Date().toString()` is written into every PubLot and read nowhere in the pinned source",
+      "rust_decision": "omitted; a protocol crate does not read the clock, as Roadmap 3.6 decided for the reply timestamp"
+    },
+    "update_aeid_is_unreachable": {
+      "note": "updateAeid is private and called only from the constructor, which calls it only when `this.aeid` is undefined and after setting `_decrypter` to undefined; both of its guarded blocks — the last-seed check and the whole re-encryption loop — can therefore never run",
+      "rust_decision": "not ported; re-keying a manager is Roadmap 8.9, and encryption here is one optional value derived from the seed rather than four fields that can disagree"
+    },
+    "two_signing_entry_points": {
+      "by_public_key": [
+        "AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+      ],
+      "by_verification_key": [
+        "AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"
+      ],
+      "identical": true,
+      "note": "`sign` takes either public keys or verification keys and resolves both to the same private keys",
+      "rust_decision": "one method taking qualified public keys"
+    },
+    "creator_reports_empty_strings": {
+      "count": 3,
+      "private_key_length": 44,
+      "private_key_code": "A",
+      "public_key_code": "D",
+      "transferable": true,
+      "paths": null,
+      "distinct": 3,
+      "salt": "",
+      "stem": "",
+      "tier": "",
+      "note": "a randy creator implements the salt, stem, and tier accessors by returning empty strings, and casts one of them to Tier",
+      "rust_decision": "the randy creator has no such accessors; a randy identifier records no salt and no tier"
+    }
+  }
+}

@@ -205,6 +205,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "manager"
+path = "fuzz_targets/manager.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "keria_api"
 path = "fuzz_targets/keria_api.rs"
 test = false
