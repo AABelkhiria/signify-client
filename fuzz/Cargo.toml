@@ -13,6 +13,7 @@ signify-cesr = { path = "../crates/signify-cesr" }
 signify-crypto = { path = "../crates/signify-crypto" }
 signify-http = { path = "../crates/signify-http" }
 signify-keri = { path = "../crates/signify-keri" }
+signify-types = { path = "../crates/signify-types" }
 
 [[bin]]
 name = "foundations"
@@ -199,6 +200,13 @@ bench = false
 [[bin]]
 name = "authing"
 path = "fuzz_targets/authing.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "keria_api"
+path = "fuzz_targets/keria_api.rs"
 test = false
 doc = false
 bench = false
