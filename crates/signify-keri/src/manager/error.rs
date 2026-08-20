@@ -119,6 +119,48 @@ pub enum ManagerError {
         /// Keys the request resolved to.
         keys: usize,
     },
+    /// No external key-manager module is registered under a name.
+    UnknownExternalModule {
+        /// The module type the record named.
+        module_type: String,
+    },
+    /// A group's local member is not among the group's current signing keys.
+    ///
+    /// The member cannot sign for the group, because the event it would sign gives its key no
+    /// position.
+    MemberNotInSigningKeys {
+        /// The member's signing key.
+        key: String,
+    },
+    /// A group's local member key was never committed to by the prior next digests.
+    ///
+    /// A rotation signature has to prove the key it signs with was precommitted; without a
+    /// matching digest there is no position to point at.
+    MemberNotPrecommitted {
+        /// The member's signing key.
+        key: String,
+    },
+    /// An identifier record carries no signing keys.
+    NoSigningKeys {
+        /// The identifier in question.
+        prefix: String,
+    },
+    /// A keeper derived under the temporary profile cannot be written into a record.
+    ///
+    /// A KERIA identifier record stores a tier, not a cost profile, so a keeper built under the
+    /// deliberately cheap temporary profile would reload under the production one and derive
+    /// different keys. Such a keeper is ephemeral by construction.
+    ProfileNotStorable,
+    /// A derivation tier has no spelling in a KERIA identifier record.
+    ///
+    /// The record's tier field is a three-value enum; a tier outside it could not be written down
+    /// and so could not be reloaded.
+    UnsupportedTier,
+    /// A digest code names an algorithm this port does not implement.
+    UnsupportedDigest {
+        /// The code the record carried.
+        code: String,
+    },
     /// A destination prefix already has managed keys.
     DestinationOccupied {
         /// The prefix in question.
@@ -181,6 +223,28 @@ impl fmt::Display for ManagerError {
                 formatter,
                 "{placements} signature placements were supplied for {keys} keys"
             ),
+            Self::UnknownExternalModule { module_type } => {
+                write!(
+                    formatter,
+                    "no external key-manager module is registered as {module_type}"
+                )
+            }
+            Self::MemberNotInSigningKeys { key } => write!(
+                formatter,
+                "the group member key {key} is not among the group's current signing keys"
+            ),
+            Self::MemberNotPrecommitted { key } => write!(
+                formatter,
+                "the group member key {key} was not committed to by the prior next digests"
+            ),
+            Self::NoSigningKeys { prefix } => write!(formatter, "{prefix} carries no signing keys"),
+            Self::ProfileNotStorable => {
+                formatter.write_str("a keeper derived under the temporary profile cannot be stored")
+            }
+            Self::UnsupportedTier => formatter.write_str("a derivation tier has no spelling in an identifier record"),
+            Self::UnsupportedDigest { code } => {
+                write!(formatter, "the digest code {code} names an unsupported algorithm")
+            }
             Self::DestinationOccupied { prefix } => {
                 write!(
                     formatter,
@@ -258,6 +322,17 @@ mod tests {
             ManagerError::SaltDecryptionUnavailable,
             ManagerError::NoSigningKeysRequested,
             ManagerError::PlacementCountMismatch { placements: 2, keys: 1 },
+            ManagerError::UnknownExternalModule {
+                module_type: "hsm".to_owned(),
+            },
+            ManagerError::MemberNotInSigningKeys { key: "DABC".to_owned() },
+            ManagerError::MemberNotPrecommitted { key: "DABC".to_owned() },
+            ManagerError::NoSigningKeys {
+                prefix: "EABC".to_owned(),
+            },
+            ManagerError::ProfileNotStorable,
+            ManagerError::UnsupportedTier,
+            ManagerError::UnsupportedDigest { code: "H".to_owned() },
             ManagerError::DestinationOccupied {
                 prefix: "EABC".to_owned(),
             },

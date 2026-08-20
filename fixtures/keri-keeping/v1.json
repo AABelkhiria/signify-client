@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-20",
+  "sources": [
+    "src/keri/core/keeping.ts",
+    "test/core/keeping.test.ts",
+    "test/core/manager.test.ts"
+  ],
+  "provenance": {
+    "salt_raw": "0123456789abcdef",
+    "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+    "passcode": "0123456789abcdefghijk",
+    "serialization": "not a keri event",
+    "note": "the passcode salt is the pinned unit test's own public constant; a salty keeper hardcodes the production Argon2 profile, so every key here costs a real derivation"
+  },
+  "salty_walk": {
+    "before_inception": {
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "dcode": "E",
+      "transferable": true,
+      "sealed_salt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "inception": {
+      "public_keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "next_digests": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ]
+    },
+    "after_inception": {
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "dcode": "E",
+      "transferable": true,
+      "sealed_salt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "signatures": {
+      "indexed_by_position": [
+        "AAB60KNzWtvv041RwIpHiMEX2ljVxiB18ZsTiW955uGf046GVznWlCk7zE_682s2toh9jV4c5qLEU-Fe5rSzDioD"
+      ],
+      "indexed_at_three": [
+        "ADB60KNzWtvv041RwIpHiMEX2ljVxiB18ZsTiW955uGf046GVznWlCk7zE_682s2toh9jV4c5qLEU-Fe5rSzDioD"
+      ],
+      "current_list_only": [
+        {
+          "qb64": "BAB60KNzWtvv041RwIpHiMEX2ljVxiB18ZsTiW955uGf046GVznWlCk7zE_682s2toh9jV4c5qLEU-Fe5rSzDioD",
+          "index": 0,
+          "ondex": null
+        }
+      ],
+      "both_lists_at_zero": [
+        {
+          "qb64": "AAB60KNzWtvv041RwIpHiMEX2ljVxiB18ZsTiW955uGf046GVznWlCk7zE_682s2toh9jV4c5qLEU-Fe5rSzDioD",
+          "index": 0,
+          "ondex": 0
+        }
+      ],
+      "unindexed": [
+        "0BB60KNzWtvv041RwIpHiMEX2ljVxiB18ZsTiW955uGf046GVznWlCk7zE_682s2toh9jV4c5qLEU-Fe5rSzDioD"
+      ]
+    },
+    "rotations": [
+      {
+        "round": 0,
+        "public_keys": [
+          "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly"
+        ],
+        "next_digests": [
+          "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk"
+        ],
+        "kidx_after": 1
+      },
+      {
+        "round": 1,
+        "public_keys": [
+          "DEfdjYZMI2hLaHBOpUubn5AUItgOvh2W1vckGE33SIPf"
+        ],
+        "next_digests": [
+          "EEvyqpRLktts-_aSfPHKKv1mTKTV4ngwKKkOaqm3ZuPX"
+        ],
+        "kidx_after": 2
+      }
+    ],
+    "after_rotation": {
+      "pidx": 0,
+      "kidx": 2,
+      "stem": "signify:aid",
+      "tier": "low",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "dcode": "E",
+      "transferable": true,
+      "sealed_salt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "signed_after_rotation": [
+      "AACrA1Ovi3vkgbyJzpUxoZ6jGGMvpYebYmuugZ7WP30FQKGpyQj2ZI-oigwYN5iOATiEXe5CwJA4Qj5ZqtIgjZcA"
+    ]
+  },
+  "salty_variants": [
+    {
+      "name": "default_stem",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "ncount": 1,
+        "kidx": 0,
+        "pidx": 0,
+        "transferable": true
+      },
+      "public_keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "next_digests": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "kidx_after": 0,
+      "stem_used": "signify:aid"
+    },
+    {
+      "name": "explicit_stem",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "ncount": 1,
+        "kidx": 0,
+        "pidx": 0,
+        "transferable": true
+      },
+      "public_keys": [
+        "DATq24UtDnh4UoVQM_QcV3S2ZHdn0TaZ2cFA3Md0NDL4"
+      ],
+      "next_digests": [
+        "EKD45zdDSRELA3kOaK6blgsDRPn5vFZOxAveUb3jPsbJ"
+      ],
+      "kidx_after": 0,
+      "stem_used": "red"
+    },
+    {
+      "name": "non_transferable",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "ncount": 1,
+        "kidx": 0,
+        "pidx": 0,
+        "transferable": false
+      },
+      "public_keys": [
+        "BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "next_digests": [
+        "EDBu40jLKFCFViyqcbCAqfELeI-Y09z6MaLkDakCDi-v"
+      ],
+      "kidx_after": 0,
+      "stem_used": "signify:aid"
+    },
+    {
+      "name": "three_keys",
+      "input": {
+        "stem": null,
+        "count": 3,
+        "ncount": 2,
+        "kidx": 0,
+        "pidx": 0,
+        "transferable": true
+      },
+      "public_keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly",
+        "DEfdjYZMI2hLaHBOpUubn5AUItgOvh2W1vckGE33SIPf"
+      ],
+      "next_digests": [
+        "EEvyqpRLktts-_aSfPHKKv1mTKTV4ngwKKkOaqm3ZuPX",
+        "EEkMimwsv_JMZh7k-Rfq5wvhvbEdjVr8NhGQpyssVmNJ"
+      ],
+      "kidx_after": 0,
+      "stem_used": "signify:aid"
+    },
+    {
+      "name": "key_index_offset",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "ncount": 1,
+        "kidx": 5,
+        "pidx": 0,
+        "transferable": true
+      },
+      "public_keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "next_digests": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "kidx_after": 0,
+      "stem_used": "signify:aid"
+    },
+    {
+      "name": "prefix_index_offset",
+      "input": {
+        "stem": null,
+        "count": 1,
+        "ncount": 1,
+        "kidx": 0,
+        "pidx": 4,
+        "transferable": true
+      },
+      "public_keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "next_digests": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "kidx_after": 0,
+      "stem_used": "signify:aid"
+    }
+  ],
+  "randy_shape": {
+    "public_key_count": 1,
+    "next_digest_count": 1,
+    "public_key_code": "D",
+    "sealed_key_code": "P",
+    "sealed_key_count": 1,
+    "sealed_next_count": 1,
+    "params_keys": [
+      "nxts",
+      "prxs",
+      "transferable"
+    ],
+    "current_only_index": 0,
+    "current_only_ondex": null,
+    "rotation_promotes_next_keys": true,
+    "rotated_key_differs": true,
+    "note": "random keys cannot be pinned, so this records the shape a randy keeper produces"
+  },
+  "group": {
+    "fixture": {
+      "keys": [
+        "DAU36xf5OvDYnU3ciN2utuY_Gv7P9d3_6F1T_w8U0QT0",
+        "DDCpePDaFZDckTlvho9z77ERT0lGnp-qn7da4ikNIzW2",
+        "DH4Mgd9okPi9edDVdSeIz_ofvnf55NhQseT598pPoaZN",
+        "DEwEjlXM6q7eKr09XH8G2xM6oljUI9VrlsmkVcPwpcQh"
+      ],
+      "prior_next_digests": [
+        "EBfk3pF9mNy3wYRBoO8cnBZEFmZY4KFVL6TtECv4JN_i",
+        "EGpjLJB1lNUlPINN7GMxh0WWFKDJMqyqzq62HsKA4pRT",
+        "EGrYXBl-0hIXq2FPUuC04iTWGz7zY8HdNeZ1YXgrJStg"
+      ]
+    },
+    "cases": [
+      {
+        "name": "rotation_exposes_prior_index",
+        "member_index": 2,
+        "rotated": true,
+        "member_keeper_called_with": {
+          "indexed": true,
+          "indices": [
+            2
+          ],
+          "ondices": [
+            2
+          ]
+        }
+      },
+      {
+        "name": "current_only_suppresses_prior_index",
+        "member_index": 0,
+        "rotated": false,
+        "member_keeper_called_with": {
+          "indexed": true,
+          "indices": [
+            0
+          ],
+          "ondices": [
+            null
+          ]
+        }
+      },
+      {
+        "name": "rotation_at_position_one",
+        "member_index": 1,
+        "rotated": true,
+        "member_keeper_called_with": {
+          "indexed": true,
+          "indices": [
+            1
+          ],
+          "ondices": [
+            1
+          ]
+        }
+      }
+    ],
+    "outside": {
+      "name": "member_outside_signing_keys",
+      "note": "the local member's key is not among the group's current signing keys",
+      "reference_error_message": "Group signing key DEwEjlXM6q7eKr09XH8G2xM6oljUI9VrlsmkVcPwpcQh is not present in current group signing keys."
+    },
+    "params": {
+      "keys": [
+        "keys",
+        "mhab",
+        "ndigs"
+      ],
+      "algo": "group",
+      "signers": 0
+    }
+  },
+  "factory": {
+    "new_salty_algo": "salty",
+    "new_randy_algo": "randy",
+    "new_extern_algo": "extern",
+    "new_extern_params": {
+      "extern_type": "mock",
+      "param": "value",
+      "pidx": 3
+    },
+    "get_salty_algo": "salty",
+    "get_randy_algo": "randy",
+    "get_extern_algo": "extern",
+    "unregistered_module": {
+      "name": "unregistered_module_new",
+      "note": "no module is registered under the name",
+      "reference_error_message": "unsupported external module type mock"
+    },
+    "unregistered_module_get": {
+      "name": "unregistered_module_get",
+      "note": "the same through a stored record",
+      "reference_error_message": "unsupported external module type mock"
+    },
+    "unknown_algo": {
+      "name": "unknown_algo",
+      "note": "an algorithm outside the four",
+      "reference_error_message": "Unknown algo"
+    },
+    "no_algo": {
+      "name": "no_algo",
+      "note": "an identifier record naming no key manager at all",
+      "reference_error_message": "No algo specified"
+    }
+  },
+  "reference_quirks": {
+    "randy_discards_its_defaulted_codes": {
+      "note": "the constructor computes `icodes` and `ncodes` from the counts and then overwrites both with the raw arguments, discarding the defaults it just built",
+      "icodes_after_construction": null,
+      "rust_decision": "counts are the input; there is no code list to discard"
+    },
+    "randy_get_passes_no_next_codes": {
+      "note": "`get` builds a randy keeper with `ncodes: []`, so a keeper loaded from a record commits to no next keys until a rotation supplies them",
+      "rust_decision": "the counts come from the lengths of the stored sealed key lists"
+    },
+    "salty_rotate_keeps_the_inception_count": {
+      "note": "`rotate` sets `ncodes` but never `icodes`, so the key index still advances by the inception count even when the rotation changes how many keys there are",
+      "rust_decision": "reproduced: the stride is the inception count, which is what the stored key index means"
+    },
+    "salty_aeid_depends_on_transferability": {
+      "transferable_aeid": "DN54yRad_BTqgZYUSi_NthRBQrxSnqQdJXWI5UHcGOQt",
+      "non_transferable_aeid": "BN54yRad_BTqgZYUSi_NthRBQrxSnqQdJXWI5UHcGOQt",
+      "differ": true,
+      "note": "the key a salty keeper seals its salt to is derived with the identifier's own transferability, so two identifiers under one passcode seal to different keys",
+      "rust_decision": "reproduced; the transferability is stored alongside the sealed salt, so it round-trips"
+    },
+    "group_params_declares_one_field_and_returns_three": {
+      "note": "`GroupManagerParams` declares only `mhab` while `params()` returns `mhab`, `keys`, and `ndigs`",
+      "rust_decision": "the returned record is the KERIA group state, which has all three"
+    },
+    "keeper_publishes_its_private_signers": {
+      "note": "every keeper exposes a public `signers` array of private `Signer` objects; `clienting.ts` reads `keeper.signers[0]` to build an authenticator",
+      "rust_decision": "signing happens inside the keeper; `expose_signers` names the deliberate export for the one consumer that needs a signer"
+    },
+    "every_method_is_async_without_awaiting": {
+      "note": "the whole `IdentifierManager` interface is async, but no implementation awaits anything: none of them performs I/O",
+      "rust_decision": "the Rust trait is synchronous, because ARCHITECTURE.md forbids this crate an async runtime"
+    }
+  }
+}

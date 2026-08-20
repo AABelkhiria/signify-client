@@ -656,6 +656,7 @@ name = "signify-cesr-fuzz"
 version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
+ "serde_json",
  "signify-cesr",
  "signify-crypto",
  "signify-http",

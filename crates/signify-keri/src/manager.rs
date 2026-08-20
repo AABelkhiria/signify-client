@@ -10,6 +10,7 @@
 pub mod algorithm;
 pub mod creator;
 pub mod error;
+pub mod keeper;
 pub mod key_manager;
 pub mod store;
 
@@ -19,6 +20,10 @@ pub use creator::{
     MAX_STEM_BYTES, RandyKeyCreator, SaltyKeyCreator, Stem,
 };
 pub use error::ManagerError;
+pub use keeper::{
+    DerivationCost, ExternalKeeperModule, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation,
+    KeyMaterial, RandyKeeper, RandyKeeperRequest, SaltyKeeper, SaltyKeeperRequest, SaltySource, SigningPurpose,
+};
 pub use key_manager::{
     InceptedKeys, InceptionRequest, KeyManager, KeyManagerBuilder, ManagedSignatures, PASSCODE_LENGTH,
     RetiredKeyPolicy, RotatedKeys, RotationRequest, SignatureForm,

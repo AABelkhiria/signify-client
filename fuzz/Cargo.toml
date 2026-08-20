@@ -14,6 +14,7 @@ signify-crypto = { path = "../crates/signify-crypto" }
 signify-http = { path = "../crates/signify-http" }
 signify-keri = { path = "../crates/signify-keri" }
 signify-types = { path = "../crates/signify-types" }
+serde_json = "1.0.151"
 
 [[bin]]
 name = "foundations"
@@ -200,6 +201,13 @@ bench = false
 [[bin]]
 name = "authing"
 path = "fuzz_targets/authing.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "keeper"
+path = "fuzz_targets/keeper.rs"
 test = false
 doc = false
 bench = false

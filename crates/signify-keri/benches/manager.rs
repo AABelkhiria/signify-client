@@ -188,5 +188,88 @@ fn salt_placeholder() -> Salt {
     Salt::from_raw(b"0000000000000000", SecurityTier::Low).unwrap_or_else(|_| salt_placeholder())
 }
 
-criterion_group!(benches, benchmark_creation, benchmark_operations);
+/// Measures the keeper operations a client performs per identifier.
+///
+/// A salty keeper hardcodes the production Argon2 profile, so an inception or a rotation costs one
+/// 64 MiB pass per key — which is what a deployed client actually pays. The ephemeral profile is
+/// measured alongside it to separate the bookkeeping from the derivation.
+fn benchmark_keepers(criterion: &mut Criterion) {
+    use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
+    use signify_keri::manager::{
+        DerivationCost, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, RandyKeeperRequest,
+        SaltyKeeper, SigningPurpose,
+    };
+
+    let Ok(salt) = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low) else {
+        return;
+    };
+    let passcode = "0123456789abcdefghijk";
+
+    for (label, cost) in [
+        ("production", DerivationCost::Production),
+        ("ephemeral", DerivationCost::Ephemeral),
+    ] {
+        criterion.bench_function(&format!("salty_keeper_incept_{label}"), |bencher| {
+            bencher.iter(|| {
+                SaltyKeeper::new(
+                    &salt,
+                    SaltySource::Passcode(passcode.to_owned()),
+                    SaltyKeeperConfig {
+                        transferability: KeyTransferability::Transferable,
+                        profile: cost,
+                        ..SaltyKeeperConfig::default()
+                    },
+                )
+                .is_ok_and(|mut keeper| keeper.incept(KeyTransferability::Transferable).is_ok())
+            });
+        });
+    }
+
+    // Rotation and signing, measured on an already-built keeper.
+    if let Ok(mut keeper) = SaltyKeeper::new(
+        &salt,
+        SaltySource::Passcode(passcode.to_owned()),
+        SaltyKeeperConfig {
+            transferability: KeyTransferability::Transferable,
+            profile: DerivationCost::Ephemeral,
+            ..SaltyKeeperConfig::default()
+        },
+    ) && keeper.incept(KeyTransferability::Transferable).is_ok()
+    {
+        criterion.bench_function("salty_keeper_sign_ephemeral", |bencher| {
+            bencher.iter(|| {
+                keeper
+                    .sign(
+                        black_box(b"event serialization"),
+                        &SignatureForm::IndexedByPosition,
+                        SigningPurpose::Current,
+                    )
+                    .is_ok()
+            });
+        });
+        criterion.bench_function("salty_keeper_rotate_ephemeral", |bencher| {
+            bencher.iter(|| keeper.rotate(KeeperRotation::to_keys(1)).is_ok());
+        });
+    }
+
+    // A randy keeper seals every key it creates, so its cost is the sealed box rather than Argon2.
+    let Ok(factory) = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).map(KeeperFactory::new) else {
+        return;
+    };
+    criterion.bench_function("randy_keeper_incept_ephemeral", |bencher| {
+        bencher.iter(|| {
+            factory
+                .create(KeeperRequest::Randy(RandyKeeperRequest {
+                    current_count: 1,
+                    next_count: 1,
+                    transferability: KeyTransferability::Transferable,
+                    profile: DerivationCost::Ephemeral,
+                    ..RandyKeeperRequest::default()
+                }))
+                .is_ok_and(|mut keeper| keeper.incept(KeyTransferability::Transferable).is_ok())
+        });
+    });
+}
+
+criterion_group!(benches, benchmark_creation, benchmark_operations, benchmark_keepers);
 criterion_main!(benches);

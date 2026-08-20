@@ -363,23 +363,7 @@ impl KeyManager {
     /// [`ManagerError::InvalidPasscode`] for a character outside the Base64 URL-safe alphabet, and
     /// a layered [`ManagerError::Crypto`] when derivation fails.
     pub fn from_passcode(passcode: &str, salt: Option<Salt>) -> Result<Self, ManagerError> {
-        if passcode.chars().count() < PASSCODE_LENGTH {
-            return Err(ManagerError::PasscodeTooShort {
-                required: PASSCODE_LENGTH,
-                actual: passcode.chars().count(),
-            });
-        }
-        if let Some(offset) = passcode
-            .chars()
-            .take(PASSCODE_LENGTH)
-            .position(|character| !is_base64_url_safe(character))
-        {
-            return Err(ManagerError::InvalidPasscode { offset });
-        }
-
-        let material: String = passcode.chars().take(PASSCODE_LENGTH).collect();
-        let qualified = format!("{SALT_CODE}A{material}");
-        let passcode_salt = Salt::from_qb64(&qualified, SecurityTier::Low)?;
+        let passcode_salt = salt_from_passcode(passcode, SecurityTier::Low)?;
         let seed = passcode_salt.derive_signer("", KeyTransferability::NonTransferable)?;
 
         let algorithm = if salt.is_some() {
@@ -852,6 +836,36 @@ impl KeyManager {
         self.store.set_globals(globals);
         Ok(())
     }
+}
+
+/// Turns the first [`PASSCODE_LENGTH`] characters of a passcode into a qualified salt.
+///
+/// The reference builds this as the salt code, one padding character, and the passcode prefix, and
+/// does it in three places. A character outside the Base64 URL-safe alphabet cannot produce a salt
+/// at all, so it is refused here rather than surfacing several calls later as a parse failure that
+/// does not mention the passcode.
+///
+/// # Errors
+///
+/// Returns [`ManagerError::PasscodeTooShort`] below [`PASSCODE_LENGTH`] characters,
+/// [`ManagerError::InvalidPasscode`] for a character outside the alphabet, and a layered
+/// [`ManagerError::Crypto`] when the result is not a usable salt.
+pub(crate) fn salt_from_passcode(passcode: &str, tier: SecurityTier) -> Result<Salt, ManagerError> {
+    if passcode.chars().count() < PASSCODE_LENGTH {
+        return Err(ManagerError::PasscodeTooShort {
+            required: PASSCODE_LENGTH,
+            actual: passcode.chars().count(),
+        });
+    }
+    if let Some(offset) = passcode
+        .chars()
+        .take(PASSCODE_LENGTH)
+        .position(|character| !is_base64_url_safe(character))
+    {
+        return Err(ManagerError::InvalidPasscode { offset });
+    }
+    let material: String = passcode.chars().take(PASSCODE_LENGTH).collect();
+    Ok(Salt::from_qb64(&format!("{SALT_CODE}A{material}"), tier)?)
 }
 
 /// Parses one managed public key.
