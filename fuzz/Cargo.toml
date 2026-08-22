@@ -226,6 +226,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "habery"
+path = "fuzz_targets/habery.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

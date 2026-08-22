@@ -4,6 +4,7 @@
 
 pub mod attachment;
 pub mod event;
+pub mod identifier;
 pub mod manager;
 pub mod prefix;
 pub mod said;

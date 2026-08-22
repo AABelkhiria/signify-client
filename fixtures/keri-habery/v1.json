@@ -1,0 +1,445 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-21",
+  "sources": [
+    "src/keri/app/habery.ts",
+    "test/app/habery.test.ts"
+  ],
+  "provenance": {
+    "salt_raw": "0123456789abcdef",
+    "salt_qb64": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+    "passcode": "0123456789abcdefghijk",
+    "delegator": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+    "witnesses": [
+      "BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ",
+      "BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp",
+      "BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ"
+    ],
+    "note": "the salt and passcode are the pinned unit test's own public constants; makeHab hardcodes the production Argon2 profile, so every key here costs a real derivation. The witness prefixes are inputs only, derived cheaply from the same salt."
+  },
+  "pinned_unit_tests": {
+    "salt_and_passcode": {
+      "aeid": "BMbZTXzB7LmWPT2TXLGV88PQz5vDEM2L2flUs2yxn3U9",
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8\",\"i\":\"ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8",
+        "said": "ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": [
+          "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+        ]
+      }
+    },
+    "passcode_as_salt": {
+      "bran": "0AA0123456789abcdefghijk",
+      "signer_qb64": "AKeXgiAUIN7OHGXO6rbw_IzWeaQTr1LF7jWD6YEdrpa6",
+      "signer_verfer": "DMbZTXzB7LmWPT2TXLGV88PQz5vDEM2L2flUs2yxn3U9",
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EMRbh7mWJTijcWiQKT3uxozncpa9_gEX1IU0fM1wnKxi\",\"i\":\"EMRbh7mWJTijcWiQKT3uxozncpa9_gEX1IU0fM1wnKxi\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DEFLV5sLSO3tBH6zOzdabS5IKcGqj9V5LCxxNlTOdBqE\"],\"nt\":\"1\",\"n\":[\"EPjMpiF01f1AX70FDi5_edE6GRNUCd4xMYQPznqyCeY3\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EMRbh7mWJTijcWiQKT3uxozncpa9_gEX1IU0fM1wnKxi",
+        "said": "EMRbh7mWJTijcWiQKT3uxozncpa9_gEX1IU0fM1wnKxi",
+        "keys": [
+          "DEFLV5sLSO3tBH6zOzdabS5IKcGqj9V5LCxxNlTOdBqE"
+        ],
+        "next_digests": [
+          "EPjMpiF01f1AX70FDi5_edE6GRNUCd4xMYQPznqyCeY3"
+        ]
+      }
+    }
+  },
+  "habitat_cases": [
+    {
+      "name": "default",
+      "habery_name": "signify",
+      "args": {},
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8\",\"i\":\"ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8",
+        "said": "ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": [
+          "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+        ]
+      }
+    },
+    {
+      "name": "non_transferable",
+      "habery_name": "signify",
+      "args": {
+        "transferable": false
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EMhYGBjQz9WgzXDi3-OPVEk_zJknGNJfIcLDuPiR_lXi\",\"i\":\"BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+        "said": "EMhYGBjQz9WgzXDi3-OPVEk_zJknGNJfIcLDuPiR_lXi",
+        "keys": [
+          "BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": []
+      }
+    },
+    {
+      "name": "three_keys",
+      "habery_name": "signify",
+      "args": {
+        "icount": 3
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0001e7_\",\"t\":\"icp\",\"d\":\"EBwDh-4366OztxVaKYBMsLlgch1OBmsQ1ItV1lvt6TOj\",\"i\":\"EBwDh-4366OztxVaKYBMsLlgch1OBmsQ1ItV1lvt6TOj\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3\",\"DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW\"],\"nt\":\"2\",\"n\":[\"EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F\",\"EHbF07Fvgc-CVS_CeISZw9cXQf0ShP-QUrypcbckc7lr\",\"EIWZ9hJzHiQVYajK_FaAQW1Z9T5tkBIOyB5XBDfROPYo\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EBwDh-4366OztxVaKYBMsLlgch1OBmsQ1ItV1lvt6TOj",
+        "said": "EBwDh-4366OztxVaKYBMsLlgch1OBmsQ1ItV1lvt6TOj",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+          "DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3",
+          "DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW"
+        ],
+        "next_digests": [
+          "EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F",
+          "EHbF07Fvgc-CVS_CeISZw9cXQf0ShP-QUrypcbckc7lr",
+          "EIWZ9hJzHiQVYajK_FaAQW1Z9T5tkBIOyB5XBDfROPYo"
+        ]
+      }
+    },
+    {
+      "name": "three_keys_two_next",
+      "habery_name": "signify",
+      "args": {
+        "icount": 3,
+        "ncount": 2
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0001b8_\",\"t\":\"icp\",\"d\":\"EBPRWbNr5Ha932Wp0ype7huT0Yu5w0UqqvtacWbK9T0_\",\"i\":\"EBPRWbNr5Ha932Wp0ype7huT0Yu5w0UqqvtacWbK9T0_\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3\",\"DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW\"],\"nt\":\"1\",\"n\":[\"EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F\",\"EHbF07Fvgc-CVS_CeISZw9cXQf0ShP-QUrypcbckc7lr\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EBPRWbNr5Ha932Wp0ype7huT0Yu5w0UqqvtacWbK9T0_",
+        "said": "EBPRWbNr5Ha932Wp0ype7huT0Yu5w0UqqvtacWbK9T0_",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+          "DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3",
+          "DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW"
+        ],
+        "next_digests": [
+          "EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F",
+          "EHbF07Fvgc-CVS_CeISZw9cXQf0ShP-QUrypcbckc7lr"
+        ]
+      }
+    },
+    {
+      "name": "five_keys",
+      "habery_name": "signify",
+      "args": {
+        "icount": 5
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0002a3_\",\"t\":\"icp\",\"d\":\"EJYIKPYzR700NSeFWej4W8N85I7sH9IvMdwU4HGBgTqU\",\"i\":\"EJYIKPYzR700NSeFWej4W8N85I7sH9IvMdwU4HGBgTqU\",\"s\":\"0\",\"kt\":\"3\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3\",\"DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW\",\"DLx38KUit1linJ5pXOxwRDecRGa1iTfSAxtVly9OkUJw\",\"DGdh-Wxe_bWqx8vzhvTTVsB1SZ0OZxjMGjttVY2srMnw\"],\"nt\":\"3\",\"n\":[\"EIWZ9hJzHiQVYajK_FaAQW1Z9T5tkBIOyB5XBDfROPYo\",\"EGuzATVP4wHzDbTQqO8rfqNAieP6aNFlZDTb-cyBHkeZ\",\"EN1MRFHoFGQ3KHirfp7g2sxG925HU_OXpToGt-ShRG5X\",\"ECguOl0KALgvd5qk71fYPpbqivFazGtQzncVhTO5DRmJ\",\"EN9iWMhQJqtY3AMcIqRVjoGZohxUH-4oUNgY4kmPT7jY\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EJYIKPYzR700NSeFWej4W8N85I7sH9IvMdwU4HGBgTqU",
+        "said": "EJYIKPYzR700NSeFWej4W8N85I7sH9IvMdwU4HGBgTqU",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+          "DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3",
+          "DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW",
+          "DLx38KUit1linJ5pXOxwRDecRGa1iTfSAxtVly9OkUJw",
+          "DGdh-Wxe_bWqx8vzhvTTVsB1SZ0OZxjMGjttVY2srMnw"
+        ],
+        "next_digests": [
+          "EIWZ9hJzHiQVYajK_FaAQW1Z9T5tkBIOyB5XBDfROPYo",
+          "EGuzATVP4wHzDbTQqO8rfqNAieP6aNFlZDTb-cyBHkeZ",
+          "EN1MRFHoFGQ3KHirfp7g2sxG925HU_OXpToGt-ShRG5X",
+          "ECguOl0KALgvd5qk71fYPpbqivFazGtQzncVhTO5DRmJ",
+          "EN9iWMhQJqtY3AMcIqRVjoGZohxUH-4oUNgY4kmPT7jY"
+        ]
+      }
+    },
+    {
+      "name": "explicit_thresholds",
+      "habery_name": "signify",
+      "args": {
+        "icount": 3,
+        "isith": "2",
+        "ncount": 3,
+        "nsith": "3"
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0001e7_\",\"t\":\"icp\",\"d\":\"EIMz-8V2w-JwzLCF-epvWfmXSwDq_olJG9yG3Be5_grT\",\"i\":\"EIMz-8V2w-JwzLCF-epvWfmXSwDq_olJG9yG3Be5_grT\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3\",\"DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW\"],\"nt\":\"3\",\"n\":[\"EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F\",\"EHbF07Fvgc-CVS_CeISZw9cXQf0ShP-QUrypcbckc7lr\",\"EIWZ9hJzHiQVYajK_FaAQW1Z9T5tkBIOyB5XBDfROPYo\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EIMz-8V2w-JwzLCF-epvWfmXSwDq_olJG9yG3Be5_grT",
+        "said": "EIMz-8V2w-JwzLCF-epvWfmXSwDq_olJG9yG3Be5_grT",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+          "DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3",
+          "DG776NFD8ob8d0HBE1db22DFo0lT8W5wz299WrKUUkMW"
+        ],
+        "next_digests": [
+          "EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F",
+          "EHbF07Fvgc-CVS_CeISZw9cXQf0ShP-QUrypcbckc7lr",
+          "EIWZ9hJzHiQVYajK_FaAQW1Z9T5tkBIOyB5XBDfROPYo"
+        ]
+      }
+    },
+    {
+      "name": "isith_propagates_to_nsith",
+      "habery_name": "signify",
+      "args": {
+        "icount": 2,
+        "isith": "2"
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"ECNKms4aEalKDQlnpcGhrvTiezuCiMz5FO7JC687PYAD\",\"i\":\"ECNKms4aEalKDQlnpcGhrvTiezuCiMz5FO7JC687PYAD\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3\"],\"nt\":\"2\",\"n\":[\"EDBhkDYda9qH8asECFCJqm_XlCarw6ko3ZwmSw7l4CTb\",\"EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "ECNKms4aEalKDQlnpcGhrvTiezuCiMz5FO7JC687PYAD",
+        "said": "ECNKms4aEalKDQlnpcGhrvTiezuCiMz5FO7JC687PYAD",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+          "DEIULCfZ1OD94oaCfUSqxmSSMXMfFLRtQiHfGcoMmKF3"
+        ],
+        "next_digests": [
+          "EDBhkDYda9qH8asECFCJqm_XlCarw6ko3ZwmSw7l4CTb",
+          "EMsBrESPRVtRdO9ANBCZbGWo-sQJGUymB_rFn4rqKA3F"
+        ]
+      }
+    },
+    {
+      "name": "witnessed_with_toad",
+      "habery_name": "signify",
+      "args": {
+        "wits": [
+          "BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ",
+          "BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp",
+          "BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ"
+        ],
+        "toad": 2
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0001b7_\",\"t\":\"icp\",\"d\":\"EM51IJX0BLI3fvt2ARML3ZeNh4-O88jv-fdasvkky-iG\",\"i\":\"EM51IJX0BLI3fvt2ARML3ZeNh4-O88jv-fdasvkky-iG\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"2\",\"b\":[\"BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ\",\"BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp\",\"BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ\"],\"c\":[],\"a\":[]}",
+        "pre": "EM51IJX0BLI3fvt2ARML3ZeNh4-O88jv-fdasvkky-iG",
+        "said": "EM51IJX0BLI3fvt2ARML3ZeNh4-O88jv-fdasvkky-iG",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": [
+          "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+        ]
+      }
+    },
+    {
+      "name": "witnessed_default_toad",
+      "habery_name": "signify",
+      "args": {
+        "wits": [
+          "BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ",
+          "BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp",
+          "BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ"
+        ]
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON0001b7_\",\"t\":\"icp\",\"d\":\"EIxWQJ-r-El4tgDOqOfa_jUcEgrJwikdGRkTjIuDfhzE\",\"i\":\"EIxWQJ-r-El4tgDOqOfa_jUcEgrJwikdGRkTjIuDfhzE\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"3\",\"b\":[\"BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ\",\"BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp\",\"BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ\"],\"c\":[],\"a\":[]}",
+        "pre": "EIxWQJ-r-El4tgDOqOfa_jUcEgrJwikdGRkTjIuDfhzE",
+        "said": "EIxWQJ-r-El4tgDOqOfa_jUcEgrJwikdGRkTjIuDfhzE",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": [
+          "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+        ]
+      }
+    },
+    {
+      "name": "configured_with_data",
+      "habery_name": "signify",
+      "args": {
+        "estOnly": true,
+        "DnD": true,
+        "data": [
+          {
+            "i": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"
+          }
+        ]
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON000169_\",\"t\":\"icp\",\"d\":\"EEspg-sRIWhiRBp3D6O0Hk3o_qdF3VlIn3ipv_E-nHd7\",\"i\":\"EEspg-sRIWhiRBp3D6O0Hk3o_qdF3VlIn3ipv_E-nHd7\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"0\",\"b\":[],\"c\":[\"EO\",\"DND\"],\"a\":[{\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}]}",
+        "pre": "EEspg-sRIWhiRBp3D6O0Hk3o_qdF3VlIn3ipv_E-nHd7",
+        "said": "EEspg-sRIWhiRBp3D6O0Hk3o_qdF3VlIn3ipv_E-nHd7",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": [
+          "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+        ]
+      }
+    },
+    {
+      "name": "delegated",
+      "habery_name": "signify",
+      "args": {
+        "delpre": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"
+      },
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON00015f_\",\"t\":\"dip\",\"d\":\"EK3egcPqf3zAheiztyAKYaiK4xnbWsNcxUmqUmvfDFwE\",\"i\":\"EK3egcPqf3zAheiztyAKYaiK4xnbWsNcxUmqUmvfDFwE\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[],\"di\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}",
+        "pre": "EK3egcPqf3zAheiztyAKYaiK4xnbWsNcxUmqUmvfDFwE",
+        "said": "EK3egcPqf3zAheiztyAKYaiK4xnbWsNcxUmqUmvfDFwE",
+        "keys": [
+          "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        ],
+        "next_digests": [
+          "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+        ]
+      }
+    },
+    {
+      "name": "empty_habery_name",
+      "habery_name": "",
+      "args": {},
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EMy3zxq2MS6Y-jwhLhc1OJE7ehv4YgtBBEZkNSpjgANv\",\"i\":\"EMy3zxq2MS6Y-jwhLhc1OJE7ehv4YgtBBEZkNSpjgANv\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe\"],\"nt\":\"1\",\"n\":[\"ECl1Env_5PQHqVMpHgoqg9H9mT7ENtk0Q499cmMT6Fvz\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EMy3zxq2MS6Y-jwhLhc1OJE7ehv4YgtBBEZkNSpjgANv",
+        "said": "EMy3zxq2MS6Y-jwhLhc1OJE7ehv4YgtBBEZkNSpjgANv",
+        "keys": [
+          "DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"
+        ],
+        "next_digests": [
+          "ECl1Env_5PQHqVMpHgoqg9H9mT7ENtk0Q499cmMT6Fvz"
+        ]
+      }
+    },
+    {
+      "name": "another_stem",
+      "habery_name": "red",
+      "args": {},
+      "event": {
+        "habitat_name": "test",
+        "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EM00Q9cNBCFhz2lAZzrNlftZg2vcbCGxsWLC0megJZCv\",\"i\":\"EM00Q9cNBCFhz2lAZzrNlftZg2vcbCGxsWLC0megJZCv\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DDH0pFwLbXh6hgeoLKh89Xhb3_ZIhjby6k8kjN43_sfj\"],\"nt\":\"1\",\"n\":[\"EAAskElVwBv05mmQ0NKVS4fw4K3jOWJWNuitiWhRZQ5i\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+        "pre": "EM00Q9cNBCFhz2lAZzrNlftZg2vcbCGxsWLC0megJZCv",
+        "said": "EM00Q9cNBCFhz2lAZzrNlftZg2vcbCGxsWLC0megJZCv",
+        "keys": [
+          "DDH0pFwLbXh6hgeoLKh89Xhb3_ZIhjby6k8kjN43_sfj"
+        ],
+        "next_digests": [
+          "EAAskElVwBv05mmQ0NKVS4fw4K3jOWJWNuitiWhRZQ5i"
+        ]
+      }
+    }
+  ],
+  "pidx_does_not_change_a_named_habitat": {
+    "pidx": 4,
+    "raw_matches_default": true,
+    "note": "the salty path under a non-empty stem is stem + hex(ridx) + hex(kidx); pidx is dropped"
+  },
+  "mixed_transferability": {
+    "controller": {
+      "habitat_name": "controller",
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8\",\"i\":\"ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[\"ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8",
+      "said": "ENuXne7nKp1cpoHNfWhFue9lzqeRnh471pxDre5cdKn8",
+      "keys": [
+        "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+      ],
+      "next_digests": [
+        "ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"
+      ]
+    },
+    "witness": {
+      "habitat_name": "witness",
+      "raw": "{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EMhYGBjQz9WgzXDi3-OPVEk_zJknGNJfIcLDuPiR_lXi\",\"i\":\"BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
+      "said": "EMhYGBjQz9WgzXDi3-OPVEk_zJknGNJfIcLDuPiR_lXi",
+      "keys": [
+        "BAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+      ],
+      "next_digests": []
+    },
+    "note": "the same raw key derives under both transferabilities; the codes differ, so the store holds them as distinct public keys"
+  },
+  "rejections": [
+    {
+      "name": "passcode_too_short",
+      "note": "twenty characters, one below the reference's own bound",
+      "reference_error_message": "Bran (passcode seed material) too short."
+    },
+    {
+      "name": "second_salty_habitat",
+      "note": "a named salty registry re-derives the same keys for a second habitat",
+      "reference_error_message": "Already incepted pre=DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE."
+    },
+    {
+      "name": "no_current_keys",
+      "note": "an inception with no signing keys reads position zero of an empty list",
+      "reference_error_message": "Cannot read properties of undefined (reading 'qb64')"
+    },
+    {
+      "name": "randy_without_encryption",
+      "note": "no salt, no passcode, no seed: random keys with nothing to seal them",
+      "reference_error_message": "Invalid Manager configuration, encryption must be used with Randy key creation."
+    },
+    {
+      "name": "toad_above_witness_count",
+      "note": "a threshold of two over one witness",
+      "reference_error_message": "Invalid toad = 2 for wits = BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ"
+    },
+    {
+      "name": "duplicate_witnesses",
+      "note": "the same witness twice",
+      "reference_error_message": "Invalid wits = BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ,BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ, has duplicates."
+    },
+    {
+      "name": "non_transferable_with_witnesses",
+      "note": "a non-transferable prefix derivation over a witnessed event",
+      "reference_error_message": "Non-empty b =BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ for non-transferable code = B"
+    },
+    {
+      "name": "non_transferable_delegated",
+      "note": "delpre forces a dip event, whose prefix must be self-addressing",
+      "reference_error_message": "Invalid derivation code = B for delegation. Must be digestive"
+    }
+  ],
+  "reference_quirks": {
+    "tier_argument_is_never_read": {
+      "tier_with_argument": "low",
+      "tier_without_argument": "low",
+      "identical": true,
+      "note": "`HaberyArgs` declares `tier` and the constructor never destructures it",
+      "rust_decision": "no tier argument exists; a salt already knows its tier"
+    },
+    "passcode_is_ignored_when_a_seed_is_given": {
+      "accepted_with_one_character_passcode": true,
+      "aeid": null,
+      "note": "with a seed present the passcode branch is skipped entirely, including its length check; the aeid stays undefined because nothing derives it",
+      "rust_decision": "unrepresentable: a passcode and a seed are different build methods"
+    },
+    "duplicate_name_overwrites_the_map_entry": {
+      "habs_length": 1,
+      "identifiers_differ": true,
+      "pidx_after": 2,
+      "note": "the map entry is overwritten while the manager keeps both identifiers, so the first habitat's handle is lost but its keys remain",
+      "rust_decision": "refused with DuplicateHabitat"
+    },
+    "randy_habitats_are_unreachable": {
+      "name": "randy_habitat",
+      "note": "`Manager.incept` reads `this.salt` unconditionally, and with a decrypter present the getter decrypts a stored global salt; a randy manager stores none, so every passcode-only Habery throws before creating a single key. The randy creator itself never uses the salt.",
+      "reference_error_message": "Empty Material",
+      "rust_decision": "allowed: the Rust manager reads a salt only for the salty algorithm, so a randy registry produces valid habitats; their shape is asserted by Rust tests, since the reference cannot emit one to pin"
+    },
+    "zero_next_keys_get_an_unsatisfiable_threshold": {
+      "raw": "{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EON7Ngsg4hL0Nn28a7MN-sTlXBHbcOM8xcN7UyvhVnT9\",\"i\":\"EON7Ngsg4hL0Nn28a7MN-sTlXBHbcOM8xcN7UyvhVnT9\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE\"],\"nt\":\"1\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "nt": "1",
+      "next_digests": [],
+      "note": "the default nsith formula max(1, ceil(ncount / 2)) never yields zero, so the event commits to a threshold of one over zero digests, which no rotation can ever satisfy",
+      "rust_decision": "refused; an explicit zero next threshold still abandons the identifier cleanly"
+    }
+  }
+}

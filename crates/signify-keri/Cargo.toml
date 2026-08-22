@@ -47,5 +47,9 @@ harness = false
 name = "manager"
 harness = false
 
+[[bench]]
+name = "habery"
+harness = false
+
 [lints]
 workspace = true
