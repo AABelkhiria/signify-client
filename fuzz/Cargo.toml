@@ -247,6 +247,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "registry"
+path = "fuzz_targets/registry.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

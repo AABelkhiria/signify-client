@@ -30,5 +30,7 @@ pub mod witness;
 pub use config::ConfigurationTrait;
 pub use error::EventError;
 pub use key_event::{KeyEvent, ThresholdEncoding};
-pub(crate) use key_event::{check_distinct, check_next_threshold, check_signing_threshold, check_witness_threshold};
+pub(crate) use key_event::{
+    check_distinct, check_next_threshold, check_signing_threshold, check_witness_threshold, replace, traits_value,
+};
 pub use timestamp::{Timestamp, TimestampError};

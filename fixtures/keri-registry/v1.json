@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-22",
+  "sources": [
+    "src/keri/core/vdring.ts",
+    "test/core/vdring.test.ts"
+  ],
+  "provenance": {
+    "issuer": "ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g",
+    "nonce": "AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s",
+    "note": "the issuer and nonce are the pinned unit test's own constants; vdr.incept derives no keys, so every recorded event is exact"
+  },
+  "inceptions": {
+    "pinned_default": {
+      "args_note": "[\"toad\"]",
+      "raw": "{\"v\":\"KERI10JSON00010f_\",\"t\":\"vcp\",\"d\":\"EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS\",\"i\":\"EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS",
+      "said": "EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS",
+      "size": 271,
+      "backer_threshold": "0"
+    },
+    "pinned_default_without_toad": {
+      "args_note": "[]",
+      "raw": "{\"v\":\"KERI10JSON00010f_\",\"t\":\"vcp\",\"d\":\"EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS\",\"i\":\"EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS",
+      "said": "EDAsrwU75uoh8sii7w-KN-Txy2d0dhHiUP34TQVBJiPS",
+      "size": 271,
+      "backer_threshold": "0"
+    },
+    "pinned_backer": {
+      "args_note": "[\"baks\",\"toad\"]",
+      "raw": "{\"v\":\"KERI10JSON000119_\",\"t\":\"vcp\",\"d\":\"ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL\",\"i\":\"ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"1\",\"b\":[\"a backer\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL",
+      "said": "ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL",
+      "size": 281,
+      "backer_threshold": "1"
+    },
+    "pinned_backer_without_toad": {
+      "args_note": "[\"baks\"]",
+      "raw": "{\"v\":\"KERI10JSON000119_\",\"t\":\"vcp\",\"d\":\"ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL\",\"i\":\"ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"1\",\"b\":[\"a backer\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL",
+      "said": "ENlghG6_krj9YMzy5-E3j5sEjsd6FR1nskBtbtSQGOFL",
+      "size": 281,
+      "backer_threshold": "1"
+    },
+    "no_backers_trait": {
+      "args_note": "[\"cnfg\"]",
+      "raw": "{\"v\":\"KERI10JSON000113_\",\"t\":\"vcp\",\"d\":\"EJll7tV9mSMOjfWgQaz-jQSgJ_fLxNcJBgKBkUJy0MRY\",\"i\":\"EJll7tV9mSMOjfWgQaz-jQSgJ_fLxNcJBgKBkUJy0MRY\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EJll7tV9mSMOjfWgQaz-jQSgJ_fLxNcJBgKBkUJy0MRY",
+      "said": "EJll7tV9mSMOjfWgQaz-jQSgJ_fLxNcJBgKBkUJy0MRY",
+      "size": 275,
+      "backer_threshold": "0"
+    },
+    "all_traits": {
+      "args_note": "[\"cnfg\"]",
+      "raw": "{\"v\":\"KERI10JSON00011e_\",\"t\":\"vcp\",\"d\":\"ECb9ke0mKGN8cYTyKEklgsI0rAX1c80jycMFwsLN2MBW\",\"i\":\"ECb9ke0mKGN8cYTyKEklgsI0rAX1c80jycMFwsLN2MBW\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[\"EO\",\"DND\",\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "ECb9ke0mKGN8cYTyKEklgsI0rAX1c80jycMFwsLN2MBW",
+      "said": "ECb9ke0mKGN8cYTyKEklgsI0rAX1c80jycMFwsLN2MBW",
+      "size": 286,
+      "backer_threshold": "0"
+    },
+    "three_backers_default_toad": {
+      "args_note": "[\"baks\"]",
+      "raw": "{\"v\":\"KERI10JSON00012f_\",\"t\":\"vcp\",\"d\":\"EHcOPxKDVBEbH3aY_DVrDjFynbHYMuIqL7dX8LmYSEJi\",\"i\":\"EHcOPxKDVBEbH3aY_DVrDjFynbHYMuIqL7dX8LmYSEJi\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"3\",\"b\":[\"backer-0\",\"backer-1\",\"backer-2\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EHcOPxKDVBEbH3aY_DVrDjFynbHYMuIqL7dX8LmYSEJi",
+      "said": "EHcOPxKDVBEbH3aY_DVrDjFynbHYMuIqL7dX8LmYSEJi",
+      "size": 303,
+      "backer_threshold": "3"
+    },
+    "three_backers_explicit_toad": {
+      "args_note": "[\"baks\",\"toad\"]",
+      "raw": "{\"v\":\"KERI10JSON00012f_\",\"t\":\"vcp\",\"d\":\"EO6LF8tfruMsMihyWcMpwn3oKkpa4cjGFKkJdt6rQH2Z\",\"i\":\"EO6LF8tfruMsMihyWcMpwn3oKkpa4cjGFKkJdt6rQH2Z\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"2\",\"b\":[\"backer-0\",\"backer-1\",\"backer-2\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EO6LF8tfruMsMihyWcMpwn3oKkpa4cjGFKkJdt6rQH2Z",
+      "said": "EO6LF8tfruMsMihyWcMpwn3oKkpa4cjGFKkJdt6rQH2Z",
+      "size": 303,
+      "backer_threshold": "2"
+    },
+    "five_backers_default_toad": {
+      "args_note": "[\"baks\"]",
+      "raw": "{\"v\":\"KERI10JSON000145_\",\"t\":\"vcp\",\"d\":\"EHfhvW-p11Fgoo0PK7zXWcgsgOIfAkzFrgzmJNVMw-6E\",\"i\":\"EHfhvW-p11Fgoo0PK7zXWcgsgOIfAkzFrgzmJNVMw-6E\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"4\",\"b\":[\"backer-0\",\"backer-1\",\"backer-2\",\"backer-3\",\"backer-4\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EHfhvW-p11Fgoo0PK7zXWcgsgOIfAkzFrgzmJNVMw-6E",
+      "said": "EHfhvW-p11Fgoo0PK7zXWcgsgOIfAkzFrgzmJNVMw-6E",
+      "size": 325,
+      "backer_threshold": "4"
+    },
+    "twelve_backers_hexadecimal_toad": {
+      "args_note": "[\"baks\",\"toad\"]",
+      "raw": "{\"v\":\"KERI10JSON000194_\",\"t\":\"vcp\",\"d\":\"EEJzNyQJhRDpNFBerOhaBHgsqdEhlj5vMSAHeACeSyKq\",\"i\":\"EEJzNyQJhRDpNFBerOhaBHgsqdEhlj5vMSAHeACeSyKq\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"a\",\"b\":[\"backer-0\",\"backer-1\",\"backer-2\",\"backer-3\",\"backer-4\",\"backer-5\",\"backer-6\",\"backer-7\",\"backer-8\",\"backer-9\",\"backer-10\",\"backer-11\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "pre": "EEJzNyQJhRDpNFBerOhaBHgsqdEhlj5vMSAHeACeSyKq",
+      "said": "EEJzNyQJhRDpNFBerOhaBHgsqdEhlj5vMSAHeACeSyKq",
+      "size": 404,
+      "backer_threshold": "a"
+    },
+    "empty_nonce": {
+      "raw": "{\"v\":\"KERI10JSON0000e3_\",\"t\":\"vcp\",\"d\":\"EOI_gsc2v0Qgyer3U8tHwImb0OlSQViTjjr6iTf_TkaT\",\"i\":\"EOI_gsc2v0Qgyer3U8tHwImb0OlSQViTjjr6iTf_TkaT\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"0\",\"b\":[],\"n\":\"\"}",
+      "pre": "EOI_gsc2v0Qgyer3U8tHwImb0OlSQViTjjr6iTf_TkaT",
+      "size": 227
+    }
+  },
+  "random_nonce_shape": {
+    "length": 44,
+    "code": "A",
+    "note": "the default nonce is randomNonce(): 32 random bytes as qualified Base64 under the seed code; it cannot be pinned, and its Rust equivalent arrives with Roadmap 6.4"
+  },
+  "rejections": [
+    {
+      "name": "no_backers_trait_with_backers",
+      "note": "the pinned NB-with-backers case",
+      "reference_error_message": "1 backers specified for NB vcp, 0 allowed"
+    },
+    {
+      "name": "duplicate_backers",
+      "note": "the pinned duplicate case",
+      "reference_error_message": "Invalid baks a backer,a backer has duplicates"
+    },
+    {
+      "name": "zero_toad_with_backers",
+      "note": "the pinned invalid-toad case",
+      "reference_error_message": "Invalid toad 0 for baks in a backer"
+    },
+    {
+      "name": "toad_without_backers",
+      "note": "the pinned no-backers toad case",
+      "reference_error_message": "Invalid toad 1 for no baks"
+    },
+    {
+      "name": "toad_above_backer_count",
+      "note": "two receipts from one backer",
+      "reference_error_message": "Invalid toad 2 for baks in a backer"
+    },
+    {
+      "name": "basic_derivation_code",
+      "note": "a non-digestive code reads fields a vcp does not carry",
+      "reference_error_message": "Cannot read properties of undefined (reading 'length')"
+    }
+  ],
+  "reference_quirks": {
+    "non_numeric_toad_emits_nan": {
+      "raw": "{\"v\":\"KERI10JSON00011b_\",\"t\":\"vcp\",\"d\":\"EPa7FZ_v0JT_0g0n1PNEKaLPADDaVhxoGZrwm4S0dQn_\",\"i\":\"EPa7FZ_v0JT_0g0n1PNEKaLPADDaVhxoGZrwm4S0dQn_\",\"ii\":\"ECJIoBpEcCWMzvquk861dXP8JJZ-vbmJczlDR-NYcE3g\",\"s\":\"0\",\"c\":[],\"bt\":\"NaN\",\"b\":[\"a backer\"],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"}",
+      "backer_threshold": "NaN",
+      "note": "`+toad` coerces a non-numeric string to NaN, every comparison on NaN is false, and the event is emitted with bt: \"NaN\" — a threshold nothing can satisfy, committed into the registry identifier",
+      "rust_decision": "unrepresentable: the threshold is a u32"
+    },
+    "string_toad_is_coerced": {
+      "identical": true,
+      "note": "`toad` is typed number | string and coerced with `+toad`, so \"1\" and 1 build the same event",
+      "rust_decision": "the threshold is a u32; there is no string spelling"
+    },
+    "backers_are_unvalidated": {
+      "note": "the pinned unit test commits the string 'a backer' — with a space — into a registry identifier; nothing checks that a backer is an identifier",
+      "rust_decision": "backers are bounded text, because refusing what the reference commits to would derive a different registry from the same inputs"
+    },
+    "issuer_is_unvalidated": {
+      "accepted": true,
+      "pre": "EAESQ_aO9iLZuHClU95UAQLEf-ePYupItcNEIyriMYmB",
+      "note": "the issuing prefix is likewise committed unchecked",
+      "rust_decision": "the issuer is a typed IdentifierPrefix; an unparseable issuer is refused, which is this port's convention for caller-side identifiers"
+    }
+  }
+}
