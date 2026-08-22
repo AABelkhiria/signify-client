@@ -1,10 +1,15 @@
-//! Failures raised while creating and holding local identifier habitats.
+//! Failures raised while creating and holding local identifier habitats and artifacts.
 
 use core::fmt;
 use std::error::Error;
 
+use signify_cesr::CesrError;
+
 use crate::event::EventError;
 use crate::manager::ManagerError;
+use crate::prefix::PrefixError;
+use crate::said::SaidError;
+use crate::threshold::ThresholdError;
 
 /// Stable habitat-management failures.
 #[derive(Debug)]
@@ -72,6 +77,26 @@ pub enum IdentifierError {
         /// Underlying failure.
         source: Box<EventError>,
     },
+    /// A threshold in a key state could not be parsed.
+    Threshold {
+        /// Underlying failure.
+        source: Box<ThresholdError>,
+    },
+    /// An identifier prefix in a key state could not be parsed.
+    Prefix {
+        /// Underlying failure.
+        source: Box<PrefixError>,
+    },
+    /// A digest in a key state could not be parsed.
+    Said {
+        /// Underlying failure.
+        source: Box<SaidError>,
+    },
+    /// Numeric material in a key state could not be parsed.
+    Cesr {
+        /// Underlying failure.
+        source: Box<CesrError>,
+    },
 }
 
 impl fmt::Display for IdentifierError {
@@ -102,6 +127,10 @@ impl fmt::Display for IdentifierError {
             Self::ValueOutOfRange { context } => write!(formatter, "{context} does not fit its arithmetic"),
             Self::Manager { source } => write!(formatter, "key management failed: {source}"),
             Self::Event { source } => write!(formatter, "event construction failed: {source}"),
+            Self::Threshold { source } => write!(formatter, "threshold parsing failed: {source}"),
+            Self::Prefix { source } => write!(formatter, "identifier prefix parsing failed: {source}"),
+            Self::Said { source } => write!(formatter, "digest parsing failed: {source}"),
+            Self::Cesr { source } => write!(formatter, "numeric material parsing failed: {source}"),
         }
     }
 }
@@ -111,7 +140,43 @@ impl Error for IdentifierError {
         match self {
             Self::Manager { source } => Some(source),
             Self::Event { source } => Some(source),
+            Self::Threshold { source } => Some(source),
+            Self::Prefix { source } => Some(source),
+            Self::Said { source } => Some(source),
+            Self::Cesr { source } => Some(source),
             _ => None,
+        }
+    }
+}
+
+impl From<ThresholdError> for IdentifierError {
+    fn from(source: ThresholdError) -> Self {
+        Self::Threshold {
+            source: Box::new(source),
+        }
+    }
+}
+
+impl From<PrefixError> for IdentifierError {
+    fn from(source: PrefixError) -> Self {
+        Self::Prefix {
+            source: Box::new(source),
+        }
+    }
+}
+
+impl From<SaidError> for IdentifierError {
+    fn from(source: SaidError) -> Self {
+        Self::Said {
+            source: Box::new(source),
+        }
+    }
+}
+
+impl From<CesrError> for IdentifierError {
+    fn from(source: CesrError) -> Self {
+        Self::Cesr {
+            source: Box::new(source),
         }
     }
 }
@@ -153,6 +218,13 @@ mod tests {
             (IdentifierError::ValueOutOfRange { context: "key count" }, false),
             (IdentifierError::from(ManagerError::NoCurrentKeys), true),
             (IdentifierError::from(EventError::SigningThresholdIsZero), true),
+            (IdentifierError::from(ThresholdError::EmptyThreshold), true),
+            (IdentifierError::from(PrefixError::UnsupportedCode { code: "Z" }), true),
+            (
+                IdentifierError::from(SaidError::MissingLabelField { label: "d".to_owned() }),
+                true,
+            ),
+            (IdentifierError::from(CesrError::EmptyInput { context: "number" }), true),
         ];
         for (error, has_source) in cases {
             assert!(!error.to_string().is_empty());

@@ -55,5 +55,9 @@ harness = false
 name = "controller"
 harness = false
 
+[[bench]]
+name = "aiding"
+harness = false
+
 [lints]
 workspace = true

@@ -240,6 +240,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "aiding"
+path = "fuzz_targets/aiding.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
