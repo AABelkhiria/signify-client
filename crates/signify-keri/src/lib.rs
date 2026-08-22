@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 pub mod attachment;
+pub mod controller;
 pub mod event;
 pub mod identifier;
 pub mod manager;

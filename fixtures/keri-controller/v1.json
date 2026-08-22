@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-22",
+  "sources": [
+    "src/keri/app/controller.ts",
+    "test/app/controller.test.ts"
+  ],
+  "provenance": {
+    "passcode": "0123456789abcdefghijk",
+    "second_passcode": "abcdefghijk0123456789",
+    "agent_seed": [
+      187,
+      140,
+      234,
+      145,
+      219,
+      254,
+      20,
+      194,
+      16,
+      18,
+      97,
+      194,
+      140,
+      192,
+      61,
+      145,
+      222,
+      110,
+      59,
+      160,
+      152,
+      2,
+      72,
+      122,
+      87,
+      143,
+      109,
+      39,
+      98,
+      153,
+      192,
+      148
+    ],
+    "note": "the passcodes and agent seed are the pinned unit test's own public constants; a Controller hardcodes the production Argon2 profile, so every key here costs a real derivation. Sealed values are recorded by what they open to through the reference's own decrypter."
+  },
+  "controllers": {
+    "agent_signer_verfer": "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark",
+    "first": {
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "said": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "sequence": "0",
+      "keys": [
+        "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+      ],
+      "next_digests": [
+        "EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"
+      ],
+      "signer_verfer": "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+    },
+    "second": {
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo\",\"i\":\"EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v\"],\"nt\":\"1\",\"n\":[\"EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo",
+      "said": "EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo",
+      "sequence": "0",
+      "keys": [
+        "DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v"
+      ],
+      "next_digests": [
+        "EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7"
+      ],
+      "signer_verfer": "DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v"
+    },
+    "ridx_one": {
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EBuKsgxioVww7OT8bPeDiGYsrrd5X7WaWhGyMgeT9bf0\",\"i\":\"EBuKsgxioVww7OT8bPeDiGYsrrd5X7WaWhGyMgeT9bf0\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs\"],\"nt\":\"1\",\"n\":[\"ECZvaWyridJIZ6YOYZj0WFMn1tTRNwjz8zu9aYds5NQo\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "EBuKsgxioVww7OT8bPeDiGYsrrd5X7WaWhGyMgeT9bf0",
+      "said": "EBuKsgxioVww7OT8bPeDiGYsrrd5X7WaWhGyMgeT9bf0",
+      "sequence": "0",
+      "keys": [
+        "DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs"
+      ],
+      "next_digests": [
+        "ECZvaWyridJIZ6YOYZj0WFMn1tTRNwjz8zu9aYds5NQo"
+      ],
+      "signer_verfer": "DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs"
+    },
+    "first_event_signature": "AACJwsJ0mvb4VgxD87H4jIsiT1QtlzznUy9zrX3lGdd48jjQRTv8FxlJ8ClDsGtkvK4Eekg5p-oPYiPvK_1eTXEG"
+  },
+  "restore_cases": {
+    "zero_rebuilds_inception": true,
+    "zero_number_rebuilds_inception": true,
+    "adopted": {
+      "raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ECJQY2DpGMqrgoJqEEAVknzBXFtA8iRFXhM4VWtCiRoc\",\"i\":\"EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo\",\"s\":\"1\",\"p\":\"EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"a\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]}",
+      "pre": "EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo",
+      "matches_foreign": true,
+      "signer_still_own": true
+    }
+  },
+  "agent": {
+    "accepted": {
+      "input": {
+        "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "s": "a",
+        "p": "",
+        "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "f": "0",
+        "dt": "2023-12-01T10:05:25.062609+00:00",
+        "et": "dip",
+        "kt": "1",
+        "k": [
+          "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+        ],
+        "nt": "1",
+        "n": [
+          "ELhJIWoUPBHgHW7oACRhfkFp5Ex9K8CnnDTD6QJ6x5gs"
+        ],
+        "bt": "0",
+        "b": [],
+        "c": [],
+        "ee": {
+          "s": "0",
+          "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "br": [],
+          "ba": []
+        },
+        "di": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+      },
+      "pre": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+      "anchor": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "sn": 10,
+      "said": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+      "verfer": "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+    },
+    "rejections": [
+      {
+        "name": "two_keys",
+        "note": "an agent inception event can only have one key",
+        "reference_error_message": "agent inception event can only have one key"
+      },
+      {
+        "name": "no_next_digests",
+        "note": "an agent inception event can only have one next key",
+        "reference_error_message": "agent inception event can only have one next key"
+      },
+      {
+        "name": "signing_threshold_two",
+        "note": "the signing threshold must be one",
+        "reference_error_message": "invalid threshold 2, must be 1"
+      },
+      {
+        "name": "weighted_signing_threshold",
+        "note": "a weighted threshold has no numeric value",
+        "reference_error_message": "invalid threshold undefined, must be 1"
+      },
+      {
+        "name": "not_delegated",
+        "note": "the establishment event must be a dip",
+        "reference_error_message": "invalid inception event type icp"
+      },
+      {
+        "name": "missing_delegator",
+        "note": "no anchor to the controller AID",
+        "reference_error_message": "no anchor to controller AID"
+      }
+    ]
+  },
+  "approval": {
+    "first": {
+      "raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ENObIQEjymYcH-pAXNlw-eOnr0XTizr0taHuuCKPFVRF\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"a\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]}",
+      "said": "ENObIQEjymYcH-pAXNlw-eOnr0XTizr0taHuuCKPFVRF",
+      "sequence": "1",
+      "anchor": [
+        {
+          "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "s": "a",
+          "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        }
+      ],
+      "signatures": [
+        "AAC4cxqm9BMoFgDuGyOxwHYP65N5-YoiWEIyi3v4D4EgLKyo4q6hrdFlqjN3oGSnKv9zAZMBjE0DBdhvXYZYZbsI"
+      ]
+    },
+    "second": {
+      "raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EGLwM26dCkm4bhpTnVOQok1aiYqe-3nOwABR2YrxZeRW\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"2\",\"p\":\"ENObIQEjymYcH-pAXNlw-eOnr0XTizr0taHuuCKPFVRF\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"a\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]}",
+      "sequence": "2",
+      "prior": "ENObIQEjymYcH-pAXNlw-eOnr0XTizr0taHuuCKPFVRF",
+      "signatures": [
+        "AADP1UVutXMGPSqlOF3KE48kv_wWwud1YYxFqdP5bzwBRfvkI6CRYukWckFJSxIE3mSOlf-gljFKhK1m2rA7j4AG"
+      ]
+    }
+  },
+  "rotation": {
+    "salty_aid": {
+      "aid_salt_qb64": "0ABmZWRjYmE5ODc2NTQzMjEw",
+      "prefix": "DIuj1EKPmRoRVBrjJtlRiED4yYarZrBO0B2KvmSOAhJw",
+      "salty": {
+        "sxlt": "(sealed; opens to aid_salt_qb64)",
+        "pidx": 0,
+        "kidx": 0,
+        "stem": "signify:aid",
+        "tier": "low",
+        "icodes": [
+          "A"
+        ],
+        "ncodes": [
+          "A"
+        ],
+        "transferable": true,
+        "dcode": "E"
+      },
+      "state_keys": [
+        "DIuj1EKPmRoRVBrjJtlRiED4yYarZrBO0B2KvmSOAhJw"
+      ]
+    },
+    "randy_aid": {
+      "seed_qb64s": [
+        "AAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH",
+        "AAsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsL"
+      ],
+      "next_seed_qb64": "AA0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0N",
+      "prefix": "DOpKbGPinFIKvvVQexMuxfmVR3auvr57kkIe6mkURtIs",
+      "state_keys": [
+        "DOpKbGPinFIKvvVQexMuxfmVR3auvr57kkIe6mkURtIs",
+        "DGa-fjMsekUzMr2dCn99sFX1xe8aBq2mbZizn7aBDEc6"
+      ]
+    },
+    "controller_before": {
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "said": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "sequence": "0",
+      "keys": [
+        "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+      ],
+      "next_digests": [
+        "EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"
+      ],
+      "signer_verfer": "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+    },
+    "controller_after": {
+      "raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+      "pre": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "said": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "sequence": "0",
+      "keys": [
+        "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+      ],
+      "next_digests": [
+        "EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7"
+      ],
+      "signer_verfer": "DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v"
+    },
+    "rotation_raw": "{\"v\":\"KERI10JSON000195_\",\"t\":\"rot\",\"d\":\"EJFG6XXFfenFnCB2DTyfWp9MBPo9gT0f8rDfnmVuXn0b\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"kt\":[\"1\",\"0\"],\"k\":[\"DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v\",\"DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs\"],\"nt\":\"1\",\"n\":[\"EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]}",
+    "signatures": [
+      "2AABAADINprzb34fcXdj47vtWK87NfWU6L2kmKSFNNudfQPZ0vD3tC4WZZnw4csKmz0marvAtRJpvGqKfoYfeWO6zcQE",
+      "AAAfKjHjmP0qS3b-S1sL1NcH880s3iY49ONizepzhmkWAzcdIbHI-qzavR4rqNTQMfeUtEdlqaMn-DqY0XJ1bPQL"
+    ],
+    "sxlt_opens_to": "0AA0123456789abcdefghijk",
+    "sxlt_opens_under_new_passcode": false,
+    "resealed_salty_opens_to": "0ABmZWRjYmE5ODc2NTQzMjEw",
+    "resealed_randy_prxs_open_to": [
+      "AAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH",
+      "AAsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsL"
+    ],
+    "resealed_randy_nxts_open_to": [
+      "AA0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0N"
+    ],
+    "rejections": [
+      {
+        "name": "mismatched_salty",
+        "note": "the re-derived keys must match the recorded key state",
+        "reference_error_message": "Invalid Salty AID"
+      },
+      {
+        "name": "mismatched_randy",
+        "note": "the decrypted keys must match the recorded key state",
+        "reference_error_message": "unable to rotate, validation of encrypted public keys DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE failed"
+      },
+      {
+        "name": "group_aid",
+        "note": "neither salty nor randy",
+        "reference_error_message": "invalid aid type "
+      }
+    ]
+  },
+  "reference_quirks": {
+    "verfers_getter_always_throws": {
+      "name": "verfers_getter",
+      "note": "`get verfers` calls `this.signer.verfer()`, but `verfer` is a property, not a function",
+      "reference_error_message": "this.signer.verfer is not a function"
+    },
+    "derive_throws_on_undefined": {
+      "name": "derive_undefined",
+      "note": "`derive(undefined)` reads `state.controller` on its else branch",
+      "reference_error_message": "Cannot read properties of undefined (reading 'controller')"
+    },
+    "derive_reads_a_different_shape": {
+      "name": "derive_other_shape",
+      "note": "`derive` reads `state.controller['ee']` where the constructor reads `state['ee']`",
+      "reference_error_message": "Cannot read properties of undefined (reading 'ee')"
+    },
+    "ridx_mutation_does_not_rederive": {
+      "signer_unchanged": true,
+      "ridx_after": 5,
+      "note": "the client assigns `ridx` after construction, but no key is re-derived, so the field and the keys silently disagree",
+      "rust_decision": "the rotation index is fixed at construction; the inconsistent state is unrepresentable"
+    },
+    "rotation_always_claims_sequence_one": {
+      "controller_sequence_before": "1",
+      "rotation_sequence": "1",
+      "rotation_prior": "ENObIQEjymYcH-pAXNlw-eOnr0XTizr0taHuuCKPFVRF",
+      "prior_is_interaction_said": true,
+      "note": "`rotate` never passes a sequence number, so the event claims s=1 whatever the log's actual position, while its prior digest points at the current event",
+      "rust_decision": "reproduced byte for byte; 8.9 owns the workflow-level decision"
+    },
+    "second_rotation_derives_from_the_original_salt": {
+      "old_key_identical": true,
+      "note": "`rotate` never updates `this.salter` or `this.bran`, so every rotation derives its committed-to key and seals its salt from the original passcode",
+      "rust_decision": "reproduced; the stored salt deliberately does not move"
+    }
+  }
+}

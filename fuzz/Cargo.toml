@@ -233,6 +233,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "controller"
+path = "fuzz_targets/controller.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
