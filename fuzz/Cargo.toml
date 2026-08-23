@@ -261,6 +261,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "request_response"
+path = "fuzz_targets/request_response.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

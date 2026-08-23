@@ -1,0 +1,1479 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-23",
+  "sources": [
+    "src/keri/core/httping.ts",
+    "src/keri/app/clienting.ts",
+    "src/keri/app/aiding.ts",
+    "src/keri/app/contacting.ts",
+    "src/keri/app/coring.ts",
+    "src/keri/app/credentialing.ts",
+    "src/keri/app/escrowing.ts",
+    "src/keri/app/notifying.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://localhost:3901",
+    "boot_url": "http://localhost:3903",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "masked_headers": [
+      "signify-timestamp",
+      "signature",
+      "signature-input"
+    ],
+    "note": "path and query encodings come from the platform functions the reference calls; `content_ranges` come from `parseRangeHeaders` directly, with NaN recorded as the string \"NaN\"; requests and status outcomes are captured by replacing the global fetch and driving the reference's own endpoint code, as Roadmap 5.1's generator does"
+  },
+  "media_types": {
+    "request_content_type": "application/json",
+    "accept_json": "application/json",
+    "accept_json_cesr": "application/json+cesr",
+    "range_units": [
+      "aids",
+      "notes"
+    ],
+    "note": "the complete set of media types and range units the pinned source names"
+  },
+  "path_segments": [
+    {
+      "input": "aid1",
+      "encoded": "aid1",
+      "note": "an ordinary alias, unchanged"
+    },
+    {
+      "input": "EPRE_yBSc0Pg9DhRfqOZWQXFOAAcJlLGCwNGVAQ_z_A0",
+      "encoded": "EPRE_yBSc0Pg9DhRfqOZWQXFOAAcJlLGCwNGVAQ_z_A0",
+      "note": "a qualified prefix, unchanged"
+    },
+    {
+      "input": "a name with ñ!",
+      "encoded": "a%20name%20with%20%C3%B1!",
+      "note": "the pinned unit test's alias: spaces and Latin-1 escape, `!` does not"
+    },
+    {
+      "input": "-_.!~*'()",
+      "encoded": "-_.!~*'()",
+      "note": "the complete unreserved-plus-mark set the function leaves alone"
+    },
+    {
+      "input": "a/b",
+      "encoded": "a%2Fb",
+      "note": "a path separator inside a name, which must not open a new segment"
+    },
+    {
+      "input": "a?b",
+      "encoded": "a%3Fb",
+      "note": "a query delimiter inside a name"
+    },
+    {
+      "input": "a#b",
+      "encoded": "a%23b",
+      "note": "a fragment delimiter inside a name"
+    },
+    {
+      "input": "a&b=c",
+      "encoded": "a%26b%3Dc",
+      "note": "query syntax inside a name"
+    },
+    {
+      "input": "..",
+      "encoded": "..",
+      "note": "a dot segment, which `encodeURIComponent` does NOT escape"
+    },
+    {
+      "input": ".",
+      "encoded": ".",
+      "note": "a single dot, likewise unescaped"
+    },
+    {
+      "input": "%",
+      "encoded": "%25",
+      "note": "a bare percent"
+    },
+    {
+      "input": "%41",
+      "encoded": "%2541",
+      "note": "an already-escaped value, escaped a second time"
+    },
+    {
+      "input": "a%2Fb",
+      "encoded": "a%252Fb",
+      "note": "a caller who pre-encoded, double-encoded by the reference"
+    },
+    {
+      "input": "日本",
+      "encoded": "%E6%97%A5%E6%9C%AC",
+      "note": "multi-byte UTF-8"
+    },
+    {
+      "input": "😀",
+      "encoded": "%F0%9F%98%80",
+      "note": "an astral scalar, encoded as its four UTF-8 bytes"
+    },
+    {
+      "input": "",
+      "encoded": "",
+      "note": "an empty name, which collapses the segment"
+    },
+    {
+      "input": "aid:1",
+      "encoded": "aid%3A1",
+      "note": "a colon"
+    },
+    {
+      "input": "a@b",
+      "encoded": "a%40b",
+      "note": "an at sign"
+    },
+    {
+      "input": "a$b,c",
+      "encoded": "a%24b%2Cc",
+      "note": "a sub-delimiter pair"
+    },
+    {
+      "input": "a;b",
+      "encoded": "a%3Bb",
+      "note": "a semicolon"
+    },
+    {
+      "input": "a[b]",
+      "encoded": "a%5Bb%5D",
+      "note": "brackets"
+    },
+    {
+      "input": "a+b",
+      "encoded": "a%2Bb",
+      "note": "a plus, which is escaped here but means a space in a query"
+    },
+    {
+      "input": "a b",
+      "encoded": "a%20b",
+      "note": "a space, escaped as %20 rather than +"
+    }
+  ],
+  "query_strings": [
+    {
+      "pairs": [
+        {
+          "name": "group",
+          "value": "g1"
+        }
+      ],
+      "serialized": "group=g1",
+      "note": "the simplest contacts filter"
+    },
+    {
+      "pairs": [
+        {
+          "name": "group",
+          "value": "a b"
+        },
+        {
+          "name": "filter_field",
+          "value": "a+b"
+        },
+        {
+          "name": "filter_value",
+          "value": "ñ"
+        }
+      ],
+      "serialized": "group=a+b&filter_field=a%2Bb&filter_value=%C3%B1",
+      "note": "the reference's three contact parameters: a space becomes `+` and a real `+` becomes %2B"
+    },
+    {
+      "pairs": [
+        {
+          "name": "type",
+          "value": "witness"
+        }
+      ],
+      "serialized": "type=witness",
+      "note": "the operations type filter"
+    },
+    {
+      "pairs": [
+        {
+          "name": "route",
+          "value": "/multisig/icp"
+        }
+      ],
+      "serialized": "route=%2Fmultisig%2Ficp",
+      "note": "an escrow route, whose slashes are escaped"
+    },
+    {
+      "pairs": [
+        {
+          "name": "a",
+          "value": ""
+        },
+        {
+          "name": "b",
+          "value": "~*'()!-_."
+        }
+      ],
+      "serialized": "a=&b=%7E*%27%28%29%21-_.",
+      "note": "an empty value, and the marks a query escapes where a path segment does not"
+    },
+    {
+      "pairs": [
+        {
+          "name": "k",
+          "value": "a&b=c"
+        }
+      ],
+      "serialized": "k=a%26b%3Dc",
+      "note": "query syntax inside a value"
+    },
+    {
+      "pairs": [
+        {
+          "name": "k",
+          "value": "日本"
+        }
+      ],
+      "serialized": "k=%E6%97%A5%E6%9C%AC",
+      "note": "multi-byte UTF-8"
+    },
+    {
+      "pairs": [
+        {
+          "name": "k",
+          "value": "😀"
+        }
+      ],
+      "serialized": "k=%F0%9F%98%80",
+      "note": "an astral scalar"
+    },
+    {
+      "pairs": [],
+      "serialized": "",
+      "note": "no parameters at all, which still yields a trailing `?` at the call site"
+    },
+    {
+      "pairs": [
+        {
+          "name": "k",
+          "value": "a/b"
+        }
+      ],
+      "serialized": "k=a%2Fb",
+      "note": "a slash inside a value"
+    },
+    {
+      "pairs": [
+        {
+          "name": "k",
+          "value": "%"
+        }
+      ],
+      "serialized": "k=%25",
+      "note": "a bare percent"
+    },
+    {
+      "pairs": [
+        {
+          "name": "a b",
+          "value": "c"
+        }
+      ],
+      "serialized": "a+b=c",
+      "note": "a space in the parameter *name*"
+    },
+    {
+      "pairs": [
+        {
+          "name": "pre",
+          "value": "EPRE"
+        },
+        {
+          "name": "pre",
+          "value": "EOTHER"
+        }
+      ],
+      "serialized": "pre=EPRE&pre=EOTHER",
+      "note": "a repeated name, which `states` builds by hand rather than with URLSearchParams"
+    }
+  ],
+  "requests": [
+    {
+      "name": "identifiers_list_default",
+      "note": "the default page, whose Range header names the `aids` unit",
+      "request": {
+        "url": "http://localhost:3901/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "range",
+            "value": "aids=0-24",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "identifiers_list_explicit",
+      "note": "an explicit page",
+      "request": {
+        "url": "http://localhost:3901/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "range",
+            "value": "aids=20-40",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "notifications_list",
+      "note": "the other range unit the reference uses",
+      "request": {
+        "url": "http://localhost:3901/notifications",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "range",
+            "value": "notes=20-40",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "identifier_get_encoded",
+      "note": "the one path the reference percent-encodes",
+      "request": {
+        "url": "http://localhost:3901/identifiers/a%20name%20with%20%C3%B1!",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "identifier_get_dot_segments",
+      "note": "an alias of dot segments, which encodeURIComponent leaves alone",
+      "request": {
+        "url": "http://localhost:3901/identifiers/..",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "contacts_list_query",
+      "note": "a query built with URLSearchParams",
+      "request": {
+        "url": "http://localhost:3901/contacts?group=group&filter_field=field&filter_value=value",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "contacts_list_no_filter",
+      "note": "the same call with nothing to filter on, which still emits `?`",
+      "request": {
+        "url": "http://localhost:3901/contacts?",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "operations_list_typed",
+      "note": "the operations type filter",
+      "request": {
+        "url": "http://localhost:3901/operations?type=witness",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "escrows_list_reply",
+      "note": "a route whose slashes the query escapes",
+      "request": {
+        "url": "http://localhost:3901/escrows/rpy?route=%2Fmultisig%2Ficp",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "credential_get_json",
+      "note": "the JSON form, which sets an explicit Accept header",
+      "request": {
+        "url": "http://localhost:3901/credentials/ECRED",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "accept",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "credential_get_cesr",
+      "note": "the CESR form, whose Accept header selects a stream response",
+      "request": {
+        "url": "http://localhost:3901/credentials/ECRED",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "accept",
+            "value": "application/json+cesr",
+            "masked": false
+          },
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "credential_state",
+      "note": "two dynamic components in one path",
+      "request": {
+        "url": "http://localhost:3901/registries/EREGISTRY/ECRED",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "operation_get_traversal",
+      "note": "an operation name of dot segments, interpolated raw",
+      "request": {
+        "url": "http://localhost:3901/operations/../identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "contact_delete_raw_slash",
+      "note": "a contact prefix holding a slash, interpolated raw",
+      "request": {
+        "url": "http://localhost:3901/contacts/a/b",
+        "method": "DELETE",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    },
+    {
+      "name": "notification_mark_raw_query",
+      "note": "a notification SAID holding a query delimiter, interpolated raw",
+      "request": {
+        "url": "http://localhost:3901/notifications/a?b=c",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": "null"
+      },
+      "error": null
+    },
+    {
+      "name": "key_states_raw_query_value",
+      "note": "a prefix interpolated raw into a query value",
+      "request": {
+        "url": "http://localhost:3901/states?pre=a&b=c",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      },
+      "error": null
+    }
+  ],
+  "content_ranges": [
+    {
+      "header": "aids 0-1/2",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": 2,
+      "note": "the value the reference's own list mock returns"
+    },
+    {
+      "header": "notes 20-40/100",
+      "unit": "notes",
+      "start": 20,
+      "end": 40,
+      "total": 100,
+      "note": "the notification unit"
+    },
+    {
+      "header": null,
+      "unit": "aids",
+      "start": 0,
+      "end": 0,
+      "total": 0,
+      "note": "an absent header, which yields zeros indistinguishable from a real empty range"
+    },
+    {
+      "header": "",
+      "unit": "aids",
+      "start": "NaN",
+      "end": "NaN",
+      "total": "NaN",
+      "note": "an empty header, which yields three NaNs"
+    },
+    {
+      "header": "aids 0-24/24",
+      "unit": "aids",
+      "start": 0,
+      "end": 24,
+      "total": 24,
+      "note": "the default page the reference requests"
+    },
+    {
+      "header": "aids 5-5/6",
+      "unit": "aids",
+      "start": 5,
+      "end": 5,
+      "total": 6,
+      "note": "a single item"
+    },
+    {
+      "header": "bytes 0-1/2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "the wrong unit: only `start` is lost, `end` and `total` still parse"
+    },
+    {
+      "header": "AIDS 0-1/2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "unit matching is case-sensitive"
+    },
+    {
+      "header": "xaids 0-1/2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "a unit with a prefix, which still strips and yields a NaN start"
+    },
+    {
+      "header": "aids 0-1",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": "NaN",
+      "note": "no total"
+    },
+    {
+      "header": "aids /2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": "NaN",
+      "total": 2,
+      "note": "no start or end"
+    },
+    {
+      "header": "aids 0-1/",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": "NaN",
+      "note": "an empty total"
+    },
+    {
+      "header": "aids -1/2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "a missing start before the dash"
+    },
+    {
+      "header": "aids 1-0/2",
+      "unit": "aids",
+      "start": 1,
+      "end": 0,
+      "total": 2,
+      "note": "end before start, accepted without complaint"
+    },
+    {
+      "header": "aids 0-1/*",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": "NaN",
+      "note": "the RFC's unknown-length form, which becomes NaN"
+    },
+    {
+      "header": "*/2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": "NaN",
+      "total": 2,
+      "note": "the RFC's unsatisfied form"
+    },
+    {
+      "header": "aids 00-01/02",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": 2,
+      "note": "leading zeros"
+    },
+    {
+      "header": "aids 0-1/2 aids ",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": 2,
+      "note": "trailing junk after the total, silently ignored"
+    },
+    {
+      "header": "aids  0-1/2",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": 2,
+      "note": "a doubled space, tolerated by parseInt"
+    },
+    {
+      "header": "  aids 0-1/2  ",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": 2,
+      "note": "surrounding whitespace, tolerated"
+    },
+    {
+      "header": "aids 0-1/2/3",
+      "unit": "aids",
+      "start": 0,
+      "end": 1,
+      "total": 2,
+      "note": "a second slash, silently ignored"
+    },
+    {
+      "header": "aids 1e3-2e3/3e3",
+      "unit": "aids",
+      "start": 1,
+      "end": 2,
+      "total": 3,
+      "note": "exponent notation, truncated at the `e`"
+    },
+    {
+      "header": "aids 0x10-0x20/0x30",
+      "unit": "aids",
+      "start": 16,
+      "end": 32,
+      "total": 48,
+      "note": "parseInt reads a 0x prefix as hexadecimal"
+    },
+    {
+      "header": "aids 1.5-2.5/3.5",
+      "unit": "aids",
+      "start": 1,
+      "end": 2,
+      "total": 3,
+      "note": "a decimal point, truncated"
+    },
+    {
+      "header": "aids +1--2/+3",
+      "unit": "aids",
+      "start": 1,
+      "end": "NaN",
+      "total": 3,
+      "note": "signs, which parseInt accepts for a leading `+`"
+    },
+    {
+      "header": "aids -0-1/2",
+      "unit": "aids",
+      "start": "NaN",
+      "end": 0,
+      "total": 2,
+      "note": "a leading dash, which splits into an empty first field"
+    },
+    {
+      "header": "aids 9007199254740993-9007199254740994/9007199254740995",
+      "unit": "aids",
+      "start": 9007199254740992,
+      "end": 9007199254740994,
+      "total": 9007199254740996,
+      "note": "beyond 2^53: the values come back changed, because they are doubles"
+    },
+    {
+      "header": "aids 99999999999999999999-1/2",
+      "unit": "aids",
+      "start": 100000000000000000000,
+      "end": 1,
+      "total": 2,
+      "note": "far beyond 2^53"
+    },
+    {
+      "header": "aids 0-1/2",
+      "unit": "",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "an empty unit, which strips the first space instead"
+    },
+    {
+      "header": "aids 0-1/2",
+      "unit": "aids ",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "a unit with its own trailing space, which never matches"
+    },
+    {
+      "header": "aids 0-1/2",
+      "unit": "s",
+      "start": "NaN",
+      "end": 1,
+      "total": 2,
+      "note": "a unit that matches nothing, leaving the whole value in place"
+    }
+  ],
+  "payload_decoding": [
+    {
+      "name": "json_ok",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "application/json",
+      "observed_content_type": "application/json",
+      "body": "{\"name\":\"aid1\"}",
+      "note": "the ordinary success",
+      "json": "{\"name\":\"aid1\"}",
+      "json_error": null,
+      "text": "{\"name\":\"aid1\"}"
+    },
+    {
+      "name": "json_body_declared_text",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "text/plain",
+      "observed_content_type": "text/plain",
+      "body": "{\"name\":\"aid1\"}",
+      "note": "a JSON body declared as text, which `res.json()` parses anyway: the reference never looks at the type",
+      "json": "{\"name\":\"aid1\"}",
+      "json_error": null,
+      "text": "{\"name\":\"aid1\"}"
+    },
+    {
+      "name": "no_content_type",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": null,
+      "observed_content_type": "text/plain;charset=UTF-8",
+      "body": "{\"name\":\"aid1\"}",
+      "note": "no declared type at all; the platform invents `text/plain;charset=UTF-8` and json() still parses",
+      "json": "{\"name\":\"aid1\"}",
+      "json_error": null,
+      "text": "{\"name\":\"aid1\"}"
+    },
+    {
+      "name": "empty_json",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "application/json",
+      "observed_content_type": "application/json",
+      "body": "",
+      "note": "an empty body declared as JSON",
+      "json": null,
+      "json_error": "Unexpected end of JSON input",
+      "text": ""
+    },
+    {
+      "name": "no_content",
+      "status": 204,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": null,
+      "observed_content_type": null,
+      "body": "",
+      "note": "a 204 with no body",
+      "json": null,
+      "json_error": "Unexpected end of JSON input",
+      "text": ""
+    },
+    {
+      "name": "not_found_text",
+      "status": 404,
+      "ok": false,
+      "status_text": "",
+      "declared_content_type": "text/plain",
+      "observed_content_type": "text/plain",
+      "body": "not found",
+      "note": "a text error body",
+      "json": null,
+      "json_error": "Unexpected token 'o', \"not found\" is not valid JSON",
+      "text": "not found"
+    },
+    {
+      "name": "cesr_stream",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "application/json+cesr",
+      "observed_content_type": "application/json+cesr",
+      "body": "{\"v\":\"ACDC10JSON000197_\"}-FABEPRE0AAAAAAAAAAAAAAAAAAAAAAA",
+      "note": "the CESR stream `credentials().get(said, true)` asks for, which is not valid JSON",
+      "json": null,
+      "json_error": "Unexpected non-whitespace character after JSON at position 25 (line 1 column 26)",
+      "text": "{\"v\":\"ACDC10JSON000197_\"}-FABEPRE0AAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "name": "json_with_charset",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "application/json; charset=utf-8",
+      "observed_content_type": "application/json; charset=utf-8",
+      "body": "{\"name\":\"aid1\"}",
+      "note": "a charset parameter on the media type",
+      "json": "{\"name\":\"aid1\"}",
+      "json_error": null,
+      "text": "{\"name\":\"aid1\"}"
+    },
+    {
+      "name": "uppercase_media_type",
+      "status": 200,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "APPLICATION/JSON",
+      "observed_content_type": "APPLICATION/JSON",
+      "body": "{}",
+      "note": "an upper-case media type, which HTTP compares case-insensitively",
+      "json": "{}",
+      "json_error": null,
+      "text": "{}"
+    },
+    {
+      "name": "boundary_299",
+      "status": 299,
+      "ok": true,
+      "status_text": "",
+      "declared_content_type": "application/json",
+      "observed_content_type": "application/json",
+      "body": "{}",
+      "note": "the last status `res.ok` accepts",
+      "json": "{}",
+      "json_error": null,
+      "text": "{}"
+    },
+    {
+      "name": "boundary_300",
+      "status": 300,
+      "ok": false,
+      "status_text": "",
+      "declared_content_type": "application/json",
+      "observed_content_type": "application/json",
+      "body": "{}",
+      "note": "the first status `res.ok` refuses",
+      "json": "{}",
+      "json_error": null,
+      "text": "{}"
+    },
+    {
+      "name": "server_error",
+      "status": 500,
+      "ok": false,
+      "status_text": "",
+      "declared_content_type": "text/plain",
+      "observed_content_type": "text/plain",
+      "body": "boom",
+      "note": "a server failure",
+      "json": null,
+      "json_error": "Unexpected token 'b', \"boom\" is not valid JSON",
+      "text": "boom"
+    }
+  ],
+  "status_outcomes": [
+    {
+      "status": 200,
+      "body": "{}",
+      "ok": true,
+      "message": "message from a different remote agent",
+      "note": "a success"
+    },
+    {
+      "status": 202,
+      "body": "{\"done\":false}",
+      "ok": true,
+      "message": "message from a different remote agent",
+      "note": "the long-running operation status KERIA answers with"
+    },
+    {
+      "status": 299,
+      "body": "{}",
+      "ok": true,
+      "message": "message from a different remote agent",
+      "note": "the last status accepted"
+    },
+    {
+      "status": 300,
+      "body": "{}",
+      "ok": false,
+      "message": "HTTP GET /identifiers/aid1 - 300  - {}",
+      "note": "the first status refused"
+    },
+    {
+      "status": 400,
+      "body": "bad request",
+      "ok": false,
+      "message": "HTTP GET /identifiers/aid1 - 400  - bad request",
+      "note": "a client error carrying a text body"
+    },
+    {
+      "status": 404,
+      "body": "{\"title\":\"not found\"}",
+      "ok": false,
+      "message": "HTTP GET /identifiers/aid1 - 404  - {\"title\":\"not found\"}",
+      "note": "a missing resource whose body is JSON"
+    },
+    {
+      "status": 409,
+      "body": "",
+      "ok": false,
+      "message": "HTTP GET /identifiers/aid1 - 409  - ",
+      "note": "a conflict with an empty body"
+    },
+    {
+      "status": 500,
+      "body": "internal error",
+      "ok": false,
+      "message": "HTTP GET /identifiers/aid1 - 500  - internal error",
+      "note": "a server failure"
+    }
+  ],
+  "reference_quirks": {
+    "dynamic_components_are_usually_not_encoded": {
+      "encoded_paths": [
+        "/identifiers/${encodeURIComponent(name)}"
+      ],
+      "encoded_interpolations": 2,
+      "raw_interpolations": 41,
+      "total_interpolations": 43,
+      "scanned_files": 12,
+      "counting_method": "every line in src/keri/app assigning a `path` or concatenating onto a base URL, scanned for `${...}` substitutions and `+ identifier` concatenations; `+ path` and any `params.toString()` are excluded because they are the assembled path itself and an already-encoded query",
+      "operation_get_url": "http://localhost:3901/operations/../identifiers",
+      "contact_delete_url": "http://localhost:3901/contacts/a/b",
+      "notification_mark_url": "http://localhost:3901/notifications/a?b=c",
+      "key_states_url": "http://localhost:3901/states?pre=a&b=c",
+      "note": "only `aiding.get` and `aiding.update` call encodeURIComponent; every other dynamic path component and every query value built outside URLSearchParams is interpolated raw, so a value holding `/`, `?`, `#`, or `..` changes which resource is addressed — and Roadmap 3.10 signs `@path`, so it changes what the signature covers too",
+      "rust_decision": "every dynamic component is encoded exactly once by the URL builder, so a name can never open a segment, a query, or a fragment; the reference's raw paths are recorded here rather than reproduced"
+    },
+    "a_missing_content_range_is_zero": {
+      "absent_header_result": {
+        "start": 0,
+        "end": 0,
+        "total": 0
+      },
+      "note": "`parseRangeHeaders(null, typ)` returns {0,0,0}, which a caller cannot tell apart from a server that really answered `aids 0-0/0`",
+      "rust_decision": "an absent header is `None` and a present one is parsed; the two are different values",
+      "real_zero_range_is_indistinguishable": true
+    },
+    "malformed_content_range_yields_nan": {
+      "note": "every field is `parseInt` of whatever the split produced, so a missing, hexadecimal, exponential, fractional, or signed field becomes a silently wrong number or a NaN that flows on into arithmetic",
+      "rust_decision": "a typed strict parser: the unit must match exactly, both positions and the total must be ASCII digits, and anything else is a typed error rather than a NaN"
+    },
+    "content_range_loses_precision": {
+      "header": "aids 9007199254740993-9007199254740994/9007199254740995",
+      "parsed": {
+        "start": 9007199254740992,
+        "end": 9007199254740994,
+        "total": 9007199254740996
+      },
+      "note": "the results are doubles, so a total past 2^53 comes back as a different number than the server sent",
+      "rust_decision": "the fields are `u64`, parsed exactly, and a value that does not fit is a typed error"
+    },
+    "response_json_ignores_the_content_type": {
+      "declared": "text/plain",
+      "parsed": "{\"name\":\"aid1\"}",
+      "note": "`res.json()` parses whatever the body holds regardless of what the server declared, so a text/plain or text/html error page is decoded as a domain record whenever it happens to be valid JSON",
+      "rust_decision": "`json()` refuses a declared media type that is not application/json, and accepts an absent one because nothing contradicts it"
+    },
+    "status_error_message_carries_the_body": {
+      "status": 400,
+      "message": "HTTP GET /identifiers/aid1 - 400  - bad request",
+      "note": "the thrown message is `HTTP ${method} ${path} - ${status} ${statusText} - ${body}`, interpolating the whole response body and the request path including its query",
+      "rust_decision": "a typed `Status` error carrying the method, the path without its query, the status, and a bounded excerpt of the body"
+    },
+    "status_text_is_empty": {
+      "message": "HTTP GET /identifiers/aid1 - 500  - internal error",
+      "note": "the platform Response leaves `statusText` empty unless a server sends a reason phrase, so the message reads `- 500  - internal error` with two spaces",
+      "rust_decision": "the reason phrase is not modelled at all: HTTP/2 removed it and nothing in the reference reads it"
+    },
+    "content_type_is_declared_even_without_a_body": {
+      "method": "GET",
+      "body": null,
+      "headers": [
+        "content-type",
+        "range",
+        "signature",
+        "signature-input",
+        "signify-resource",
+        "signify-timestamp"
+      ],
+      "note": "`SignifyClient.fetch` sets Content-Type: application/json on every request, including a GET that carries no body at all",
+      "rust_decision": "the content type and the body are set independently, so declaring one without the other stays expressible and is never implied"
+    },
+    "a_bodyless_put_sends_the_word_null": {
+      "put_body": "null",
+      "delete_body": null,
+      "note": "`_body = method == 'GET' ? null : JSON.stringify(data)`, so a PUT whose caller passed `null` sends the four bytes `null` while a DELETE whose caller passed `undefined` sends nothing at all — the two endpoint modules differ only in which absent value they wrote",
+      "rust_decision": "a body is present or it is not; `null` is a JSON document a caller must ask for explicitly, never something an absent argument turns into"
+    },
+    "recorded_header_order_is_the_platform_sort": {
+      "names": [
+        "content-type",
+        "range",
+        "signature",
+        "signature-input",
+        "signify-resource",
+        "signify-timestamp"
+      ],
+      "note": "the reference hands `fetch` a WHATWG `Headers`, whose iteration order is sorted by lowercased name rather than insertion — so the order recorded here is the platform's, not a choice the reference made",
+      "rust_decision": "this crate's `Headers` preserves insertion order, and the request builder emits its own headers before a caller's; the wire order of the authentication headers is Roadmap 5.5's composition and does not affect a signature, whose base order comes from the covered-fields list"
+    },
+    "empty_query_still_emits_a_delimiter": {
+      "url": "http://localhost:3901/contacts?",
+      "note": "`/contacts` + '?' + params.toString() emits a bare trailing `?` when no filter is given; the signed `@path` is `path.split('?')[0]`, so the signature covers `/contacts` either way",
+      "rust_decision": "a query with no parameters is omitted, including its `?`; the reference's trailing delimiter is recorded and not reproduced"
+    }
+  }
+}
