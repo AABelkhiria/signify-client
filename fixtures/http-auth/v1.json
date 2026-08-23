@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-23",
+  "sources": [
+    "src/keri/app/clienting.ts",
+    "src/keri/core/authing.ts",
+    "src/keri/core/httping.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://localhost:3901",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "agent_verification_key": "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark",
+    "agent_signing_seed": "ALuM6pHb_hTCEBJhwozAPZHebjugmAJIelePbSdimcCU",
+    "controller_signing_seed": "ACap1vZ_Xe0kvmhZ7UIqhsajzzYIUbKnJlxe6vbd_1uI",
+    "controller_verification_key": "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc",
+    "seed_warning": "PUBLIC TEST MATERIAL. Both seeds are recorded so a Rust test can reproduce the exact signature bytes above. The controller's is derived by the reference itself from the passcode `0123456789abcdefghijk`, which the pinned `test/app/clienting.test.ts` publishes, and the agent's is the fixed array in this generator. Neither has ever protected anything and neither may be used for anything.",
+    "fixed_clock_ms": 1700000000123,
+    "typescript_version": "5.9.2",
+    "note": "`globalThis.Date` is replaced by a subclass returning a fixed instant, so the whole pipeline is deterministic and `Signature`, `Signature-Input`, and `Signify-Timestamp` are recorded with their exact bytes — the first generator able to do so"
+  },
+  "constants": {
+    "default_fields": [
+      "@method",
+      "@path",
+      "signify-resource",
+      "signify-timestamp"
+    ],
+    "timestamp_expression": "headers.set( HEADER_SIG_TIME, new Date().toISOString().replace('Z', '000+00:00') )",
+    "timestamp_at_fixed_clock": "2023-11-14T22:13:20.123000+00:00",
+    "fixed_clock_ms": 1700000000123,
+    "fixed_clock_iso": "2023-11-14T22:13:20.123Z",
+    "note": "`DefaultFields` is read from the built module and the timestamp expression from the reference's own syntax tree; the value beside it is that expression evaluated at the pinned clock"
+  },
+  "requests": [
+    {
+      "name": "get_identifiers",
+      "note": "the plainest authenticated call: a GET with no body",
+      "request": {
+        "url": "http://localhost:3901/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "signature",
+            "value": "indexed=\"?0\";signify=\"0BCDiyzNlGM_bl46X6voBL0K-TgQmzNDKK2pSDbYGGUECjzcvtjTdd431qnPSIV8hlPPTQGBf4K_Zq7IgsQp8jAD\""
+          },
+          {
+            "name": "signature-input",
+            "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+          },
+          {
+            "name": "signify-timestamp",
+            "value": "2023-11-14T22:13:20.123000+00:00"
+          }
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "get_with_query",
+      "note": "a GET whose query is stripped before the path is signed",
+      "request": {
+        "url": "http://localhost:3901/contacts?group=g&filter_field=f",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "signature",
+            "value": "indexed=\"?0\";signify=\"0BAdgOSJ9-pUdQmUltKbN0StjujBP_6F3YWlCzEYJmC1ajdCsphFL6nxe65trPA9W36N26KBugnrKdwhmsnNZ_YK\""
+          },
+          {
+            "name": "signature-input",
+            "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+          },
+          {
+            "name": "signify-timestamp",
+            "value": "2023-11-14T22:13:20.123000+00:00"
+          }
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "put_with_body",
+      "note": "a PUT whose body is signed only indirectly, through no covered field",
+      "request": {
+        "url": "http://localhost:3901/identifiers/aid1",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "signature",
+            "value": "indexed=\"?0\";signify=\"0BB_9nOoNM4nYv9xMKbMxV2BTerNIpsrPypYZM8J3yBVtqmYPdkDYJsjGG6dzQujshKwyjJhJ95AsxdM3joJIjkN\""
+          },
+          {
+            "name": "signature-input",
+            "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+          },
+          {
+            "name": "signify-timestamp",
+            "value": "2023-11-14T22:13:20.123000+00:00"
+          }
+        ],
+        "body": "{\"name\":\"renamed\"}"
+      }
+    },
+    {
+      "name": "post_with_body",
+      "note": "a POST carrying a JSON document",
+      "request": {
+        "url": "http://localhost:3901/identifiers",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "signature",
+            "value": "indexed=\"?0\";signify=\"0BDstCKd0KSluyse7hd5NlzJo2IUU2a8dviQp2stg3zhbsw2qiF2Hf2XPKDWd1koEd71uWuKHmzrSxY3ZxSrSKUI\""
+          },
+          {
+            "name": "signature-input",
+            "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+          },
+          {
+            "name": "signify-timestamp",
+            "value": "2023-11-14T22:13:20.123000+00:00"
+          }
+        ],
+        "body": "{\"name\":\"aid1\"}"
+      }
+    },
+    {
+      "name": "delete_no_body",
+      "note": "a DELETE, whose absent data sends no body at all",
+      "request": {
+        "url": "http://localhost:3901/contacts/EPRE",
+        "method": "DELETE",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          },
+          {
+            "name": "signature",
+            "value": "indexed=\"?0\";signify=\"0BBTdHdwXww-GI6OaLCbjyUz-ohLGfJ6iJurHgqJKqx3eaf8hnUixaIWb8GoUPhuYPIi-7ikFKzMmlkmehf-otAI\""
+          },
+          {
+            "name": "signature-input",
+            "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+          },
+          {
+            "name": "signify-timestamp",
+            "value": "2023-11-14T22:13:20.123000+00:00"
+          }
+        ],
+        "body": null
+      }
+    }
+  ],
+  "response_verification": [
+    {
+      "name": "valid",
+      "note": "a response the agent signed over the same method and path",
+      "method": "GET",
+      "path": "/identifiers",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BC-VNdNUz7NBiaugyCWudtsq0L4ClM8wwUTpegi9v21UX8nayb0YeMKDiljbLgWANR4hGohRXyMTz-P8XguWmkA\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "wrong_path",
+      "note": "the same signature checked against a different path, which changes the base",
+      "method": "GET",
+      "path": "/contacts",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BC-VNdNUz7NBiaugyCWudtsq0L4ClM8wwUTpegi9v21UX8nayb0YeMKDiljbLgWANR4hGohRXyMTz-P8XguWmkA\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "accepted": false,
+      "error": "Signature for BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark invalid."
+    },
+    {
+      "name": "wrong_method",
+      "note": "the same signature checked against a different method",
+      "method": "POST",
+      "path": "/identifiers",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BC-VNdNUz7NBiaugyCWudtsq0L4ClM8wwUTpegi9v21UX8nayb0YeMKDiljbLgWANR4hGohRXyMTz-P8XguWmkA\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "accepted": false,
+      "error": "Signature for BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark invalid."
+    },
+    {
+      "name": "tampered_covered_header",
+      "note": "a covered header changed after signing",
+      "method": "GET",
+      "path": "/identifiers",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BC-VNdNUz7NBiaugyCWudtsq0L4ClM8wwUTpegi9v21UX8nayb0YeMKDiljbLgWANR4hGohRXyMTz-P8XguWmkA\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2020-01-01T00:00:00.000000+00:00"
+        }
+      ],
+      "accepted": false,
+      "error": "Signature for BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark invalid."
+    },
+    {
+      "name": "no_signature",
+      "note": "no Signature header at all",
+      "method": "GET",
+      "path": "/identifiers",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "accepted": false,
+      "error": null
+    },
+    {
+      "name": "no_signature_input",
+      "note": "no Signature-Input header at all",
+      "method": "GET",
+      "path": "/identifiers",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BC-VNdNUz7NBiaugyCWudtsq0L4ClM8wwUTpegi9v21UX8nayb0YeMKDiljbLgWANR4hGohRXyMTz-P8XguWmkA\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "accepted": false,
+      "error": null
+    },
+    {
+      "name": "replayed_after_the_fact",
+      "note": "the same valid signature, verified again at any later moment: the reference has no freshness check, so a captured response authenticates forever",
+      "method": "GET",
+      "path": "/identifiers",
+      "headers": [
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BC-VNdNUz7NBiaugyCWudtsq0L4ClM8wwUTpegi9v21UX8nayb0YeMKDiljbLgWANR4hGohRXyMTz-P8XguWmkA\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "accepted": true,
+      "error": null
+    }
+  ],
+  "freshness_scan": {
+    "roots": [
+      "src",
+      "test",
+      "test-integration"
+    ],
+    "files_scanned": 117,
+    "matches": {
+      "expires": {
+        "count": 3,
+        "files": [
+          "src/keri/core/authing.ts",
+          "src/keri/core/httping.ts",
+          "test/core/httping.test.ts"
+        ]
+      },
+      "maxAge": {
+        "count": 0,
+        "files": []
+      },
+      "max_age": {
+        "count": 0,
+        "files": []
+      },
+      "skew": {
+        "count": 0,
+        "files": []
+      },
+      "freshness": {
+        "count": 0,
+        "files": []
+      },
+      "staleness": {
+        "count": 0,
+        "files": []
+      },
+      "replay": {
+        "count": 3,
+        "files": [
+          "src/keri/app/escrowing.ts",
+          "src/keri/app/exchanging.ts",
+          "src/keri/app/grouping.ts"
+        ]
+      }
+    },
+    "note": "a raw count is not the evidence, because two needles do match: `expires` is a signature parameter the grammar carries, and `replay` names KEL replay messages. What matters is the three booleans below — the parameter is never set, never compared, and no clock is read during verification.",
+    "checks": {
+      "authenticater_ever_sets_expires": false,
+      "a_parameter_is_ever_compared": false,
+      "verification_reads_a_clock": false
+    }
+  },
+  "reference_quirks": {
+    "there_is_no_freshness_check": {
+      "accepted": true,
+      "checks": {
+        "authenticater_ever_sets_expires": false,
+        "a_parameter_is_ever_compared": false,
+        "verification_reads_a_clock": false
+      },
+      "note": "`Authenticater.verify` reads `created` only to rebuild the signature base and never compares it to a clock, and `sign` never supplies the `expires` the grammar would carry — so a captured response authenticates forever and a replayed one is indistinguishable from a fresh one",
+      "rust_decision": "a `Freshness` policy rejects a `created` outside a configured window by default; `Freshness::Ignore` reproduces the reference"
+    },
+    "the_timestamp_claims_precision_it_does_not_have": {
+      "expression": "headers.set( HEADER_SIG_TIME, new Date().toISOString().replace('Z', '000+00:00') )",
+      "produced": "2023-11-14T22:13:20.123000+00:00",
+      "iso": "2023-11-14T22:13:20.123Z",
+      "note": "`toISOString()` yields millisecond precision and `.replace('Z','000+00:00')` appends three zeros, so the value always ends in `000` and claims microseconds it never had",
+      "rust_decision": "reproduced exactly, because the value is a covered header and any other spelling would change the bytes a signature commits to"
+    },
+    "two_clock_readings_per_request": {
+      "note": "`SignifyClient.fetch` reads the clock for `Signify-Timestamp` and `siginput` reads it again for `created`, so the header and the parameter can disagree by however long the two calls are apart",
+      "rust_decision": "one reading is taken and used for both, so a signed request is internally consistent; the reference's own two readings are identical here only because the clock is pinned"
+    },
+    "the_query_is_stripped_before_signing": {
+      "url": "http://localhost:3901/contacts?group=g&filter_field=f",
+      "note": "`this.authn.sign(headers, method, path.split('?')[0])` signs the path without its query, so two requests differing only in their query have the same signature base",
+      "rust_decision": "reproduced: `@path` is the path alone, which is also what Roadmap 5.1's `RequestUrl::path` returns"
+    },
+    "covered_fields_are_fixed": {
+      "fields": [
+        "@method",
+        "@path",
+        "signify-resource",
+        "signify-timestamp"
+      ],
+      "note": "`Authenticater.DefaultFields` is the same four components for every request, and the body is not among them — nothing signed covers what was sent",
+      "rust_decision": "the same four by default and configurable, but a body digest is not invented: adding one would produce a signature KERIA cannot verify"
+    },
+    "headers_are_appended_not_set": {
+      "note": "`sign` uses `headers.append` for both signature headers, so signing the same collection twice yields two comma-joined values rather than an error",
+      "rust_decision": "Roadmap 3.9's `Headers` refuses a duplicate name, so a request signed twice does not build"
+    },
+    "a_failed_verification_and_a_missing_header_are_the_same": {
+      "missing_signature": false,
+      "missing_input": false,
+      "note": "`verify` returns `false` for an absent header and throws for a bad signature, and `SignifyClient.fetch` turns both into the single message `response verification failed`",
+      "rust_decision": "each is a distinct typed error, as Roadmap 3.10 already decided"
+    },
+    "the_resource_check_is_an_equality_on_an_untyped_header": {
+      "note": "`this.agent?.pre === res.headers.get('signify-resource')` compares a prefix to a raw header, so an absent header compares against `null` and a client with no agent compares `undefined` — neither is distinguished from a genuine mismatch",
+      "rust_decision": "the expected resource is a validated value and an absent header is its own error"
+    }
+  }
+}

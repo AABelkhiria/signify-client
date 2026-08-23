@@ -812,6 +812,7 @@ mod tests {
             },
             TransportError::InvalidStatus { status: 99 },
             TransportError::ScriptExhausted { answered: 1 },
+            TransportError::signing("no covered header"),
         ] {
             assert!(!is_transient_error(&error), "{error}");
         }

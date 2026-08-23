@@ -85,6 +85,16 @@ pub enum TransportError {
         /// Underlying failure.
         source: Box<HeaderError>,
     },
+    /// The request could not be signed, so it was never sent.
+    ///
+    /// Added by Roadmap 5.5, which composes signing into the transport stack. It is deliberately
+    /// **not** transient: a request that cannot be signed cannot be signed on a second attempt
+    /// either, so Roadmap 5.4's classifier never retries it. The message is bounded and carries no
+    /// key, no signature, and no header value.
+    Signing {
+        /// Bounded description of what failed.
+        message: String,
+    },
 }
 
 impl TransportError {
@@ -100,6 +110,14 @@ impl TransportError {
     #[must_use]
     pub fn invalid_response(message: impl AsRef<str>) -> Self {
         Self::InvalidResponse {
+            message: bounded(message.as_ref()),
+        }
+    }
+
+    /// Builds a [`TransportError::Signing`] with a bounded message.
+    #[must_use]
+    pub fn signing(message: impl AsRef<str>) -> Self {
+        Self::Signing {
             message: bounded(message.as_ref()),
         }
     }
@@ -136,6 +154,7 @@ impl fmt::Display for TransportError {
                 "the scripted transport has no answer left after {answered} requests"
             ),
             Self::Header { source } => write!(formatter, "header construction failed: {source}"),
+            Self::Signing { message } => write!(formatter, "the request could not be signed: {message}"),
         }
     }
 }
@@ -185,6 +204,7 @@ mod tests {
                 }),
                 true,
             ),
+            (TransportError::signing("no covered header"), false),
         ];
         for (error, has_source) in cases {
             assert!(!error.to_string().is_empty());
@@ -195,7 +215,11 @@ mod tests {
     #[test]
     fn transport_messages_are_bounded() {
         let long = "x".repeat(MAX_MESSAGE_BYTES * 2);
-        for error in [TransportError::connect(&long), TransportError::invalid_response(&long)] {
+        for error in [
+            TransportError::connect(&long),
+            TransportError::invalid_response(&long),
+            TransportError::signing(&long),
+        ] {
             let rendered = error.to_string();
             assert!(rendered.len() < long.len(), "{rendered}");
         }

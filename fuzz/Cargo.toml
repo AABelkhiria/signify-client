@@ -275,6 +275,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "auth"
+path = "fuzz_targets/auth.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
