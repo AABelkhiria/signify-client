@@ -28,3 +28,16 @@ jobs:
       - run: cargo clippy --workspace --all-targets --all-features
       - run: cargo test --workspace --all-features
       - run: cargo doc --workspace --all-features --no-deps
+
+  deny:
+    name: Licenses, advisories, bans, and sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          manifest-path: fuzz/Cargo.toml
