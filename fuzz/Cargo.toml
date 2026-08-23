@@ -290,6 +290,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "issuance"
+path = "fuzz_targets/issuance.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

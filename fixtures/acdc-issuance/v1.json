@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-23",
+  "sources": [
+    "src/keri/app/credentialing.ts",
+    "src/keri/core/utils.ts",
+    "test/app/credentialing.test.ts",
+    "test/core/utils.test.ts"
+  ],
+  "provenance": {
+    "credential": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+    "issuer": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+    "registry": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+    "timestamp": "2023-08-23T15:16:07.553000+00:00",
+    "note": "every value is deterministic: none of these builders derives a key, and the credential, issuer, registry, and timestamp are the pinned `test-utils.ts` mock credential's own, which Roadmap 6.1 reproduces byte for byte"
+  },
+  "declarations": {
+    "issuance_saidify_expression": "Saider.saidify({ v: versify(Protocols.KERI, undefined, Serials.JSON, 0), t: Ilks.iss, d: '', i: acdc.d, s: '0', ri: args.ri, dt: subject.dt, })",
+    "issuance_anchor_expression": "interact({ pre: hab.prefix, sn: sn + 1, data: [ { i: iss.i, s: iss.s, d: iss.d, }, ], dig: hab.state.d, version: undefined, kind: undefined, })",
+    "revocation_literal": "_rev = { v: vs, t: Ilks.rev, d: '', i: said, s: '1', ri: registryId, p: cred.status.d, dt: dt, }",
+    "revocation_saidify_expression": "Saider.saidify(_rev)",
+    "revocation_anchor_expression": "interact({ pre: pre, sn: sn + 1, data: data, dig: dig, version: undefined, kind: undefined, })",
+    "revocation_registry_fallback": "if ('ri' in cred.sad && cred.sad.ri !== undefined) { registryId = cred.sad.ri; } else if ('rd' in cred.sad && cred.sad.rd !== undefined) { registryId = cred.sad.rd; } else { throw new Error('Neither ri nor rd property found in credential'); }",
+    "acdc_attachment_body": "export function serializeACDCAttachment(anc: Serder): Uint8Array { const prefixer = new Prefixer({ qb64: anc.pre }); const seqner = new Seqner({ sn: anc.sn }); const saider = new Saider({ qb64: anc.sad['d'] }); const craw = new Uint8Array(); const ctr = new Counter({ code: CtrDex.SealSourceTriples, count: 1 }).qb64b; const prefix = prefixer.qb64b; const seq = seqner.qb64b; const said = saider.qb64b; const newCraw = new Uint8Array( craw.length + ctr.length + prefix.length + seq.length + said.length ); newCraw.set(craw); newCraw.set(ctr, craw.length); newCraw.set(prefix, craw.length + ctr.length); newCraw.set(seq, craw.length + ctr.length + prefix.length); newCraw.set(said, craw.length + ctr.length + prefix.length + seq.length); return newCraw; }",
+    "iss_attachment_body": "export function serializeIssExnAttachment(anc: Serder): Uint8Array { const seqner = new Seqner({ sn: anc.sn }); const ancSaider = new Saider({ qb64: anc.sad['d'] }); const coupleArray = new Uint8Array( seqner.qb64b.length + ancSaider.qb64b.length ); coupleArray.set(seqner.qb64b); coupleArray.set(ancSaider.qb64b, seqner.qb64b.length); const counter = new Counter({ code: CtrDex.SealSourceCouples, count: 1, }); const counterQb64b = counter.qb64b; const atc = new Uint8Array(counter.qb64b.length + coupleArray.length); atc.set(counterQb64b); atc.set(coupleArray, counterQb64b.length); if (atc.length % 4 !== 0) { throw new Error( `Invalid attachments size: ${atc.length}, non-integral quadlets detected.` ); } const pcnt = new Counter({ code: CtrDex.AttachedMaterialQuadlets, count: Math.floor(atc.length / 4), }); const msg = new Uint8Array(pcnt.qb64b.length + atc.length); msg.set(pcnt.qb64b); msg.set(atc, pcnt.qb64b.length); return msg; }",
+    "keri_version_string": "KERI10JSON000000_",
+    "issuance_ilk": "iss",
+    "revocation_ilk": "rev",
+    "notes": {
+      "issuance": "the `iss` event's `dt` is the credential's *attribute* timestamp — `dt: subject.dt` — not a second clock reading, so issuing commits the credential and its transaction event to the same instant",
+      "issuance_anchor": "the anchoring interaction seals one `{i, s, d}` triple naming the transaction event, at the issuer's next sequence number, over the key state's digest",
+      "revocation": "the `rev` event's sequence number is the literal string '1' and its `p` is the credential's current status digest, so the reference can only revoke a credential whose transaction log holds exactly one prior event",
+      "attachments": "`serializeACDCAttachment` is passed the *issuance* event despite its parameter being named `anc`, so the triple names (credential SAID, 0, iss SAID); `serializeIssExnAttachment` is passed the anchor and produces a pipelined couple naming it"
+    }
+  },
+  "issuances": {
+    "pinned_mock_credential": {
+      "note": "the issuance of the credential the pinned `test-utils.ts` checks in, at the issuer's first interaction; its `iss` SAID is the one `credentialing.test.ts` publishes",
+      "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "iss_said": "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+      "iss_size": 237,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMGO5aB4SzOzp3TOiw1UrMI01Fk5tdYTmAznd2XqGyGh\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\"}]}",
+      "anchor_said": "EMGO5aB4SzOzp3TOiw1UrMI01Fk5tdYTmAznd2XqGyGh",
+      "anchor_size": 314,
+      "anchor_seal": [
+        {
+          "i": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+          "s": "0",
+          "d": "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW"
+        }
+      ],
+      "credential_attachment": "-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+      "issuance_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABEMGO5aB4SzOzp3TOiw1UrMI01Fk5tdYTmAznd2XqGyGh",
+      "reference_verifies": true
+    },
+    "later_in_the_log": {
+      "note": "an issuance anchored well into the issuer's key event log",
+      "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ELNdtMKw6ZJSpGTWzmmH7mDWTZQ-vEthiDKBkcWetGBv\",\"i\":\"EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "iss_said": "ELNdtMKw6ZJSpGTWzmmH7mDWTZQ-vEthiDKBkcWetGBv",
+      "iss_size": 237,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013b_\",\"t\":\"ixn\",\"d\":\"EPCbOHNto4ZDJUGV7mpv6KinZ6VJEEogLDs_CRR6dwid\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"2a\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"a\":[{\"i\":\"EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0\",\"s\":\"0\",\"d\":\"ELNdtMKw6ZJSpGTWzmmH7mDWTZQ-vEthiDKBkcWetGBv\"}]}",
+      "anchor_said": "EPCbOHNto4ZDJUGV7mpv6KinZ6VJEEogLDs_CRR6dwid",
+      "anchor_size": 315,
+      "anchor_seal": [
+        {
+          "i": "EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0",
+          "s": "0",
+          "d": "ELNdtMKw6ZJSpGTWzmmH7mDWTZQ-vEthiDKBkcWetGBv"
+        }
+      ],
+      "credential_attachment": "-IABEOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua00AAAAAAAAAAAAAAAAAAAAAAAELNdtMKw6ZJSpGTWzmmH7mDWTZQ-vEthiDKBkcWetGBv",
+      "issuance_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAAqEPCbOHNto4ZDJUGV7mpv6KinZ6VJEEogLDs_CRR6dwid",
+      "reference_verifies": true
+    },
+    "hexadecimal_sequence_number": {
+      "note": "an anchor whose sequence number needs hexadecimal digits, which the event writes lowercase and unpadded",
+      "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EAIoqnrfXuFj06lP9h6VFMOj6umrJyKMt0a29u78B6Iz\",\"i\":\"ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "iss_said": "EAIoqnrfXuFj06lP9h6VFMOj6umrJyKMt0a29u78B6Iz",
+      "iss_size": 237,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013b_\",\"t\":\"ixn\",\"d\":\"EIeMuFI5qgdWa3HB8Jqn_0sj9DkUyRAs49VZxpc2-kYq\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"ff\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"a\":[{\"i\":\"ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi\",\"s\":\"0\",\"d\":\"EAIoqnrfXuFj06lP9h6VFMOj6umrJyKMt0a29u78B6Iz\"}]}",
+      "anchor_said": "EIeMuFI5qgdWa3HB8Jqn_0sj9DkUyRAs49VZxpc2-kYq",
+      "anchor_size": 315,
+      "anchor_seal": [
+        {
+          "i": "ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi",
+          "s": "0",
+          "d": "EAIoqnrfXuFj06lP9h6VFMOj6umrJyKMt0a29u78B6Iz"
+        }
+      ],
+      "credential_attachment": "-IABECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi0AAAAAAAAAAAAAAAAAAAAAAAEAIoqnrfXuFj06lP9h6VFMOj6umrJyKMt0a29u78B6Iz",
+      "issuance_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAD_EIeMuFI5qgdWa3HB8Jqn_0sj9DkUyRAs49VZxpc2-kYq",
+      "reference_verifies": true
+    },
+    "large_sequence_number": {
+      "note": "an anchor at a sequence number past 32 bits",
+      "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "iss_said": "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+      "iss_size": 237,
+      "anchor_raw": "{\"v\":\"KERI10JSON000142_\",\"t\":\"ixn\",\"d\":\"EBCKQonLyk9Jhsf7ReADJxYiH0EJ69y-4DfUcjRsI5vY\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"100000000\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"a\":[{\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\"}]}",
+      "anchor_said": "EBCKQonLyk9Jhsf7ReADJxYiH0EJ69y-4DfUcjRsI5vY",
+      "anchor_size": 322,
+      "anchor_seal": [
+        {
+          "i": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+          "s": "0",
+          "d": "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW"
+        }
+      ],
+      "credential_attachment": "-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+      "issuance_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAEAAAAAEBCKQonLyk9Jhsf7ReADJxYiH0EJ69y-4DfUcjRsI5vY",
+      "reference_verifies": true
+    },
+    "distinct_timestamp": {
+      "note": "a credential stamped at a different instant, which changes the transaction event alone",
+      "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EFqR6cGC-0JHDUGTL0f5GhaG67wcdHjAdKrG1W-1j-tQ\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\"}",
+      "iss_said": "EFqR6cGC-0JHDUGTL0f5GhaG67wcdHjAdKrG1W-1j-tQ",
+      "iss_size": 237,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF0TfpDsESym7NKg0hWm3CodusjY3fZcfQA-OzZCXBEg\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"d\":\"EFqR6cGC-0JHDUGTL0f5GhaG67wcdHjAdKrG1W-1j-tQ\"}]}",
+      "anchor_said": "EF0TfpDsESym7NKg0hWm3CodusjY3fZcfQA-OzZCXBEg",
+      "anchor_size": 314,
+      "anchor_seal": [
+        {
+          "i": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+          "s": "0",
+          "d": "EFqR6cGC-0JHDUGTL0f5GhaG67wcdHjAdKrG1W-1j-tQ"
+        }
+      ],
+      "credential_attachment": "-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAEFqR6cGC-0JHDUGTL0f5GhaG67wcdHjAdKrG1W-1j-tQ",
+      "issuance_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABEF0TfpDsESym7NKg0hWm3CodusjY3fZcfQA-OzZCXBEg",
+      "reference_verifies": true
+    }
+  },
+  "revocations": {
+    "pinned_mock_credential": {
+      "note": "revoking the pinned mock credential, whose prior transaction event is the issuance above",
+      "rev_raw": "{\"v\":\"KERI10JSON000120_\",\"t\":\"rev\",\"d\":\"ELiF2YWwY-A2OsCqmjIDfgBy-lt_ZfRPNNcMS3zFqiTg\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "rev_said": "ELiF2YWwY-A2OsCqmjIDfgBy-lt_ZfRPNNcMS3zFqiTg",
+      "rev_size": 288,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EFsAUhmhUWgqTD4hhLK2k_9JbOI7nRsFXDbEeSOHBe-i\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"2\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"a\":[{\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"1\",\"d\":\"ELiF2YWwY-A2OsCqmjIDfgBy-lt_ZfRPNNcMS3zFqiTg\"}]}",
+      "anchor_said": "EFsAUhmhUWgqTD4hhLK2k_9JbOI7nRsFXDbEeSOHBe-i",
+      "anchor_size": 314,
+      "anchor_seal": [
+        {
+          "i": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+          "s": "1",
+          "d": "ELiF2YWwY-A2OsCqmjIDfgBy-lt_ZfRPNNcMS3zFqiTg"
+        }
+      ],
+      "reference_verifies": true
+    },
+    "later_in_the_log": {
+      "note": "a revocation anchored well into the issuer's key event log",
+      "rev_raw": "{\"v\":\"KERI10JSON000120_\",\"t\":\"rev\",\"d\":\"EI8S-tJbYctAX1VgkovwaJKqk7JLU_R-64uLehvFpHmz\",\"i\":\"EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0\",\"s\":\"1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "rev_said": "EI8S-tJbYctAX1VgkovwaJKqk7JLU_R-64uLehvFpHmz",
+      "rev_size": 288,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013b_\",\"t\":\"ixn\",\"d\":\"EKaeBJ_e42p3FXqHhe4UoWkhE_T8kEEscyYgthx7axLQ\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"2b\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"a\":[{\"i\":\"EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0\",\"s\":\"1\",\"d\":\"EI8S-tJbYctAX1VgkovwaJKqk7JLU_R-64uLehvFpHmz\"}]}",
+      "anchor_said": "EKaeBJ_e42p3FXqHhe4UoWkhE_T8kEEscyYgthx7axLQ",
+      "anchor_size": 315,
+      "anchor_seal": [
+        {
+          "i": "EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0",
+          "s": "1",
+          "d": "EI8S-tJbYctAX1VgkovwaJKqk7JLU_R-64uLehvFpHmz"
+        }
+      ],
+      "reference_verifies": true
+    },
+    "distinct_timestamp": {
+      "note": "a revocation at a different instant",
+      "rev_raw": "{\"v\":\"KERI10JSON000120_\",\"t\":\"rev\",\"d\":\"EFYpGWvbGzLDVce4pOr603i3YT7t6lvmZsVnZSrSAn87\",\"i\":\"ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi\",\"s\":\"1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\"}",
+      "rev_said": "EFYpGWvbGzLDVce4pOr603i3YT7t6lvmZsVnZSrSAn87",
+      "rev_size": 288,
+      "anchor_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHncNjC8-LGZDUrPFzngcrq5kBQE1MYIiNADCSPc5gtl\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"7\",\"p\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"a\":[{\"i\":\"ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi\",\"s\":\"1\",\"d\":\"EFYpGWvbGzLDVce4pOr603i3YT7t6lvmZsVnZSrSAn87\"}]}",
+      "anchor_said": "EHncNjC8-LGZDUrPFzngcrq5kBQE1MYIiNADCSPc5gtl",
+      "anchor_size": 314,
+      "anchor_seal": [
+        {
+          "i": "ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi",
+          "s": "1",
+          "d": "EFYpGWvbGzLDVce4pOr603i3YT7t6lvmZsVnZSrSAn87"
+        }
+      ],
+      "reference_verifies": true
+    }
+  },
+  "pinned_artifacts": {
+    "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+    "iss_said": "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+    "iss_said_matches_published": true,
+    "anchor_raw": "{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]}",
+    "anchor_said": "ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm",
+    "anchor_seals_empty_object": true,
+    "credential_attachment": "-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+    "issuance_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm",
+    "grant_attachment": "-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
+    "attachments_appear_in_grant": true,
+    "note": "the pinned `credentialing.test.ts` builds an `iss` and an `ixn` by hand and asserts the IPEX grant embedding them; rebuilding both from the reference's own expressions reproduces the published `iss` SAID, and both attachment strings appear verbatim inside the published grant attachment"
+  },
+  "pinned_serializers": {
+    "iss_attachment_input": "{\"d\":\"EKZPmzJqhx76bcC2ftPQgeRirmOd8ZBOtGVqHJrSm7F1\",\"v\":\"KERI10JSON00004c_\"}",
+    "iss_attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAAAEKZPmzJqhx76bcC2ftPQgeRirmOd8ZBOtGVqHJrSm7F1",
+    "acdc_attachment_input": "{\"i\":\"EP-hA0w9X5FDonCDxQv32OTCAvcxkZxgDLOnDb3Jcn3a\",\"d\":\"EHGU7u7cSMjMcJ1UyN8r-MnoZ3cDw4sMQNYxRLjqGVJI\",\"v\":\"ACDC10JSON000091_\",\"a\":{\"LEI\":\"123\"}}",
+    "acdc_attachment": "-IABEP-hA0w9X5FDonCDxQv32OTCAvcxkZxgDLOnDb3Jcn3a0AAAAAAAAAAAAAAAAAAAAAAAEHGU7u7cSMjMcJ1UyN8r-MnoZ3cDw4sMQNYxRLjqGVJI",
+    "published_in_test": [
+      "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAAAEKZPmzJqhx76bcC2ftPQgeRirmOd8ZBOtGVqHJrSm7F1",
+      "-IABEP-hA0w9X5FDonCDxQv32OTCAvcxkZxgDLOnDb3Jcn3a0AAAAAAAAAAAAAAAAAAAAAAAEHGU7u7cSMjMcJ1UyN8r-MnoZ3cDw4sMQNYxRLjqGVJI"
+    ],
+    "note": "`test/core/utils.test.ts` asserts both serializers directly; its `iss` case carries no `s` field at all, so `Serder.sn` reads it as zero"
+  },
+  "reference_quirks": {
+    "revocation_sequence_number_is_always_one": {
+      "literal_sequence_number": "1",
+      "note": "`_rev.s` is the literal string '1', so the reference can only revoke a credential whose transaction log holds exactly one prior event. A credential in a backed registry, whose log carries backer rotations, or one somehow revoked twice, gets an event claiming a position it does not occupy.",
+      "rust_decision": "the sequence number is a required input, defaulting to one; the reference's only reachable value is reproduced and anything else is expressible."
+    },
+    "revocation_reads_the_registry_from_ri_or_rd": {
+      "fallback_expression": "if ('ri' in cred.sad && cred.sad.ri !== undefined) { registryId = cred.sad.ri; } else if ('rd' in cred.sad && cred.sad.rd !== undefined) { registryId = cred.sad.rd; } else { throw new Error('Neither ri nor rd property found in credential'); }",
+      "note": "revocation accepts the KERI 2 spelling `rd` as well as `ri`, and throws when neither is present — but Roadmap 6.1's builder always writes `ri`, so the `rd` branch is unreachable from a credential this port built.",
+      "rust_decision": "the registry is a typed required input; `rd` is unrepresentable here, as `PORTING.md` §5.12 already records CESR 2 to be out of scope."
+    },
+    "revocation_timestamp_defaults_to_the_clock": {
+      "expression": "new Date().toISOString().replace('Z', '000+00:00')",
+      "note": "the revocation timestamp defaults to a clock reading with three zero digits standing in for microseconds it never had, exactly as Roadmap 6.1's attribute timestamp does.",
+      "rust_decision": "required: a protocol crate reads no clock, so the timestamp is a validated `Timestamp` the caller supplies."
+    },
+    "issuance_reuses_the_credential_timestamp": {
+      "credential_timestamp": "2023-08-23T15:16:07.553000+00:00",
+      "issuance_timestamp": "2023-08-23T15:16:07.553000+00:00",
+      "identical": true,
+      "note": "the `iss` event takes `dt: subject.dt` — the credential's own attribute timestamp — rather than reading the clock a second time, so a credential and its transaction event always agree.",
+      "rust_decision": "reproduced, and made structural: the issuance builder reads the timestamp off the credential rather than taking one."
+    },
+    "acdc_attachment_is_passed_the_issuance_event": {
+      "triple": "-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+      "note": "`serializeACDCAttachment(anc)` names its parameter `anc` but every call site passes the *issuance* event, so the triple it builds is (credential SAID, 0, iss SAID) — the credential's own transaction inception, not the key event anchoring it.",
+      "rust_decision": "the attachment is a method on the issuance event, so there is no parameter to pass the wrong value to."
+    },
+    "missing_sequence_number_reads_as_zero": {
+      "input": "{\"d\":\"EKZPmzJqhx76bcC2ftPQgeRirmOd8ZBOtGVqHJrSm7F1\",\"v\":\"KERI10JSON00004c_\"}",
+      "attachment": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAAAEKZPmzJqhx76bcC2ftPQgeRirmOd8ZBOtGVqHJrSm7F1",
+      "note": "`Serder.sn` builds a `CesrNumber` from `sad['s']`; the pinned `utils.test.ts` vector has no `s` field at all, and the resulting couple carries sequence number zero rather than failing.",
+      "rust_decision": "unrepresentable: a sequence number is a `u128` on the typed event, never read back out of an untyped map."
+    },
+    "establishment_only_is_unimplemented": {
+      "scan": {
+        "needle": "Establishment only not implemented",
+        "total": 2,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 2
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "both `issue` and `revoke` throw outright when the issuer's configuration carries the `EO` trait, because anchoring in an establishment-only log needs a rotation event neither builds.",
+      "rust_decision": "the anchor is an interaction event and nothing else; an establishment-only issuer is refused with a typed error naming the trait, rather than throwing a string."
+    },
+    "backed_transaction_events_have_no_builder": {
+      "scan_bis": {
+        "needle": "Ilks.bis",
+        "total": 0,
+        "files": [],
+        "scanned_files": 117
+      },
+      "scan_brv": {
+        "needle": "Ilks.brv",
+        "total": 0,
+        "files": [],
+        "scanned_files": 117
+      },
+      "note": "the ilk table declares `bis` and `brv` — the backed spellings of issuance and revocation, used when a registry has backers — but nothing in the pinned tree constructs either.",
+      "rust_decision": "`N/A`, on the same evidence as Roadmap 3.6's receipt and query messages; the ilks exist in `signify-keri::event::kind` and no builder is invented here."
+    },
+    "revocation_prior_comes_from_the_server": {
+      "expression": "p: cred.status.d",
+      "note": "`p` is read from `cred.status.d`, the credential state KERIA returns, so the reference cannot revoke without first fetching the credential.",
+      "rust_decision": "the prior digest is a required typed input, so revocation artifacts are constructible offline from a status a caller already holds."
+    }
+  }
+}

@@ -378,12 +378,17 @@ impl CredentialAttributes {
     }
 }
 
-/// One completed credential: its exact bytes and both identifiers it carries.
+/// One completed credential: its exact bytes, both identifiers it carries, and the typed values it
+/// was built from.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Credential {
     serialized: SerializedEvent,
     said: Said,
     attributes_said: Said,
+    issuer: IdentifierPrefix,
+    registry: RegistryIdentifier,
+    schema: Said,
+    timestamp: Timestamp,
 }
 
 impl Credential {
@@ -424,6 +429,34 @@ impl Credential {
     #[must_use]
     pub fn attributes(&self) -> Option<&Sad> {
         self.serialized.sad().get(ATTRIBUTES_LABEL).and_then(SadValue::as_map)
+    }
+
+    /// Returns the identifier that issued this credential; its `i`.
+    #[must_use]
+    pub const fn issuer(&self) -> &IdentifierPrefix {
+        &self.issuer
+    }
+
+    /// Returns the registry whose transaction event log governs this credential's status; its
+    /// `ri`.
+    #[must_use]
+    pub const fn registry(&self) -> &RegistryIdentifier {
+        &self.registry
+    }
+
+    /// Returns the identifier of the schema this credential claims to satisfy; its `s`.
+    #[must_use]
+    pub const fn schema(&self) -> Said {
+        self.schema
+    }
+
+    /// Returns the attribute block's issuance timestamp; its `a.dt`.
+    ///
+    /// A credential's transaction event commits to this same instant rather than reading a clock
+    /// of its own, which is why it is retained here.
+    #[must_use]
+    pub const fn timestamp(&self) -> &Timestamp {
+        &self.timestamp
     }
 
     /// Splits this credential into its serialized form and both identifiers.
@@ -521,6 +554,7 @@ impl CredentialBuilder {
     /// [`CredentialError::Serialization`], or [`CredentialError::Prefix`] failures for material
     /// that cannot be encoded.
     pub fn build(self) -> Result<Credential, CredentialError> {
+        let timestamp = self.attributes.timestamp.clone();
         let attributes = self.attributes.to_sad()?;
         check_block(CredentialBlock::Attributes, &attributes)?;
         let (attributes_said, attributes) =
@@ -548,6 +582,10 @@ impl CredentialBuilder {
             serialized: SerializedEvent::from_sad(container)?,
             said,
             attributes_said,
+            issuer: self.issuer,
+            registry: self.registry,
+            schema: self.schema,
+            timestamp: timestamp.clone(),
         })
     }
 }
