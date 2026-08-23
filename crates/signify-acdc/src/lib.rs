@@ -6,13 +6,15 @@
 //! its registry's log, together with the [`transaction`] machinery both share and the CESR
 //! attachments binding each artifact to the next.
 //!
-//! IPEX messages (Roadmap 6.3) join them here. Nothing in this crate performs networking or knows
-//! a KERIA endpoint; submitting any of these artifacts is `signify-client`'s.
+//! Roadmap 6.3 adds [`ipex`], the five messages two controllers exchange to disclose a credential.
+//! Nothing in this crate performs networking or knows a KERIA endpoint; submitting any of these
+//! artifacts is `signify-client`'s.
 
 #![forbid(unsafe_code)]
 
 pub mod credential;
 pub mod error;
+pub mod ipex;
 pub mod issuance;
 pub mod revocation;
 pub mod transaction;

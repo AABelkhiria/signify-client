@@ -29,5 +29,9 @@ harness = false
 name = "issuance"
 harness = false
 
+[[bench]]
+name = "ipex"
+harness = false
+
 [lints]
 workspace = true

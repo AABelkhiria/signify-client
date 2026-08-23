@@ -1,0 +1,379 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-23",
+  "sources": [
+    "src/keri/app/credentialing.ts",
+    "src/keri/app/exchanging.ts",
+    "test/app/credentialing.test.ts"
+  ],
+  "provenance": {
+    "passcode": "0123456789abcdefghijk",
+    "passcode_note": "PUBLIC TEST MATERIAL: the passcode the pinned `credentialing.test.ts` publishes; it has never protected anything",
+    "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "recipient": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+    "timestamp": "2023-08-23T15:16:07.553000+00:00",
+    "credential": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+    "issuance": "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW",
+    "anchor": "ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm",
+    "anchor_attachment": "-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
+    "note": "the sender's habitat is derived here by the same route the pinned `test/app/test-utils.ts` derives its mock, at the reference's production Argon2 cost, and the reference's own `Ipex` methods are driven end to end against it"
+  },
+  "declarations": {
+    "routes": {
+      "apply": "/ipex/apply",
+      "offer": "/ipex/offer",
+      "agree": "/ipex/agree",
+      "grant": "/ipex/grant",
+      "admit": "/ipex/admit"
+    },
+    "shapes": {
+      "apply": {
+        "call": "this.client .exchanges() .createExchangeMessage( hab, '/ipex/apply', data, {}, args.recipient, args.datetime, undefined )",
+        "payload": "data = { m: args.message ?? '', s: args.schemaSaid, a: args.attributes ?? {}, }",
+        "embeds_argument": "{}",
+        "embeds_declaration": null
+      },
+      "offer": {
+        "call": "this.client .exchanges() .createExchangeMessage( hab, '/ipex/offer', data, { acdc: [args.acdc, undefined] }, args.recipient, args.datetime, args.applySaid )",
+        "payload": "data = { m: args.message ?? '', }",
+        "embeds_argument": "{ acdc: [args.acdc, undefined] }",
+        "embeds_declaration": null
+      },
+      "agree": {
+        "call": "this.client .exchanges() .createExchangeMessage( hab, '/ipex/agree', data, {}, args.recipient, args.datetime, args.offerSaid )",
+        "payload": "data = { m: args.message ?? '', }",
+        "embeds_argument": "{}",
+        "embeds_declaration": null
+      },
+      "grant": {
+        "call": "this.client .exchanges() .createExchangeMessage( hab, '/ipex/grant', data, embeds, args.recipient, args.datetime, args.agreeSaid )",
+        "payload": "data = { m: args.message ?? '', }",
+        "embeds_argument": "embeds",
+        "embeds_declaration": "embeds: Record<string, [Serder, string]> = { acdc: [args.acdc, acdcAtc], iss: [args.iss, issAtc], anc: [args.anc, atc], }"
+      },
+      "admit": {
+        "call": "this.client .exchanges() .createExchangeMessage( hab, '/ipex/admit', data, {}, args.recipient, args.datetime, args.grantSaid )",
+        "payload": "data: any = { m: args.message, }",
+        "embeds_argument": "{}",
+        "embeds_declaration": null
+      }
+    },
+    "create_exchange_message": "async createExchangeMessage( sender: HabState, route: string, payload: Dict<any>, embeds: Dict<any>, recipient: string, datetime?: string, dig?: string ): Promise<[Serder, string[], string]> { const keeper = this.client.manager!.get(sender); const [exn, end] = exchange( route, payload, sender['prefix'], recipient, datetime, dig, undefined, embeds ); const sigs = await keeper.sign(b(exn.raw)); return [exn, sigs, d(end)]; }",
+    "notes": {
+      "payloads": "apply carries the schema and its selective-disclosure attributes beside the message; offer, agree, and grant carry the message alone; admit passes `args.message` through with no default, so an admit with no message emits an attribute block carrying no `m` at all",
+      "embeds": "only offer and grant embed anything: offer embeds the credential with no attachment, grant embeds the credential, its issuance event, and the anchoring key event, each with the attachment that authenticates the next",
+      "signing": "`createExchangeMessage` is `exchange(...)` — Roadmap 3.8 — followed by one keeper signature over the serialized message; the attachment stream it returns is the transposed embed material, not the signature"
+    }
+  },
+  "embedded_artifacts": {
+    "acdc_raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}}",
+    "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+    "anc_raw": "{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]}",
+    "note": "the credential, its issuance event, and the anchoring key event a grant embeds; the first two are Roadmap 6.1's and 6.2's own output and the third is the pinned test's, which deliberately seals `[{}]`"
+  },
+  "messages": {
+    "apply": {
+      "note": "the pinned unit test's apply: a schema request with selective-disclosure attributes and no prior",
+      "raw": "{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}}",
+      "said": "ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL",
+      "size": 426,
+      "route": "/ipex/apply",
+      "prior": "",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": "Applying",
+        "s": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "a": {
+          "LEI": "5493001KJTIIGC8Y1R17"
+        }
+      },
+      "embed_labels": [],
+      "attachment": "",
+      "signatures": [
+        "AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF"
+      ]
+    },
+    "apply_defaults": {
+      "note": "an apply with neither message nor attributes, which default to the empty string and the empty block",
+      "raw": "{\"v\":\"KERI10JSON000186_\",\"t\":\"exn\",\"d\":\"EGQsUs0GyCW-tpdAefO-ZyMo3yjIpoF1uBH9d3LHP6Bg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{}},\"e\":{}}",
+      "said": "EGQsUs0GyCW-tpdAefO-ZyMo3yjIpoF1uBH9d3LHP6Bg",
+      "size": 390,
+      "route": "/ipex/apply",
+      "prior": "",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": "",
+        "s": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "a": {}
+      },
+      "embed_labels": [],
+      "attachment": "",
+      "signatures": [
+        "AAC1PkLqwwMEVZf0MytBK9G3quKmn1oYGXVuV4i2rgNxinAZoTuyMi6aqufs9B8tVxz0ikyMzNOw1-KfEBzbTvYO"
+      ]
+    },
+    "offer": {
+      "note": "the pinned unit test's offer: the credential embedded with no attachment, answering the apply above",
+      "raw": "{\"v\":\"KERI10JSON000357_\",\"t\":\"exn\",\"d\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/offer\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"How about this\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"d\":\"EK72JZyOyz81Jvt--iebptfhIWiw2ZdQg7ondKd-EyJF\"}}",
+      "said": "EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU",
+      "size": 855,
+      "route": "/ipex/offer",
+      "prior": "ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": "How about this"
+      },
+      "embed_labels": [
+        "acdc",
+        "d"
+      ],
+      "attachment": "",
+      "signatures": [
+        "AADUeKpUxTKVS1DYRuHC3YDM8T4YMREnQLi00QiJH2Q_WjtMZTd7rBLH12xAJkt8h4KEOn4U_c-jpHdj9S9qKXsO"
+      ]
+    },
+    "offer_without_apply": {
+      "note": "an offer with no prior, which the pinned suite's third IPEX case exercises",
+      "raw": "{\"v\":\"KERI10JSON00032b_\",\"t\":\"exn\",\"d\":\"EFULZAhT2mUCH21tEK8zmCHdkKYc7jppc4EFKIMp5MNk\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/offer\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"How about this\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"d\":\"EK72JZyOyz81Jvt--iebptfhIWiw2ZdQg7ondKd-EyJF\"}}",
+      "said": "EFULZAhT2mUCH21tEK8zmCHdkKYc7jppc4EFKIMp5MNk",
+      "size": 811,
+      "route": "/ipex/offer",
+      "prior": "",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": "How about this"
+      },
+      "embed_labels": [
+        "acdc",
+        "d"
+      ],
+      "attachment": "",
+      "signatures": [
+        "AADs0RVX0rGKpE331hKqsfUkjwCrTyeqrd8r_85WVDOYNWQb4_-LFLyfNYc2Tsl18I6cU_0Aa6ULF23O4No-mc8C"
+      ]
+    },
+    "agree": {
+      "note": "the pinned unit test's agree: a message alone, answering the offer above",
+      "raw": "{\"v\":\"KERI10JSON00017b_\",\"t\":\"exn\",\"d\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/agree\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"OK!\"},\"e\":{}}",
+      "said": "EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8",
+      "size": 379,
+      "route": "/ipex/agree",
+      "prior": "EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": "OK!"
+      },
+      "embed_labels": [],
+      "attachment": "",
+      "signatures": [
+        "AADgFlQVwRU7PF_gi4_o-wEgh3lZxzDtiwnIr9XFBrLOxhR6nBJNhrHZ_MkagCQcFHMpFkD9Vhxgq8HkV2gssPcO"
+      ]
+    },
+    "grant": {
+      "note": "the pinned unit test's grant: three embedded messages, each with the attachment authenticating the next",
+      "raw": "{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}}",
+      "said": "ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N",
+      "size": 1297,
+      "route": "/ipex/grant",
+      "prior": "EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": ""
+      },
+      "embed_labels": [
+        "acdc",
+        "iss",
+        "anc",
+        "d"
+      ],
+      "attachment": "-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
+      "signatures": [
+        "AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK"
+      ]
+    },
+    "grant_without_agree": {
+      "note": "a grant with no prior, which the discloser-initiated flow produces",
+      "raw": "{\"v\":\"KERI10JSON0004e5_\",\"t\":\"exn\",\"d\":\"EPVuNFwXTG56BvNtGjeyxncY-MfZMXOAgEtsmIvktkdb\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}}",
+      "said": "EPVuNFwXTG56BvNtGjeyxncY-MfZMXOAgEtsmIvktkdb",
+      "size": 1253,
+      "route": "/ipex/grant",
+      "prior": "",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": ""
+      },
+      "embed_labels": [
+        "acdc",
+        "iss",
+        "anc",
+        "d"
+      ],
+      "attachment": "-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
+      "signatures": [
+        "AADGVl57V4gcKYPO_Dn4UuYIdHI62vEQP--U3pnsl8oCqiqQbRqjw2E_7PHBy5-U78de5rhfF4UZQBFeub5evO8M"
+      ]
+    },
+    "admit": {
+      "note": "the pinned unit test's admit: a message alone, answering the grant above",
+      "raw": "{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}}",
+      "said": "EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF",
+      "size": 376,
+      "route": "/ipex/admit",
+      "prior": "ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+        "m": ""
+      },
+      "embed_labels": [],
+      "attachment": "",
+      "signatures": [
+        "AABqIUE6czxB5BotjxFUZT9Gu8tkFkAx7bOYQzWD422r-HS8z_6gaNuIlpnABHjxlX7PEXFDTj8WnoGVW197XlQP"
+      ]
+    }
+  },
+  "pinned_confirmations": {
+    "apply": {
+      "route": "/ipex/apply",
+      "said": "ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL",
+      "version": "\"KERI10JSON0001aa",
+      "published_saids": [
+        "ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL"
+      ],
+      "said_is_published": true,
+      "signature_is_published": true
+    },
+    "offer": {
+      "route": "/ipex/offer",
+      "said": "EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU",
+      "version": "\"KERI10JSON000357",
+      "published_saids": [
+        "EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU",
+        "EFmPdhVnJIrMZ0b6Nyk-4s2NP1InR3wgvBGcbxl2Cd8i"
+      ],
+      "said_is_published": true,
+      "signature_is_published": true
+    },
+    "agree": {
+      "route": "/ipex/agree",
+      "said": "EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8",
+      "version": "\"KERI10JSON00017b",
+      "published_saids": [
+        "EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8"
+      ],
+      "said_is_published": true,
+      "signature_is_published": true
+    },
+    "grant": {
+      "route": "/ipex/grant",
+      "said": "ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N",
+      "version": "\"KERI10JSON000511",
+      "published_saids": [
+        "EPVuNFwXTG56BvNtGjeyxncY-MfZMXOAgEtsmIvktkdb",
+        "ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N"
+      ],
+      "said_is_published": true,
+      "signature_is_published": true
+    },
+    "admit": {
+      "route": "/ipex/admit",
+      "said": "EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF",
+      "version": "\"KERI10JSON000178",
+      "published_saids": [
+        "EJrfQsTZhkHC6vDEwkbWISpbBk9HFLO3NuI5uByYw8tH",
+        "EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF"
+      ],
+      "said_is_published": true,
+      "signature_is_published": true
+    },
+    "note": "each driven message's identifier and signature are looked for among the literals the pinned `credentialing.test.ts` asserts; the sender's keys derive from the passcode that file publishes, at the reference's production Argon2 cost"
+  },
+  "reference_quirks": {
+    "admit_message_has_no_default": {
+      "raw": "{\"v\":\"KERI10JSON000171_\",\"t\":\"exn\",\"d\":\"EI0WRaJG2waBjlWX6O544uNGR5dkOAZy6FHYTEODIFta\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"},\"e\":{}}",
+      "said": "EI0WRaJG2waBjlWX6O544uNGR5dkOAZy6FHYTEODIFta",
+      "payload": {
+        "i": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k"
+      },
+      "payload_labels": [
+        "i"
+      ],
+      "carries_message_field": false,
+      "differs_from_empty_message": true,
+      "note": "the other four routes write `m: args.message ?? ''`; admit writes `m: args.message`, so an admit with no message emits an attribute block with no `m` at all — a different message, with a different identifier, from one carrying an empty string",
+      "rust_decision": "refused: the message is a required parameter on every route, because whether the field exists at all should not depend on which argument a caller happened to omit. The empty string is spelled explicitly."
+    },
+    "offer_embeds_an_undefined_attachment": {
+      "embed_expression": "{ acdc: [args.acdc, undefined] }",
+      "attachment": "",
+      "note": "an offer embeds `[args.acdc, undefined]`, and the transposed stream for an embed with no attachment is the empty string — the label is written into the exchange's `e` block but nothing follows it in the attachment stream",
+      "rust_decision": "reproduced: Roadmap 3.8's `ExchangeEmbed::new` without `with_attachment` is exactly this case, and it is distinct from an explicitly empty attachment, which still writes its path."
+    },
+    "grant_signs_the_anchor_when_no_attachment_is_given": {
+      "expression": "if (atc === undefined) { const keeper = this.client.manager!.get(hab); const sigs = await keeper.sign(b(args.anc.raw)); const sigers = sigs.map((sig: string) => new Siger({ qb64: sig })); const ims = d(messagize(args.anc, sigers)); atc = ims.substring(args.anc.size); }",
+      "note": "a grant with no `ancAttachment` signs the anchoring key event with the sender's keeper and takes the attachment off the resulting message — which means the *sender* signs an event belonging to the credential's issuer, whoever that is",
+      "rust_decision": "the anchor attachment is a required input. Roadmap 6.2 produces the issuer's own signed anchor, and a discloser who is not the issuer cannot produce a valid one; making it required means the caller must supply what it actually has."
+    },
+    "routes_are_string_literals": {
+      "scan": {
+        "needle": "/ipex/",
+        "total": 104,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 10
+          },
+          {
+            "file": "src/keri/app/exchanging.ts",
+            "count": 5
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 21
+          },
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 9
+          },
+          {
+            "file": "test-integration/multisig-vlei-issuance.test.ts",
+            "count": 23
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 8
+          },
+          {
+            "file": "test-integration/singlesig-vlei-issuance.test.ts",
+            "count": 10
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/utils/test-util.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/credentialing.test.ts",
+            "count": 16
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "the five routes appear as bare string literals at their call sites; the pinned `app/exchanging.ts` declares a route table for multisig but none for IPEX",
+      "rust_decision": "a typed `IpexRoute` enum, whose `as_str` is asserted against the literals read from the reference's own syntax tree. The general exchange route table is Roadmap 8.1."
+    },
+    "sender_and_recipient_are_unvalidated": {
+      "note": "`senderName` is an alias looked up remotely and `recipient` is free text interpolated into the message; neither is checked, so a typo becomes part of the exchange's identifier",
+      "rust_decision": "the recipient is an `IdentifierPrefix` and the sender is the habitat's own prefix, as Roadmap 3.8 already types them."
+    },
+    "attributes_are_an_untyped_record": {
+      "payload_expression": "data = { m: args.message ?? '', s: args.schemaSaid, a: args.attributes ?? {}, }",
+      "note": "an apply's `attributes` is `Record<string, unknown>`, spread into the payload with no bound and no label check",
+      "rust_decision": "an ordered `Sad`, bounded and label-checked exactly as Roadmap 6.1 bounds a credential's attribute block, because it is committed into the exchange's identifier the same way."
+    }
+  }
+}

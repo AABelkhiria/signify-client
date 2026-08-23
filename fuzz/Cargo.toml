@@ -297,6 +297,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "ipex"
+path = "fuzz_targets/ipex.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
