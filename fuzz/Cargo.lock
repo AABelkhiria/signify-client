@@ -669,6 +669,21 @@ dependencies = [
  "serde_json",
  "signify-acdc",
  "signify-cesr",
+ "signify-client",
+ "signify-crypto",
+ "signify-http",
+ "signify-keri",
+ "signify-types",
+]
+
+[[package]]
+name = "signify-client"
+version = "0.0.0"
+dependencies = [
+ "getrandom 0.3.4",
+ "serde_json",
+ "signify-acdc",
+ "signify-cesr",
  "signify-crypto",
  "signify-http",
  "signify-keri",

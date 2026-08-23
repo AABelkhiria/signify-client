@@ -16,5 +16,18 @@ signify-http = { path = "../signify-http" }
 signify-keri = { path = "../signify-keri" }
 signify-types = { path = "../signify-types" }
 
+getrandom.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+serde.workspace = true
+tokio = { workspace = true, features = ["macros", "rt"] }
+
+[[bench]]
+name = "lifecycle"
+harness = false
+
 [lints]
 workspace = true

@@ -850,7 +850,7 @@ impl KeyManager {
 /// Returns [`ManagerError::PasscodeTooShort`] below [`PASSCODE_LENGTH`] characters,
 /// [`ManagerError::InvalidPasscode`] for a character outside the alphabet, and a layered
 /// [`ManagerError::Crypto`] when the result is not a usable salt.
-pub(crate) fn salt_from_passcode(passcode: &str, tier: SecurityTier) -> Result<Salt, ManagerError> {
+pub fn salt_from_passcode(passcode: &str, tier: SecurityTier) -> Result<Salt, ManagerError> {
     if passcode.chars().count() < PASSCODE_LENGTH {
         return Err(ManagerError::PasscodeTooShort {
             required: PASSCODE_LENGTH,

@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-23",
+  "sources": [
+    "src/keri/app/clienting.ts",
+    "src/keri/app/coring.ts",
+    "src/ready.ts",
+    "test/app/clienting.test.ts"
+  ],
+  "provenance": {
+    "passcode": "0123456789abcdefghijk",
+    "passcode_note": "PUBLIC TEST MATERIAL: the passcode the pinned `clienting.test.ts` publishes; it has never protected anything",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "agent_verification_key": "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark",
+    "agent_seed_note": "PUBLIC TEST MATERIAL: the agent's seed is the fixed array in this generator, as Roadmap 5.5's fixture used",
+    "fixed_clock_ms": 1700000000123,
+    "fixed_clock_iso": "2023-11-14T22:13:20.123Z",
+    "note": "the clock is pinned as Roadmap 5.5's fixture pinned it, so the signed requests reproduce byte for byte including their signatures; the agent's key is fixed so its response signatures do too"
+  },
+  "declarations": {
+    "default_boot_url": "DEFAULT_BOOT_URL = 'http://localhost:3903'",
+    "passcode_length_check": "if (bran.length < 21) { throw Error('bran must be 21 characters'); }",
+    "boot_body": "data = { icp: evt.sad, sig: sign.qb64, stem: this.controller?.stem, pidx: 1, tier: this.controller?.tier, }",
+    "state_path": "`/agent/${caid}`",
+    "connect_anchor_check": "if (this.agent.anchor != this.controller.pre) { throw Error( 'commitment to controller AID missing in agent inception event' ); }",
+    "connect_delegation_check": "if (this.controller.serder.sad.s == 0) { await this.approveDelegation(); }",
+    "approve_delegation_url": "this.url + '/agent/' + this.controller.pre + '?type=ixn'",
+    "fetch_error_message": "`HTTP ${method} ${path} - ${res.status} ${res.statusText} - ${error}`",
+    "random_passcode": "export function randomPasscode(): string { const raw = libsodium.randombytes_buf(16); const salter = new Salter({ raw: raw }); // https://github.com/WebOfTrust/signify-ts/issues/242 return salter.qb64.substring(2, 23); }",
+    "random_nonce": "export function randomNonce(): string { const seed = libsodium.randombytes_buf(libsodium.crypto_sign_SEEDBYTES); const seedqb64 = new Matter({ raw: seed, code: MtrDex.Ed25519_Seed }); return seedqb64.qb64; }",
+    "ready": "import _sodium from 'libsodium-wrappers-sumo';\n\nexport const ready: () => Promise<void> = async () => {\n    await _sodium.ready;\n};",
+    "notes": {
+      "boot": "boot posts the controller's inception event, its signature, the derivation stem, a hardcoded `pidx: 1`, and the tier — to the *boot* URL, unauthenticated, because no agent exists yet to authenticate to",
+      "connect": "connect reads the agent state, rebuilds the controller against the returned establishment event, refuses an agent whose inception does not anchor this controller, approves the delegation when the controller is still at sequence zero, and only then builds the key manager and the authenticator",
+      "fetch": "the signed pipeline is Roadmap 5.5's; what the client adds is the controller prefix it stamps and the agent key it verifies against"
+    }
+  },
+  "lifecycle": [
+    {
+      "name": "boot",
+      "note": "the first call any client makes: the controller's inception, posted to the boot URL",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3903/boot",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sig\":\"AACJwsJ0mvb4VgxD87H4jIsiT1QtlzznUy9zrX3lGdd48jjQRTv8FxlJ8ClDsGtkvK4Eekg5p-oPYiPvK_1eTXEG\",\"stem\":\"signify:controller\",\"pidx\":1,\"tier\":\"low\"}"
+        }
+      ]
+    },
+    {
+      "name": "state",
+      "note": "reading the agent resource, which names both the agent and the controller",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "method": "GET",
+          "headers": [],
+          "body": null
+        }
+      ]
+    },
+    {
+      "name": "connect",
+      "note": "rebuilds the controller against the returned state, validates the agent's anchor, and approves the delegation because the controller is still at sequence zero",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "method": "GET",
+          "headers": [],
+          "body": null
+        },
+        {
+          "url": "http://127.0.0.1:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose?type=ixn",
+          "method": "PUT",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"0\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]},\"sigs\":[\"AAAMAEVf8iVtRL0t2GhdEKNXh7QaIriFSHKAdaMb1y56HDGD4rJ7Dev9YPqj40LTdzG4Et3UHKwdCv_16lSeSMEC\"]}"
+        }
+      ]
+    },
+    {
+      "name": "fetch_get",
+      "note": "one signed request, with the clock pinned so its signature is exact",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/contacts",
+          "method": "GET",
+          "headers": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "signature",
+              "value": "indexed=\"?0\";signify=\"0BAdgOSJ9-pUdQmUltKbN0StjujBP_6F3YWlCzEYJmC1ajdCsphFL6nxe65trPA9W36N26KBugnrKdwhmsnNZ_YK\""
+            },
+            {
+              "name": "signature-input",
+              "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+            },
+            {
+              "name": "signify-resource",
+              "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+            },
+            {
+              "name": "signify-timestamp",
+              "value": "2023-11-14T22:13:20.123000+00:00"
+            }
+          ],
+          "body": null
+        }
+      ]
+    },
+    {
+      "name": "fetch_post",
+      "note": "a signed request carrying a JSON body",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/identifiers",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "signature",
+              "value": "indexed=\"?0\";signify=\"0BDstCKd0KSluyse7hd5NlzJo2IUU2a8dviQp2stg3zhbsw2qiF2Hf2XPKDWd1koEd71uWuKHmzrSxY3ZxSrSKUI\""
+            },
+            {
+              "name": "signature-input",
+              "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+            },
+            {
+              "name": "signify-resource",
+              "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+            },
+            {
+              "name": "signify-timestamp",
+              "value": "2023-11-14T22:13:20.123000+00:00"
+            }
+          ],
+          "body": "{\"name\":\"aid1\"}"
+        }
+      ]
+    },
+    {
+      "name": "save_old_passcode",
+      "note": "storing a superseded passcode with the agent, unauthenticated",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/salt/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "method": "PUT",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"salt\":\"1234\"}"
+        }
+      ]
+    },
+    {
+      "name": "delete_passcode",
+      "note": "deleting it again, also unauthenticated",
+      "error": null,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/salt/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "method": "DELETE",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": null
+        }
+      ]
+    },
+    {
+      "name": "fetch_error",
+      "note": "a non-success status, whose message the reference builds from the response",
+      "error": "HTTP GET /somepath - 400 Bad Request - Error info",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/somepath",
+          "method": "GET",
+          "headers": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "signature",
+              "value": "indexed=\"?0\";signify=\"0BD4XtGAMwfgWCghtlYffTsvyQdVbsIn3OVwcTCNX0rdQzVspZOgPRSgHTIgmk-BZZaNhB91EarQxm-sjXoBoMAH\""
+            },
+            {
+              "name": "signature-input",
+              "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\""
+            },
+            {
+              "name": "signify-resource",
+              "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+            },
+            {
+              "name": "signify-timestamp",
+              "value": "2023-11-14T22:13:20.123000+00:00"
+            }
+          ],
+          "body": null
+        }
+      ]
+    }
+  ],
+  "connected": {
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "controller_sequence_number": "1",
+    "controller_kind": "ixn",
+    "controller_event_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"0\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]}",
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "agent_anchor": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "agent_verification_key": "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark",
+    "pidx": 0,
+    "note": "after connect the controller has advanced to the interaction event approving the delegation, and its anchor names the agent"
+  },
+  "pinned_confirmations": {
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "controller_prefix_is_published": true,
+    "inception_raw": "{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}",
+    "boot_body": "{\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sig\":\"AACJwsJ0mvb4VgxD87H4jIsiT1QtlzznUy9zrX3lGdd48jjQRTv8FxlJ8ClDsGtkvK4Eekg5p-oPYiPvK_1eTXEG\",\"stem\":\"signify:controller\",\"pidx\":1,\"tier\":\"low\"}",
+    "boot_body_is_published": true,
+    "passcode_error": "bran must be 21 characters",
+    "note": "the controller prefix and the exact boot body are looked for among the literals the pinned `clienting.test.ts` asserts; the inception event is recorded beside them"
+  },
+  "random_shapes": {
+    "passcode_length": 21,
+    "passcode_lengths_all_equal": true,
+    "passcode_alphabet": "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz",
+    "passcode_distinct": 64,
+    "passcode_note": "`randomPasscode` builds a `Salter` from 16 random bytes and slices `qb64.substring(2, 23)` — dropping the two-character derivation code and taking 21 of the 22 remaining characters, which is the length the constructor requires",
+    "nonce_length": 44,
+    "nonce_lengths_all_equal": true,
+    "nonce_code": "A",
+    "nonce_codes_all_equal": true,
+    "nonce_distinct": 64,
+    "nonce_note": "`randomNonce` is 32 random bytes under the Ed25519 seed code, qualified",
+    "samples": 64
+  },
+  "reference_quirks": {
+    "boot_hardcodes_pidx_one": {
+      "expression": "data = { icp: evt.sad, sig: sign.qb64, stem: this.controller?.stem, pidx: 1, tier: this.controller?.tier, }",
+      "recorded_pidx": 1,
+      "client_pidx": 0,
+      "note": "the client's own `pidx` is zero at boot, but the body hardcodes `pidx: 1`; the two are never reconciled and nothing reads the field back",
+      "rust_decision": "reproduced verbatim, because the value is what a KERIA agent receives; it is a constant here rather than a field, so the two cannot disagree"
+    },
+    "approve_delegation_is_unauthenticated": {
+      "url": "this.url + '/agent/' + this.controller.pre + '?type=ixn'",
+      "request": {
+        "url": "http://127.0.0.1:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose?type=ixn",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"0\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]},\"sigs\":[\"AAAMAEVf8iVtRL0t2GhdEKNXh7QaIriFSHKAdaMb1y56HDGD4rJ7Dev9YPqj40LTdzG4Et3UHKwdCv_16lSeSMEC\"]}"
+      },
+      "note": "the PUT that anchors the agent's delegation carries no HTTP signature at all — it bypasses `fetch` and calls the global directly, which Roadmap 5.1 also recorded",
+      "rust_decision": "reproduced: the call is made on the unsigned transport, and the API says so. Changing it would produce a request KERIA does not expect."
+    },
+    "passcode_save_and_delete_are_unauthenticated": {
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3901/salt/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "method": "PUT",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"salt\":\"1234\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3901/salt/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "method": "DELETE",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": null
+        }
+      ],
+      "note": "`saveOldPasscode` and `deletePasscode` also bypass `fetch`, so a passcode is written to the agent over an unsigned request",
+      "rust_decision": "reproduced, and named: both methods are documented as unauthenticated so a caller cannot mistake them for signed calls."
+    },
+    "state_reports_404_as_a_message": {
+      "expression": "if (res.status == 404) { throw new Error(`agent does not exist for controller ${caid}`); }",
+      "note": "a missing agent is reported as a thrown string naming the controller; every other status falls through and is parsed as if it were the state",
+      "rust_decision": "typed: a 404 is `ClientError::AgentNotFound` and any other non-success status is `ClientError::Status`, so a 500 is never parsed as state."
+    },
+    "connect_assigns_ridx_without_rederiving": {
+      "expression": "this.controller.ridx = state.ridx !== undefined ? state.ridx : 0",
+      "note": "connect assigns `controller.ridx` after construction without re-deriving any key, so the field and the keys it names can disagree",
+      "rust_decision": "unrepresentable: Roadmap 4.5 fixes the rotation index at construction, so the controller is rebuilt with the returned index rather than mutated after the fact."
+    },
+    "ready_is_libsodium_initialization": {
+      "source": "import _sodium from 'libsodium-wrappers-sumo';\n\nexport const ready: () => Promise<void> = async () => {\n    await _sodium.ready;\n};",
+      "scan": {
+        "needle": "ready.ts",
+        "total": 1,
+        "files": [
+          {
+            "file": "src/exports.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`src/ready.ts` is four lines that await libsodium's WebAssembly initialization; there is nothing protocol-level in it. The scan counts where the module is imported from, which is the export surface alone",
+      "rust_decision": "`N/A`: the Rust cryptographic stack needs no asynchronous initialization, so there is nothing to port. Recorded against the file's own text."
+    },
+    "fetch_requires_connect_at_run_time": {
+      "expression": "throw new Error('client need to call connect first');",
+      "note": "`fetch` throws `client need to call connect first` when the authenticator is still null, which is a run-time check on a state the type system could have carried",
+      "rust_decision": "unrepresentable: connecting consumes the unconnected client and returns a connected one, so there is no `fetch` to call before connecting."
+    }
+  }
+}

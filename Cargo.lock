@@ -1257,12 +1257,18 @@ dependencies = [
 name = "signify-client"
 version = "0.0.0"
 dependencies = [
+ "criterion",
+ "getrandom 0.3.4",
+ "proptest",
+ "serde",
+ "serde_json",
  "signify-acdc",
  "signify-cesr",
  "signify-crypto",
  "signify-http",
  "signify-keri",
  "signify-types",
+ "tokio",
 ]
 
 [[package]]

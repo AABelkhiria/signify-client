@@ -301,6 +301,26 @@ impl Controller {
         &self.signer
     }
 
+    /// Re-derives this controller's signing key as an owned value.
+    ///
+    /// [`Self::expose_signer`] lends the key the controller holds, which is enough to sign an
+    /// event in place. An HTTP authenticator instead needs to *own* one for the life of a
+    /// connection, and Roadmap 2.5 deliberately made [`Signer`] non-cloneable so a secret cannot be
+    /// duplicated by accident. Re-deriving is the way to get a second one, and it goes through the
+    /// same salt, stem, and rotation index the controller itself used, so the two always agree.
+    ///
+    /// This costs one key derivation, at whatever profile the controller was built with.
+    ///
+    /// # Errors
+    ///
+    /// Returns layered [`ControllerError::Crypto`] or [`ControllerError::Manager`] failures when
+    /// the key cannot be derived.
+    pub fn derive_signing_key(&self) -> Result<Signer, ControllerError> {
+        let stem = Stem::new(CONTROLLER_STEM)?;
+        let creator = SaltyKeyCreator::new(&self.salt, stem);
+        single_signer(&creator, self.rotation_index, self.cost.profile(self.tier))
+    }
+
     /// Signs the current event; the reference's `event` getter.
     ///
     /// # Errors

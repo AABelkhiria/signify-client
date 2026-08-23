@@ -10,6 +10,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4.13"
 signify-acdc = { path = "../crates/signify-acdc" }
+signify-client = { path = "../crates/signify-client" }
 signify-cesr = { path = "../crates/signify-cesr" }
 signify-crypto = { path = "../crates/signify-crypto" }
 signify-http = { path = "../crates/signify-http" }
@@ -300,6 +301,13 @@ bench = false
 [[bin]]
 name = "ipex"
 path = "fuzz_targets/ipex.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "client_lifecycle"
+path = "fuzz_targets/client_lifecycle.rs"
 test = false
 doc = false
 bench = false

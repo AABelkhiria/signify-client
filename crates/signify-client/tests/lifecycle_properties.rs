@@ -1,0 +1,329 @@
+//! Invariants of the client lifecycle.
+//!
+//! Every client here uses the ephemeral derivation cost. The production profile costs 64 MiB per
+//! key, which a property test would multiply by its case count; nothing under test depends on the
+//! profile, and the cross-language vectors cover the production one exactly.
+
+use std::sync::Arc;
+use std::time::{Duration, SystemTime};
+
+use proptest::prelude::*;
+use signify_client::client::{BOOT_PREFIX_INDEX, ClientRequest, SignifyClient};
+use signify_client::config::{ClientConfig, DEFAULT_BOOT_URL, PASSCODE_LENGTH, Passcode};
+use signify_client::error::ClientError;
+use signify_client::random::{random_nonce, random_passcode};
+use signify_crypto::salt::SecurityTier;
+use signify_http::header::{HeaderName, HeaderValue, Headers};
+use signify_http::request::ResourcePath;
+use signify_http::retry::{Clock, TestClock};
+use signify_http::transport::{Method, Response, ScriptedTransport, StatusCode};
+use signify_keri::manager::DerivationCost;
+use signify_keri::serialization::{Sad, SadValue};
+
+const ADMIN: &str = "http://127.0.0.1:3901";
+const BOOT: &str = "http://127.0.0.1:3903";
+const PASSCODE: &str = "0123456789abcdefghijk";
+const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
+const AGENT_KEY: &str = "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark";
+
+fn fail(error: impl core::fmt::Display) -> TestCaseError {
+    TestCaseError::fail(error.to_string())
+}
+
+/// A minimal executor; every future on this path is ready on its first poll.
+fn block_on<F: core::future::Future>(future: F) -> F::Output {
+    use core::task::{Context, Poll, Waker};
+    let mut future = Box::pin(future);
+    let mut context = Context::from_waker(Waker::noop());
+    loop {
+        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
+            return value;
+        }
+    }
+}
+
+fn clock() -> Arc<dyn Clock> {
+    Arc::new(TestClock::with_wall_clock(
+        SystemTime::UNIX_EPOCH + Duration::from_millis(1_700_000_000_123),
+    ))
+}
+
+fn config(passcode: &str) -> Result<ClientConfig, ClientError> {
+    Ok(ClientConfig::new(ADMIN, passcode)?
+        .with_boot_url(BOOT)?
+        .with_derivation_cost(DerivationCost::Ephemeral))
+}
+
+/// A response carrying the agent resource, whose controller event is spliced in as text so its
+/// version string stays first.
+fn agent_state(controller_prefix: &str, inception: &str, rotation_index: u32) -> String {
+    let agent = format!(
+        r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{AGENT_KEY}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller_prefix}"}}"#
+    );
+    format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":{rotation_index},"pidx":0}}"#)
+}
+
+fn response(status: u16, body: Vec<u8>) -> Result<Response, TestCaseError> {
+    let mut headers = Headers::new();
+    headers
+        .insert(
+            HeaderName::new("signify-resource").map_err(fail)?,
+            HeaderValue::new(AGENT).map_err(fail)?,
+        )
+        .map_err(fail)?;
+    Response::new(StatusCode::new(status).map_err(fail)?, headers, body).map_err(fail)
+}
+
+proptest! {
+    /// A passcode is accepted exactly when it is the right length and holds only URL-safe Base64,
+    /// and the failure names which rule it broke.
+    #[test]
+    fn a_passcode_is_accepted_exactly_when_it_is_well_formed(
+        length in 0_usize..30,
+        illegal in prop::option::of(0_usize..21),
+    ) {
+        let mut text: String = "a".repeat(length);
+        if let Some(position) = illegal
+            && position < length
+        {
+            text.replace_range(position..=position, "+");
+        }
+        let offending = illegal.filter(|position| *position < length);
+
+        match Passcode::new(text.clone()) {
+            Ok(passcode) => {
+                prop_assert_eq!(length, PASSCODE_LENGTH);
+                prop_assert!(offending.is_none());
+                prop_assert_eq!(passcode.expose(), text.as_str());
+            }
+            Err(ClientError::InvalidPasscodeLength { expected, actual }) => {
+                prop_assert_ne!(length, PASSCODE_LENGTH);
+                prop_assert_eq!(expected, PASSCODE_LENGTH);
+                prop_assert_eq!(actual, length);
+            }
+            Err(ClientError::PasscodeNotBase64 { position }) => {
+                prop_assert_eq!(length, PASSCODE_LENGTH);
+                prop_assert_eq!(Some(position), offending);
+            }
+            Err(other) => return Err(fail(other)),
+        }
+    }
+
+    /// A passcode never appears in any rendering of itself or of the configuration holding it.
+    #[test]
+    fn a_passcode_is_never_rendered(suffix in "[A-Za-z0-9_-]{11}") {
+        let text = format!("0123456789{suffix}");
+        let passcode = Passcode::new(text.clone()).map_err(fail)?;
+        let rendered = format!("{passcode:?}");
+        prop_assert!(!rendered.contains(&text), "a passcode rendered itself");
+
+        let config = config(&text).map_err(fail)?;
+        let rendered = format!("{config:?}");
+        prop_assert!(!rendered.contains(&text), "a configuration rendered its passcode");
+        prop_assert!(!rendered.contains(&suffix), "a configuration rendered part of its passcode");
+
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(config, transport, clock()).map_err(fail)?;
+        let rendered = format!("{client:?}");
+        prop_assert!(!rendered.contains(&text), "a client rendered its passcode");
+    }
+
+    /// The boot body carries the same five fields in the same order whatever the passcode, and its
+    /// prefix index is always the constant the reference hardcodes.
+    #[test]
+    fn the_boot_body_shape_never_varies(suffix in "[A-Za-z0-9_-]{11}") {
+        let passcode = format!("0123456789{suffix}");
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(config(&passcode).map_err(fail)?, transport, clock()).map_err(fail)?;
+
+        let body = client.boot_body().map_err(fail)?;
+        let document = Sad::from_json_bytes(&body).map_err(fail)?;
+        let labels: Vec<&str> = document.entries().map(|(label, _)| label).collect();
+        prop_assert_eq!(labels, ["icp", "sig", "stem", "pidx", "tier"]);
+        prop_assert_eq!(document.get("pidx"), Some(&SadValue::Integer(BOOT_PREFIX_INDEX)));
+        prop_assert_eq!(document.get_text("stem"), Some("signify:controller"));
+        prop_assert_eq!(document.get_text("tier"), Some("low"));
+
+        // The inception it carries is the controller's own, byte for byte.
+        let inception = document.get("icp").and_then(SadValue::as_map)
+            .ok_or_else(|| TestCaseError::fail("no inception in the boot body"))?;
+        prop_assert_eq!(
+            inception.to_json_bytes().map_err(fail)?,
+            client.controller().current_event().raw()
+        );
+    }
+
+    /// Every security tier renders as the wire text a KERIA agent stores, and the tier changes the
+    /// keys, so two clients on different tiers are different controllers.
+    #[test]
+    fn a_tier_changes_the_controller_and_its_wire_text(index in 0_usize..3) {
+        let tiers = [SecurityTier::Low, SecurityTier::Medium, SecurityTier::High];
+        let texts = ["low", "med", "high"];
+        let tier = *tiers.get(index).ok_or_else(|| TestCaseError::fail("no such tier"))?;
+        let expected = *texts.get(index).ok_or_else(|| TestCaseError::fail("no such text"))?;
+
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(
+            config(PASSCODE).map_err(fail)?.with_tier(tier),
+            transport,
+            clock(),
+        )
+        .map_err(fail)?;
+        let body = Sad::from_json_bytes(&client.boot_body().map_err(fail)?).map_err(fail)?;
+        prop_assert_eq!(body.get_text("tier"), Some(expected));
+    }
+
+    /// An agent whose inception anchors a different controller is always refused, and the failure
+    /// names both prefixes.
+    #[test]
+    fn an_agent_anchoring_someone_else_is_refused(suffix in "[A-Za-z0-9_-]{11}") {
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(config(PASSCODE).map_err(fail)?, Arc::clone(&transport) as Arc<_>, clock())
+            .map_err(fail)?;
+        let prefix = client.controller().prefix().qb64().map_err(fail)?;
+        let inception = core::str::from_utf8(client.controller().current_event().raw())
+            .map_err(fail)?
+            .to_owned();
+
+        // The agent's inception anchors a controller derived from a different passcode.
+        let other = SignifyClient::new(
+            config(&format!("abcdefghij{suffix}")).map_err(fail)?,
+            Arc::new(ScriptedTransport::new()),
+            clock(),
+        )
+        .map_err(fail)?;
+        let other_prefix = other.controller().prefix().qb64().map_err(fail)?;
+        prop_assume!(other_prefix != prefix);
+
+        transport.push_response(response(200, agent_state(&other_prefix, &inception, 0).into_bytes())?);
+        let outcome = block_on(client.connect());
+        prop_assert!(
+            matches!(
+                &outcome,
+                Err(ClientError::AgentNotDelegatedToController { expected, actual })
+                    if *expected == prefix && *actual == other_prefix
+            ),
+            "an agent anchoring another controller was accepted"
+        );
+    }
+
+    /// A 404 is always the missing-agent failure, and any other non-success status is a status
+    /// failure — never parsed as state.
+    #[test]
+    fn a_non_success_state_read_is_never_parsed(status in 400_u16..600) {
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(config(PASSCODE).map_err(fail)?, Arc::clone(&transport) as Arc<_>, clock())
+            .map_err(fail)?;
+        transport.push_response(response(status, b"trouble".to_vec())?);
+
+        match block_on(client.state()) {
+            Err(ClientError::AgentNotFound { controller }) => {
+                prop_assert_eq!(status, 404);
+                prop_assert_eq!(controller, client.controller().prefix().qb64().map_err(fail)?);
+            }
+            Err(ClientError::Status { status: reported, detail }) => {
+                prop_assert_ne!(status, 404);
+                prop_assert_eq!(reported, status);
+                prop_assert_eq!(detail, "trouble");
+            }
+            other => return Err(fail(format!("a {status} was not refused: {other:?}"))),
+        }
+    }
+
+    /// A state body missing either half is refused rather than half-read.
+    #[test]
+    fn an_incomplete_state_body_is_refused(drop_agent in any::<bool>()) {
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(config(PASSCODE).map_err(fail)?, Arc::clone(&transport) as Arc<_>, clock())
+            .map_err(fail)?;
+        let body = if drop_agent {
+            r#"{"controller":{"ee":{}},"ridx":0,"pidx":0}"#
+        } else {
+            r#"{"agent":{},"ridx":0,"pidx":0}"#
+        };
+        transport.push_response(response(200, body.as_bytes().to_vec())?);
+
+        prop_assert!(
+            matches!(
+                block_on(client.state()),
+                Err(ClientError::IncompleteAgentState { .. })
+            ),
+            "an incomplete state body was accepted"
+        );
+    }
+
+    /// A generated passcode is always one this port and the reference would both accept, and a
+    /// generated nonce is always a qualified Ed25519 seed.
+    #[test]
+    fn the_random_helpers_always_produce_usable_values(rounds in 1_usize..6) {
+        for _ in 0..rounds {
+            let passcode = random_passcode().map_err(fail)?;
+            prop_assert_eq!(passcode.expose().chars().count(), PASSCODE_LENGTH);
+            Passcode::new(passcode.expose()).map_err(fail)?;
+
+            let nonce = random_nonce().map_err(fail)?;
+            prop_assert_eq!(nonce.len(), 44);
+            prop_assert!(nonce.starts_with('A'));
+        }
+    }
+}
+
+/// Regression: connecting when the controller is already past sequence zero must not approve the
+/// delegation again — the reference's check is on the sequence number, not on a flag.
+#[test]
+fn a_connected_controller_past_zero_does_not_reapprove() -> Result<(), Box<dyn std::error::Error>> {
+    let transport = Arc::new(ScriptedTransport::new());
+    let client = SignifyClient::new(config(PASSCODE)?, Arc::clone(&transport) as Arc<_>, clock())?;
+    let prefix = client.controller().prefix().qb64()?;
+
+    // An establishment event at sequence one: the controller adopts it rather than re-incepting,
+    // so no approval is needed.
+    let rotation = format!(
+        r#"{{"v":"KERI10JSON000160_","t":"rot","d":"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C","i":"{prefix}","s":"1","p":"{prefix}","kt":"1","k":["DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"],"nt":"1","n":["EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"],"bt":"0","br":[],"ba":[],"a":[]}}"#
+    );
+    // The recorded rotation must be a well-formed message before it can be adopted.
+    let sized = signify_keri::serialization::SerializedEvent::from_sad(Sad::from_json_bytes(rotation.as_bytes())?)?;
+    let adopted = core::str::from_utf8(sized.raw())?.to_owned();
+
+    transport.push_response({
+        let mut headers = Headers::new();
+        headers.insert(HeaderName::new("signify-resource")?, HeaderValue::new(AGENT)?)?;
+        Response::new(
+            StatusCode::new(200)?,
+            headers,
+            agent_state(&prefix, &adopted, 0).into_bytes(),
+        )?
+    });
+
+    let connected = block_on(client.connect())?;
+    assert_eq!(connected.controller().current_sequence_number(), 1);
+    // One request only: the state read. No approval went out.
+    assert_eq!(transport.recorded().len(), 1);
+    Ok(())
+}
+
+/// Regression: a client that has not connected has no `fetch` at all, which is what makes the
+/// reference's run-time check unnecessary. This test exists to fail if that ever becomes callable.
+#[test]
+fn an_unconnected_client_exposes_no_signed_call() -> Result<(), Box<dyn std::error::Error>> {
+    let transport = Arc::new(ScriptedTransport::new());
+    let client = SignifyClient::new(config(PASSCODE)?, transport, clock())?;
+
+    // The unconnected type offers exactly boot and state; building a request is possible, sending
+    // one is not, and the compiler is what enforces that.
+    let path = ResourcePath::builder().segment("contacts").build()?;
+    let request = ClientRequest::new(Method::Get, path);
+    assert_eq!(request.method(), Method::Get);
+    assert_eq!(request.path().as_str(), "/contacts");
+    assert_eq!(client.config().boot_url().as_str(), BOOT);
+    Ok(())
+}
+
+/// Regression: the default boot URL is the reference's, and is used when none is given.
+#[test]
+fn the_default_boot_url_is_the_references() -> Result<(), Box<dyn std::error::Error>> {
+    let config = ClientConfig::new(ADMIN, PASSCODE)?;
+    assert_eq!(config.boot_url().as_str(), DEFAULT_BOOT_URL);
+    assert_eq!(DEFAULT_BOOT_URL, "http://localhost:3903");
+    Ok(())
+}

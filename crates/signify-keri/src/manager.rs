@@ -24,6 +24,7 @@ pub use keeper::{
     DerivationCost, ExternalKeeperModule, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation,
     KeyMaterial, RandyKeeper, RandyKeeperRequest, SaltyKeeper, SaltyKeeperRequest, SaltySource, SigningPurpose,
 };
+pub use key_manager::salt_from_passcode;
 pub use key_manager::{
     InceptedKeys, InceptionRequest, KeyManager, KeyManagerBuilder, ManagedSignatures, PASSCODE_LENGTH,
     RetiredKeyPolicy, RotatedKeys, RotationRequest, SignatureForm,
