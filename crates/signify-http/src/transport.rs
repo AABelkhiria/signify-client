@@ -22,6 +22,8 @@
 //! `404` means belongs to the layer that knows what was asked for.
 
 pub mod error;
+#[cfg(feature = "http-client")]
+pub mod http_client;
 pub mod message;
 pub mod scripted;
 pub mod url;
@@ -30,6 +32,8 @@ use core::future::Future;
 use core::pin::Pin;
 
 pub use error::TransportError;
+#[cfg(feature = "http-client")]
+pub use http_client::{DEFAULT_TIMEOUT, HttpTransport, HttpTransportBuilder};
 pub use message::{
     DEFAULT_RESPONSE_BODY_LIMIT, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_LIMIT, Method, Request, RequestBuilder,
     Response, StatusCode,
