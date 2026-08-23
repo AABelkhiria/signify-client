@@ -12,7 +12,7 @@ categories.workspace = true
 argon2.workspace = true
 blake3 = { version = "1.8.6", default-features = false }
 ed25519-dalek = { version = "3.0.0", default-features = false, features = ["zeroize"] }
-getrandom = { version = "0.3.4", default-features = false, features = ["std"] }
+getrandom.workspace = true
 nacl-sealed-box = { version = "=0.2.0-rc.1", default-features = false }
 p256 = { version = "0.14.0", default-features = false, features = ["ecdsa"] }
 rand_core = { version = "0.10.1", default-features = false }
