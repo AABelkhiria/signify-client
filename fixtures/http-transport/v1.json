@@ -1,0 +1,342 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-22",
+  "sources": [
+    "src/keri/app/clienting.ts",
+    "src/keri/app/aiding.ts",
+    "src/keri/app/contacting.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://localhost:3901",
+    "boot_url": "http://localhost:3903",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "masked_headers": [
+      "signify-timestamp",
+      "signature",
+      "signature-input"
+    ],
+    "note": "the global fetch is replaced by a recorder and the reference's own client and endpoint code is driven through it; `Signify-Timestamp` is a clock read and `Signature` covers it, so both are recorded by name with the value masked — their exact bytes are Roadmap 3.10's evidence"
+  },
+  "requests": [
+    {
+      "name": "boot",
+      "note": "the unauthenticated POST that creates an agent; its headers are a plain object",
+      "request": {
+        "url": "http://localhost:3903/boot",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "masked": false
+          }
+        ],
+        "body": "{\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\"],\"nt\":\"1\",\"n\":[\"EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sig\":\"AACJwsJ0mvb4VgxD87H4jIsiT1QtlzznUy9zrX3lGdd48jjQRTv8FxlJ8ClDsGtkvK4Eekg5p-oPYiPvK_1eTXEG\",\"stem\":\"signify:controller\",\"pidx\":1,\"tier\":\"low\"}"
+      }
+    },
+    {
+      "name": "state",
+      "note": "the unauthenticated GET that reads agent and controller state",
+      "request": {
+        "url": "http://localhost:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+        "method": "GET",
+        "headers": [],
+        "body": null
+      }
+    },
+    {
+      "name": "approve_delegation",
+      "note": "the authenticated PUT that anchors the agent, sent during connect",
+      "request": {
+        "url": "http://localhost:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose?type=ixn",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "masked": false
+          }
+        ],
+        "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"0\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]},\"sigs\":[\"AAAMAEVf8iVtRL0t2GhdEKNXh7QaIriFSHKAdaMb1y56HDGD4rJ7Dev9YPqj40LTdzG4Et3UHKwdCv_16lSeSMEC\"]}"
+      }
+    },
+    {
+      "name": "identifiers_list",
+      "note": "an authenticated GET carrying a Range header and no body",
+      "request": {
+        "url": "http://localhost:3901/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "range",
+            "value": "aids=0-24",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "identifier_update",
+      "note": "an authenticated PUT whose path holds percent-encoded UTF-8",
+      "request": {
+        "url": "http://localhost:3901/identifiers/a%20name%20with%20%C3%B1!",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": "{\"name\":\"renamed\"}"
+      }
+    },
+    {
+      "name": "contacts_list_with_query",
+      "note": "an authenticated GET with a query string",
+      "request": {
+        "url": "http://localhost:3901/contacts?group=group&filter_field=field&filter_value=value",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "contact_delete",
+      "note": "an authenticated DELETE with no body",
+      "request": {
+        "url": "http://localhost:3901/contacts/EPRE",
+        "method": "DELETE",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "identifier_create",
+      "note": "an authenticated POST whose body carries an inception event and its signatures",
+      "request": {
+        "url": "http://localhost:3901/identifiers",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json",
+            "masked": false
+          },
+          {
+            "name": "signature",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signature-input",
+            "value": null,
+            "masked": true
+          },
+          {
+            "name": "signify-resource",
+            "value": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+            "masked": false
+          },
+          {
+            "name": "signify-timestamp",
+            "value": null,
+            "masked": true
+          }
+        ],
+        "body": "{\"name\":\"aid1\",\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"AACZZe75PvUZ1lCREPxFAcX59XHo-BGMYTAGni-I4E0eqKznrEoK2d-mtWmWHwKns7tfnjOzTfDUcv7PLFJ52g0A\"],\"salty\":{\"sxlt\":\"(sealed; a fresh ephemeral key each call)\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+      }
+    }
+  ],
+  "responses": [
+    {
+      "name": "json_ok",
+      "status": 200,
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        }
+      ],
+      "body": "{\"name\":\"aid1\"}",
+      "note": "the ordinary success a typed endpoint decodes"
+    },
+    {
+      "name": "ranged_list",
+      "status": 200,
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "content-range",
+          "value": "aids 0-1/2"
+        }
+      ],
+      "body": "[]",
+      "note": "a list response whose Content-Range drives Roadmap 5.3's paging"
+    },
+    {
+      "name": "accepted_operation",
+      "status": 202,
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        }
+      ],
+      "body": "{\"name\":\"operation\",\"done\":false}",
+      "note": "a long-running operation, which KERIA answers with 202"
+    },
+    {
+      "name": "not_found",
+      "status": 404,
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "text/plain"
+        }
+      ],
+      "body": "not found",
+      "note": "a non-success status is still a response the transport must return"
+    },
+    {
+      "name": "empty_body",
+      "status": 204,
+      "headers": [],
+      "body": "",
+      "note": "no content at all"
+    }
+  ],
+  "reference_quirks": {
+    "get_sends_a_null_body": {
+      "body": null,
+      "note": "`SignifyClient.fetch` sends `method == 'GET' ? null : JSON.stringify(data)`, so a GET carries no body at all rather than an empty one",
+      "rust_decision": "an absent body and an empty body are different values on Request; a transport may not turn one into the other"
+    },
+    "headers_are_joined_on_duplicates": {
+      "note": "the reference builds headers with the WHATWG `Headers` class, whose `append` joins a repeated name into one comma-separated value, silently changing what a signature covers",
+      "rust_decision": "Roadmap 3.9's `Headers` refuses a duplicate name; a request carrying one does not build"
+    },
+    "boot_uses_a_second_base_url": {
+      "boot_url": "http://localhost:3903/boot",
+      "admin_url": "http://localhost:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "note": "boot goes to a separate boot interface, so a client holds two base URLs and the transport must carry whichever it is given",
+      "rust_decision": "the transport takes a whole absolute URL; choosing between the two is Roadmap 6.4's"
+    },
+    "delegation_approval_is_unauthenticated": {
+      "headers": [
+        "content-type"
+      ],
+      "carries_signature": false,
+      "note": "`approveDelegation` calls the global fetch directly instead of `SignifyClient.fetch`, so the PUT that anchors the agent's delegation carries no Signature, Signature-Input, Signify-Resource, or Signify-Timestamp header at all — the payload's own KERI signatures are the only thing authenticating it",
+      "rust_decision": "recorded, not reproduced or corrected here: the transport sends whatever request it is handed, and whether this call is signed is Roadmap 6.4's composition decision"
+    },
+    "no_timeout_anywhere": {
+      "note": "no fetch call in the pinned source sets a signal or a timeout, so a request can hang until the platform's own default gives up",
+      "rust_decision": "a timeout is a transport outcome (`TransportError::Timeout`) and the policy that sets one is Roadmap 5.4"
+    }
+  }
+}

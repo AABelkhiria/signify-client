@@ -254,6 +254,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "transport"
+path = "fuzz_targets/transport.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
