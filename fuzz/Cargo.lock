@@ -644,6 +644,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "signify-acdc"
+version = "0.0.0"
+dependencies = [
+ "signify-cesr",
+ "signify-crypto",
+ "signify-keri",
+ "signify-types",
+]
+
+[[package]]
 name = "signify-cesr"
 version = "0.0.0"
 dependencies = [
@@ -657,6 +667,7 @@ version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "serde_json",
+ "signify-acdc",
  "signify-cesr",
  "signify-crypto",
  "signify-http",

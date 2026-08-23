@@ -1,0 +1,619 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-23",
+  "sources": [
+    "src/keri/app/credentialing.ts",
+    "test/app/credentialing.test.ts",
+    "test/app/test-utils.ts",
+    "test-integration/singlesig-vlei-issuance.test.ts",
+    "test-integration/multisig-vlei-issuance.test.ts"
+  ],
+  "provenance": {
+    "issuer": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+    "timestamp": "2023-08-23T15:16:07.553000+00:00",
+    "note": "every value is deterministic: `Saider.saidify` reads no clock and derives no keys. The identifiers, schema SAIDs, and attribute data are the pinned unit test's and the pinned vLEI integration suites' own; the timestamp is the mock credential's, standing in for the reference's `new Date()`."
+  },
+  "declarations": {
+    "credential_subject": [
+      {
+        "name": "i",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "dt",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "u",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "[index]",
+        "optional": false,
+        "type": "unknown"
+      }
+    ],
+    "credential_data": [
+      {
+        "name": "v",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "d",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "u",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "i",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "ri",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "s",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "name": "a",
+        "optional": false,
+        "type": "CredentialSubject"
+      },
+      {
+        "name": "e",
+        "optional": true,
+        "type": "{ [key: string]: unknown }"
+      },
+      {
+        "name": "r",
+        "optional": true,
+        "type": "{ [key: string]: unknown }"
+      }
+    ],
+    "credential_filter": [
+      {
+        "name": "filter",
+        "optional": true,
+        "type": "object"
+      },
+      {
+        "name": "sort",
+        "optional": true,
+        "type": "object[]"
+      },
+      {
+        "name": "skip",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "name": "limit",
+        "optional": true,
+        "type": "number"
+      }
+    ],
+    "credential_types": [
+      {
+        "name": "issued",
+        "value": "issued"
+      },
+      {
+        "name": "received",
+        "value": "received"
+      }
+    ],
+    "attribute_saidify_expression": "Saider.saidify({ d: '', ...args.a, dt: args.a.dt ?? new Date().toISOString().replace('Z', '000+00:00'), })",
+    "credential_saidify_expression": "Saider.saidify({ v: versify(Protocols.ACDC, undefined, Serials.JSON, 0), d: '', u: args.u, i: args.i ?? hab.prefix, ri: args.ri, s: args.s, a: subject, e: args.e, r: args.r, })",
+    "issuance_saidify_expression": "Saider.saidify({ v: versify(Protocols.KERI, undefined, Serials.JSON, 0), t: Ilks.iss, d: '', i: acdc.d, s: '0', ri: args.ri, dt: subject.dt, })",
+    "attribute_saidify_note": "the first saidify in `Credentials.issue` builds the attribute block: an empty `d` first, the caller's attributes spread over it, then `dt` — whose value is the caller's own when present, so an attribute block naming `dt` keeps that field where the caller put it",
+    "credential_saidify_note": "the second builds the credential itself in the fixed field order v, d, u, i, ri, s, a, e, r; `JSON.stringify` drops every `undefined`, so an absent optional field is simply absent",
+    "issuance_saidify_note": "the third builds the TEL issuance event and is Roadmap 6.2's, recorded here only to prove this generator read the whole method and left it alone",
+    "acdc_version_string": "ACDC10JSON000000_",
+    "digest_code": "E"
+  },
+  "supporting": {
+    "le_rules": {
+      "raw": "{\"d\":\"EGZ97EjPSINR-O-KHDN_uw4fdrTxeuRXrqT5ZHHQJujQ\",\"usageDisclaimer\":{\"l\":\"Usage of a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, does not assert that the Legal Entity is trustworthy, honest, reputable in its business dealings, safe to do business with, or compliant with any laws or that an implied or expressly intended purpose will be fulfilled.\"},\"issuanceDisclaimer\":{\"l\":\"All information in a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, is accurate as of the date the validation process was complete. The vLEI Credential has been issued to the legal entity or person named in the vLEI Credential as the subject; and the qualified vLEI Issuer exercised reasonable care to perform the validation process set forth in the vLEI Ecosystem Governance Framework.\"}}",
+      "said": "EGZ97EjPSINR-O-KHDN_uw4fdrTxeuRXrqT5ZHHQJujQ"
+    },
+    "ecr_rules": {
+      "raw": "{\"d\":\"EIfq_m1DI2IQ1MgHhUl9sq3IQ_PJP9WQ1LhbMscngDCB\",\"usageDisclaimer\":{\"l\":\"Usage of a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, does not assert that the Legal Entity is trustworthy, honest, reputable in its business dealings, safe to do business with, or compliant with any laws or that an implied or expressly intended purpose will be fulfilled.\"},\"issuanceDisclaimer\":{\"l\":\"All information in a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, is accurate as of the date the validation process was complete. The vLEI Credential has been issued to the legal entity or person named in the vLEI Credential as the subject; and the qualified vLEI Issuer exercised reasonable care to perform the validation process set forth in the vLEI Ecosystem Governance Framework.\"},\"privacyDisclaimer\":{\"l\":\"It is the sole responsibility of Holders as Issuees of an ECR vLEI Credential to present that Credential in a privacy-preserving manner using the mechanisms provided in the Issuance and Presentation Exchange (IPEX) protocol specification and the Authentic Chained Data Container (ACDC) specification. https://github.com/WebOfTrust/IETF-IPEX and https://github.com/trustoverip/tswg-acdc-specification.\"}}",
+      "said": "EIfq_m1DI2IQ1MgHhUl9sq3IQ_PJP9WQ1LhbMscngDCB"
+    },
+    "le_edges": {
+      "raw": "{\"d\":\"EB1Nigr5TwNtkBjQK7BcOreq70rmAaNb9GDfCKaXmAjp\",\"qvi\":{\"n\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}}",
+      "said": "EB1Nigr5TwNtkBjQK7BcOreq70rmAaNb9GDfCKaXmAjp"
+    },
+    "note": "the rule and edge blocks the pinned vLEI integration suites build with `Saider.saidify` before issuing; they reach `issue` already complete and are committed verbatim"
+  },
+  "credentials": {
+    "pinned_mock_credential": {
+      "note": "the credential the pinned `test/app/test-utils.ts` checks in as `mockCredential.sad`, rebuilt from its inputs; both of its published SAIDs must reproduce",
+      "raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}}",
+      "said": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+      "size": 407,
+      "version": "ACDC10JSON000197_",
+      "attributes_raw": "{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}",
+      "attributes_said": "EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "LEI"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "pinned_unit_test_arguments": {
+      "note": "the exact arguments the pinned `credentialing.test.ts` passes to `issue`, whose own `dt` is a clock reading and is supplied here instead",
+      "raw": "{\"v\":\"ACDC10JSON000187_\",\"d\":\"EIJlZI7p0zt9V-wW7JVhI45395rvdeQLjjS_vaoWx4yE\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EBbUC7Wl6vtGktkWwb_C-sAd_SiknCcs6oU22WpskCW_\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"1234\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "said": "EIJlZI7p0zt9V-wW7JVhI45395rvdeQLjjS_vaoWx4yE",
+      "size": 391,
+      "version": "ACDC10JSON000187_",
+      "attributes_raw": "{\"d\":\"EBbUC7Wl6vtGktkWwb_C-sAd_SiknCcs6oU22WpskCW_\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"1234\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "attributes_said": "EBbUC7Wl6vtGktkWwb_C-sAd_SiknCcs6oU22WpskCW_",
+      "attribute_labels": [
+        "d",
+        "i",
+        "LEI",
+        "dt"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "qvi_singlesig": {
+      "note": "the QVI credential of the pinned single-signature vLEI suite",
+      "raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"ELlf1SV7explDsVwa8OMLzj5QM7LbBl0e23woxBAtSe1\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEBU2c_MDL-hwSc8jby4kvRcBLwnmSIwyY_PswZNuYKt\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"254900OPPU84GM83MG36\"}}",
+      "said": "ELlf1SV7explDsVwa8OMLzj5QM7LbBl0e23woxBAtSe1",
+      "size": 407,
+      "version": "ACDC10JSON000197_",
+      "attributes_raw": "{\"d\":\"EEBU2c_MDL-hwSc8jby4kvRcBLwnmSIwyY_PswZNuYKt\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"254900OPPU84GM83MG36\"}",
+      "attributes_said": "EEBU2c_MDL-hwSc8jby4kvRcBLwnmSIwyY_PswZNuYKt",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "LEI"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "le_with_edges_and_rules": {
+      "note": "the LE credential: an attribute block, an edge block, and two rules",
+      "raw": "{\"v\":\"ACDC10JSON0005c8_\",\"d\":\"EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY\",\"a\":{\"d\":\"EO6bPSH24fBqXQrqJrg-l35KfqtNk-O_Lf9LVth65v_7\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"875500ELOZEL05BVXV37\"},\"e\":{\"d\":\"EB1Nigr5TwNtkBjQK7BcOreq70rmAaNb9GDfCKaXmAjp\",\"qvi\":{\"n\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}},\"r\":{\"d\":\"EGZ97EjPSINR-O-KHDN_uw4fdrTxeuRXrqT5ZHHQJujQ\",\"usageDisclaimer\":{\"l\":\"Usage of a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, does not assert that the Legal Entity is trustworthy, honest, reputable in its business dealings, safe to do business with, or compliant with any laws or that an implied or expressly intended purpose will be fulfilled.\"},\"issuanceDisclaimer\":{\"l\":\"All information in a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, is accurate as of the date the validation process was complete. The vLEI Credential has been issued to the legal entity or person named in the vLEI Credential as the subject; and the qualified vLEI Issuer exercised reasonable care to perform the validation process set forth in the vLEI Ecosystem Governance Framework.\"}}}",
+      "said": "EOAE2mCC8e2oNXbXPtiDFMMGrQ6N8iS7ZUAS2fWwqua0",
+      "size": 1480,
+      "version": "ACDC10JSON0005c8_",
+      "attributes_raw": "{\"d\":\"EO6bPSH24fBqXQrqJrg-l35KfqtNk-O_Lf9LVth65v_7\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"875500ELOZEL05BVXV37\"}",
+      "attributes_said": "EO6bPSH24fBqXQrqJrg-l35KfqtNk-O_Lf9LVth65v_7",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "LEI"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a",
+        "e",
+        "r"
+      ],
+      "reference_verifies": true
+    },
+    "ecr_with_both_salts": {
+      "note": "the ECR credential: a privacy salt at both levels and three rules",
+      "raw": "{\"v\":\"ACDC10JSON0007fd_\",\"d\":\"ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi\",\"u\":\"0AD6E0lCLBQ0-JOFBoTd9k8I\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EEy9PkikFcANV1l7EHukCeXqrzT1hNZjGlUk7wuMO5jw\",\"a\":{\"d\":\"EBF2ODU2pA71-PNXTYI0zTFnHMflwDkMyy7pmDDnK7JU\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"u\":\"0AB2eqZ4Ce4VPaWCTYlG5r9J\",\"LEI\":\"875500ELOZEL05BVXV37\",\"personLegalName\":\"John Doe\",\"engagementContextRole\":\"EBA Data Submitter\"},\"e\":{\"d\":\"EB1Nigr5TwNtkBjQK7BcOreq70rmAaNb9GDfCKaXmAjp\",\"qvi\":{\"n\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}},\"r\":{\"d\":\"EIfq_m1DI2IQ1MgHhUl9sq3IQ_PJP9WQ1LhbMscngDCB\",\"usageDisclaimer\":{\"l\":\"Usage of a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, does not assert that the Legal Entity is trustworthy, honest, reputable in its business dealings, safe to do business with, or compliant with any laws or that an implied or expressly intended purpose will be fulfilled.\"},\"issuanceDisclaimer\":{\"l\":\"All information in a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, is accurate as of the date the validation process was complete. The vLEI Credential has been issued to the legal entity or person named in the vLEI Credential as the subject; and the qualified vLEI Issuer exercised reasonable care to perform the validation process set forth in the vLEI Ecosystem Governance Framework.\"},\"privacyDisclaimer\":{\"l\":\"It is the sole responsibility of Holders as Issuees of an ECR vLEI Credential to present that Credential in a privacy-preserving manner using the mechanisms provided in the Issuance and Presentation Exchange (IPEX) protocol specification and the Authentic Chained Data Container (ACDC) specification. https://github.com/WebOfTrust/IETF-IPEX and https://github.com/trustoverip/tswg-acdc-specification.\"}}}",
+      "said": "ECV74hW2vMvUaBbpgbsoTyl79D5pRhyIXTpVXn4tn-bi",
+      "size": 2045,
+      "version": "ACDC10JSON0007fd_",
+      "attributes_raw": "{\"d\":\"EBF2ODU2pA71-PNXTYI0zTFnHMflwDkMyy7pmDDnK7JU\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"u\":\"0AB2eqZ4Ce4VPaWCTYlG5r9J\",\"LEI\":\"875500ELOZEL05BVXV37\",\"personLegalName\":\"John Doe\",\"engagementContextRole\":\"EBA Data Submitter\"}",
+      "attributes_said": "EBF2ODU2pA71-PNXTYI0zTFnHMflwDkMyy7pmDDnK7JU",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "u",
+        "LEI",
+        "personLegalName",
+        "engagementContextRole"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "u",
+        "i",
+        "ri",
+        "s",
+        "a",
+        "e",
+        "r"
+      ],
+      "reference_verifies": true
+    },
+    "untargeted": {
+      "note": "a credential naming no issuee, so its attribute block is `d` and `dt` alone",
+      "raw": "{\"v\":\"ACDC10JSON000147_\",\"d\":\"EGGdqdpLFQ-RvfekhgNqtX-SFNdR-XNJdS5zyFgstwkk\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EJ5sczB5uc7aub-5VZg5obq4eZBW5nQA67B4y5ymlvFK\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "said": "EGGdqdpLFQ-RvfekhgNqtX-SFNdR-XNJdS5zyFgstwkk",
+      "size": 327,
+      "version": "ACDC10JSON000147_",
+      "attributes_raw": "{\"d\":\"EJ5sczB5uc7aub-5VZg5obq4eZBW5nQA67B4y5ymlvFK\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "attributes_said": "EJ5sczB5uc7aub-5VZg5obq4eZBW5nQA67B4y5ymlvFK",
+      "attribute_labels": [
+        "d",
+        "dt"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "timestamp_last": {
+      "note": "no `dt` among the attributes, so the default is appended after them",
+      "raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"EFaw_pF8Rs593tv0KwVRymldQDsBWk9jOlDuY9YYGIZE\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EJlH6atox0yyrMW8HjKi50aMbtIWe8CvFamM7vbNzOFQ\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"LEI\":\"254900OPPU84GM83MG36\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "said": "EFaw_pF8Rs593tv0KwVRymldQDsBWk9jOlDuY9YYGIZE",
+      "size": 407,
+      "version": "ACDC10JSON000197_",
+      "attributes_raw": "{\"d\":\"EJlH6atox0yyrMW8HjKi50aMbtIWe8CvFamM7vbNzOFQ\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"LEI\":\"254900OPPU84GM83MG36\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "attributes_said": "EJlH6atox0yyrMW8HjKi50aMbtIWe8CvFamM7vbNzOFQ",
+      "attribute_labels": [
+        "d",
+        "i",
+        "LEI",
+        "dt"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "timestamp_first": {
+      "note": "`dt` written before the issuee, which keeps it in the caller's position",
+      "raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"EDvbHn18hdBAyznQSmThVFbPxaW98-4uYx5B4Y03PcSc\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EB3z3O8DnUrEyE7QoRnKdXkcI-ClzudfD71J7vmWEM4t\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"LEI\":\"254900OPPU84GM83MG36\"}}",
+      "said": "EDvbHn18hdBAyznQSmThVFbPxaW98-4uYx5B4Y03PcSc",
+      "size": 407,
+      "version": "ACDC10JSON000197_",
+      "attributes_raw": "{\"d\":\"EB3z3O8DnUrEyE7QoRnKdXkcI-ClzudfD71J7vmWEM4t\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"LEI\":\"254900OPPU84GM83MG36\"}",
+      "attributes_said": "EB3z3O8DnUrEyE7QoRnKdXkcI-ClzudfD71J7vmWEM4t",
+      "attribute_labels": [
+        "d",
+        "dt",
+        "i",
+        "LEI"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "edges_only": {
+      "note": "an edge block with no rules",
+      "raw": "{\"v\":\"ACDC10JSON000221_\",\"d\":\"EFkQ7Y_PWiDeU00AWcsITEIVKzjZdDHd4GTHa4gS6u4f\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EDpwg2qevDF9_5U1Ko0bTpo-tTFq4smDAQ4I7i_E0LnP\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"e\":{\"d\":\"EB1Nigr5TwNtkBjQK7BcOreq70rmAaNb9GDfCKaXmAjp\",\"qvi\":{\"n\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}}}",
+      "said": "EFkQ7Y_PWiDeU00AWcsITEIVKzjZdDHd4GTHa4gS6u4f",
+      "size": 545,
+      "version": "ACDC10JSON000221_",
+      "attributes_raw": "{\"d\":\"EDpwg2qevDF9_5U1Ko0bTpo-tTFq4smDAQ4I7i_E0LnP\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "attributes_said": "EDpwg2qevDF9_5U1Ko0bTpo-tTFq4smDAQ4I7i_E0LnP",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a",
+        "e"
+      ],
+      "reference_verifies": true
+    },
+    "rules_only": {
+      "note": "rules with no edges",
+      "raw": "{\"v\":\"ACDC10JSON000504_\",\"d\":\"EHLuFTs_-lAG6nLl_U97JqvdWYkwBl83X1OnI6h_Pwpx\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EDpwg2qevDF9_5U1Ko0bTpo-tTFq4smDAQ4I7i_E0LnP\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"r\":{\"d\":\"EGZ97EjPSINR-O-KHDN_uw4fdrTxeuRXrqT5ZHHQJujQ\",\"usageDisclaimer\":{\"l\":\"Usage of a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, does not assert that the Legal Entity is trustworthy, honest, reputable in its business dealings, safe to do business with, or compliant with any laws or that an implied or expressly intended purpose will be fulfilled.\"},\"issuanceDisclaimer\":{\"l\":\"All information in a valid, unexpired, and non-revoked vLEI Credential, as defined in the associated Ecosystem Governance Framework, is accurate as of the date the validation process was complete. The vLEI Credential has been issued to the legal entity or person named in the vLEI Credential as the subject; and the qualified vLEI Issuer exercised reasonable care to perform the validation process set forth in the vLEI Ecosystem Governance Framework.\"}}}",
+      "said": "EHLuFTs_-lAG6nLl_U97JqvdWYkwBl83X1OnI6h_Pwpx",
+      "size": 1284,
+      "version": "ACDC10JSON000504_",
+      "attributes_raw": "{\"d\":\"EDpwg2qevDF9_5U1Ko0bTpo-tTFq4smDAQ4I7i_E0LnP\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "attributes_said": "EDpwg2qevDF9_5U1Ko0bTpo-tTFq4smDAQ4I7i_E0LnP",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a",
+        "r"
+      ],
+      "reference_verifies": true
+    },
+    "nested_attribute_values": {
+      "note": "every JSON shape a SAID can commit to: null, booleans, integers, arrays, maps",
+      "raw": "{\"v\":\"ACDC10JSON00025c_\",\"d\":\"EFw_AZ2Xa_AE_8PTdImy5w716k9zbxggbthcPvJROI6q\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EOv-JWhORq2BLuSMqlpxpbB4haHSavZev3MP6Kt_9lS8\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"absent\":null,\"flag\":true,\"cleared\":false,\"count\":42,\"negative\":-7,\"zero\":0,\"largest\":9007199254740991,\"list\":[1,\"two\",{\"three\":3},[4],null],\"nested\":{\"inner\":{\"deeper\":\"value\"}},\"empty_map\":{},\"empty_list\":[],\"empty_text\":\"\"}}",
+      "said": "EFw_AZ2Xa_AE_8PTdImy5w716k9zbxggbthcPvJROI6q",
+      "size": 604,
+      "version": "ACDC10JSON00025c_",
+      "attributes_raw": "{\"d\":\"EOv-JWhORq2BLuSMqlpxpbB4haHSavZev3MP6Kt_9lS8\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"absent\":null,\"flag\":true,\"cleared\":false,\"count\":42,\"negative\":-7,\"zero\":0,\"largest\":9007199254740991,\"list\":[1,\"two\",{\"three\":3},[4],null],\"nested\":{\"inner\":{\"deeper\":\"value\"}},\"empty_map\":{},\"empty_list\":[],\"empty_text\":\"\"}",
+      "attributes_said": "EOv-JWhORq2BLuSMqlpxpbB4haHSavZev3MP6Kt_9lS8",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "absent",
+        "flag",
+        "cleared",
+        "count",
+        "negative",
+        "zero",
+        "largest",
+        "list",
+        "nested",
+        "empty_map",
+        "empty_list",
+        "empty_text"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "unicode_attribute_values": {
+      "note": "non-ASCII attribute text, which the size in the version string counts as bytes",
+      "raw": "{\"v\":\"ACDC10JSON0001b9_\",\"d\":\"EBWjTW0H7F6Zp5sagbxh4G7mDIIpDKLI499WI2DdPzro\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EJmw-rxx9ebHF1a_xmIkNsQ2SvJMATlVkTe1iMKE7bxM\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"personLegalName\":\"Geçmiş Özge\",\"note\":\"éèê 中文 🔐\"}}",
+      "said": "EBWjTW0H7F6Zp5sagbxh4G7mDIIpDKLI499WI2DdPzro",
+      "size": 441,
+      "version": "ACDC10JSON0001b9_",
+      "attributes_raw": "{\"d\":\"EJmw-rxx9ebHF1a_xmIkNsQ2SvJMATlVkTe1iMKE7bxM\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"personLegalName\":\"Geçmiş Özge\",\"note\":\"éèê 中文 🔐\"}",
+      "attributes_said": "EJmw-rxx9ebHF1a_xmIkNsQ2SvJMATlVkTe1iMKE7bxM",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "personLegalName",
+        "note"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    },
+    "privacy_salt_only": {
+      "note": "a privacy salt on the credential but not on its attributes",
+      "raw": "{\"v\":\"ACDC10JSON0001b6_\",\"d\":\"EE0cKYLKOGY75JaQH2PHqBp8-B5InswucUAaFNtnz4kZ\",\"u\":\"0AD6E0lCLBQ0-JOFBoTd9k8I\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEBU2c_MDL-hwSc8jby4kvRcBLwnmSIwyY_PswZNuYKt\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"254900OPPU84GM83MG36\"}}",
+      "said": "EE0cKYLKOGY75JaQH2PHqBp8-B5InswucUAaFNtnz4kZ",
+      "size": 438,
+      "version": "ACDC10JSON0001b6_",
+      "attributes_raw": "{\"d\":\"EEBU2c_MDL-hwSc8jby4kvRcBLwnmSIwyY_PswZNuYKt\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"254900OPPU84GM83MG36\"}",
+      "attributes_said": "EEBU2c_MDL-hwSc8jby4kvRcBLwnmSIwyY_PswZNuYKt",
+      "attribute_labels": [
+        "d",
+        "i",
+        "dt",
+        "LEI"
+      ],
+      "credential_labels": [
+        "v",
+        "d",
+        "u",
+        "i",
+        "ri",
+        "s",
+        "a"
+      ],
+      "reference_verifies": true
+    }
+  },
+  "pinned_artifact": {
+    "raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}}",
+    "said": "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo",
+    "attributes_said": "EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P",
+    "reference_verifies": true,
+    "rebuilt_matches": true,
+    "note": "read from `test/app/test-utils.ts` by the reference's own compiler, verified by the reference's own `Saider`, and byte-identical to the credential this generator rebuilds from its inputs"
+  },
+  "reference_quirks": {
+    "numeric_attribute_labels_are_hoisted": {
+      "raw": "{\"v\":\"ACDC10JSON000169_\",\"d\":\"EJF-XcaHW5jz2LvHCMz2XsWds0spp99_S5fcT_eEGTHj\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"0\":\"y\",\"10\":\"z\",\"d\":\"EAoRdx4W4wrUFo1mTmANjrLrQGhvBehj-bT1FAolxSXm\",\"b\":\"x\",\"01\":\"w\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "attribute_labels": [
+        "0",
+        "10",
+        "d",
+        "b",
+        "01",
+        "dt"
+      ],
+      "note": "JavaScript orders array-index-like keys ahead of every other key, so an attribute named `0` is serialised before the `d` written first — and the SAID commits to that order. `01` has a leading zero, is not an array index, and stays in insertion order.",
+      "rust_decision": "refused: `Sad` is insertion-ordered by ADR `0008`, so reproducing the hoist is impossible and deriving a different SAID from the same inputs would be an interoperability defect. An array-index-like attribute, edge, or rule label is rejected."
+    },
+    "attribute_version_string_is_sized": {
+      "attributes_raw": "{\"d\":\"EKb2czkVjMxyZTVbMJWn8wyo1VssaRgyO2mpcB3_O2KE\",\"v\":\"ACDC10JSON000074_\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "rewritten_version": "ACDC10JSON000074_",
+      "note": "an attribute named `v` makes the attribute block look like a message to `Saider._derive`, which sizes it: the caller's `ACDC10JSON000000_` comes back rewritten to the block's own length.",
+      "rust_decision": "refused: `v` is the version label and is reserved in an attribute, edge, or rule block."
+    },
+    "attribute_identifier_is_overwritten": {
+      "attributes_raw": "{\"d\":\"EK2uKbhqAJvH1mrn46ZPb6liavwBGUf7d8I2FUQO94G1\",\"LEI\":\"1\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "note": "an attribute named `d` is replaced by the placeholder before derivation, so whatever the caller wrote there is silently discarded.",
+      "rust_decision": "refused: `d` is the identifier label and is reserved; the builder writes it."
+    },
+    "credential_version_and_identifier_are_ignored": {
+      "identical": true,
+      "note": "`CredentialData` declares `v` and `d`, but `issue` reads neither: it writes its own version string and an empty identifier, so supplying either changes nothing.",
+      "rust_decision": "unrepresentable: neither is a builder input."
+    },
+    "absent_attributes_still_produce_a_block": {
+      "raw": "{\"v\":\"ACDC10JSON000147_\",\"d\":\"EGGdqdpLFQ-RvfekhgNqtX-SFNdR-XNJdS5zyFgstwkk\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EJ5sczB5uc7aub-5VZg5obq4eZBW5nQA67B4y5ymlvFK\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "identical_to_empty_block": true,
+      "note": "`CredentialData.a` is declared required, but `{...undefined}` is legal, so a credential built without it still carries an attribute block of `d` and `dt` — and TypeScript's requirement is erased at run time.",
+      "rust_decision": "the attribute block is a required, always-present value; the empty block is spelled explicitly and produces the same bytes."
+    },
+    "non_object_attributes_are_spread_by_index": {
+      "attributes_raw": "{\"0\":\"h\",\"1\":\"e\",\"2\":\"l\",\"3\":\"l\",\"4\":\"o\",\"d\":\"EGrdEqtu7ARwJt4_-CBd3oXIxmVHD2m424yynlupJvjr\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "note": "spreading a string yields one numbered key per character, so an attribute block that is not an object becomes a block of array-index labels — which are then hoisted.",
+      "rust_decision": "unrepresentable: the attribute block is a typed ordered map."
+    },
+    "fractional_attribute_values_are_committed": {
+      "attributes_raw": "{\"d\":\"EBXhomeICgiO3zqAYLEzK401vorojI-EGACQoEIRbvxa\",\"rate\":1.5,\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "note": "a non-integer attribute is serialised as a JavaScript double, whose shortest round-trip spelling is what the SAID commits to.",
+      "rust_decision": "refused: ADR `0008` narrowed the accepted number space to exact safe integers, because no other value is provably byte-stable across the two languages."
+    },
+    "oversized_integers_lose_precision": {
+      "attributes_raw": "{\"d\":\"ELiEr5SLnR_nJCxdt-DuJgiJUBqqgRtFvjVMaXU3Mz4s\",\"total\":9007199254740996,\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+      "committed": 9007199254740996,
+      "note": "an attribute above 2^53 is rounded before it is ever serialised, so the credential commits to a number the caller did not supply.",
+      "rust_decision": "refused: `SadValue::integer` rejects anything outside the safe range."
+    },
+    "identifiers_are_unvalidated_text": {
+      "accepted": true,
+      "raw": "{\"v\":\"ACDC10JSON000102_\",\"d\":\"EK97-_Fx1JyZPDJbumSMxBK_68jzix7iSJN1d-XYcbSs\",\"i\":\"not an identifier\",\"ri\":\"not a registry\",\"s\":\"not a schema\",\"a\":{\"d\":\"ENJHFC_8bxZyrfGFFKcKULYrxgQzVB_4qbK1fQMd0KRu\",\"i\":\"not an issuee\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "note": "the issuer, registry, schema, and issuee are all interpolated without a single check, so a typo becomes part of the credential's identity.",
+      "rust_decision": "typed: the issuer, registry, and issuee are `IdentifierPrefix` values and the schema is a `Said`."
+    },
+    "empty_registry_and_schema_are_accepted": {
+      "raw": "{\"v\":\"ACDC10JSON0000ef_\",\"d\":\"EA_YlZqAKquRWSQHL-l9fH3KxbOdK6j3VicE1xrpRNqs\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"\",\"s\":\"\",\"a\":{\"d\":\"EJ5sczB5uc7aub-5VZg5obq4eZBW5nQA67B4y5ymlvFK\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "raw_absent": "{\"v\":\"ACDC10JSON0000e0_\",\"d\":\"EPQKn7mJ8Mvy63Ny29EN1ufCxaQ3xsZERcrVv0CI_vVU\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"a\":{\"d\":\"EJ5sczB5uc7aub-5VZg5obq4eZBW5nQA67B4y5ymlvFK\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}}",
+      "note": "`ri` and `s` are declared optional and an empty string is not `undefined`, so a credential can claim membership of a registry named by the empty string.",
+      "rust_decision": "refused: both are required and typed, so neither an absent nor an empty value is expressible."
+    },
+    "timestamp_default_reads_the_clock": {
+      "expression": "args.a.dt ?? new Date().toISOString().replace('Z', '000+00:00')",
+      "shape": "9999-99-99T99:99:99.999999+99:99",
+      "length": 32,
+      "note": "the attribute timestamp defaults to the system clock, rendered with three zero digits standing in for microseconds the reading never had — the same fake precision Roadmap 5.5 recorded on `Signify-Timestamp`.",
+      "rust_decision": "required: a protocol crate reads no clock, so the timestamp is a validated `Timestamp` the caller supplies, exactly as Roadmap 3.6's reply and Roadmap 4.7's nonce are."
+    },
+    "credential_types_have_no_consumer": {
+      "members": [
+        {
+          "name": "issued",
+          "value": "issued"
+        },
+        {
+          "name": "received",
+          "value": "received"
+        }
+      ],
+      "scan": {
+        "needle": "CredentialTypes",
+        "total": 1,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`CredentialTypes.issued` and `.received` are exported, declared once, and referenced nowhere else. The scan records raw counts with their file list rather than asserting the absence: the only hit in the pinned tree is the declaration itself.",
+      "rust_decision": "`N/A`, on the same evidence as `core/httping.ts`'s `Unqualified`; reintroduce with a real consumer."
+    },
+    "credential_filter_belongs_to_the_endpoint": {
+      "members": [
+        {
+          "name": "filter",
+          "optional": true,
+          "type": "object"
+        },
+        {
+          "name": "sort",
+          "optional": true,
+          "type": "object[]"
+        },
+        {
+          "name": "skip",
+          "optional": true,
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "optional": true,
+          "type": "number"
+        }
+      ],
+      "scan": {
+        "needle": "CredentialFilter",
+        "total": 3,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 3
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`CredentialFilter` is consumed by `Credentials.list` alone, where it becomes the JSON body of `POST /credentials/query`; it is request shaping, not credential data.",
+      "rust_decision": "deferred to Roadmap 6.11 with the endpoint that sends it, because `ARCHITECTURE.md` §4.5 keeps KERIA request bodies out of `signify-acdc`."
+    }
+  }
+}

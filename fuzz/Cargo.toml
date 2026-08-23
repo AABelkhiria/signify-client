@@ -9,6 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4.13"
+signify-acdc = { path = "../crates/signify-acdc" }
 signify-cesr = { path = "../crates/signify-cesr" }
 signify-crypto = { path = "../crates/signify-crypto" }
 signify-http = { path = "../crates/signify-http" }
@@ -278,6 +279,13 @@ bench = false
 [[bin]]
 name = "auth"
 path = "fuzz_targets/auth.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "credential"
+path = "fuzz_targets/credential.rs"
 test = false
 doc = false
 bench = false
