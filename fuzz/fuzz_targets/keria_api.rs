@@ -12,8 +12,9 @@
 
 use libfuzzer_sys::fuzz_target;
 use signify_types::api::{
-    AcdcRecord, ApiError, Contact, Credential, Hab, KeyEvent, KeyState, MAX_DOCUMENT_BYTES, Notification, Oobi,
-    Registry, Threshold, UntypedOperation, from_json_slice, from_json_slice_with_limit, to_json_string,
+    AcdcRecord, AgentConfig, ApiError, Contact, Credential, Hab, KeyEvent, KeyState, MAX_DOCUMENT_BYTES,
+    Notification, Oobi, Registry, Threshold, UntypedOperation, from_json_slice, from_json_slice_with_limit,
+    to_json_string,
 };
 
 /// Returns whether a rejection is one of the variants this crate is allowed to produce.
@@ -75,7 +76,7 @@ fuzz_target!(|data: &[u8]| {
         ));
     }
 
-    let accepted = match selector % 12 {
+    let accepted = match selector % 13 {
         0 => round_trip!(KeyState, body),
         1 => round_trip!(Hab, body),
         2 => round_trip!(KeyEvent, body),
@@ -87,6 +88,7 @@ fuzz_target!(|data: &[u8]| {
         8 => round_trip!(Notification, body),
         9 => round_trip!(Oobi, body),
         10 => round_trip!(AcdcRecord, body),
+        11 => round_trip!(AgentConfig, body),
         _ => round_trip!(signify_types::api::ExchangeEmbeds, body),
     };
 

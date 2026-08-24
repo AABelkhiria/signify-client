@@ -10,8 +10,9 @@
 //! on: a KERIA agent answers most writes with a long-running operation rather than a result.
 //! Roadmap 6.6 adds [`identifiers`], the family that creates and rotates what everything else
 //! speaks for; Roadmap 6.7 adds [`key_events`] and [`key_states`], which are what a client knows
-//! about identifiers that are not its own.
+//! about identifiers that are not its own; Roadmap 6.8 adds [`config`], the smallest of them.
 
+pub mod config;
 pub mod identifiers;
 pub mod key_events;
 pub mod key_states;

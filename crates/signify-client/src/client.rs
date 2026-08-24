@@ -51,6 +51,7 @@ use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
+use crate::endpoint::config::Config;
 use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::key_events::KeyEvents;
 use crate::endpoint::key_states::KeyStates;
@@ -465,6 +466,16 @@ impl ConnectedClient {
     #[must_use]
     pub const fn key_states(&self) -> KeyStates<'_> {
         KeyStates::new(self)
+    }
+
+    /// Returns the configuration endpoint family: what the *agent* was set up with.
+    ///
+    /// Named for whose configuration it reads, because [`Self::config`] already returns this
+    /// client's own — the reference has only one of the two, so its `client.config()` is
+    /// unambiguous where this would not be.
+    #[must_use]
+    pub const fn agent_config(&self) -> Config<'_> {
+        Config::new(self)
     }
 
     /// Signs a request for an **external** resource with one managed identifier's own key.
