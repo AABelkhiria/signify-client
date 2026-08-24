@@ -22,6 +22,7 @@ use signify_http::transport::Method;
 use signify_types::api::{Operation, OperationOutcome, UntypedOperation};
 
 use crate::client::{ClientRequest, ConnectedClient};
+use crate::endpoint::decode_json as decode;
 use crate::error::ClientError;
 
 /// Path segment the operations resource lives under.
@@ -152,15 +153,6 @@ pub fn completed<M, R>(operation: Operation<M, R>) -> Result<R, ClientError> {
             })
         }
     }
-}
-
-/// Decodes one JSON document from a response body.
-fn decode<T: DeserializeOwned>(body: &[u8]) -> Result<T, ClientError> {
-    serde_json::from_slice(body).map_err(|source| ClientError::Api {
-        source: Box::new(signify_types::api::ApiError::Json {
-            source: Box::new(source),
-        }),
-    })
 }
 
 /// Truncates remote text on a character boundary.

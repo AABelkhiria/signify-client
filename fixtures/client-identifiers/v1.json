@@ -1,0 +1,1052 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-24",
+  "sources": [
+    "src/keri/app/aiding.ts",
+    "src/keri/app/clienting.ts",
+    "test/app/aiding.test.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "multisig_bran": "0123456789lmnopqrstuv",
+    "member_two_bran": "abcdefghijk0123456789",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "stamp": "2021-06-27T21:26:21.233257+00:00",
+    "delegator": "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C",
+    "witnesses": [
+      "BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ",
+      "BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp",
+      "BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ"
+    ],
+    "fixed_clock_ms": 1700000000123,
+    "note": "`Identifier` takes an `IdentifierDeps` — one `fetch` method, a `pidx`, and a manager — so the reference's own class is driven against a recorder, exactly as the pinned `aiding.test.ts` does. Every recorded body is the exact string `SignifyClient.fetch` would send, with each sealed salt masked as `<SXLT>` and recorded by what it opens to. All key material derives from the pinned unit tests' own passcodes at the production Argon2 profile. `PUBLIC TEST MATERIAL`: neither passcode has ever protected anything."
+  },
+  "declarations": {
+    "list_range_header": "extraHeaders.append('Range', `aids=${start}-${end}`)",
+    "list_defaults": [
+      "start: number = 0",
+      "end: number = 24"
+    ],
+    "list_result": "range = parseRangeHeaders(cr, 'aids')",
+    "get_path": "path = `/identifiers/${encodeURIComponent(name)}`",
+    "update_path": "path = `/identifiers/${encodeURIComponent(name)}`",
+    "update_require": "if (requireAccepted) { requireKeyState(hab); }",
+    "create_body": "jsondata: any = { name: name, icp: serder.sad, sigs: sigs, proxy: proxy, smids: states != undefined ? states.map((state) => state.i) : undefined, rmids: rstates != undefined ? rstates.map((state) => state.i) : undefined, }",
+    "create_algorithm_key": "jsondata[algo] = keeper.params()",
+    "create_pidx_increment": "this.client.pidx = this.client.pidx + 1",
+    "create_fetch": "this.client.fetch('/identifiers', 'POST', jsondata)",
+    "interact_path": "'/identifiers/' + name + '/events'",
+    "rotate_body": "jsondata: any = { rot: serder.sad, sigs: sigs, smids: states != undefined ? states.map((state) => state.i) : undefined, rmids: rstates != undefined ? rstates.map((state) => state.i) : undefined, }",
+    "rotate_path": "'/identifiers/' + name + '/events'",
+    "end_role_body": "jsondata = { rpy: rpy.sad, sigs: sigs, }",
+    "end_role_path": "'/identifiers/' + name + '/endroles'",
+    "loc_scheme_path": "'/identifiers/' + name + '/locschemes'",
+    "members_path": "'/identifiers/' + name + '/members'",
+    "event_result_members": [
+      "_serder",
+      "_sigs",
+      "response",
+      "<constructor>",
+      "serder",
+      "sigs",
+      "op"
+    ],
+    "signed_request_resource": "headers.set('Signify-Resource', hab['prefix'])",
+    "signed_request_sign": "signed_headers = authenticator.sign( new Headers(headers), req.method ?? 'GET', new URL(url).pathname )",
+    "signed_request_signer": "authenticator = new Authenticater( keeper.signers[0], keeper.signers[0].verfer )",
+    "salty_parameters": "params(): SaltyManagerParams { return { sxlt: this.sxlt, pidx: this.pidx, kidx: this.kidx, stem: this.stem, tier: this.tier, icodes: this.icodes, ncodes: this.ncodes, dcode: this.dcode, transferable: this.transferable, }; }",
+    "randy_parameters": "params(): RandyManagerParams { return { nxts: this.nxts, prxs: this.prxs, transferable: this.transferable, }; }",
+    "group_parameters": "params() { return { mhab: this.mhab, keys: this.gkeys, ndigs: this.gdigs, }; }",
+    "reloaded_randy_transferability": "new RandyIdentifierManager( this.salter, undefined, undefined, undefined, new Prefixer({ qb64: aid['prefix'] }).transferable, undefined, undefined, [], undefined, aid.randy.prxs, aid.randy.nxts )",
+    "notes": {
+      "list": "`list` is the only call in this family that sends a header: a `Range` of `aids=${start}-${end}` defaulting to 0 and 24, whose answer it reads back out of `content-range` through `parseRangeHeaders`",
+      "paths": "`get` and `update` encode their name with `encodeURIComponent`; the six other name-bearing paths concatenate it raw",
+      "body": "the request body is `JSON.stringify` of an object literal, so its field order is the literal's and an `undefined` field is dropped rather than written as null",
+      "signed_request": "`createSignedRequest` signs an *external* URL's request with the identifier keeper's first signer and stamps the identifier's own prefix as `Signify-Resource`, not the controller's",
+      "parameters": "the algorithm block a body carries is the keeper's own `params()` literal, whose key order is not the schema's: a salty keeper writes `sxlt` first and `tier` fifth where `SaltyState` declares `tier` first, and a randy keeper writes a `transferable` field `RandyKeyState` does not declare at all"
+    }
+  },
+  "calls": [
+    {
+      "name": "list_default",
+      "note": "the pinned unit test's own list, at its default range",
+      "request": {
+        "path": "/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "range",
+            "value": "aids=0-24"
+          }
+        ],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "start": 0,
+        "end": 1,
+        "total": 2,
+        "aids": [
+          {
+            "name": "aid1",
+            "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+          },
+          {
+            "name": "aid2",
+            "prefix": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "list_explicit_range",
+      "note": "an explicit window, which is the only header this family sends",
+      "request": {
+        "path": "/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "range",
+            "value": "aids=2-5"
+          }
+        ],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "start": 2,
+        "end": 3,
+        "total": 97,
+        "aids": [
+          {
+            "name": "aid1",
+            "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+          },
+          {
+            "name": "aid2",
+            "prefix": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "list_without_content_range",
+      "note": "an answer carrying no content-range at all",
+      "request": {
+        "path": "/identifiers",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "range",
+            "value": "aids=0-24"
+          }
+        ],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "start": 0,
+        "end": 0,
+        "total": 0,
+        "aids": [
+          {
+            "name": "aid1",
+            "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+          },
+          {
+            "name": "aid2",
+            "prefix": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get",
+      "note": "the pinned unit test's get, whose name needs no encoding",
+      "request": {
+        "path": "/identifiers/aid1",
+        "method": "GET",
+        "headers": [],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "name": "aid1"
+      },
+      "error": null
+    },
+    {
+      "name": "get_name_needing_encoding",
+      "note": "the pinned unit test's `a name with ñ!`, which is one of only two dynamic values the reference encodes",
+      "request": {
+        "path": "/identifiers/a%20name%20with%20%C3%B1!",
+        "method": "GET",
+        "headers": [],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+      },
+      "error": null
+    },
+    {
+      "name": "get_pending_refused",
+      "note": "a group still collecting signatures, with key state required",
+      "request": {
+        "path": "/identifiers/group1",
+        "method": "GET",
+        "headers": [],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": null,
+      "error": "No key state for identifier group1"
+    },
+    {
+      "name": "get_pending_accepted",
+      "note": "the same group, with key state not required",
+      "request": {
+        "path": "/identifiers/group1",
+        "method": "GET",
+        "headers": [],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "has_state": false
+      },
+      "error": null
+    },
+    {
+      "name": "update",
+      "note": "the pinned unit test's rename",
+      "request": {
+        "path": "/identifiers/aid1",
+        "method": "PUT",
+        "headers": [],
+        "body": "{\"name\":\"aid2\"}"
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+      },
+      "error": null
+    },
+    {
+      "name": "update_pending_refused",
+      "note": "renaming a group that is still pending, with key state required",
+      "request": {
+        "path": "/identifiers/group1",
+        "method": "PUT",
+        "headers": [],
+        "body": "{\"name\":\"group2\"}"
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": null,
+      "error": "No key state for identifier group1"
+    },
+    {
+      "name": "create_salty",
+      "note": "the pinned unit test's default salty creation",
+      "request": {
+        "path": "/identifiers",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"name\":\"aid1\",\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"AACZZe75PvUZ1lCREPxFAcX59XHo-BGMYTAGni-I4E0eqKznrEoK2d-mtWmWHwKns7tfnjOzTfDUcv7PLFJ52g0A\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 1,
+      "pidx_after": 1,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "create_non_transferable",
+      "note": "the pinned unit test's non-transferable creation",
+      "request": {
+        "path": "/identifiers",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"name\":\"aid1\",\"icp\":{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EFI3s8I7M6b8iiOFJOqDfjuak9NQJtVx8N2Px_cm2lsN\",\"i\":\"BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"AAD43ke-FKLzD_eOJuE7-G5jeqjs9iyirE-atbxd4sSvEn-0fRibOWI5jtvlE8b8Dn8_rVRa1BUCyDfmEXzy1uwA\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[],\"dcode\":\"B\",\"transferable\":false}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 1,
+      "pidx_after": 1,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "create_multisig",
+      "note": "the pinned unit test's three-key creation",
+      "request": {
+        "path": "/identifiers",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"name\":\"aid2\",\"icp\":{\"v\":\"KERI10JSON0001e7_\",\"t\":\"icp\",\"d\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"i\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DGBw7C7AfC7jbD3jLLRS3SzIWFndM947TyNWKQ52iQx5\",\"DD_bHYFsgWXuCbz3SD0HjCIe_ITjRvEoCGuZ4PcNFFDz\",\"DEe9u8k0fm1wMFAuOIsCtCNrpduoaV5R21rAcJl0awze\"],\"nt\":\"2\",\"n\":[\"EML5FrjCpz8SEl4dh0U15l8bMRhV_O5iDcR1opLJGBSH\",\"EJpKquuibYTqpwMDqEFAFs0gwq0PASAHZ_iDmSF3I2Vg\",\"ELplTAiEKdobFhlf-dh1vUb2iVDW0dYOSzs1dR7fQo60\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"AAD9_IgPaUEBjAl1Ck61Jkn78ErzsnVkIxpaFBYSdSEAW4NbtXsLiUn1olijzdTQYn_Byq6MaEk-eoMN3Oc0WEEC\",\"ABBWJ7KkAXXiRK8JyEUpeARHJTTzlBHu_ev-jUrNEhV9sX4_4lI7wxowrQisumt5r50bUNfYBK7pxSwHk8I4IFQP\",\"ACDTITaEquHdYKkS-94tVCxL3IYrtvhlTt__sSUavTJT6fI3KB-uwXV7L0SfzMq0gFqYxkheH2LdC4HkAW2mH4QJ\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\",\"A\",\"A\"],\"ncodes\":[\"A\",\"A\",\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789lmnopqrstuv"
+        ]
+      },
+      "requests": 1,
+      "pidx_after": 1,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "create_witnessed_with_proxy",
+      "note": "witnesses, an explicit threshold, and a proxy, which is the only optional body field a non-group creation writes",
+      "request": {
+        "path": "/identifiers",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"name\":\"aid3\",\"icp\":{\"v\":\"KERI10JSON0001b7_\",\"t\":\"icp\",\"d\":\"EJprPhGqBQd03uO-bJ-LWw8rzRlVtjvCppo8dxIwrW3D\",\"i\":\"EJprPhGqBQd03uO-bJ-LWw8rzRlVtjvCppo8dxIwrW3D\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ\",\"BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp\",\"BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ\"],\"c\":[],\"a\":[]},\"sigs\":[\"AABPKAbGHFlqVjOTQ7JOcuBRiXrVkANd5sCKstsyeEXXHS0-4N1G50wPU1Ult0iL5JuxGcX-1iQImKv0RTWSZbsB\"],\"proxy\":\"EPROXY\",\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 1,
+      "pidx_after": 1,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "create_delegated_with_data",
+      "note": "a delegated creation carrying an anchor",
+      "request": {
+        "path": "/identifiers",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"name\":\"aid4\",\"icp\":{\"v\":\"KERI10JSON0001ce_\",\"t\":\"dip\",\"d\":\"EMx8v5lOORmE_BlNAl7NR2msqmFe-7biTIY8bYQFzTEM\",\"i\":\"EMx8v5lOORmE_BlNAl7NR2msqmFe-7biTIY8bYQFzTEM\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[{\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":\"0\",\"d\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}],\"di\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"},\"sigs\":[\"AACMK0knw3y1o4m0Yvuu3mbRvNqPM_zDu9CF7Pn3lRV1bkJ0RI4ds1mAzJGT9F4F5-l8gtUAQdpRQk6B4gu3i9EA\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 1,
+      "pidx_after": 1,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "create_group",
+      "note": "a three-member group, the only creation writing smids and rmids",
+      "request": {
+        "path": "/identifiers",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"name\":\"group1\",\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EF6xZjDX51f_CyKwF9XF1PLogGe-wI6FlJl4kXvJ4lqp\",\"i\":\"EF6xZjDX51f_CyKwF9XF1PLogGe-wI6FlJl4kXvJ4lqp\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DNwaetMMIMbt708EPsdCGHZpMe3gf1OZV-R7LTcJBLnK\"],\"nt\":\"1\",\"n\":[\"EHUXA8lpGe1MObjP8RZs9WijzNsjKdoSql_zajgJGLQ6\",\"EMtIyf7uowARCWm1DXGMsBvMMUVH65y_BU3HmzBMr2-g\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"BACzpOJJNZDkXLTSj8uutyB03r7iIsgtEjQlh-UEfWt6eHsuvLoX_eC_onq1EhLhu5hfwwWPPfIMkCqAnNOaaKsO\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V\"],\"rmids\":[\"ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V\",\"EOGvmhJDBbJP4zeXaRun5vSz0O3_1zB10DwNMyjXlJEv\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"icp_dt\":\"2021-06-27T21:26:21.233257+00:00\",\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"transferable\":true,\"windexes\":[],\"salty\":{\"tier\":\"low\",\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true}},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DNwaetMMIMbt708EPsdCGHZpMe3gf1OZV-R7LTcJBLnK\"],\"ndigs\":[\"EHUXA8lpGe1MObjP8RZs9WijzNsjKdoSql_zajgJGLQ6\",\"EMtIyf7uowARCWm1DXGMsBvMMUVH65y_BU3HmzBMr2-g\"]}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 1,
+      "pidx_after": 1,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "interact",
+      "note": "the pinned unit test's interaction, whose anchors are a seal list",
+      "request": {
+        "path": "/identifiers/aid1/events",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"ixn\":{\"v\":\"KERI10JSON000138_\",\"t\":\"ixn\",\"d\":\"EPtNJLDft3CB-oz3qIhe86fnTKs-GYWiWyx8fJv3VO5e\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":0,\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"}]},\"sigs\":[\"AADEzKk-5LT6vH-PWFb_1i1A8FW-KGHORtTOCZrKF4gtWkCr9vN1z_mDSVKRc6MKktpdeB3Ub1fWCGpnS50hRgoJ\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "interact_name_needing_encoding",
+      "note": "the same interaction under a name carrying a slash, which the path does not encode",
+      "request": {
+        "path": "/identifiers/a/b/events",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"ixn\":{\"v\":\"KERI10JSON000138_\",\"t\":\"ixn\",\"d\":\"EC-MpLbixyppmgoqdKYs8oa2N0Z4TP6mM5rKnFRS0Aq5\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\",\"s\":0,\"d\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}]},\"sigs\":[\"AAA_-q5phCB5hKYhH2Ppjh3y9un5-FwCS2QLBsyADYnfOeOXrwGA9MH2ZKHuqDKZF43WvEPQ2EbeN5SSYWFhJoMC\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "rotate",
+      "note": "the pinned unit test's rotation, which always writes smids and rmids",
+      "request": {
+        "path": "/identifiers/aid1/events",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"rot\":{\"v\":\"KERI10JSON000160_\",\"t\":\"rot\",\"d\":\"EBQABdRgaxJONrSLcgrdtbASflkvLxJkiDO0H-XmuhGg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"kt\":\"1\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"1\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AABWSckRpAWLpfFSrpnDR3SzQASrRSVKGh8AnHxauhN_43qKkqPb9l04utnTm2ixNpGGJ-UB8qdKMjfkEQ61AIQC\"],\"smids\":[],\"rmids\":[],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":1,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "rotate_with_witness_changes",
+      "note": "a rotation cutting and adding a witness",
+      "request": {
+        "path": "/identifiers/aid1/events",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"rot\":{\"v\":\"KERI10JSON0001ba_\",\"t\":\"rot\",\"d\":\"EACFk6L0DDjPh0vllwY7YyDdS4mWrDoW5rhGZ6BhzeJd\",\"i\":\"EFcBmQAJd64f_z7hBguOxVLZSBsdYyxgKvo-UXE0em7y\",\"s\":\"1\",\"p\":\"EFcBmQAJd64f_z7hBguOxVLZSBsdYyxgKvo-UXE0em7y\",\"kt\":\"1\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"1\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":2,\"br\":[\"BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp\"],\"ba\":[\"BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ\"],\"a\":[]},\"sigs\":[\"AAD2Kvfj_NvxtumKHcHBsugrLNGrFDNzTWBNcG5NQilO_6MCqK63heBhv_IKl0q2wQlAs25pq763mnKz7UO5J3wA\"],\"smids\":[],\"rmids\":[],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":1,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "add_end_role",
+      "note": "the pinned unit test's end-role authorization, with an explicit endpoint",
+      "request": {
+        "path": "/identifiers/aid1/endroles",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EPmGpT0X_-VXm7t_-T3TDcAVys9LCftxXNn7ntTdXdrA\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"role\":\"agent\",\"eid\":\"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C\"}},\"sigs\":[\"AADxCZ3hV1augZAwuBuM86riCFUjPc5RtNEcDbH1J0QLKGsiku1rqiCAzJM74baQ6Jsv6NipYv-Z1PUKhX3C__8A\"]}"
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "add_end_role_without_endpoint",
+      "note": "the same authorization with no endpoint identifier",
+      "request": {
+        "path": "/identifiers/aid1/endroles",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"rpy\":{\"v\":\"KERI10JSON0000dc_\",\"t\":\"rpy\",\"d\":\"EGSzZ1QwvZwrb8-JaV6hOUp5DBqYOgYNWqiWHwVO2dyr\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"role\":\"agent\"}},\"sigs\":[\"AADPWS70Lry8OTh__3bWeeVOM_TGvlL15Zk_dlSzvNOW2TMAlKKefttkCwEHHmJ4aTkMBTHgBe4aMkb_x8EKYkEP\"]}"
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "add_location_scheme",
+      "note": "the pinned unit test's location authorization",
+      "request": {
+        "path": "/identifiers/aid1/locschemes",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"rpy\":{\"v\":\"KERI10JSON0000f5_\",\"t\":\"rpy\",\"d\":\"ENcFhO8u3Ahignxbuz5RQM0PH008LhKplWSVWueQdJz6\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/loc/scheme\",\"a\":{\"eid\":\"EHgwVwQT15OJvilVvW57HE4w0-GPs_Stj2OFoAHZSysY\",\"url\":\"https://test.com\",\"scheme\":\"https\"}},\"sigs\":[\"AADg0CS3nnTgsUVAcWMaBxK6cVzf5AS7EnRm3y_KtqQVlAPrjLEDu3lHD6goQ1FNHkQeE1i5bexqkiw_fYK5BFoL\"]}"
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "add_location_scheme_defaults",
+      "note": "the same call defaulting the scheme and the endpoint",
+      "request": {
+        "path": "/identifiers/aid1/locschemes",
+        "method": "POST",
+        "headers": [],
+        "body": "{\"rpy\":{\"v\":\"KERI10JSON0000f3_\",\"t\":\"rpy\",\"d\":\"ECJmENvn3O5kbWsAyzHwZ6LH4b1zylRKi9q0TqZ1A_Dd\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"r\":\"/loc/scheme\",\"a\":{\"eid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"url\":\"http://test.com\",\"scheme\":\"http\"}},\"sigs\":[\"AACrOb6_j0df4qsqiO4FdxCLabKIYn6R0FRBPrhiP7QHWqYrVACLPCTQzUyifM1VPeqX1SrIZoI5zrX3CrAEzCoB\"]}"
+      },
+      "requests": 2,
+      "pidx_after": 0,
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "members",
+      "note": "the pinned unit test's group-member listing",
+      "request": {
+        "path": "/identifiers/aid1/members",
+        "method": "GET",
+        "headers": [],
+        "body": null
+      },
+      "requests": 1,
+      "pidx_after": 0,
+      "result": {
+        "signing": [],
+        "rotation": []
+      },
+      "error": null
+    }
+  ],
+  "group_creation": {
+    "members": {
+      "member1": {
+        "name": "member1",
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "icp_dt": "2021-06-27T21:26:21.233257+00:00",
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2021-06-27T21:26:21.233257+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+          ],
+          "nt": "1",
+          "n": [
+            "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "transferable": true,
+        "windexes": [],
+        "salty": {
+          "tier": "low",
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789abcdefghijk"
+        }
+      },
+      "member2": {
+        "name": "member2",
+        "prefix": "ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V",
+        "icp_dt": "2021-06-27T21:26:21.233257+00:00",
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V",
+          "s": "0",
+          "p": "",
+          "d": "ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V",
+          "f": "0",
+          "dt": "2021-06-27T21:26:21.233257+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DNwaetMMIMbt708EPsdCGHZpMe3gf1OZV-R7LTcJBLnK"
+          ],
+          "nt": "1",
+          "n": [
+            "EHUXA8lpGe1MObjP8RZs9WijzNsjKdoSql_zajgJGLQ6"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "transferable": true,
+        "windexes": [],
+        "salty": {
+          "tier": "low",
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AAabcdefghijk0123456789"
+        }
+      },
+      "member3": {
+        "name": "member3",
+        "prefix": "EOGvmhJDBbJP4zeXaRun5vSz0O3_1zB10DwNMyjXlJEv",
+        "icp_dt": "2021-06-27T21:26:21.233257+00:00",
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "EOGvmhJDBbJP4zeXaRun5vSz0O3_1zB10DwNMyjXlJEv",
+          "s": "0",
+          "p": "",
+          "d": "EOGvmhJDBbJP4zeXaRun5vSz0O3_1zB10DwNMyjXlJEv",
+          "f": "0",
+          "dt": "2021-06-27T21:26:21.233257+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DGBw7C7AfC7jbD3jLLRS3SzIWFndM947TyNWKQ52iQx5"
+          ],
+          "nt": "1",
+          "n": [
+            "EMtIyf7uowARCWm1DXGMsBvMMUVH65y_BU3HmzBMr2-g"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "EOGvmhJDBbJP4zeXaRun5vSz0O3_1zB10DwNMyjXlJEv",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "transferable": true,
+        "windexes": [],
+        "salty": {
+          "tier": "low",
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789lmnopqrstuv"
+        }
+      }
+    },
+    "note": "the member records are the group creation's inputs; their sealed salts are recorded by what they open to"
+  },
+  "randy_shape": {
+    "path": "/identifiers",
+    "method": "POST",
+    "body_fields": [
+      "name",
+      "icp",
+      "sigs",
+      "proxy",
+      "smids",
+      "rmids",
+      "randy"
+    ],
+    "algorithm_field": "randy",
+    "randy_fields": [
+      "nxts",
+      "prxs",
+      "transferable"
+    ],
+    "prxs_count": 1,
+    "nxts_count": 1,
+    "sig_count": 1,
+    "note": "random keys cannot be pinned, so this records the shape of a randy creation's request body"
+  },
+  "randy_reload_shape": {
+    "path": "/identifiers/aid1/events",
+    "method": "POST",
+    "body_fields": [
+      "ixn",
+      "sigs",
+      "randy"
+    ],
+    "randy_fields": [
+      "nxts",
+      "prxs",
+      "transferable"
+    ],
+    "randy_transferable": true,
+    "record_transferable": true,
+    "prefix_code": "E",
+    "note": "a reloaded randy keeper takes its transferability from the identifier's own prefix, because the stored `RandyKeyState` does not declare the field its `params()` writes back"
+  },
+  "signed_request": {
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "identifier": {
+      "name": "aid1",
+      "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "icp_dt": "2021-06-27T21:26:21.233257+00:00",
+      "state": {
+        "vn": [
+          1,
+          0
+        ],
+        "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "s": "0",
+        "p": "",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "f": "0",
+        "dt": "2021-06-27T21:26:21.233257+00:00",
+        "et": "icp",
+        "kt": "1",
+        "k": [
+          "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+        ],
+        "nt": "1",
+        "n": [
+          "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+        ],
+        "bt": "0",
+        "b": [],
+        "c": [],
+        "ee": {
+          "s": "0",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "br": [],
+          "ba": []
+        },
+        "di": ""
+      },
+      "transferable": true,
+      "windexes": [],
+      "salty": {
+        "tier": "low",
+        "sxlt": "<SXLT>",
+        "pidx": 0,
+        "kidx": 0,
+        "stem": "signify:aid",
+        "dcode": "E",
+        "icodes": [
+          "A"
+        ],
+        "ncodes": [
+          "A"
+        ],
+        "transferable": true,
+        "sxlt_opens_to": "0AA0123456789abcdefghijk"
+      }
+    },
+    "identifier_signing_key": "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+    "lookup_path": "http://127.0.0.1:3901/identifiers/aid1",
+    "post": {
+      "url": "https://external.example/some/path?query=1",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "text/plain;charset=UTF-8"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BDma51I0udncc6cPrroKOvllTj6sWaa_6suDsGF3b8D7IUlWbExfjI1OEk8CCAHyIFx9y3f7KDgzcg_RDJXtZgD\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "note": "the identifier's own prefix is stamped as `Signify-Resource`, and the signature covers the *external* URL's path"
+    },
+    "get": {
+      "url": "https://external.example/some/path?query=1",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BCXZex4a8-knv--VVfMSNnWweJtUnaBVUUB0Sf9BXhDrAnDUlABrteXTn3ucIVDRG9CgkSFOz3EWv7XNkjpT2sO\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "note": "with no method in the request options, the signature covers `GET` while the Request itself defaults to `GET` too"
+    },
+    "fixed_clock_ms": 1700000000123,
+    "note": "the clock and the agent's key are pinned, so both signatures are exact"
+  },
+  "pinned_confirmations": {
+    "published_paths": [
+      "/identifiers",
+      "/identifiers/a%20name%20with%20%C3%B1!",
+      "/identifiers/aid1",
+      "/identifiers/aid1/endroles",
+      "/identifiers/aid1/events",
+      "/identifiers/aid1/locschemes",
+      "/identifiers/aid1/members"
+    ],
+    "driven_paths": [
+      "/identifiers",
+      "/identifiers/a%20name%20with%20%C3%B1!",
+      "/identifiers/a/b/events",
+      "/identifiers/aid1",
+      "/identifiers/aid1/endroles",
+      "/identifiers/aid1/events",
+      "/identifiers/aid1/locschemes",
+      "/identifiers/aid1/members",
+      "/identifiers/group1"
+    ],
+    "every_pinned_path_is_driven": true,
+    "create_signed_request_is_published": true,
+    "note": "every path the pinned `aiding.test.ts` asserts is produced here by the reference's own methods, and `clienting.test.ts` drives `createSignedRequest` itself"
+  },
+  "reference_quirks": {
+    "only_two_paths_encode_their_name": {
+      "encoded": "/identifiers/a%20name%20with%20%C3%B1!",
+      "unencoded": "/identifiers/a/b/events",
+      "expressions": {
+        "get": "path = `/identifiers/${encodeURIComponent(name)}`",
+        "update": "path = `/identifiers/${encodeURIComponent(name)}`",
+        "interact": "'/identifiers/' + name + '/events'",
+        "rotate": "'/identifiers/' + name + '/events'",
+        "end_role": "'/identifiers/' + name + '/endroles'",
+        "loc_scheme": "'/identifiers/' + name + '/locschemes'",
+        "members": "'/identifiers/' + name + '/members'"
+      },
+      "note": "`get` and `update` call `encodeURIComponent`; `interact`, `rotate`, `addEndRole`, `addLocScheme`, and `members` concatenate the name raw, so an alias holding a slash addresses a different resource and changes what a signature covers",
+      "rust_decision": "refused by construction: Roadmap 5.3's `ResourcePath` encodes every dynamic component exactly once and offers no way to skip it, so all seven paths agree with the two the reference encodes"
+    },
+    "list_range_is_inclusive_and_unbounded": {
+      "default_header": [
+        {
+          "name": "range",
+          "value": "aids=0-24"
+        }
+      ],
+      "explicit_header": [
+        {
+          "name": "range",
+          "value": "aids=2-5"
+        }
+      ],
+      "defaults": [
+        "start: number = 0",
+        "end: number = 24"
+      ],
+      "note": "`list` sends `aids=${start}-${end}` with no validation at all: a negative start, a fractional end, or an end below the start are all sent as written",
+      "rust_decision": "Roadmap 5.3's `ItemRange` validates start ≤ end at construction and carries unsigned integers, so an unsatisfiable window is unrepresentable"
+    },
+    "list_without_content_range_reads_undefined": {
+      "result": {
+        "start": 0,
+        "end": 0,
+        "total": 0,
+        "aids": [
+          {
+            "name": "aid1",
+            "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+          },
+          {
+            "name": "aid2",
+            "prefix": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX"
+          }
+        ]
+      },
+      "error": null,
+      "note": "`parseRangeHeaders` returns `{start: 0, end: 0, total: 0}` for an absent header, so a listing with no content-range reports a total of zero while carrying entries",
+      "rust_decision": "the range is `Option<ContentRange>` — Roadmap 5.3 already decided an absent header is `None` rather than three zeroes — so a caller can tell an empty window from an unreported one"
+    },
+    "get_requires_key_state_by_throwing": {
+      "refused": "No key state for identifier group1",
+      "accepted": {
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "has_state": false
+      },
+      "note": "`requireKeyState` throws `No key state for identifier ${name}` and is selected by a boolean parameter with three overload signatures",
+      "rust_decision": "two methods rather than a flag: `get` returns an `AcceptedHab` and `get_any` returns the `Hab` enum Roadmap 4.1 built, whose pending variant simply has no key state to demand"
+    },
+    "update_body_is_the_whole_info_object": {
+      "body": "{\"name\":\"aid2\"}",
+      "note": "`update` sends the `IdentifierInfo` argument as the whole body, which today is exactly `{name}`",
+      "rust_decision": "reproduced with a one-field `IdentifierUpdate`, so a caller cannot send a field KERIA does not read"
+    },
+    "create_body_drops_undefined_fields": {
+      "salty": "{\"name\":\"aid1\",\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"AACZZe75PvUZ1lCREPxFAcX59XHo-BGMYTAGni-I4E0eqKznrEoK2d-mtWmWHwKns7tfnjOzTfDUcv7PLFJ52g0A\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+      "with_proxy": "{\"name\":\"aid3\",\"icp\":{\"v\":\"KERI10JSON0001b7_\",\"t\":\"icp\",\"d\":\"EJprPhGqBQd03uO-bJ-LWw8rzRlVtjvCppo8dxIwrW3D\",\"i\":\"EJprPhGqBQd03uO-bJ-LWw8rzRlVtjvCppo8dxIwrW3D\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BHVpzWMU6VvAK9TPlAE7ODw0ApCwoBwtaY4JJf9SWkwZ\",\"BIBWFy7NIMXuSB_QQYOtCo7vUju2_XvPV-XNhX5jLwDp\",\"BCHRhYAd5a7O8-PT-hRGsqEZSX8dBH_vgLbrrDQDCgNZ\"],\"c\":[],\"a\":[]},\"sigs\":[\"AABPKAbGHFlqVjOTQ7JOcuBRiXrVkANd5sCKstsyeEXXHS0-4N1G50wPU1Ult0iL5JuxGcX-1iQImKv0RTWSZbsB\"],\"proxy\":\"EPROXY\",\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+      "group": "{\"name\":\"group1\",\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EF6xZjDX51f_CyKwF9XF1PLogGe-wI6FlJl4kXvJ4lqp\",\"i\":\"EF6xZjDX51f_CyKwF9XF1PLogGe-wI6FlJl4kXvJ4lqp\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DNwaetMMIMbt708EPsdCGHZpMe3gf1OZV-R7LTcJBLnK\"],\"nt\":\"1\",\"n\":[\"EHUXA8lpGe1MObjP8RZs9WijzNsjKdoSql_zajgJGLQ6\",\"EMtIyf7uowARCWm1DXGMsBvMMUVH65y_BU3HmzBMr2-g\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"BACzpOJJNZDkXLTSj8uutyB03r7iIsgtEjQlh-UEfWt6eHsuvLoX_eC_onq1EhLhu5hfwwWPPfIMkCqAnNOaaKsO\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V\"],\"rmids\":[\"ELViLL4JCh-oktYca-pmPLwkmUaeYjyPmCLxELAKZW8V\",\"EOGvmhJDBbJP4zeXaRun5vSz0O3_1zB10DwNMyjXlJEv\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"icp_dt\":\"2021-06-27T21:26:21.233257+00:00\",\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2021-06-27T21:26:21.233257+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"transferable\":true,\"windexes\":[],\"salty\":{\"tier\":\"low\",\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true}},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DNwaetMMIMbt708EPsdCGHZpMe3gf1OZV-R7LTcJBLnK\"],\"ndigs\":[\"EHUXA8lpGe1MObjP8RZs9WijzNsjKdoSql_zajgJGLQ6\",\"EMtIyf7uowARCWm1DXGMsBvMMUVH65y_BU3HmzBMr2-g\"]}}",
+      "expression": "jsondata: any = { name: name, icp: serder.sad, sigs: sigs, proxy: proxy, smids: states != undefined ? states.map((state) => state.i) : undefined, rmids: rstates != undefined ? rstates.map((state) => state.i) : undefined, }",
+      "note": "the body literal always names `proxy`, `smids`, and `rmids`, but `JSON.stringify` drops an `undefined` value, so a non-group creation without a proxy sends four fields and a group creation sends seven",
+      "rust_decision": "reproduced exactly: the body is an ordered `Sad` and an absent value is not written"
+    },
+    "rotate_always_writes_member_lists": {
+      "body": "{\"rot\":{\"v\":\"KERI10JSON000160_\",\"t\":\"rot\",\"d\":\"EBQABdRgaxJONrSLcgrdtbASflkvLxJkiDO0H-XmuhGg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"kt\":\"1\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"1\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AABWSckRpAWLpfFSrpnDR3SzQASrRSVKGh8AnHxauhN_43qKkqPb9l04utnTm2ixNpGGJ-UB8qdKMjfkEQ61AIQC\"],\"smids\":[],\"rmids\":[],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":1,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+      "expression": "jsondata: any = { rot: serder.sad, sigs: sigs, smids: states != undefined ? states.map((state) => state.i) : undefined, rmids: rstates != undefined ? rstates.map((state) => state.i) : undefined, }",
+      "note": "`rotate` defaults `states` and `rstates` to `[]` *before* mapping them, so `smids` and `rmids` are always written — as empty arrays for a single-signature identifier — where `create` omits them",
+      "rust_decision": "reproduced: the asymmetry is what the agent receives, and Roadmap 4.6 already exposed the two accessors with exactly these presence rules"
+    },
+    "pidx_advances_on_the_client": {
+      "walk": {
+        "before": 0,
+        "after_first": 1,
+        "after_second": 2,
+        "first_body_pidx": 0,
+        "second_body_pidx": 1,
+        "note": "`create` builds its keeper at the client's current `pidx` and increments the client's copy after signing, so successive creations derive under successive prefix indices"
+      },
+      "on_failure": {
+        "pidx_after_failure": 0,
+        "note": "a creation that fails before its fetch leaves `pidx` untouched, so the next creation reuses the same prefix index"
+      },
+      "expression": "this.client.pidx = this.client.pidx + 1",
+      "note": "`create` mutates `this.client.pidx` after signing, so the index is shared mutable state on the client and two concurrent creations would derive the same identifier's keys",
+      "rust_decision": "the index is an atomic counter reserved *before* the keys derive, so two concurrent creations can never collide; a creation that fails consumes its index, which the reference would have reused"
+    },
+    "event_result_re_reads_the_response": {
+      "members": [
+        "_serder",
+        "_sigs",
+        "response",
+        "<constructor>",
+        "serder",
+        "sigs",
+        "op"
+      ],
+      "note": "`EventResult.op()` calls `response.json()` on a response the caller may already have read, so a second call throws `Body has already been read`",
+      "rust_decision": "the response body is owned bytes, so `operation()` can be called as often as a caller likes and narrowing it is a decode"
+    },
+    "create_signed_request_stamps_the_identifier": {
+      "resource": "headers.set('Signify-Resource', hab['prefix'])",
+      "signer": "authenticator = new Authenticater( keeper.signers[0], keeper.signers[0].verfer )",
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "text/plain;charset=UTF-8"
+        },
+        {
+          "name": "signature",
+          "value": "indexed=\"?0\";signify=\"0BDma51I0udncc6cPrroKOvllTj6sWaa_6suDsGF3b8D7IUlWbExfjI1OEk8CCAHyIFx9y3f7KDgzcg_RDJXtZgD\""
+        },
+        {
+          "name": "signature-input",
+          "value": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\";alg=\"ed25519\""
+        },
+        {
+          "name": "signify-resource",
+          "value": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+        },
+        {
+          "name": "signify-timestamp",
+          "value": "2023-11-14T22:13:20.123000+00:00"
+        }
+      ],
+      "scan": {
+        "needle": "createSignedRequest",
+        "total": 2,
+        "files": [
+          {
+            "file": "src/keri/app/clienting.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/clienting.test.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`createSignedRequest` reaches an identifier's keeper through `identifiers().get(alias)`, signs with `keeper.signers[0]`, stamps the *identifier's* prefix rather than the controller's, and mutates the caller's `RequestInit` in place",
+      "rust_decision": "the Rust method takes a built `Request` and returns a new one, so the caller's value is untouched; the signing itself is Roadmap 5.5's `SigningTransport::sign_request`, which that item exposed for exactly this call"
+    },
+    "randy_parameters_write_an_undeclared_field": {
+      "parameters": "params(): RandyManagerParams { return { nxts: this.nxts, prxs: this.prxs, transferable: this.transferable, }; }",
+      "creation": [
+        "nxts",
+        "prxs",
+        "transferable"
+      ],
+      "reload": {
+        "path": "/identifiers/aid1/events",
+        "method": "POST",
+        "body_fields": [
+          "ixn",
+          "sigs",
+          "randy"
+        ],
+        "randy_fields": [
+          "nxts",
+          "prxs",
+          "transferable"
+        ],
+        "randy_transferable": true,
+        "record_transferable": true,
+        "prefix_code": "E",
+        "note": "a reloaded randy keeper takes its transferability from the identifier's own prefix, because the stored `RandyKeyState` does not declare the field its `params()` writes back"
+      },
+      "reloaded_from": "new RandyIdentifierManager( this.salter, undefined, undefined, undefined, new Prefixer({ qb64: aid['prefix'] }).transferable, undefined, undefined, [], undefined, aid.randy.prxs, aid.randy.nxts )",
+      "note": "a randy keeper's `params()` writes `nxts`, `prxs`, and a `transferable` the schema's `RandyKeyState` does not declare; on reload the value comes from the identifier's prefix rather than from the stored block, so it is derivable and never read back",
+      "rust_decision": "reproduced from the same source the reference reloads it from — the request's transferability when creating or rotating, the identifier's prefix when interacting — because Roadmap 4.1's `RandyState` is schema-faithful and carries no such field"
+    },
+    "non_transferable_stores_the_prefix_code_as_its_digest_code": {
+      "body": "{\"name\":\"aid1\",\"icp\":{\"v\":\"KERI10JSON0000fd_\",\"t\":\"icp\",\"d\":\"EFI3s8I7M6b8iiOFJOqDfjuak9NQJtVx8N2Px_cm2lsN\",\"i\":\"BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"0\",\"n\":[],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"AAD43ke-FKLzD_eOJuE7-G5jeqjs9iyirE-atbxd4sSvEn-0fRibOWI5jtvlE8b8Dn8_rVRa1BUCyDfmEXzy1uwA\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[],\"dcode\":\"B\",\"transferable\":false}}",
+      "stored_dcode": "B",
+      "note": "`create` reuses one `dcode` variable for the prefix derivation and for the stored digest code, so a non-transferable identifier's record names the basic prefix code `B` in the field that says which digest algorithm commits to its next keys — a field governing a list that is empty either way",
+      "rust_decision": "not reproduced: Roadmap 4.6 recorded this and stores the digest code actually used (`E`), so the request body differs in exactly that one field. A record whose `dcode` is not a digest code does not reload here."
+    },
+    "mock_identifier_state_names_two_key_managers": {
+      "note": "`test/app/test-utils.ts`'s `createMockIdentifierState` writes `extern: extern ?? {}` beside the algorithm's own field, so every record it produces names two key managers",
+      "rust_decision": "refused: Roadmap 4.1's `Hab` requires exactly one, and an `extern` block with no `extern_type` is not a key-manager state at all. The records in this fixture name one, as a KERIA response does."
+    }
+  }
+}

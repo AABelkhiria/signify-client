@@ -17,7 +17,9 @@ use signify_http::signature::authentication::AuthenticationError;
 use signify_http::signature::transport::{ResponseAuthenticationError, SigningError};
 use signify_http::transport::TransportError;
 use signify_keri::controller::ControllerError;
+use signify_keri::identifier::IdentifierError;
 use signify_keri::manager::ManagerError;
+use signify_keri::prefix::PrefixError;
 use signify_keri::serialization::SerializationError;
 use signify_types::api::ApiError;
 
@@ -157,6 +159,29 @@ pub enum ClientError {
         /// The agent's structured detail, rendered as JSON when present.
         details: Option<String>,
     },
+    /// An identifier artifact could not be built or signed.
+    Identifier {
+        /// Underlying failure.
+        source: Box<IdentifierError>,
+    },
+    /// An identifier record carried no key state where one was required.
+    ///
+    /// The reference's `No key state for identifier <name>`, which a multisig group still
+    /// collecting member signatures produces.
+    IdentifierNotAccepted {
+        /// The alias or prefix the record was looked up by.
+        name: String,
+    },
+    /// An identifier's keeper holds no signing key.
+    NoSigningKey {
+        /// The alias the identifier was looked up by.
+        alias: String,
+    },
+    /// A module's own stored parameter is a number this port cannot write exactly.
+    ///
+    /// Roadmap 3.2 narrowed the number space deliberately so byte parity is provable; a
+    /// fractional or out-of-range value is refused rather than rounded.
+    UnrepresentableNumber,
     /// Operating-system randomness was unavailable.
     Randomness,
 }
@@ -225,6 +250,16 @@ impl fmt::Display for ClientError {
                 ),
                 None => write!(formatter, "operation {name:?} failed [code {code}]: {message}"),
             },
+            Self::Identifier { source } => write!(formatter, "identifier artifact construction failed: {source}"),
+            Self::IdentifierNotAccepted { name } => {
+                write!(formatter, "the identifier {name:?} has no key state yet")
+            }
+            Self::NoSigningKey { alias } => {
+                write!(formatter, "the identifier {alias:?} holds no signing key")
+            }
+            Self::UnrepresentableNumber => {
+                formatter.write_str("a stored parameter is a number that cannot be written exactly")
+            }
             Self::Randomness => formatter.write_str("operating-system randomness is unavailable"),
         }
     }
@@ -246,6 +281,7 @@ impl Error for ClientError {
             Self::Crypto { source } => Some(source),
             Self::Cesr { source } => Some(source),
             Self::Api { source } => Some(source),
+            Self::Identifier { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
             | Self::PasscodeNotBase64 { .. }
             | Self::AgentNotFound { .. }
@@ -254,6 +290,9 @@ impl Error for ClientError {
             | Self::Status { .. }
             | Self::OperationPending { .. }
             | Self::OperationFailed { .. }
+            | Self::IdentifierNotAccepted { .. }
+            | Self::NoSigningKey { .. }
+            | Self::UnrepresentableNumber
             | Self::Randomness => None,
         }
     }
@@ -283,6 +322,16 @@ layered!(ManagerError, Manager);
 layered!(SerializationError, Serialization);
 layered!(CryptoError, Crypto);
 layered!(CesrError, Cesr);
+layered!(IdentifierError, Identifier);
+
+impl From<PrefixError> for ClientError {
+    /// A prefix read out of an identifier record is that record's failure, not the controller's.
+    fn from(source: PrefixError) -> Self {
+        Self::Identifier {
+            source: Box::new(source.into()),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -334,6 +383,13 @@ mod tests {
             },
             ClientError::IncompleteAgentState { missing: "agent" },
             ClientError::status(404, b"missing"),
+            ClientError::IdentifierNotAccepted {
+                name: "group1".to_owned(),
+            },
+            ClientError::NoSigningKey {
+                alias: "aid1".to_owned(),
+            },
+            ClientError::UnrepresentableNumber,
             ClientError::Randomness,
         ];
         for failure in &failures {

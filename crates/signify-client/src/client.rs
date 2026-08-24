@@ -33,6 +33,7 @@
 //! says so in its own documentation. See `fixtures/client-lifecycle/`.
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use signify_crypto::salt::SecurityTier;
 use signify_crypto::verifier::VerificationKey;
@@ -50,6 +51,7 @@ use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
+use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::operations::Operations;
 use crate::error::ClientError;
 
@@ -320,7 +322,14 @@ impl SignifyClient {
             });
         }
 
-        let mut connected = ConnectedClient::assemble(self.config, controller, agent, self.transport, self.clock)?;
+        let mut connected = ConnectedClient::assemble(
+            self.config,
+            controller,
+            agent,
+            self.transport,
+            self.clock,
+            state.prefix_index(),
+        )?;
         if connected.controller.current_sequence_number() == 0 {
             connected.approve_delegation().await?;
         }
@@ -338,8 +347,9 @@ pub struct ConnectedClient {
     unsigned: Arc<dyn Transport>,
     signing: SigningTransport,
     authenticator: ResponseAuthenticator,
+    clock: Arc<dyn Clock>,
     resource: HeaderValue,
-    prefix_index: u32,
+    prefix_index: AtomicU32,
 }
 
 impl ConnectedClient {
@@ -350,6 +360,7 @@ impl ConnectedClient {
         agent: Agent,
         transport: Arc<dyn Transport>,
         clock: Arc<dyn Clock>,
+        prefix_index: u32,
     ) -> Result<Self, ClientError> {
         let resource = HeaderValue::new(controller.prefix().qb64().map_err(prefix_error)?)?;
         let signer = RequestSigner::new(controller.derive_signing_key()?);
@@ -357,7 +368,7 @@ impl ConnectedClient {
             SigningTransport::new(Arc::clone(&transport), signer, resource.clone())?.with_clock(Arc::clone(&clock));
         let verifier = ResponseVerifier::new(agent_key(&agent));
         let agent_resource = HeaderValue::new(agent.prefix().qb64().map_err(prefix_error)?)?;
-        let authenticator = ResponseAuthenticator::new(verifier, agent_resource, clock);
+        let authenticator = ResponseAuthenticator::new(verifier, agent_resource, Arc::clone(&clock));
         // The keeper factory needs an owned salt, and a `Salt` is deliberately not cloneable
         // (Roadmap 2.5), so it is re-derived through the one function that owns that derivation.
         let keepers = KeeperFactory::new(salt_from_passcode(config.passcode().expose(), config.tier())?);
@@ -370,8 +381,9 @@ impl ConnectedClient {
             unsigned: transport,
             signing,
             authenticator,
+            clock,
             resource,
-            prefix_index: 0,
+            prefix_index: AtomicU32::new(prefix_index),
         })
     }
 
@@ -399,10 +411,23 @@ impl ConnectedClient {
         &self.keepers
     }
 
-    /// Returns the prefix index the agent reported.
+    /// Returns the prefix index the next creation will derive under.
+    ///
+    /// It starts at whatever the agent reported and advances with every creation, as the
+    /// reference's `pidx` does.
     #[must_use]
-    pub const fn prefix_index(&self) -> u32 {
-        self.prefix_index
+    pub fn prefix_index(&self) -> u32 {
+        self.prefix_index.load(Ordering::SeqCst)
+    }
+
+    /// Reserves the prefix index one creation will derive under, advancing the counter.
+    ///
+    /// The reference increments its shared `pidx` *after* signing, so two concurrent creations
+    /// would read the same value and derive the same identifier's keys. Reserving first makes that
+    /// collision unrepresentable; the cost is that a creation which fails after reserving consumes
+    /// an index the reference would have reused, which leaves a gap and nothing else.
+    pub(crate) fn reserve_prefix_index(&self) -> u32 {
+        self.prefix_index.fetch_add(1, Ordering::SeqCst)
     }
 
     /// Returns the `Signify-Resource` value every request is stamped with.
@@ -420,6 +445,47 @@ impl ConnectedClient {
     #[must_use]
     pub const fn operations(&self) -> Operations<'_> {
         Operations::new(self)
+    }
+
+    /// Returns the identifier endpoint family.
+    #[must_use]
+    pub const fn identifiers(&self) -> Identifiers<'_> {
+        Identifiers::new(self)
+    }
+
+    /// Signs a request for an **external** resource with one managed identifier's own key.
+    ///
+    /// This is the reference's `createSignedRequest`, and it is the one signing path that does not
+    /// use the controller's key: the identifier is looked up by alias, its keeper's first signer
+    /// signs, and the identifier's own prefix — not the controller's — is stamped as
+    /// `Signify-Resource`. The signature covers the *external* URL's path.
+    ///
+    /// The request is taken by value and a new one returned, where the reference mutates the
+    /// caller's own options object in place.
+    ///
+    /// # Errors
+    ///
+    /// Returns whatever [`Identifiers::get`] returns, [`ClientError::Manager`] when the record's
+    /// keeper cannot be rebuilt, [`ClientError::NoSigningKey`] when that keeper holds none, and
+    /// [`ClientError::Signing`] when the request cannot be signed.
+    pub async fn sign_external_request(&self, alias: &str, request: Request) -> Result<Request, ClientError> {
+        let record = self.identifiers().get(alias).await?;
+        let keeper = self
+            .keepers
+            .keeper_for(&signify_types::api::Hab::Accepted(record.clone()))?;
+        let signer = keeper
+            .expose_signers()?
+            .into_iter()
+            .next()
+            .ok_or_else(|| ClientError::NoSigningKey {
+                alias: alias.to_owned(),
+            })?;
+        let resource = HeaderValue::new(record.common.prefix.clone())?;
+        // The signing itself is Roadmap 5.5's, which exposed `sign_request` for exactly this call.
+        // The inner transport is never used: nothing is sent from here.
+        let signing = SigningTransport::new(Arc::clone(&self.unsigned), RequestSigner::new(signer), resource)?
+            .with_clock(Arc::clone(&self.clock));
+        Ok(signing.sign_request(&request)?)
     }
 
     /// Sets how old a response signature may be.

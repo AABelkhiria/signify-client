@@ -8,5 +8,20 @@
 //!
 //! Roadmap 6.5 opens the module with [`operations`], which is the family every other one depends
 //! on: a KERIA agent answers most writes with a long-running operation rather than a result.
+//! Roadmap 6.6 adds [`identifiers`], the family that creates and rotates what everything else
+//! speaks for.
 
+pub mod identifiers;
 pub mod operations;
+
+/// Decodes one JSON document from a response body.
+///
+/// Every family reads its answers this way, so the failure a caller sees for a body that is not
+/// what it should have been is the same shape whichever resource produced it.
+pub(crate) fn decode_json<T: serde::de::DeserializeOwned>(body: &[u8]) -> Result<T, crate::error::ClientError> {
+    serde_json::from_slice(body).map_err(|source| crate::error::ClientError::Api {
+        source: Box::new(signify_types::api::ApiError::Json {
+            source: Box::new(source),
+        }),
+    })
+}

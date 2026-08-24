@@ -33,5 +33,9 @@ harness = false
 name = "operations"
 harness = false
 
+[[bench]]
+name = "identifiers"
+harness = false
+
 [lints]
 workspace = true
