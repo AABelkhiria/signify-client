@@ -50,6 +50,7 @@ use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
+use crate::endpoint::operations::Operations;
 use crate::error::ClientError;
 
 /// Path segment the agent resource lives under.
@@ -408,6 +409,17 @@ impl ConnectedClient {
     #[must_use]
     pub const fn resource(&self) -> &HeaderValue {
         &self.resource
+    }
+
+    /// Returns the operations endpoint family.
+    ///
+    /// A KERIA agent answers most write requests with a long-running operation rather than a
+    /// result, so this is the family every other one leans on. The reference exposes sixteen such
+    /// accessors; each arrives here with its own roadmap item rather than being stubbed ahead of
+    /// it.
+    #[must_use]
+    pub const fn operations(&self) -> Operations<'_> {
+        Operations::new(self)
     }
 
     /// Sets how old a response signature may be.

@@ -312,6 +312,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "client_operations"
+path = "fuzz_targets/client_operations.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

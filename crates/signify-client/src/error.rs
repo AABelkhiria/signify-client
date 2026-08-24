@@ -19,6 +19,7 @@ use signify_http::transport::TransportError;
 use signify_keri::controller::ControllerError;
 use signify_keri::manager::ManagerError;
 use signify_keri::serialization::SerializationError;
+use signify_types::api::ApiError;
 
 /// Largest response body detail kept in an error message, in bytes.
 const MAX_DETAIL_BYTES: usize = 256;
@@ -129,6 +130,33 @@ pub enum ClientError {
         /// Underlying failure.
         source: Box<CesrError>,
     },
+    /// A KERIA document did not decode as the type it should have been.
+    Api {
+        /// Underlying failure.
+        source: Box<ApiError>,
+    },
+    /// An operation was asked for its result before it had finished.
+    ///
+    /// The reference has no such state: its `throwIfFailed` returns a still-running operation
+    /// unchanged, and only `wait` notices.
+    OperationPending {
+        /// The operation's name, which is also its path segment.
+        name: String,
+    },
+    /// An operation finished unsuccessfully.
+    ///
+    /// The reference interpolates all four of these into one thrown string; here they stay apart,
+    /// and the message is bounded because it is remote text.
+    OperationFailed {
+        /// The operation's name.
+        name: String,
+        /// The agent's status code, following HTTP conventions.
+        code: i64,
+        /// The agent's message, bounded.
+        message: String,
+        /// The agent's structured detail, rendered as JSON when present.
+        details: Option<String>,
+    },
     /// Operating-system randomness was unavailable.
     Randomness,
 }
@@ -183,6 +211,20 @@ impl fmt::Display for ClientError {
             Self::Serialization { source } => write!(formatter, "serialization failed: {source}"),
             Self::Crypto { source } => write!(formatter, "cryptographic encoding failed: {source}"),
             Self::Cesr { source } => write!(formatter, "qualified encoding failed: {source}"),
+            Self::Api { source } => write!(formatter, "document decoding failed: {source}"),
+            Self::OperationPending { name } => write!(formatter, "operation {name:?} is still running"),
+            Self::OperationFailed {
+                name,
+                code,
+                message,
+                details,
+            } => match details {
+                Some(details) => write!(
+                    formatter,
+                    "operation {name:?} failed [code {code}]: {message} ({details})"
+                ),
+                None => write!(formatter, "operation {name:?} failed [code {code}]: {message}"),
+            },
             Self::Randomness => formatter.write_str("operating-system randomness is unavailable"),
         }
     }
@@ -203,12 +245,15 @@ impl Error for ClientError {
             Self::Serialization { source } => Some(source),
             Self::Crypto { source } => Some(source),
             Self::Cesr { source } => Some(source),
+            Self::Api { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
             | Self::PasscodeNotBase64 { .. }
             | Self::AgentNotFound { .. }
             | Self::AgentNotDelegatedToController { .. }
             | Self::IncompleteAgentState { .. }
             | Self::Status { .. }
+            | Self::OperationPending { .. }
+            | Self::OperationFailed { .. }
             | Self::Randomness => None,
         }
     }
