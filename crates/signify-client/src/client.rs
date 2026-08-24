@@ -52,6 +52,8 @@ use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
 use crate::endpoint::identifiers::Identifiers;
+use crate::endpoint::key_events::KeyEvents;
+use crate::endpoint::key_states::KeyStates;
 use crate::endpoint::operations::Operations;
 use crate::error::ClientError;
 
@@ -451,6 +453,18 @@ impl ConnectedClient {
     #[must_use]
     pub const fn identifiers(&self) -> Identifiers<'_> {
         Identifiers::new(self)
+    }
+
+    /// Returns the key-events endpoint family: the log behind an identifier's state.
+    #[must_use]
+    pub const fn key_events(&self) -> KeyEvents<'_> {
+        KeyEvents::new(self)
+    }
+
+    /// Returns the key-states endpoint family: what the agent believes about other identifiers.
+    #[must_use]
+    pub const fn key_states(&self) -> KeyStates<'_> {
+        KeyStates::new(self)
     }
 
     /// Signs a request for an **external** resource with one managed identifier's own key.

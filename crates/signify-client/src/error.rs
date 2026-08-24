@@ -172,6 +172,11 @@ pub enum ClientError {
         /// The alias or prefix the record was looked up by.
         name: String,
     },
+    /// A key-state listing named no identifier at all.
+    ///
+    /// The reference sends `/states?` with nothing after the question mark, which asks for
+    /// nothing; here it is a caller mistake rather than a request.
+    EmptyKeyStateListing,
     /// An identifier's keeper holds no signing key.
     NoSigningKey {
         /// The alias the identifier was looked up by.
@@ -254,6 +259,7 @@ impl fmt::Display for ClientError {
             Self::IdentifierNotAccepted { name } => {
                 write!(formatter, "the identifier {name:?} has no key state yet")
             }
+            Self::EmptyKeyStateListing => formatter.write_str("a key-state listing must name at least one identifier"),
             Self::NoSigningKey { alias } => {
                 write!(formatter, "the identifier {alias:?} holds no signing key")
             }
@@ -291,6 +297,7 @@ impl Error for ClientError {
             | Self::OperationPending { .. }
             | Self::OperationFailed { .. }
             | Self::IdentifierNotAccepted { .. }
+            | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
             | Self::UnrepresentableNumber
             | Self::Randomness => None,
@@ -386,6 +393,7 @@ mod tests {
             ClientError::IdentifierNotAccepted {
                 name: "group1".to_owned(),
             },
+            ClientError::EmptyKeyStateListing,
             ClientError::NoSigningKey {
                 alias: "aid1".to_owned(),
             },

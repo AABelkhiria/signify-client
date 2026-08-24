@@ -1,0 +1,1188 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-24",
+  "sources": [
+    "src/keri/app/coring.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/coring.test.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "prefix_one": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+    "prefix_two": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "anchor_said": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "note": "`KeyEvents` and `KeyStates` each take a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the arrangement Roadmap 6.4's fixture established. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the one `coring.test.ts` publishes and has never protected anything."
+  },
+  "declarations": {
+    "events_path": "path = `/events?pre=${pre}`",
+    "states_path": "path = `/states?pre=${pre}`",
+    "states_list_path": "path = `/states?${pres.map((pre) => `pre=${pre}`).join('&')}`",
+    "queries_path": "path = `/queries`",
+    "query_body": "data: any = { pre: pre, }",
+    "query_signature": [
+      "pre: string",
+      "sn?: string",
+      "anchor?: any"
+    ],
+    "query_sn_doc": "* @param {number} [sn] Optional sequence number",
+    "query_anchor_doc": "* @param {any} [anchor] Optional anchor",
+    "query_metadata_sn": "sn: number;",
+    "query_metadata_anchor": "anchor?: components['schemas']['Anchor'];",
+    "anchor_schema": "pre: string;",
+    "seal_schema": "s: string;",
+    "key_event_record": "ked: components['schemas']['KeyEvent'];",
+    "notes": {
+      "paths": "all four dynamic values are interpolated into the query with no encoding at all; `list` joins its prefixes with `&` and, given none, produces a bare question mark",
+      "query_body": "`query` builds `{pre}` and adds `sn` and `anchor` only when they are defined, so an absent one is not written rather than being written as null",
+      "sn": "`sn` is declared `string` on the parameter, documented `number` in the JSDoc directly above it, and declared `number` in the schema's own `QueryMetadata` — three spellings of one field",
+      "anchor": "`anchor` is `any`. The pinned unit test passes a bare SAID string, every integration caller passes a Seal (`{i, s, d}`), and the schema's `QueryMetadata.anchor` is an `Anchor` (`{pre, sn, d}`) — three shapes, and only the integration ones ever reach a live KERIA"
+    }
+  },
+  "calls": [
+    {
+      "name": "events_get",
+      "note": "the pinned unit test's own key-event read",
+      "request": {
+        "path": "/events?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "ked": {
+            "v": "KERI10JSON00012b_",
+            "t": "icp",
+            "d": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+            "i": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+            "s": "0",
+            "kt": "1",
+            "k": [
+              "DGBw7C7AfC7jbD3jLLRS3SzIWFndM947TyNWKQ52iQx5"
+            ],
+            "nt": "1",
+            "n": [
+              "EML5FrjCpz8SEl4dh0U15l8bMRhV_O5iDcR1opLJGBSH"
+            ],
+            "bt": "0",
+            "b": [],
+            "c": [],
+            "a": []
+          },
+          "atc": "-VAn-AABAAB0mGa6DKRLR6-1DXBlvIP0DEHkTLQtNQqHqPTLTUdMBBB0mGa6DKRLR6"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "events_get_prefix_needing_encoding",
+      "note": "a prefix carrying query delimiters, which the reference interpolates raw",
+      "request": {
+        "path": "/events?pre=E&pre=EOTHER#x",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "states_get",
+      "note": "the pinned unit test's own key-state read",
+      "request": {
+        "path": "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "s": "0",
+          "p": "",
+          "d": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "f": "0",
+          "dt": "2023-12-01T10:05:25.062609+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+          ],
+          "nt": "1",
+          "n": [
+            "ELhJIWoUPBHgHW7oACRhfkFp5Ex9K8CnnDTD6QJ6x5gs"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "states_list",
+      "note": "the pinned unit test's two-prefix listing, whose repeated parameter is joined with an ampersand",
+      "request": {
+        "path": "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX&pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "s": "0",
+          "p": "",
+          "d": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "f": "0",
+          "dt": "2023-12-01T10:05:25.062609+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+          ],
+          "nt": "1",
+          "n": [
+            "ELhJIWoUPBHgHW7oACRhfkFp5Ex9K8CnnDTD6QJ6x5gs"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-12-01T10:05:25.062609+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+          ],
+          "nt": "1",
+          "n": [
+            "ELhJIWoUPBHgHW7oACRhfkFp5Ex9K8CnnDTD6QJ6x5gs"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "states_list_one",
+      "note": "a single-prefix listing, identical to a read",
+      "request": {
+        "path": "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "s": "0",
+          "p": "",
+          "d": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "f": "0",
+          "dt": "2023-12-01T10:05:25.062609+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+          ],
+          "nt": "1",
+          "n": [
+            "ELhJIWoUPBHgHW7oACRhfkFp5Ex9K8CnnDTD6QJ6x5gs"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "states_list_empty",
+      "note": "an empty listing, which produces a bare question mark",
+      "request": {
+        "path": "/states?",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "query_pinned",
+      "note": "the pinned unit test's own query: a sequence number and a bare SAID as the anchor",
+      "request": {
+        "path": "/queries",
+        "method": "POST",
+        "body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"1\",\"anchor\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}"
+      },
+      "result": {
+        "name": "query.EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "metadata": {
+          "pre": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "query_prefix_only",
+      "note": "a query with neither a sequence number nor an anchor",
+      "request": {
+        "path": "/queries",
+        "method": "POST",
+        "body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\"}"
+      },
+      "result": {
+        "name": "query.EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "metadata": {
+          "pre": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "query_sequence_only",
+      "note": "a query naming only a sequence number, as every integration caller does",
+      "request": {
+        "path": "/queries",
+        "method": "POST",
+        "body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"1\"}"
+      },
+      "result": {
+        "name": "query.EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "metadata": {
+          "pre": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "query_seal_anchor",
+      "note": "a query naming only an anchor, in the Seal shape the integration tests pass and a live KERIA accepts",
+      "request": {
+        "path": "/queries",
+        "method": "POST",
+        "body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"anchor\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"}}"
+      },
+      "result": {
+        "name": "query.EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "metadata": {
+          "pre": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "query_two_digit_sequence",
+      "note": "a sequence number above nine, where decimal and hexadecimal stop agreeing — the reference passes the string through untouched",
+      "request": {
+        "path": "/queries",
+        "method": "POST",
+        "body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"10\"}"
+      },
+      "result": {
+        "name": "query.EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+        "metadata": {
+          "pre": "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "published_paths": [
+      "/events?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+      "/queries",
+      "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+      "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX&pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+    ],
+    "driven_paths": [
+      "/events?pre=E&pre=EOTHER#x",
+      "/events?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+      "/queries",
+      "/states?",
+      "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX",
+      "/states?pre=EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX&pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+    ],
+    "every_pinned_path_is_driven": true,
+    "pinned_query_body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"1\",\"anchor\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}",
+    "note": "the four paths the pinned `coring.test.ts` asserts are all produced here by the reference's own classes, and the query body is the one it inspects field by field"
+  },
+  "reference_quirks": {
+    "query_values_are_not_encoded": {
+      "path": "/events?pre=E&pre=EOTHER#x",
+      "expressions": {
+        "events": "path = `/events?pre=${pre}`",
+        "states": "path = `/states?pre=${pre}`",
+        "list": "path = `/states?${pres.map((pre) => `pre=${pre}`).join('&')}`"
+      },
+      "note": "all three read paths interpolate their prefix straight into the query with no encoding, so a prefix carrying `&` or `#` adds parameters or truncates the query — the fourth such family Roadmap 5.3 counted",
+      "rust_decision": "refused twice over: the parameter is a validated `IdentifierPrefix` rather than a string, and Roadmap 5.3's builder would encode it exactly once even if it were not"
+    },
+    "an_empty_listing_addresses_a_bare_question_mark": {
+      "path": "/states?",
+      "expression": "path = `/states?${pres.map((pre) => `pre=${pre}`).join('&')}`",
+      "note": "`list([])` joins nothing and still interpolates `?`, so an empty listing addresses `/states?` — the same defect Roadmap 6.5 recorded for `/operations?`",
+      "rust_decision": "not reproduced, on Roadmap 6.5's own three grounds: the signed path is identical because Roadmap 3.10 strips the query, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell it. An empty listing is refused outright here, because asking for no key states is a caller mistake rather than a request."
+    },
+    "a_listing_is_unbounded": {
+      "note": "`list` maps and joins however many prefixes it is handed, so a caller can build a query no server will accept",
+      "rust_decision": "Roadmap 5.3's builder bounds a query at 32 parameters and 1,024 bytes, so a listing of more than about twenty prefixes is a typed refusal rather than a request that fails remotely"
+    },
+    "the_sequence_number_has_three_spellings": {
+      "parameter": [
+        "pre: string",
+        "sn?: string",
+        "anchor?: any"
+      ],
+      "jsdoc": "* @param {number} [sn] Optional sequence number",
+      "schema": "sn: number;",
+      "body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"1\",\"anchor\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}",
+      "two_digit_body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"10\"}",
+      "base": {
+        "reference_call_sites": [
+          {
+            "file": "test-integration/delegation-multisig.test.ts",
+            "call": "delegator1Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+            "arguments": [
+              "adelegatorGroupName.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/delegation-multisig.test.ts",
+            "call": "delegator2Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+            "arguments": [
+              "adelegatorGroupName.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/delegation-multisig.test.ts",
+            "call": "delegatee1Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+            "arguments": [
+              "adelegatorGroupName.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/delegation-multisig.test.ts",
+            "call": "delegatee2Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+            "arguments": [
+              "adelegatorGroupName.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/delegation.test.ts",
+            "call": "client2.keyStates().query(ator.prefix, '1')",
+            "arguments": [
+              "ator.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client1.keyStates().query(aid2.prefix, '1')",
+            "arguments": [
+              "aid2.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client1.keyStates().query(aid3.prefix, '0')",
+            "arguments": [
+              "aid3.prefix",
+              "'0'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client2.keyStates().query(aid1.prefix, '1')",
+            "arguments": [
+              "aid1.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client2.keyStates().query(aid3.prefix, '0')",
+            "arguments": [
+              "aid3.prefix",
+              "'0'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client3.keyStates().query(aid1.prefix, '1')",
+            "arguments": [
+              "aid1.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client3.keyStates().query(aid2.prefix, '1')",
+            "arguments": [
+              "aid2.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client1.keyStates().query(aid2.prefix, '2')",
+            "arguments": [
+              "aid2.prefix",
+              "'2'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client1.keyStates().query(aid3.prefix, '1')",
+            "arguments": [
+              "aid3.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client2.keyStates().query(aid1.prefix, '2')",
+            "arguments": [
+              "aid1.prefix",
+              "'2'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client2.keyStates().query(aid3.prefix, '1')",
+            "arguments": [
+              "aid3.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client3.keyStates().query(aid1.prefix, '2')",
+            "arguments": [
+              "aid1.prefix",
+              "'2'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client3.keyStates().query(aid2.prefix, '2')",
+            "arguments": [
+              "aid2.prefix",
+              "'2'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "call": "client.keyStates().query(prefix, sn)",
+            "arguments": [
+              "prefix",
+              "sn"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-vlei-issuance.test.ts",
+            "call": "clientQAR1 .keyStates() .query(aidGEDA.prefix, '1')",
+            "arguments": [
+              "aidGEDA.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-vlei-issuance.test.ts",
+            "call": "clientQAR2 .keyStates() .query(aidGEDA.prefix, '1')",
+            "arguments": [
+              "aidGEDA.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig-vlei-issuance.test.ts",
+            "call": "clientQAR3 .keyStates() .query(aidGEDA.prefix, '1')",
+            "arguments": [
+              "aidGEDA.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client1.keyStates().query(aid2.prefix, '1')",
+            "arguments": [
+              "aid2.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client1.keyStates().query(aid3.prefix, '1')",
+            "arguments": [
+              "aid3.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client2.keyStates().query(aid3.prefix, '1')",
+            "arguments": [
+              "aid3.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client2.keyStates().query(aid1.prefix, '1')",
+            "arguments": [
+              "aid1.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client3.keyStates().query(aid1.prefix, '1')",
+            "arguments": [
+              "aid1.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client3.keyStates().query(aid2.prefix, '1')",
+            "arguments": [
+              "aid2.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client4.keyStates().query(aid1.prefix, '1')",
+            "arguments": [
+              "aid1.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client4.keyStates().query(aid2.prefix, '1')",
+            "arguments": [
+              "aid2.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client4.keyStates().query(aid3.prefix, '1')",
+            "arguments": [
+              "aid3.prefix",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client1.keyStates().query(m.prefix, '4')",
+            "arguments": [
+              "m.prefix",
+              "'4'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client2.keyStates().query(m.prefix, '4')",
+            "arguments": [
+              "m.prefix",
+              "'4'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client3.keyStates().query(m.prefix, '4')",
+            "arguments": [
+              "m.prefix",
+              "'4'"
+            ]
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "call": "client4.keyStates().query(m.prefix, '4')",
+            "arguments": [
+              "m.prefix",
+              "'4'"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-dip.test.ts",
+            "call": "client2.keyStates().query(name1_id, '1')",
+            "arguments": [
+              "name1_id",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-dip.test.ts",
+            "call": "client2.keyStates().query(name1_id, undefined, seal)",
+            "arguments": [
+              "name1_id",
+              "undefined",
+              "seal"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-dip.test.ts",
+            "call": "client2.keyStates().query(name1_id, undefined, seal)",
+            "arguments": [
+              "name1_id",
+              "undefined",
+              "seal"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-drt.test.ts",
+            "call": "delegate.keyStates().query(name1_id, '1')",
+            "arguments": [
+              "name1_id",
+              "'1'"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-drt.test.ts",
+            "call": "delegate.keyStates().query(name1_id, '2')",
+            "arguments": [
+              "name1_id",
+              "'2'"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-ixn.test.ts",
+            "call": "client2 .keyStates() .query(contact1_id, keystate1.s, undefined)",
+            "arguments": [
+              "contact1_id",
+              "keystate1.s",
+              "undefined"
+            ]
+          },
+          {
+            "file": "test-integration/singlesig-rot.test.ts",
+            "call": "client2 .keyStates() .query(contact1_id, keystate1.s, undefined)",
+            "arguments": [
+              "contact1_id",
+              "keystate1.s",
+              "undefined"
+            ]
+          },
+          {
+            "file": "test/app/coring.test.ts",
+            "call": "keyStates.query( 'EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX', '1', 'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao' )",
+            "arguments": [
+              "'EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX'",
+              "'1'",
+              "'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao'"
+            ]
+          }
+        ],
+        "every_recorded_sn_is_one_digit": false,
+        "dynamic_call_sites": {
+          "note": "two call sites pass something other than a literal. One forwards a helper's own `sn` parameter, itself always a one-digit literal; the other passes a key state's `s` field straight through — and that field is a KERI sequence number, which the protocol writes in **hexadecimal**.",
+          "key_state_field": [
+            {
+              "line": 52,
+              "text": "expect(parseInt(keystate1.s)).toBeGreaterThan(0);"
+            },
+            {
+              "line": 54,
+              "text": "assert.equal(parseInt(keystate1.s), parseInt(keystate0.s) + 1);"
+            },
+            {
+              "line": 59,
+              "text": "assert.equal(parseInt(keystate2.s), parseInt(keystate1.s) - 1);"
+            },
+            {
+              "line": 64,
+              "text": ".query(contact1_id, keystate1.s, undefined);"
+            },
+            {
+              "line": 68,
+              "text": "assert.equal(keystate3.s, keystate1.s);"
+            }
+          ],
+          "parsed_as_decimal": [
+            {
+              "line": 52,
+              "text": "expect(parseInt(keystate1.s)).toBeGreaterThan(0);"
+            },
+            {
+              "line": 54,
+              "text": "assert.equal(parseInt(keystate1.s), parseInt(keystate0.s) + 1);"
+            },
+            {
+              "line": 59,
+              "text": "assert.equal(parseInt(keystate2.s), parseInt(keystate1.s) - 1);"
+            }
+          ],
+          "parse_note": "the same file reads that field back with `parseInt`, which without a radix parses base ten — so the reference's own test treats a hexadecimal protocol field as decimal. Below ten the two agree, which is why nothing upstream has ever noticed."
+        },
+        "keripy": {
+          "commit": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+          "file": "src/keri/app/indirecting.py",
+          "lines": [
+            {
+              "line": 1121,
+              "text": "sn = req.get_param_as_int(\"sn\")"
+            },
+            {
+              "line": 1250,
+              "text": "sn = req.get_param_as_int(\"sn\")"
+            }
+          ],
+          "note": "keripy's own HTTP surface reads an `sn` query parameter with falcon's `get_param_as_int`, which parses base ten. KERIA is a different service, so this is corroboration rather than proof."
+        },
+        "note": "the reference passes whatever string it is handed straight into the body, so its own evidence cannot distinguish the base",
+        "rust_decision": "**not guessed.** The Rust request takes a two-variant `QuerySequence` — `Decimal(u64)` or `Hexadecimal(u64)` — so the caller chooses the rendering and the ambiguity is visible in the type rather than hidden behind a default. Both variants reproduce every recorded call byte for byte, because every one of them is below ten. Roadmap 9.2 owes this a live confirmation; `PORTING.md` §10 carries it as an open question."
+      },
+      "note": "the parameter is declared `string`, the JSDoc directly above it says `number`, and the schema's own `QueryMetadata.sn` is a `number` — while the value actually sent is a string",
+      "rust_decision": "a `u64` rendered in base ten, which is the string every recorded caller sends. The request writes text because that is what the reference sends and what the pinned test asserts."
+    },
+    "the_anchor_has_three_shapes": {
+      "unit_test_body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"1\",\"anchor\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\"}",
+      "integration_body": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"anchor\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"}}",
+      "schema_anchor": "anchor?: components['schemas']['Anchor'];",
+      "anchor_first_field": "pre: string;",
+      "seal_first_field": "s: string;",
+      "call_sites": [
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "call": "delegator1Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+          "arguments": [
+            "adelegatorGroupName.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "call": "delegator2Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+          "arguments": [
+            "adelegatorGroupName.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "call": "delegatee1Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+          "arguments": [
+            "adelegatorGroupName.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "call": "delegatee2Client .keyStates() .query(adelegatorGroupName.prefix, '1')",
+          "arguments": [
+            "adelegatorGroupName.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/delegation.test.ts",
+          "call": "client2.keyStates().query(ator.prefix, '1')",
+          "arguments": [
+            "ator.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client1.keyStates().query(aid2.prefix, '1')",
+          "arguments": [
+            "aid2.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client1.keyStates().query(aid3.prefix, '0')",
+          "arguments": [
+            "aid3.prefix",
+            "'0'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client2.keyStates().query(aid1.prefix, '1')",
+          "arguments": [
+            "aid1.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client2.keyStates().query(aid3.prefix, '0')",
+          "arguments": [
+            "aid3.prefix",
+            "'0'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client3.keyStates().query(aid1.prefix, '1')",
+          "arguments": [
+            "aid1.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client3.keyStates().query(aid2.prefix, '1')",
+          "arguments": [
+            "aid2.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client1.keyStates().query(aid2.prefix, '2')",
+          "arguments": [
+            "aid2.prefix",
+            "'2'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client1.keyStates().query(aid3.prefix, '1')",
+          "arguments": [
+            "aid3.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client2.keyStates().query(aid1.prefix, '2')",
+          "arguments": [
+            "aid1.prefix",
+            "'2'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client2.keyStates().query(aid3.prefix, '1')",
+          "arguments": [
+            "aid3.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client3.keyStates().query(aid1.prefix, '2')",
+          "arguments": [
+            "aid1.prefix",
+            "'2'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client3.keyStates().query(aid2.prefix, '2')",
+          "arguments": [
+            "aid2.prefix",
+            "'2'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "call": "client.keyStates().query(prefix, sn)",
+          "arguments": [
+            "prefix",
+            "sn"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "call": "clientQAR1 .keyStates() .query(aidGEDA.prefix, '1')",
+          "arguments": [
+            "aidGEDA.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "call": "clientQAR2 .keyStates() .query(aidGEDA.prefix, '1')",
+          "arguments": [
+            "aidGEDA.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "call": "clientQAR3 .keyStates() .query(aidGEDA.prefix, '1')",
+          "arguments": [
+            "aidGEDA.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client1.keyStates().query(aid2.prefix, '1')",
+          "arguments": [
+            "aid2.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client1.keyStates().query(aid3.prefix, '1')",
+          "arguments": [
+            "aid3.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client2.keyStates().query(aid3.prefix, '1')",
+          "arguments": [
+            "aid3.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client2.keyStates().query(aid1.prefix, '1')",
+          "arguments": [
+            "aid1.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client3.keyStates().query(aid1.prefix, '1')",
+          "arguments": [
+            "aid1.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client3.keyStates().query(aid2.prefix, '1')",
+          "arguments": [
+            "aid2.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client4.keyStates().query(aid1.prefix, '1')",
+          "arguments": [
+            "aid1.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client4.keyStates().query(aid2.prefix, '1')",
+          "arguments": [
+            "aid2.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client4.keyStates().query(aid3.prefix, '1')",
+          "arguments": [
+            "aid3.prefix",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client1.keyStates().query(m.prefix, '4')",
+          "arguments": [
+            "m.prefix",
+            "'4'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client2.keyStates().query(m.prefix, '4')",
+          "arguments": [
+            "m.prefix",
+            "'4'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client3.keyStates().query(m.prefix, '4')",
+          "arguments": [
+            "m.prefix",
+            "'4'"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "call": "client4.keyStates().query(m.prefix, '4')",
+          "arguments": [
+            "m.prefix",
+            "'4'"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-dip.test.ts",
+          "call": "client2.keyStates().query(name1_id, '1')",
+          "arguments": [
+            "name1_id",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-dip.test.ts",
+          "call": "client2.keyStates().query(name1_id, undefined, seal)",
+          "arguments": [
+            "name1_id",
+            "undefined",
+            "seal"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-dip.test.ts",
+          "call": "client2.keyStates().query(name1_id, undefined, seal)",
+          "arguments": [
+            "name1_id",
+            "undefined",
+            "seal"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-drt.test.ts",
+          "call": "delegate.keyStates().query(name1_id, '1')",
+          "arguments": [
+            "name1_id",
+            "'1'"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-drt.test.ts",
+          "call": "delegate.keyStates().query(name1_id, '2')",
+          "arguments": [
+            "name1_id",
+            "'2'"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-ixn.test.ts",
+          "call": "client2 .keyStates() .query(contact1_id, keystate1.s, undefined)",
+          "arguments": [
+            "contact1_id",
+            "keystate1.s",
+            "undefined"
+          ]
+        },
+        {
+          "file": "test-integration/singlesig-rot.test.ts",
+          "call": "client2 .keyStates() .query(contact1_id, keystate1.s, undefined)",
+          "arguments": [
+            "contact1_id",
+            "keystate1.s",
+            "undefined"
+          ]
+        },
+        {
+          "file": "test/app/coring.test.ts",
+          "call": "keyStates.query( 'EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX', '1', 'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao' )",
+          "arguments": [
+            "'EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX'",
+            "'1'",
+            "'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao'"
+          ]
+        }
+      ],
+      "jsdoc": "* @param {any} [anchor] Optional anchor",
+      "note": "`anchor` is `any`. The pinned unit test passes a bare SAID string; every integration caller passes a Seal (`{i, s, d}`); the schema's `QueryMetadata.anchor` is an `Anchor` (`{pre, sn, d}`). Only the integration shape ever reaches a live KERIA.",
+      "rust_decision": "the request takes a `Seal`, which is the shape proven against a running agent. The unit test's bare string is recorded verbatim here and is unrepresentable in Rust; the schema's `Anchor` stays what it always was — the *response* metadata's type, which Roadmap 4.1 already carries."
+    },
+    "a_query_body_omits_what_it_was_not_given": {
+      "expression": "data: any = { pre: pre, }",
+      "prefix_only": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\"}",
+      "sequence_only": "{\"pre\":\"EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX\",\"sn\":\"1\"}",
+      "note": "`query` writes `pre` always and adds `sn` and `anchor` only when defined, so an absent one is not written rather than written as null",
+      "rust_decision": "reproduced exactly: the body is an ordered `Sad` and an absent value is not written"
+    },
+    "both_families_take_the_whole_client": {
+      "scan": {
+        "needle": "new KeyStates(",
+        "total": 1,
+        "files": [
+          {
+            "file": "src/keri/app/clienting.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`KeyEvents` and `KeyStates` each hold a whole `SignifyClient`, where `Operations` takes a narrow `OperationsDeps` and `Identifier` an `IdentifierDeps` — so neither can be unit-tested without a full client",
+      "rust_decision": "both are borrowed handles over a `ConnectedClient`, as Roadmap 6.5 settled; a family knows paths and shapes and nothing else"
+    }
+  }
+}

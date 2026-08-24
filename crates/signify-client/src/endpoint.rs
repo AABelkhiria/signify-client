@@ -9,9 +9,12 @@
 //! Roadmap 6.5 opens the module with [`operations`], which is the family every other one depends
 //! on: a KERIA agent answers most writes with a long-running operation rather than a result.
 //! Roadmap 6.6 adds [`identifiers`], the family that creates and rotates what everything else
-//! speaks for.
+//! speaks for; Roadmap 6.7 adds [`key_events`] and [`key_states`], which are what a client knows
+//! about identifiers that are not its own.
 
 pub mod identifiers;
+pub mod key_events;
+pub mod key_states;
 pub mod operations;
 
 /// Decodes one JSON document from a response body.

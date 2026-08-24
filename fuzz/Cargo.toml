@@ -326,6 +326,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "client_key_state"
+path = "fuzz_targets/client_key_state.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 
