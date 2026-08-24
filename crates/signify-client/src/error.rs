@@ -21,6 +21,7 @@ use signify_keri::identifier::IdentifierError;
 use signify_keri::manager::ManagerError;
 use signify_keri::prefix::PrefixError;
 use signify_keri::registry::RegistryError;
+use signify_keri::said::SaidError;
 use signify_keri::serialization::SerializationError;
 use signify_types::api::ApiError;
 
@@ -173,6 +174,11 @@ pub enum ClientError {
         /// The alias or prefix the record was looked up by.
         name: String,
     },
+    /// A self-addressing identifier could not be encoded.
+    Said {
+        /// Underlying failure.
+        source: Box<SaidError>,
+    },
     /// A registry event could not be built.
     Registry {
         /// Underlying failure.
@@ -273,6 +279,7 @@ impl fmt::Display for ClientError {
             Self::IdentifierNotAccepted { name } => {
                 write!(formatter, "the identifier {name:?} has no key state yet")
             }
+            Self::Said { source } => write!(formatter, "self-addressing identifier encoding failed: {source}"),
             Self::Registry { source } => write!(formatter, "registry event construction failed: {source}"),
             Self::EstablishmentOnlyIssuer { identifier } => write!(
                 formatter,
@@ -307,6 +314,7 @@ impl Error for ClientError {
             Self::Cesr { source } => Some(source),
             Self::Api { source } => Some(source),
             Self::Identifier { source } => Some(source),
+            Self::Said { source } => Some(source),
             Self::Registry { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
             | Self::PasscodeNotBase64 { .. }
@@ -352,6 +360,7 @@ layered!(CryptoError, Crypto);
 layered!(CesrError, Cesr);
 layered!(IdentifierError, Identifier);
 layered!(RegistryError, Registry);
+layered!(SaidError, Said);
 
 impl From<PrefixError> for ClientError {
     /// A prefix read out of an identifier record is that record's failure, not the controller's.

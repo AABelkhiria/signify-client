@@ -57,6 +57,7 @@ use crate::endpoint::key_events::KeyEvents;
 use crate::endpoint::key_states::KeyStates;
 use crate::endpoint::operations::Operations;
 use crate::endpoint::registries::Registries;
+use crate::endpoint::schemas::Schemas;
 use crate::error::ClientError;
 
 /// Path segment the agent resource lives under.
@@ -473,6 +474,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn registries(&self) -> Registries<'_> {
         Registries::new(self)
+    }
+
+    /// Returns the schemas endpoint family: the credential schemas the agent holds.
+    #[must_use]
+    pub const fn schemas(&self) -> Schemas<'_> {
+        Schemas::new(self)
     }
 
     /// Returns the configuration endpoint family: what the *agent* was set up with.

@@ -13,8 +13,8 @@
 use libfuzzer_sys::fuzz_target;
 use signify_types::api::{
     AcdcRecord, AgentConfig, ApiError, Contact, Credential, Hab, KeyEvent, KeyState, MAX_DOCUMENT_BYTES,
-    Notification, Oobi, Registry, Threshold, UntypedOperation, from_json_slice, from_json_slice_with_limit,
-    to_json_string,
+    Notification, Oobi, Registry, Schema, Threshold, UntypedOperation, from_json_slice,
+    from_json_slice_with_limit, to_json_string,
 };
 
 /// Returns whether a rejection is one of the variants this crate is allowed to produce.
@@ -39,9 +39,23 @@ macro_rules! round_trip {
                 let encoded = to_json_string(&record).expect("a decoded record must encode");
                 let again: $record =
                     from_json_slice(encoded.as_bytes()).expect("an encoded record must decode again");
-                assert_eq!(record, again, "encoding a record changed it");
-                // Encoding is idempotent, so a stored record is stable.
-                assert_eq!(encoded, to_json_string(&again).expect("re-encoding must succeed"));
+                // The *second* encoding is a fixed point, which is the invariant that actually
+                // holds. The first is not, for one recorded reason: a JSON integer too large for
+                // `i64`/`u64` lands in a captured open field as an `f64`, and `serde_json` writes
+                // a shortest form that reparses one unit in the last place away — so
+                // `{"extra":133333333303333333333333}` becomes `1.3333333330333333e+23` and then
+                // `1.3333333330333332e+23`. `PORTING.md` §10 records it and
+                // `signify-types`'s `a_large_captured_number_loses_a_unit_in_the_last_place` pins
+                // the exact behaviour. Everything from the second encoding onward is stable.
+                let settled = to_json_string(&again).expect("re-encoding must succeed");
+                let once_more: $record =
+                    from_json_slice(settled.as_bytes()).expect("a settled record must decode again");
+                assert_eq!(again, once_more, "encoding a settled record changed it");
+                assert_eq!(
+                    settled,
+                    to_json_string(&once_more).expect("re-encoding must succeed"),
+                    "a settled encoding is not a fixed point"
+                );
                 true
             }
             Err(error) => {
@@ -76,7 +90,7 @@ fuzz_target!(|data: &[u8]| {
         ));
     }
 
-    let accepted = match selector % 13 {
+    let accepted = match selector % 14 {
         0 => round_trip!(KeyState, body),
         1 => round_trip!(Hab, body),
         2 => round_trip!(KeyEvent, body),
@@ -89,6 +103,9 @@ fuzz_target!(|data: &[u8]| {
         9 => round_trip!(Oobi, body),
         10 => round_trip!(AcdcRecord, body),
         11 => round_trip!(AgentConfig, body),
+        // Added by Roadmap 6.10, the first item to make this record a trust boundary: it is the
+        // whole response of `Schemas.get`, and its `properties` map is open JSON Schema.
+        12 => round_trip!(Schema, body),
         _ => round_trip!(signify_types::api::ExchangeEmbeds, body),
     };
 

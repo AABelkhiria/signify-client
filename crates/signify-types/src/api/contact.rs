@@ -332,6 +332,43 @@ mod tests {
     use super::*;
     use std::error::Error;
 
+    /// A captured number too large for `i64`/`u64` does **not** survive its first re-encoding.
+    ///
+    /// Discovered by Roadmap 6.10's fuzz run. An undeclared field holding
+    /// `133333333303333333333333` lands here as an `f64`, and `serde_json` writes a shortest form
+    /// that reparses one unit in the last place away. From the *second* encoding onward it is a
+    /// fixed point, which is the invariant the fuzz target asserts.
+    ///
+    /// This qualifies the round-trip guarantee for every record with a captured open field —
+    /// [`Contact`], `ExternState`, `NotificationData`, `AcdcAttributes`, and `Schema.properties`.
+    /// It is pinned rather than fixed because fixing it means `serde_json`'s `arbitrary_precision`,
+    /// which changes number handling across the workspace and collides with ADR `0008`'s
+    /// deliberately narrowed number space. `PORTING.md` §10 owns the decision.
+    #[test]
+    fn a_large_captured_number_loses_a_unit_in_the_last_place() -> Result<(), Box<dyn Error>> {
+        let body = r#"{"id":"E","extra":133333333303333333333333}"#;
+        let once: Contact = serde_json::from_str(body)?;
+        let first = serde_json::to_string(&once)?;
+        assert_eq!(first, r#"{"id":"E","extra":1.3333333330333333e+23}"#);
+
+        let twice: Contact = serde_json::from_str(&first)?;
+        let second = serde_json::to_string(&twice)?;
+        assert_eq!(second, r#"{"id":"E","extra":1.3333333330333332e+23}"#);
+        assert_ne!(once, twice, "the first re-encoding unexpectedly round-tripped");
+
+        // Stable from here on, which is what makes a *stored* record safe to re-read.
+        let thrice: Contact = serde_json::from_str(&second)?;
+        assert_eq!(twice, thrice);
+        assert_eq!(second, serde_json::to_string(&thrice)?);
+
+        // A number inside the exact integer range is unaffected.
+        let exact: Contact = serde_json::from_str(r#"{"id":"E","extra":9007199254740991}"#)?;
+        let encoded = serde_json::to_string(&exact)?;
+        assert_eq!(encoded, r#"{"id":"E","extra":9007199254740991}"#);
+        assert_eq!(exact, serde_json::from_str::<Contact>(&encoded)?);
+        Ok(())
+    }
+
     #[test]
     fn a_declared_role_round_trips_and_an_unnamed_one_survives() -> Result<(), Box<dyn Error>> {
         for role in Role::DECLARED {

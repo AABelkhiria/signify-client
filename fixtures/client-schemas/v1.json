@@ -1,0 +1,412 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-24",
+  "sources": [
+    "src/keri/app/credentialing.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/clienting.test.ts",
+    "test-integration/credentials.test.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "qvi_schema_said": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "le_schema_said": "ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY",
+    "note": "`Schemas` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The clock and the agent's key are pinned. The two schema SAIDs are the vLEI ones the integration tests use, so the recorded paths are the ones a real deployment sees. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
+  },
+  "declarations": {
+    "get_path": "path = `/schema/${said}`",
+    "get_method": "method = 'GET'",
+    "list_path": "path = `/schema`",
+    "list_method": "method = 'GET'",
+    "get_return": "await res.json()",
+    "class_members": [
+      "client",
+      "<constructor>",
+      "get",
+      "list"
+    ],
+    "schema_type": "Schema: { $id: string; $schema: string; title: string; description: string; type: string; credentialType: string; version: string; properties: { [key: string]: unknown; }; additionalProperties: boolean; required: string[]; };",
+    "files_naming_schemas": [
+      "src/keri/app/clienting.ts",
+      "src/keri/app/credentialing.ts",
+      "test-integration/credentials.test.ts",
+      "test/app/clienting.test.ts"
+    ],
+    "notes": {
+      "segment": "both paths use the **singular** `/schema`, not `/schemas`, while the accessor and the class are plural — an easy thing to get wrong and the reason this port pins the segment as a constant",
+      "encoding": "`get` interpolates the SAID straight into the path with no encoding, as every other family in this file does",
+      "list": "`list` addresses a constant path, so it is the second endpoint in the port whose address carries no caller input",
+      "response": "both return `res.json()` with no validation, typed as `Schema` at compile time only"
+    }
+  },
+  "calls": [
+    {
+      "name": "get_qvi",
+      "note": "the QVI schema the integration tests read, by its own SAID",
+      "request": {
+        "path": "/schema/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "$id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Qualified vLEI Issuer",
+        "description": "Qualified vLEI Issuer credential",
+        "type": "object",
+        "credentialType": "QualifiedvLEIIssuervLEICredential",
+        "version": "1.0.0",
+        "properties": {
+          "v": {
+            "description": "Version",
+            "type": "string"
+          },
+          "d": {
+            "description": "Credential SAID",
+            "type": "string"
+          },
+          "i": {
+            "description": "Issuer",
+            "type": "string"
+          },
+          "a": {
+            "oneOf": [
+              {
+                "description": "Attributes block SAID",
+                "type": "string"
+              },
+              {
+                "$id": "ELGgI0fkloqKWREXgqUfgS0bJybP1LChxCO3sqPSFHCj",
+                "description": "Attributes block",
+                "type": "object",
+                "properties": {
+                  "LEI": {
+                    "description": "Legal Entity Identifier",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "i",
+                  "dt",
+                  "LEI"
+                ]
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "i",
+          "ri",
+          "s",
+          "d"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get_legal_entity",
+      "note": "the legal-entity schema, the second one those tests read",
+      "request": {
+        "path": "/schema/ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "$id": "ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY",
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Legal Entity",
+        "description": "Legal Entity credential",
+        "type": "object",
+        "credentialType": "LegalEntityvLEICredential",
+        "version": "1.0.0",
+        "properties": {
+          "v": {
+            "description": "Version",
+            "type": "string"
+          },
+          "d": {
+            "description": "Credential SAID",
+            "type": "string"
+          },
+          "i": {
+            "description": "Issuer",
+            "type": "string"
+          },
+          "a": {
+            "oneOf": [
+              {
+                "description": "Attributes block SAID",
+                "type": "string"
+              },
+              {
+                "$id": "ELGgI0fkloqKWREXgqUfgS0bJybP1LChxCO3sqPSFHCj",
+                "description": "Attributes block",
+                "type": "object",
+                "properties": {
+                  "LEI": {
+                    "description": "Legal Entity Identifier",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "i",
+                  "dt",
+                  "LEI"
+                ]
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "i",
+          "ri",
+          "s",
+          "d"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get_said_needing_encoding",
+      "note": "a SAID carrying path and query delimiters, which the reference interpolates raw",
+      "request": {
+        "path": "/schema/E/../schema?x=1#y",
+        "method": "GET",
+        "body": null
+      },
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "list",
+      "note": "the listing the integration tests read, whose address carries no input",
+      "request": {
+        "path": "/schema",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "$id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "Qualified vLEI Issuer",
+          "description": "Qualified vLEI Issuer credential",
+          "type": "object",
+          "credentialType": "QualifiedvLEIIssuervLEICredential",
+          "version": "1.0.0",
+          "properties": {
+            "v": {
+              "description": "Version",
+              "type": "string"
+            },
+            "d": {
+              "description": "Credential SAID",
+              "type": "string"
+            },
+            "i": {
+              "description": "Issuer",
+              "type": "string"
+            },
+            "a": {
+              "oneOf": [
+                {
+                  "description": "Attributes block SAID",
+                  "type": "string"
+                },
+                {
+                  "$id": "ELGgI0fkloqKWREXgqUfgS0bJybP1LChxCO3sqPSFHCj",
+                  "description": "Attributes block",
+                  "type": "object",
+                  "properties": {
+                    "LEI": {
+                      "description": "Legal Entity Identifier",
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "i",
+                    "dt",
+                    "LEI"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "i",
+            "ri",
+            "s",
+            "d"
+          ]
+        },
+        {
+          "$id": "ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY",
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "Legal Entity",
+          "description": "Legal Entity credential",
+          "type": "object",
+          "credentialType": "LegalEntityvLEICredential",
+          "version": "1.0.0",
+          "properties": {
+            "v": {
+              "description": "Version",
+              "type": "string"
+            },
+            "d": {
+              "description": "Credential SAID",
+              "type": "string"
+            },
+            "i": {
+              "description": "Issuer",
+              "type": "string"
+            },
+            "a": {
+              "oneOf": [
+                {
+                  "description": "Attributes block SAID",
+                  "type": "string"
+                },
+                {
+                  "$id": "ELGgI0fkloqKWREXgqUfgS0bJybP1LChxCO3sqPSFHCj",
+                  "description": "Attributes block",
+                  "type": "object",
+                  "properties": {
+                    "LEI": {
+                      "description": "Legal Entity Identifier",
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "i",
+                    "dt",
+                    "LEI"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "i",
+            "ri",
+            "s",
+            "d"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "list_empty",
+      "note": "an agent holding no schemas at all",
+      "request": {
+        "path": "/schema",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "get_wrong_shape",
+      "note": "an answer missing fields the schema declares required — the reference types it `Schema` and returns it unchecked",
+      "request": {
+        "path": "/schema/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "$id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao"
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "files_naming_schemas": [
+      "src/keri/app/clienting.ts",
+      "src/keri/app/credentialing.ts",
+      "test-integration/credentials.test.ts",
+      "test/app/clienting.test.ts"
+    ],
+    "assertions": {
+      "test/app/clienting.test.ts": [
+        "assert.equal(client.schemas() instanceof Schemas, true)"
+      ],
+      "test-integration/credentials.test.ts": [
+        ".get(QVI_SCHEMA_SAID)",
+        ".get(LE_SCHEMA_SAID)",
+        "schemas().list()",
+        "issuerQviSchema.$id, QVI_SCHEMA_SAID",
+        "issuerLeSchema.$id, LE_SCHEMA_SAID",
+        "holderSchemas.length, 2"
+      ]
+    },
+    "qvi_schema_said": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "le_schema_said": "ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY",
+    "driven_paths": [
+      "/schema",
+      "/schema/E/../schema?x=1#y",
+      "/schema/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+      "/schema/ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY"
+    ],
+    "note": "no pinned unit test exercises either call: `clienting.test.ts` asserts the accessor's type and nothing else. The only real usage is `test-integration/credentials.test.ts`, which reads both vLEI schemas by SAID and asserts each answer's `$id`, then lists and asserts a count — so what upstream actually checks is that a schema comes back under the SAID it was asked for. Both SAIDs are recorded here and both are valid qualified digests, which is what lets this port take a `Said` rather than a string."
+  },
+  "reference_quirks": {
+    "the_said_is_not_encoded": {
+      "path": "/schema/E/../schema?x=1#y",
+      "expression": "path = `/schema/${said}`",
+      "note": "`get` interpolates its SAID straight into the path, so a value carrying `/`, `?`, or `#` addresses a different resource — and Roadmap 3.10 signs `@path`, so it changes what a signature commits to",
+      "rust_decision": "refused twice over: the argument is Roadmap 3.3's validated `Said` rather than a string, and Roadmap 5.3's builder would encode it exactly once even if it were not. A qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path byte-identical."
+    },
+    "the_segment_is_singular": {
+      "get": "path = `/schema/${said}`",
+      "list": "path = `/schema`",
+      "note": "both paths address `/schema`, singular, while the class, the accessor, and the roadmap item are all plural — the one place in this file where the resource name and its accessor disagree",
+      "rust_decision": "reproduced exactly, and pinned as a named constant so the plural module name cannot drift into the path"
+    },
+    "the_answer_is_never_validated": {
+      "declaration": "await res.json()",
+      "wrong_shape": {
+        "$id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao"
+      },
+      "error": null,
+      "note": "`get` returns `res.json()` cast to `Schema`, so an answer carrying only `$id` — missing all nine other required fields — is handed to the caller as a schema. The type exists at compile time only.",
+      "rust_decision": "decoded: an answer that is not a `Schema` is `ClientError::Api`. The wrong-shaped answer recorded here is proven refused."
+    },
+    "a_listing_carries_no_input": {
+      "declaration": "path = `/schema`",
+      "empty": [],
+      "note": "`list` addresses a constant path with no filter, range, or paging of any kind, so an agent holding many schemas returns all of them in one body",
+      "rust_decision": "reproduced; the response is bounded only by Roadmap 5.1's transport limit, which is recorded as a limitation rather than a filter this port invents"
+    },
+    "nothing_checks_the_said_came_back": {
+      "scan": {
+        "needle": "$id, QVI_SCHEMA_SAID",
+        "total": 1,
+        "files": [
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "the reference's own integration test asserts `schema.$id` equals the SAID it asked for, which is the check that matters — but `Schemas.get` itself does not make it, so a misrouted or substituted answer is returned unchallenged",
+      "rust_decision": "reproduced rather than fixed: `get` returns what the agent sent and a caller compares. Inventing the check would diverge from the reference for a guarantee only a digest verification can actually give, which is Roadmap 3.3's job and not an endpoint's."
+    }
+  }
+}

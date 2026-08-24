@@ -19,6 +19,7 @@ pub mod key_events;
 pub mod key_states;
 pub mod operations;
 pub mod registries;
+pub mod schemas;
 
 /// Decodes one JSON document from a response body.
 ///
