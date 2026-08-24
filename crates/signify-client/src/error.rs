@@ -20,6 +20,7 @@ use signify_keri::controller::ControllerError;
 use signify_keri::identifier::IdentifierError;
 use signify_keri::manager::ManagerError;
 use signify_keri::prefix::PrefixError;
+use signify_keri::registry::RegistryError;
 use signify_keri::serialization::SerializationError;
 use signify_types::api::ApiError;
 
@@ -172,6 +173,19 @@ pub enum ClientError {
         /// The alias or prefix the record was looked up by.
         name: String,
     },
+    /// A registry event could not be built.
+    Registry {
+        /// Underlying failure.
+        source: Box<RegistryError>,
+    },
+    /// A registry was asked for under an identifier that may carry only establishment events.
+    ///
+    /// The reference builds the whole registry inception and *then* throws
+    /// `establishment only not implemented`; here nothing is derived and nothing is sent.
+    EstablishmentOnlyIssuer {
+        /// The identifier prefix that refused it.
+        identifier: String,
+    },
     /// A key-state listing named no identifier at all.
     ///
     /// The reference sends `/states?` with nothing after the question mark, which asks for
@@ -259,6 +273,11 @@ impl fmt::Display for ClientError {
             Self::IdentifierNotAccepted { name } => {
                 write!(formatter, "the identifier {name:?} has no key state yet")
             }
+            Self::Registry { source } => write!(formatter, "registry event construction failed: {source}"),
+            Self::EstablishmentOnlyIssuer { identifier } => write!(
+                formatter,
+                "the identifier {identifier} may carry only establishment events, so it cannot anchor a registry"
+            ),
             Self::EmptyKeyStateListing => formatter.write_str("a key-state listing must name at least one identifier"),
             Self::NoSigningKey { alias } => {
                 write!(formatter, "the identifier {alias:?} holds no signing key")
@@ -288,6 +307,7 @@ impl Error for ClientError {
             Self::Cesr { source } => Some(source),
             Self::Api { source } => Some(source),
             Self::Identifier { source } => Some(source),
+            Self::Registry { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
             | Self::PasscodeNotBase64 { .. }
             | Self::AgentNotFound { .. }
@@ -297,6 +317,7 @@ impl Error for ClientError {
             | Self::OperationPending { .. }
             | Self::OperationFailed { .. }
             | Self::IdentifierNotAccepted { .. }
+            | Self::EstablishmentOnlyIssuer { .. }
             | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
             | Self::UnrepresentableNumber
@@ -330,6 +351,7 @@ layered!(SerializationError, Serialization);
 layered!(CryptoError, Crypto);
 layered!(CesrError, Cesr);
 layered!(IdentifierError, Identifier);
+layered!(RegistryError, Registry);
 
 impl From<PrefixError> for ClientError {
     /// A prefix read out of an identifier record is that record's failure, not the controller's.
@@ -392,6 +414,9 @@ mod tests {
             ClientError::status(404, b"missing"),
             ClientError::IdentifierNotAccepted {
                 name: "group1".to_owned(),
+            },
+            ClientError::EstablishmentOnlyIssuer {
+                identifier: "EISS".to_owned(),
             },
             ClientError::EmptyKeyStateListing,
             ClientError::NoSigningKey {

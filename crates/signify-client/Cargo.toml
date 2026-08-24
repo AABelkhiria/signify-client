@@ -41,5 +41,9 @@ harness = false
 name = "key_state"
 harness = false
 
+[[bench]]
+name = "registries"
+harness = false
+
 [lints]
 workspace = true

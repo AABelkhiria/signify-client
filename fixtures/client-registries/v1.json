@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-24",
+  "sources": [
+    "src/keri/app/credentialing.ts",
+    "test/app/registry.test.ts",
+    "test/app/clienting.test.ts",
+    "test/app/credentialing.test.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "nonce": "0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2",
+    "backers": [
+      "BIaZz7tfg_OsEMaPB10BMPOJsFKPUvTg3YIp-ccHtO3x",
+      "BOsCzraIeCrmczbdHlgd-qaB3n4EWd-QvX9gp0dsPdvP",
+      "BIuljtAewKLjRba_yIgE6vxI3DQ11Sol9FjAFnVe9vM9"
+    ],
+    "stamp": "2021-06-27T21:26:21.233257+00:00",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "identifier": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "establishment_only_identifier": "EKO07j0N8jopMK8W1hjgHGv1vC_46uxA9k9iWXno9cv_",
+    "note": "`Registries` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would, and the identifier lookup `create` performs is answered with a deterministic record. Key material derives at the reference's production Argon2 profile; the nonce is pinned so a registry inception is reproducible, and each sealed salt is masked as `<SXLT>` and recorded by what it opens to. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
+  },
+  "declarations": {
+    "list_path": "path = `/identifiers/${name}/registries`",
+    "create_arguments": "export interface CreateRegistryArgs { name: string; registryName: string; toad?: string | number | undefined; noBackers?: boolean; baks?: string[]; nonce?: string; }",
+    "create_defaults": "{ name, registryName, noBackers = true, toad = 0, baks = [], nonce, }: CreateRegistryArgs",
+    "create_no_backers": "if (noBackers) { cnfg.push(TraitDex.NoBackers); }",
+    "create_est_only": "estOnly = state.c !== undefined && state.c.includes('EO')",
+    "create_est_only_throw": "throw new Error('establishment only not implemented');",
+    "create_incept": "regser = vdr.incept({ pre, baks, toad, nonce, cnfg })",
+    "create_anchor": "data: any = [ { i: regser.pre, s: '0', d: regser.pre, }, ]",
+    "from_events_path": "path = `/identifiers/${name}/registries`",
+    "from_events_body": "data: any = { name: registryName, vcp: vcp, ixn: ixn, sigs: sigs, }",
+    "from_events_algorithm": "data[keeper.algo] = keeper.params()",
+    "rename_path": "path = `/identifiers/${name}/registries/${registryName}`",
+    "rename_body": "data = { name: newName, }",
+    "registry_result_members": [
+      "_regser",
+      "_serder",
+      "_sigs",
+      "promise",
+      "<constructor>",
+      "regser",
+      "serder",
+      "sigs",
+      "op"
+    ],
+    "registry_result_op": "res = await this.promise",
+    "unit_test_cases": {
+      "needle": "registries()",
+      "total": 34,
+      "files": [
+        {
+          "file": "src/keri/app/clienting.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/credentials.test.ts",
+          "count": 6
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 16
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/singlesig-vlei-issuance.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        },
+        {
+          "file": "test/app/clienting.test.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "notes": {
+      "paths": "all three paths interpolate their names raw — `list` and `create` the identifier alias, `rename` both the alias and the registry name — so none of the four dynamic values is encoded",
+      "backers": "`noBackers` defaults to **true**, so an ordinary creation writes the `NB` configuration trait and the backer list and threshold it also accepts are never used",
+      "est_only": "an establishment-only identifier pushes the `EO` trait into the configuration, builds the registry inception with it, and *then* throws `establishment only not implemented` — so the work is done and discarded",
+      "result": "`RegistryResult` holds the fetch **promise**, not its response, so `create` returns before the POST resolves and a failure is invisible unless `op()` is awaited"
+    }
+  },
+  "identifier_records": {
+    "ordinary": {
+      "name": "issuer",
+      "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "icp_dt": "2021-06-27T21:26:21.233257+00:00",
+      "state": {
+        "vn": [
+          1,
+          0
+        ],
+        "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "s": "0",
+        "p": "",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "f": "0",
+        "dt": "2021-06-27T21:26:21.233257+00:00",
+        "et": "icp",
+        "kt": "1",
+        "k": [
+          "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+        ],
+        "nt": "1",
+        "n": [
+          "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+        ],
+        "bt": "0",
+        "b": [],
+        "c": [],
+        "ee": {
+          "s": "0",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "br": [],
+          "ba": []
+        },
+        "di": ""
+      },
+      "transferable": true,
+      "windexes": [],
+      "salty": {
+        "tier": "low",
+        "sxlt": "<SXLT>",
+        "pidx": 0,
+        "kidx": 0,
+        "stem": "signify:aid",
+        "dcode": "E",
+        "icodes": [
+          "A"
+        ],
+        "ncodes": [
+          "A"
+        ],
+        "transferable": true,
+        "sxlt_opens_to": "0AA0123456789abcdefghijk"
+      }
+    },
+    "establishment_only": {
+      "name": "estonly",
+      "prefix": "EKO07j0N8jopMK8W1hjgHGv1vC_46uxA9k9iWXno9cv_",
+      "icp_dt": "2021-06-27T21:26:21.233257+00:00",
+      "state": {
+        "vn": [
+          1,
+          0
+        ],
+        "i": "EKO07j0N8jopMK8W1hjgHGv1vC_46uxA9k9iWXno9cv_",
+        "s": "0",
+        "p": "",
+        "d": "EKO07j0N8jopMK8W1hjgHGv1vC_46uxA9k9iWXno9cv_",
+        "f": "0",
+        "dt": "2021-06-27T21:26:21.233257+00:00",
+        "et": "icp",
+        "kt": "1",
+        "k": [
+          "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+        ],
+        "nt": "1",
+        "n": [
+          "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+        ],
+        "bt": "0",
+        "b": [],
+        "c": [
+          "EO"
+        ],
+        "ee": {
+          "s": "0",
+          "d": "EKO07j0N8jopMK8W1hjgHGv1vC_46uxA9k9iWXno9cv_",
+          "br": [],
+          "ba": []
+        },
+        "di": ""
+      },
+      "transferable": true,
+      "windexes": [],
+      "salty": {
+        "tier": "low",
+        "sxlt": "<SXLT>",
+        "pidx": 0,
+        "kidx": 0,
+        "stem": "signify:aid",
+        "dcode": "E",
+        "icodes": [
+          "A"
+        ],
+        "ncodes": [
+          "A"
+        ],
+        "transferable": true,
+        "sxlt_opens_to": "0AA0123456789abcdefghijk"
+      }
+    },
+    "note": "the two identifier records `create` looks up. Each sealed salt is masked as `<SXLT>` and recorded by what it opens to, because a fresh ephemeral key seals it every run; the Rust side seals that salt again with the same controller key before reloading a keeper from the record."
+  },
+  "calls": [
+    {
+      "name": "list",
+      "note": "the ordinary listing, whose alias is the identifier's",
+      "request": {
+        "path": "/identifiers/issuer/registries",
+        "method": "GET",
+        "body": null
+      },
+      "requests": 1,
+      "result": [
+        {
+          "name": "vLEI",
+          "regk": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "state": {
+            "vn": [
+              1,
+              0
+            ],
+            "i": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+            "s": "0",
+            "d": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+            "ii": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "dt": "2021-06-27T21:26:21.233257+00:00",
+            "et": "vcp",
+            "bt": "0",
+            "b": [],
+            "c": [
+              "NB"
+            ]
+          }
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "list_alias_needing_encoding",
+      "note": "an alias carrying a slash, which the path does not encode",
+      "request": {
+        "path": "/identifiers/a/b/registries",
+        "method": "GET",
+        "body": null
+      },
+      "requests": 1,
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "create_default",
+      "note": "the ordinary creation: no backers, a pinned nonce",
+      "request": {
+        "path": "/identifiers/issuer/registries",
+        "method": "POST",
+        "body": "{\"name\":\"vLEI\",\"vcp\":{\"v\":\"KERI10JSON000105_\",\"t\":\"vcp\",\"d\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"i\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"ii\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EE4CoJzCeHgj7wKUdQBrLWVN3E26OMxntYsl3F5FAVEc\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"s\":\"0\",\"d\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\"}]},\"sigs\":[\"AAAWq1vhwrdQK0vhVaGvbvKY0n7prAqKPZGzcSNYQ53EVVfcxVkpxiJuhcD_xln8A4GT3sLu5gl80GWc2n6Zen4P\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 2,
+      "result": {
+        "regser_said": "EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ",
+        "regser_raw": "{\"v\":\"KERI10JSON000105_\",\"t\":\"vcp\",\"d\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"i\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"ii\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2\"}",
+        "serder_said": "EE4CoJzCeHgj7wKUdQBrLWVN3E26OMxntYsl3F5FAVEc",
+        "serder_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EE4CoJzCeHgj7wKUdQBrLWVN3E26OMxntYsl3F5FAVEc\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"s\":\"0\",\"d\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\"}]}",
+        "sigs": [
+          "AAAWq1vhwrdQK0vhVaGvbvKY0n7prAqKPZGzcSNYQ53EVVfcxVkpxiJuhcD_xln8A4GT3sLu5gl80GWc2n6Zen4P"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "create_with_backers",
+      "note": "a backed registry: `noBackers` false, three backers and a threshold",
+      "request": {
+        "path": "/identifiers/issuer/registries",
+        "method": "POST",
+        "body": "{\"name\":\"backed\",\"vcp\":{\"v\":\"KERI10JSON00018d_\",\"t\":\"vcp\",\"d\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"i\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"ii\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"c\":[],\"bt\":\"2\",\"b\":[\"BIaZz7tfg_OsEMaPB10BMPOJsFKPUvTg3YIp-ccHtO3x\",\"BOsCzraIeCrmczbdHlgd-qaB3n4EWd-QvX9gp0dsPdvP\",\"BIuljtAewKLjRba_yIgE6vxI3DQ11Sol9FjAFnVe9vM9\"],\"n\":\"0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDl1QV2Ahz4o0LRB4kNu54LvcmGOXjFbFDQgoZEW4IYa\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"s\":\"0\",\"d\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\"}]},\"sigs\":[\"AADv7rjrMRytIRYD_6DZj8DXyUamTLghbkFPaAkGpMnXG1s9IXbgHglDA7j1Vf2Qy_68H76B1WhVzIppKytZhY0D\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+        "sxlt_opens_to": [
+          "0AA0123456789abcdefghijk"
+        ]
+      },
+      "requests": 2,
+      "result": {
+        "regser_raw": "{\"v\":\"KERI10JSON00018d_\",\"t\":\"vcp\",\"d\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"i\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"ii\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"c\":[],\"bt\":\"2\",\"b\":[\"BIaZz7tfg_OsEMaPB10BMPOJsFKPUvTg3YIp-ccHtO3x\",\"BOsCzraIeCrmczbdHlgd-qaB3n4EWd-QvX9gp0dsPdvP\",\"BIuljtAewKLjRba_yIgE6vxI3DQ11Sol9FjAFnVe9vM9\"],\"n\":\"0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2\"}",
+        "serder_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDl1QV2Ahz4o0LRB4kNu54LvcmGOXjFbFDQgoZEW4IYa\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"s\":\"0\",\"d\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\"}]}",
+        "sigs": [
+          "AADv7rjrMRytIRYD_6DZj8DXyUamTLghbkFPaAkGpMnXG1s9IXbgHglDA7j1Vf2Qy_68H76B1WhVzIppKytZhY0D"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "rename",
+      "note": "renaming a registry, whose body is the new name alone",
+      "request": {
+        "path": "/identifiers/issuer/registries/vLEI",
+        "method": "PUT",
+        "body": "{\"name\":\"renamed\"}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "vLEI",
+        "regk": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+        "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+          "s": "0",
+          "d": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+          "ii": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "dt": "2021-06-27T21:26:21.233257+00:00",
+          "et": "vcp",
+          "bt": "0",
+          "b": [],
+          "c": [
+            "NB"
+          ]
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "rename_names_needing_encoding",
+      "note": "both dynamic values carrying a slash, neither of which the path encodes",
+      "request": {
+        "path": "/identifiers/a/b/registries/c/d",
+        "method": "PUT",
+        "body": "{\"name\":\"new\"}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "vLEI",
+        "regk": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+        "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+          "s": "0",
+          "d": "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df",
+          "ii": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "dt": "2021-06-27T21:26:21.233257+00:00",
+          "et": "vcp",
+          "bt": "0",
+          "b": [],
+          "c": [
+            "NB"
+          ]
+        }
+      },
+      "error": null
+    }
+  ],
+  "generated_nonce_shape": {
+    "path": "/identifiers/issuer/registries",
+    "method": "POST",
+    "body_fields": [
+      "name",
+      "vcp",
+      "ixn",
+      "sigs",
+      "salty"
+    ],
+    "vcp_fields": [
+      "v",
+      "t",
+      "d",
+      "i",
+      "ii",
+      "s",
+      "c",
+      "bt",
+      "b",
+      "n"
+    ],
+    "nonce_code": "A",
+    "nonce_length": 44,
+    "requests": 2,
+    "regser_said_is_vcp_prefix": true,
+    "note": "with no nonce the reference draws one from `randomNonce()`, so the registry identifier cannot be pinned; this records the shape instead"
+  },
+  "establishment_only": {
+    "identifier_configuration": [
+      "EO"
+    ],
+    "reference_error_message": "establishment only not implemented",
+    "requests_made": 1,
+    "note": "the configuration trait is pushed and the registry inception is built before the throw, so the work is done and discarded; only the identifier lookup reaches the wire"
+  },
+  "pinned_confirmations": {
+    "unit_test_file": "test/app/registry.test.ts",
+    "unit_test_files_naming_registries": [
+      "test/app/clienting.test.ts",
+      "test/app/registry.test.ts"
+    ],
+    "published_events": [
+      "{\"v\":\"KERI10JSON0000c5_\",\"t\":\"vcp\",\"d\":\"EMppKX_JxXBuL_xE3A_a6lOcseYwaB7jAvZ0YFdgecXX\",\"i\":\"EMppKX_JxXBuL_xE3A_a6lOcseYwaB7jAvZ0YFdgecXX\",\"ii\":\"hab prefix\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"\"}",
+      "{\"v\":\"KERI10JSON0000f4_\",\"t\":\"ixn\",\"d\":\"EE5R61289Xnpxc2M-euPtsAkp849tUdNJ7DuyBeSiRtm\",\"i\":\"hab prefix\",\"s\":\"1\",\"p\":\"a digest\",\"a\":[{\"i\":\"EMppKX_JxXBuL_xE3A_a6lOcseYwaB7jAvZ0YFdgecXX\",\"s\":\"0\",\"d\":\"EMppKX_JxXBuL_xE3A_a6lOcseYwaB7jAvZ0YFdgecXX\"}]}"
+    ],
+    "published_paths": [
+      "/identifiers/a name/registries"
+    ],
+    "published_refusal": [
+      "establishment only not implemented"
+    ],
+    "issuer_prefix": "hab prefix",
+    "nonce": "",
+    "driven_paths": [
+      "/identifiers/a/b/registries",
+      "/identifiers/a/b/registries/c/d",
+      "/identifiers/issuer/registries",
+      "/identifiers/issuer/registries/vLEI"
+    ],
+    "note": "`test/app/registry.test.ts` publishes two exact events and the establishment-only refusal, and its own asserted path shows an **unencoded space** — `/identifiers/a name/registries` — which is the encoding divergence confirmed from the reference's own suite. Its issuer prefix is the literal `'hab prefix'`, which no qualified prefix can be, so the two events are recorded verbatim here and the input is proven refused on the Rust side; byte parity comes from the driven vectors above. `credentialing.test.ts` has no registry case, and `clienting.test.ts` asserts only the accessor's type."
+  },
+  "reference_quirks": {
+    "no_path_encodes_its_names": {
+      "list": "/identifiers/a/b/registries",
+      "rename": "/identifiers/a/b/registries/c/d",
+      "expressions": {
+        "list": "path = `/identifiers/${name}/registries`",
+        "create": "path = `/identifiers/${name}/registries`",
+        "rename": "path = `/identifiers/${name}/registries/${registryName}`"
+      },
+      "published_by_the_unit_test": "/identifiers/a name/registries",
+      "note": "all three paths concatenate their names raw, so `list('a/b')` addresses `/identifiers/a/b/registries` and `rename('a/b','c/d',…)` addresses `/identifiers/a/b/registries/c/d` — four unencoded dynamic values, and Roadmap 3.10 signs `@path`. The pinned unit test asserts the unencoded form itself, with a literal space in `/identifiers/a name/registries`.",
+      "rust_decision": "refused by construction: Roadmap 5.3's `ResourcePath` encodes every dynamic component exactly once, as Roadmap 6.6 decided for the identifier family"
+    },
+    "establishment_only_is_built_then_thrown_away": {
+      "detail": {
+        "identifier_configuration": [
+          "EO"
+        ],
+        "reference_error_message": "establishment only not implemented",
+        "requests_made": 1,
+        "note": "the configuration trait is pushed and the registry inception is built before the throw, so the work is done and discarded; only the identifier lookup reaches the wire"
+      },
+      "configuration": "estOnly = state.c !== undefined && state.c.includes('EO')",
+      "thrown": "throw new Error('establishment only not implemented');",
+      "note": "an establishment-only identifier has `EO` pushed into the registry configuration and the whole registry inception built from it, and only then does `create` throw — so the derivation is wasted and the identifier lookup has already gone out",
+      "rust_decision": "a typed refusal checked **before** anything is built, which is what Roadmap 6.2 decided for an establishment-only issuer; no request is sent at all"
+    },
+    "no_backers_defaults_to_true": {
+      "declaration": "{ name, registryName, noBackers = true, toad = 0, baks = [], nonce, }: CreateRegistryArgs",
+      "guard": "if (noBackers) { cnfg.push(TraitDex.NoBackers); }",
+      "default_body": "{\"name\":\"vLEI\",\"vcp\":{\"v\":\"KERI10JSON000105_\",\"t\":\"vcp\",\"d\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"i\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"ii\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EE4CoJzCeHgj7wKUdQBrLWVN3E26OMxntYsl3F5FAVEc\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\",\"s\":\"0\",\"d\":\"EJ1TxRlqdIeonxEd8aYwA_HI22ACwqEUrfpL8Y20qHKQ\"}]},\"sigs\":[\"AAAWq1vhwrdQK0vhVaGvbvKY0n7prAqKPZGzcSNYQ53EVVfcxVkpxiJuhcD_xln8A4GT3sLu5gl80GWc2n6Zen4P\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+      "backed_body": "{\"name\":\"backed\",\"vcp\":{\"v\":\"KERI10JSON00018d_\",\"t\":\"vcp\",\"d\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"i\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"ii\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"c\":[],\"bt\":\"2\",\"b\":[\"BIaZz7tfg_OsEMaPB10BMPOJsFKPUvTg3YIp-ccHtO3x\",\"BOsCzraIeCrmczbdHlgd-qaB3n4EWd-QvX9gp0dsPdvP\",\"BIuljtAewKLjRba_yIgE6vxI3DQ11Sol9FjAFnVe9vM9\"],\"n\":\"0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDl1QV2Ahz4o0LRB4kNu54LvcmGOXjFbFDQgoZEW4IYa\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\",\"s\":\"0\",\"d\":\"EADgeK8oWsL5WXxHQ1W51QplZgE94_TtK-C0X3KaDaJo\"}]},\"sigs\":[\"AADv7rjrMRytIRYD_6DZj8DXyUamTLghbkFPaAkGpMnXG1s9IXbgHglDA7j1Vf2Qy_68H76B1WhVzIppKytZhY0D\"],\"salty\":{\"sxlt\":\"<SXLT>\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+      "note": "`noBackers` defaults to true, so an ordinary creation writes the `NB` trait and ignores the `baks` and `toad` it still accepts — a caller passing backers without clearing the flag gets a registry that cannot use them",
+      "rust_decision": "the backer configuration is one enum rather than a flag beside a list it silently disables: naming backers *is* choosing a backed registry, and a threshold without backers is refused"
+    },
+    "the_result_holds_a_promise": {
+      "members": [
+        "_regser",
+        "_serder",
+        "_sigs",
+        "promise",
+        "<constructor>",
+        "regser",
+        "serder",
+        "sigs",
+        "op"
+      ],
+      "op": "res = await this.promise",
+      "note": "`RegistryResult` stores the fetch promise, not its response, so `create` resolves before the POST does and a rejected POST is an unhandled rejection unless the caller awaits `op()`",
+      "rust_decision": "`create` awaits the submission and returns the answer, so a failure is a failure at the call site; the artifacts are still available beside it"
+    },
+    "the_anchor_seals_the_registry_to_itself": {
+      "declaration": "data: any = [ { i: regser.pre, s: '0', d: regser.pre, }, ]",
+      "note": "the interaction event anchors `{i: regser.pre, s: '0', d: regser.pre}` — the registry's identifier in both the identifier and the digest slot, because a registry inception's SAID *is* its prefix",
+      "rust_decision": "reproduced exactly; Roadmap 4.7's inception yields both from one event"
+    },
+    "create_builds_its_keeper_twice": {
+      "body": "data[keeper.algo] = keeper.params()",
+      "scan": {
+        "needle": "this.client.manager!.get(hab)",
+        "total": 5,
+        "files": [
+          {
+            "file": "src/keri/app/aiding.ts",
+            "count": 3
+          },
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 2
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`create` resolves the keeper to sign the interaction event and `createFromEvents` resolves it again to write its parameters, so a salty identifier runs its Argon2 derivation twice per registry",
+      "rust_decision": "resolved once and reused, which changes no byte and halves the cost"
+    }
+  }
+}

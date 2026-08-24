@@ -2,7 +2,8 @@
 //!
 //! One call, `get`, returning the agent's own configuration — today a single optional list of
 //! introduction OOBIs the agent resolves at startup. This ports `Config` from the pinned
-//! `src/keri/app/coring.ts`, and it is the last capability that file owes before Roadmap 7.1.
+//! `src/keri/app/coring.ts`. It is the last capability *that file* owes apart from its OOBI and
+//! polling halves, which are Roadmap 7.1 and 7.2.
 //!
 //! # The only address in the port that carries no caller input
 //!

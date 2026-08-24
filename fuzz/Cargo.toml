@@ -333,6 +333,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "client_registries"
+path = "fuzz_targets/client_registries.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]
 

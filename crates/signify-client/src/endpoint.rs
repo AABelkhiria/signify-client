@@ -12,11 +12,13 @@
 //! speaks for; Roadmap 6.7 adds [`key_events`] and [`key_states`], which are what a client knows
 //! about identifiers that are not its own; Roadmap 6.8 adds [`config`], the smallest of them.
 
+pub(crate) mod body;
 pub mod config;
 pub mod identifiers;
 pub mod key_events;
 pub mod key_states;
 pub mod operations;
+pub mod registries;
 
 /// Decodes one JSON document from a response body.
 ///

@@ -56,6 +56,7 @@ use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::key_events::KeyEvents;
 use crate::endpoint::key_states::KeyStates;
 use crate::endpoint::operations::Operations;
+use crate::endpoint::registries::Registries;
 use crate::error::ClientError;
 
 /// Path segment the agent resource lives under.
@@ -466,6 +467,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn key_states(&self) -> KeyStates<'_> {
         KeyStates::new(self)
+    }
+
+    /// Returns the registries endpoint family: the credential registries an identifier owns.
+    #[must_use]
+    pub const fn registries(&self) -> Registries<'_> {
+        Registries::new(self)
     }
 
     /// Returns the configuration endpoint family: what the *agent* was set up with.
