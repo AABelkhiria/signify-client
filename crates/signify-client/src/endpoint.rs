@@ -16,7 +16,8 @@
 //! and Roadmap 6.12 [`ipex`], the family that discloses one to somebody else. Roadmap 7.1 opens
 //! Phase 7 with [`oobis`], which is how two identifiers that have never met learn about each
 //! other at all, 7.3 [`contacts`], which is what a client remembers about them afterwards, and 7.4
-//! [`challenges`], which is how it comes to believe any of it.
+//! [`challenges`], which is how it comes to believe any of it. Roadmap 7.5 adds
+//! [`notifications`], which is how the agent tells the controller there is something to do.
 
 pub(crate) mod body;
 pub mod challenges;
@@ -27,6 +28,7 @@ pub mod identifiers;
 pub mod ipex;
 pub mod key_events;
 pub mod key_states;
+pub mod notifications;
 pub mod oobis;
 pub mod operations;
 pub mod registries;

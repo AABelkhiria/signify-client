@@ -59,6 +59,7 @@ use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::ipex::Ipex;
 use crate::endpoint::key_events::KeyEvents;
 use crate::endpoint::key_states::KeyStates;
+use crate::endpoint::notifications::Notifications;
 use crate::endpoint::oobis::Oobis;
 use crate::endpoint::operations::Operations;
 use crate::endpoint::registries::Registries;
@@ -506,6 +507,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn ipex(&self) -> Ipex<'_> {
         Ipex::new(self)
+    }
+
+    /// Returns the notifications endpoint family: what the agent wants the controller to know.
+    #[must_use]
+    pub const fn notifications(&self) -> Notifications<'_> {
+        Notifications::new(self)
     }
 
     /// Returns the OOBI endpoint family: how identifiers that have never met learn about each

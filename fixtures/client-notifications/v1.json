@@ -1,0 +1,634 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "keripy_sha": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+  "generated_on": "2026-08-25",
+  "sources": [
+    "src/keri/app/notifying.ts",
+    "src/keri/app/coring.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/notifying.test.ts",
+    "test-integration/utils/test-util.ts"
+  ],
+  "keripy_sources": [
+    "src/keri/app/notifying.py",
+    "src/keri/core/coring.py"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "sample_nonce": "0AADChEYHyYtNDtCSVBXXmVs",
+    "sample_said": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+    "note": "`Notifications` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would and can set a `Content-Range`. The clock and the agent's key are pinned, and the sample nonce is built from fixed bytes by the reference's own `Matter` under the code `randomNonce` uses. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything; the nonce is derived from a counting pattern and identifies nothing."
+  },
+  "declarations": {
+    "list_parameters": [
+      "start: number = 0",
+      "end: number = 24"
+    ],
+    "list_range_header": "extraHeaders.append('Range', `notes=${start}-${end}`);",
+    "list_path": "path = `/notifications`",
+    "list_method": "method = 'GET'",
+    "list_content_range": "cr = res.headers.get('content-range')",
+    "list_range_parse": "range = parseRangeHeaders(cr, 'notes')",
+    "list_return": "return { start: range.start, end: range.end, total: range.total, notes: notes, };",
+    "mark_parameters": [
+      "said: string"
+    ],
+    "mark_path": "path = `/notifications/` + said",
+    "mark_method": "method = 'PUT'",
+    "mark_return": "await res.text()",
+    "delete_parameters": [
+      "said: string"
+    ],
+    "delete_path": "path = `/notifications/` + said",
+    "delete_method": "method = 'DELETE'",
+    "delete_fetch": "this.client.fetch(path, method, undefined)",
+    "class_members": [
+      "client",
+      "<constructor>",
+      "list",
+      "mark",
+      "delete"
+    ],
+    "notification_type": "Notification: { i: string; dt: string; r: boolean; a: components['schemas']['NotificationData']; };"
+  },
+  "notification_identifier": {
+    "parameter": [
+      "said: string"
+    ],
+    "documentation": "/** * Mark a notification as read * @async * @param {string} said SAID of the notification * @returns {Promise<string>} A promise to the result of the marking */",
+    "signify_random_nonce": "export function randomNonce(): string { const seed = libsodium.randombytes_buf(libsodium.crypto_sign_SEEDBYTES); const seedqb64 = new Matter({ raw: seed, code: MtrDex.Ed25519_Seed }); return seedqb64.qb64; }",
+    "signify_nonce_code": "A",
+    "signify_nonce": "AAMKERgfJi00O0JJUFdeZWxzeoGIj5adpKuyucDHztXc",
+    "signify_nonce_leading": "A",
+    "keripy_random_nonce_code": "seedqb64 = Matter(raw=preseed, code=MtrDex.Salt_128).qb64",
+    "keripy_nonce_code": "0A",
+    "keripy_nonce": "0AADChEYHyYtNDtCSVBXXmVs",
+    "keripy_nonce_leading": "0A",
+    "keripy_notice_leaves_it_empty": "pad = dict(i=\"\",",
+    "keripy_dicter_fills_it": "self._pad[self._label] = randomNonce()",
+    "keripy_dicter_fill_sites": 2,
+    "sample_said": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+    "sample_said_leading": "E",
+    "keripy_sha": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+    "note": "`mark(said)` and `delete(said)` name the parameter `said` and the JSDoc says \"SAID of the notification\". It is not one: keripy's `notice()` builds the record with `i=\"\"` and its `Dicter` fills an empty identifier with `randomNonce()`. The two references disagree about that nonce's code — signify-ts's `randomNonce` uses the Ed25519 seed code `A` over thirty-two bytes, keripy's the 128-bit salt code `0A` over sixteen — and **neither is a digest code**, so the field is not a SAID under either. KERIA is built on keripy, so what a real agent writes is the `0A` form.",
+    "rust_decision": "the argument is **not** typed as Roadmap 3.3's `Said`, which would refuse every identifier a real agent produces. It stays borrowed text encoded exactly once by Roadmap 5.3's builder — the shape Roadmap 6.5 gave an operation name — which is enough to close the path injection this fixture records. keripy is corroboration for what fills the field, not a governing reference (ADR `0009`)."
+  },
+  "calls": [
+    {
+      "name": "list_windowed",
+      "note": "the pinned unit test's own call, which asserts the `Range` header exactly",
+      "payload": [
+        {
+          "i": "0AADChEYHyYtNDtCSVBXXmVs",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": false,
+          "a": {
+            "r": "/multisig/icp",
+            "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+            "m": ""
+          }
+        }
+      ],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=20-40",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": "notes 20-40/100",
+      "result": {
+        "start": 20,
+        "end": 40,
+        "total": 100,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": false,
+            "a": {
+              "r": "/multisig/icp",
+              "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+              "m": ""
+            }
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "list_default_window",
+      "note": "no arguments at all, which writes the `= 0` and `= 24` defaults into the header — an omitted window is still an observable request",
+      "payload": [
+        {
+          "i": "0AADChEYHyYtNDtCSVBXXmVs",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": false,
+          "a": {
+            "r": "/multisig/icp",
+            "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+            "m": ""
+          }
+        }
+      ],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=0-24",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": "notes 0-24/100",
+      "result": {
+        "start": 0,
+        "end": 24,
+        "total": 100,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": false,
+            "a": {
+              "r": "/multisig/icp",
+              "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+              "m": ""
+            }
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "list_no_content_range",
+      "note": "an agent that answers without a `Content-Range` at all, which the reference reads as a window of three zeroes",
+      "payload": [
+        {
+          "i": "0AADChEYHyYtNDtCSVBXXmVs",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": true,
+          "a": {
+            "r": "/multisig/icp",
+            "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+            "m": ""
+          }
+        }
+      ],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=0-24",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": null,
+      "result": {
+        "start": 0,
+        "end": 0,
+        "total": 0,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": true,
+            "a": {
+              "r": "/multisig/icp",
+              "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+              "m": ""
+            }
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "list_empty",
+      "note": "an empty page, which still carries a window",
+      "payload": [],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=0-24",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": "notes 0-0/0",
+      "result": {
+        "start": 0,
+        "end": 0,
+        "total": 0,
+        "notes": []
+      },
+      "error": null
+    },
+    {
+      "name": "list_fractional_window",
+      "note": "a window that is not a whole number of items: both bounds are stringified into the header unchanged",
+      "payload": [],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=1.5-2.5",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": "notes 0-24/100",
+      "result": {
+        "start": 0,
+        "end": 24,
+        "total": 100,
+        "notes": []
+      },
+      "error": null
+    },
+    {
+      "name": "list_reversed_window",
+      "note": "an end before its start, which the reference sends as `notes=40-20`",
+      "payload": [],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=40-20",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": "notes 0-24/100",
+      "result": {
+        "start": 0,
+        "end": 24,
+        "total": 100,
+        "notes": []
+      },
+      "error": null
+    },
+    {
+      "name": "mark",
+      "note": "the pinned unit test's own call — note that its argument is not a qualified identifier at all",
+      "payload": {},
+      "request": {
+        "path": "/notifications/notificationSAID",
+        "method": "PUT",
+        "headers": {
+          "content-type": "application/json",
+          "signature": "indexed=\"?0\";signify=\"0BA716oy9g6vuacKnUc6T8Yz8K-YCv2-fNvl0Gw1oGVf8F6-Mh8fuVZyBrv6mjWQqN8PgKAGSsciXhBwHKrkMxYC\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": "null",
+        "body_is_undefined": false
+      },
+      "content_range": null,
+      "result": "{}",
+      "error": null
+    },
+    {
+      "name": "mark_nonce",
+      "note": "the same call with the identifier a real agent produces: a `randomNonce` under the Ed25519 seed code",
+      "payload": {},
+      "request": {
+        "path": "/notifications/0AADChEYHyYtNDtCSVBXXmVs",
+        "method": "PUT",
+        "headers": {
+          "content-type": "application/json",
+          "signature": "indexed=\"?0\";signify=\"0BB3XZW2z0wtYJLevPm7kw5vJmIje8SkGX8f1OO-1NHhPvJmL_ww3CICb4nnId6pwFpLEvsIt8vJM2Lv-DbOmVkF\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": "null",
+        "body_is_undefined": false
+      },
+      "content_range": null,
+      "result": "{}",
+      "error": null
+    },
+    {
+      "name": "mark_needing_encoding",
+      "note": "an identifier carrying a query delimiter, which the reference concatenates raw — the case Roadmap 5.3's own fixture already recorded turning a path into a query",
+      "payload": {},
+      "request": {
+        "path": "/notifications/a?b=c",
+        "method": "PUT",
+        "headers": {
+          "content-type": "application/json",
+          "signature": "indexed=\"?0\";signify=\"0BDzm4GlfgIsoBdMHhVT-tJT-YmIqEkPl2YdIgy63xoTVEQNpU8iwpG6xxJkDMSlPmvQhJjDrs8cHAJ-187uNpAI\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": "null",
+        "body_is_undefined": false
+      },
+      "content_range": null,
+      "result": "{}",
+      "error": null
+    },
+    {
+      "name": "delete",
+      "note": "the pinned unit test's own delete",
+      "payload": {},
+      "request": {
+        "path": "/notifications/notificationSAID",
+        "method": "DELETE",
+        "headers": {
+          "content-type": "application/json",
+          "signature": "indexed=\"?0\";signify=\"0BBQi_u3wRDkJoQuj1f0Fsx3L9EKYJQr4TwS3GQ_BDTQlOJDlKz2Jmr1xE2c6i4sOS0t-OGiCNMZKRToD7vg-7ID\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": true
+      },
+      "content_range": null,
+      "result": null,
+      "error": null
+    },
+    {
+      "name": "delete_nonce",
+      "note": "the same, with a real identifier",
+      "payload": {},
+      "request": {
+        "path": "/notifications/0AADChEYHyYtNDtCSVBXXmVs",
+        "method": "DELETE",
+        "headers": {
+          "content-type": "application/json",
+          "signature": "indexed=\"?0\";signify=\"0BAIMZWzNbgXObCHVR5cWbCUxbSKd2qvoI9GLXuZGYMDlde81OlJflVLa4KhwDbKzGK0R19MfmSK00B5jY7nl5AB\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": true
+      },
+      "content_range": null,
+      "result": null,
+      "error": null
+    },
+    {
+      "name": "list_wrong_shape",
+      "note": "a page whose entries are missing declared fields — the reference returns `res.json()` with no typing at all",
+      "payload": [
+        {
+          "i": "0AADChEYHyYtNDtCSVBXXmVs"
+        }
+      ],
+      "request": {
+        "path": "/notifications",
+        "method": "GET",
+        "headers": {
+          "content-type": "application/json",
+          "range": "notes=0-24",
+          "signature": "indexed=\"?0\";signify=\"0BBgTrr4azqNZ6w6ZuT_wb4PqIADwZ2RhpRZJkyrL4kdXOQpLvbwDoWaYt-XI68ovcnDTgxk0T_wc3ddcnbfZ50E\"",
+          "signature-input": "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1700000000;keyid=\"DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc\";alg=\"ed25519\"",
+          "signify-resource": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+          "signify-timestamp": "2023-11-14T22:13:20.123000+00:00"
+        },
+        "body": null,
+        "body_is_undefined": false
+      },
+      "content_range": "notes 0-24/100",
+      "result": {
+        "start": 0,
+        "end": 24,
+        "total": 100,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs"
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "unit_test_assertions": [
+      "url + '/notifications'",
+      "assert.equal(lastHeaders.get('Range'), 'notes=20-40')",
+      "url + '/notifications/notificationSAID'"
+    ],
+    "unit_test_identifier": "notificationSAID",
+    "unit_test_range_header": "notes=20-40",
+    "unit_test_paths": [
+      "/notifications",
+      "/notifications/notificationSAID"
+    ],
+    "integration_usage": [
+      "const res = await client.notifications().list();",
+      "await client.notifications().mark(note.i);",
+      "await client.notifications().delete(note.i);"
+    ],
+    "every_mark_argument_is_a_field": {
+      "needle": "notifications().mark(note.i)",
+      "total": 5,
+      "files": [
+        {
+          "file": "test-integration/endroles-by-aid.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-inception.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/utils/test-util.ts",
+          "count": 2
+        }
+      ],
+      "scanned_files": 117,
+      "normalized": true
+    },
+    "call_sites": {
+      "needle": "notifications().",
+      "total": 9,
+      "files": [
+        {
+          "file": "test-integration/endroles-by-aid.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-inception.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/utils/test-util.ts",
+          "count": 6
+        }
+      ],
+      "scanned_files": 117,
+      "normalized": true
+    },
+    "driven_paths": [
+      "/notifications",
+      "/notifications/0AADChEYHyYtNDtCSVBXXmVs",
+      "/notifications/a?b=c",
+      "/notifications/notificationSAID"
+    ],
+    "note": "the pinned case asserts all three paths, all three methods, and the `Range` header exactly. What it does **not** provide is a real notification identifier: its literal is the string `notificationSAID`, and every integration call site passes a runtime `note.i` read back from a live agent — so the shape of that field is established from `randomNonce` and keripy rather than from any pinned literal."
+  },
+  "reference_quirks": {
+    "the_identifier_is_not_a_said": {
+      "parameter": [
+        "said: string"
+      ],
+      "documentation": "/** * Mark a notification as read * @async * @param {string} said SAID of the notification * @returns {Promise<string>} A promise to the result of the marking */",
+      "signify_random_nonce": "export function randomNonce(): string { const seed = libsodium.randombytes_buf(libsodium.crypto_sign_SEEDBYTES); const seedqb64 = new Matter({ raw: seed, code: MtrDex.Ed25519_Seed }); return seedqb64.qb64; }",
+      "signify_nonce_code": "A",
+      "signify_nonce": "AAMKERgfJi00O0JJUFdeZWxzeoGIj5adpKuyucDHztXc",
+      "signify_nonce_leading": "A",
+      "keripy_random_nonce_code": "seedqb64 = Matter(raw=preseed, code=MtrDex.Salt_128).qb64",
+      "keripy_nonce_code": "0A",
+      "keripy_nonce": "0AADChEYHyYtNDtCSVBXXmVs",
+      "keripy_nonce_leading": "0A",
+      "keripy_notice_leaves_it_empty": "pad = dict(i=\"\",",
+      "keripy_dicter_fills_it": "self._pad[self._label] = randomNonce()",
+      "keripy_dicter_fill_sites": 2,
+      "sample_said": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+      "sample_said_leading": "E",
+      "keripy_sha": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+      "note": "`mark(said)` and `delete(said)` name the parameter `said` and the JSDoc says \"SAID of the notification\". It is not one: keripy's `notice()` builds the record with `i=\"\"` and its `Dicter` fills an empty identifier with `randomNonce()`. The two references disagree about that nonce's code — signify-ts's `randomNonce` uses the Ed25519 seed code `A` over thirty-two bytes, keripy's the 128-bit salt code `0A` over sixteen — and **neither is a digest code**, so the field is not a SAID under either. KERIA is built on keripy, so what a real agent writes is the `0A` form.",
+      "rust_decision": "the argument is **not** typed as Roadmap 3.3's `Said`, which would refuse every identifier a real agent produces. It stays borrowed text encoded exactly once by Roadmap 5.3's builder — the shape Roadmap 6.5 gave an operation name — which is enough to close the path injection this fixture records. keripy is corroboration for what fills the field, not a governing reference (ADR `0009`)."
+    },
+    "the_window_defaults_are_observable": {
+      "parameters": [
+        "start: number = 0",
+        "end: number = 24"
+      ],
+      "header": "notes=0-24",
+      "note": "`list(start = 0, end = 24)` writes both defaults into the `Range` header, so an omitted window is still a request that names one",
+      "rust_decision": "the window is a required `ItemRange` and `DEFAULT_WINDOW` names the reference's values, so what is asked for is visible at the call site — Roadmap 6.6's identifier listing already takes its window the same way"
+    },
+    "a_window_bound_is_not_an_integer": {
+      "fractional": "notes=1.5-2.5",
+      "reversed": "notes=40-20",
+      "note": "both bounds are `number` and reach the header through template interpolation, so `list(1.5, 2.5)` sends `notes=1.5-2.5` and `list(40, 20)` sends a window whose end precedes its start",
+      "rust_decision": "**refused**: Roadmap 5.3's `ItemRange` takes two `u64` and validates that the start does not exceed the end, so neither is representable. A fraction is not a count of items and a reversed window asks for nothing."
+    },
+    "an_absent_content_range_becomes_three_zeroes": {
+      "declaration": "range = parseRangeHeaders(cr, 'notes')",
+      "result": {
+        "start": 0,
+        "end": 0,
+        "total": 0,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": true,
+            "a": {
+              "r": "/multisig/icp",
+              "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+              "m": ""
+            }
+          }
+        ]
+      },
+      "note": "`parseRangeHeaders(null, 'notes')` returns `{start: 0, end: 0, total: 0}`, so a page of real notifications is reported as an empty window rather than as an unknown one",
+      "rust_decision": "reproduced as Roadmap 5.3 already decided and Roadmap 6.6 already applied: the window is an `Option`, so an unreported one is `None` and stays distinguishable from a genuinely empty one"
+    },
+    "the_identifier_is_not_encoded": {
+      "path": "/notifications/a?b=c",
+      "expression": "path = `/notifications/` + said",
+      "note": "both single-notification paths are `'/notifications/' + said`, so a value carrying `?` turns the path into a query — Roadmap 5.3's own fixture recorded `notifications().mark('a?b=c')` doing exactly that, and Roadmap 3.10 signs `@path`",
+      "rust_decision": "closed by Roadmap 5.3's builder, which encodes every path component exactly once and offers no way to skip it"
+    },
+    "mark_returns_its_body_as_text": {
+      "declaration": "await res.text()",
+      "result": "{}",
+      "note": "`mark` is the only method here that reads its answer, and it reads it with `res.text()` — which replaces any byte that is not valid UTF-8 with U+FFFD rather than failing",
+      "rust_decision": "the text is returned, because the reference genuinely offers it, but decoded **strictly**: a body that is not valid UTF-8 is `ClientError::Decode` where `res.text()` silently repairs it. That is the decision Roadmap 6.11 made for a CESR answer read the same way."
+    },
+    "a_delete_carries_no_body": {
+      "fetch": "this.client.fetch(path, method, undefined)",
+      "body_is_undefined": true,
+      "note": "`delete` passes `undefined` where `list` and `mark` pass `null`, so the request carries no body at all",
+      "rust_decision": "reproduced: no body is set on the request, as Roadmap 6.5's, 7.3's, and 7.4's deletes already do"
+    },
+    "the_page_is_never_typed": {
+      "declaration": "return { start: range.start, end: range.end, total: range.total, notes: notes, };",
+      "wrong_shape": {
+        "start": 0,
+        "end": 24,
+        "total": 100,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs"
+          }
+        ]
+      },
+      "note": "`list` returns `Promise<any>` and its `notes` field is `await res.json()` with no cast at all — not even the compile-time claim the other families make",
+      "rust_decision": "decoded into `signify_types::api::Notification`, so an entry missing the fields the schema declares is refused; the recorded wrong-shaped page is proven refused"
+    },
+    "the_window_is_returned_flattened": {
+      "declaration": "return { start: range.start, end: range.end, total: range.total, notes: notes, };",
+      "result": {
+        "start": 20,
+        "end": 40,
+        "total": 100,
+        "notes": [
+          {
+            "i": "0AADChEYHyYtNDtCSVBXXmVs",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": false,
+            "a": {
+              "r": "/multisig/icp",
+              "d": "EPb8JgedkvOGMn7iw9y9L3gwo8uvBifSQenEbxyTbtIz",
+              "m": ""
+            }
+          }
+        ]
+      },
+      "note": "the three window numbers are spread into the returned object beside `notes`, so a caller cannot tell the window apart from the page",
+      "rust_decision": "`NotificationListing` keeps them apart — an optional `window` and the notifications — which is the shape Roadmap 6.6 gave the identifier listing for the same reason"
+    }
+  }
+}
