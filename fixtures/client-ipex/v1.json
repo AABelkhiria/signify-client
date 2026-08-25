@@ -1,0 +1,700 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-25",
+  "sources": [
+    "src/keri/app/credentialing.ts",
+    "test/app/credentialing.test.ts",
+    "test/app/clienting.test.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "stamp": "2023-08-23T15:16:07.553000+00:00",
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "sender_alias": "multisig",
+    "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "recipient": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+    "second_recipient": "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby",
+    "note": "`Ipex` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The sender's habitat is derived by the same route the pinned `test/app/test-utils.ts` derives its mock, at the reference's production Argon2 cost, so every signature in a recorded body is real. Each message is built by the reference's own Roadmap 6.3 builder before being submitted, so every recorded `exn` is one `fixtures/acdc-ipex/v1.json` has already proven byte-exact. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
+  },
+  "declarations": {
+    "class_members": [
+      "client",
+      "<constructor>",
+      "apply",
+      "submitApply",
+      "offer",
+      "submitOffer",
+      "agree",
+      "submitAgree",
+      "grant",
+      "submitGrant",
+      "admit",
+      "submitAdmit"
+    ],
+    "submit_apply": {
+      "parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "recp: string[]"
+      ],
+      "body": "body = { exn: exn.sad, sigs, rec: recp, }",
+      "path": "`/identifiers/${name}/ipex/apply`",
+      "returns": "return response.json();"
+    },
+    "submit_offer": {
+      "parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "atc: string",
+        "recp: string[]"
+      ],
+      "body": "body = { exn: exn.sad, sigs, atc, rec: recp, }",
+      "path": "`/identifiers/${name}/ipex/offer`",
+      "returns": "return response.json();"
+    },
+    "submit_agree": {
+      "parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "recp: string[]"
+      ],
+      "body": "body = { exn: exn.sad, sigs, rec: recp, }",
+      "path": "`/identifiers/${name}/ipex/agree`",
+      "returns": "return response.json();"
+    },
+    "submit_grant": {
+      "parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "atc: string",
+        "recp: string[]"
+      ],
+      "body": "body = { exn: exn.sad, sigs: sigs, atc: atc, rec: recp, }",
+      "path": "`/identifiers/${name}/ipex/grant`",
+      "returns": "return response.json();"
+    },
+    "submit_admit": {
+      "parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "atc: string",
+        "recp: string[]"
+      ],
+      "body": "body = { exn: exn.sad, sigs: sigs, atc: atc, rec: recp, }",
+      "path": "`/identifiers/${name}/ipex/admit`",
+      "returns": "return response.json();"
+    },
+    "usage_scan": {
+      "needle": ".ipex()",
+      "total": 43,
+      "files": [
+        {
+          "file": "test-integration/credentials.test.ts",
+          "count": 18
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 8
+        },
+        {
+          "file": "test-integration/singlesig-vlei-issuance.test.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/utils/test-util.ts",
+          "count": 2
+        },
+        {
+          "file": "test/app/credentialing.test.ts",
+          "count": 3
+        }
+      ],
+      "scanned_files": 117
+    },
+    "notes": {
+      "attachment": "`submitApply` and `submitAgree` take **no** `atc` parameter and write none, although their own builders return an attachment as the third element of the tuple — so two of the five submitters discard a value the builder produced",
+      "recipients": "every submitter takes a `recp: string[]` and copies it into the body as `rec`; nothing compares it with the recipient the message itself names in `rp` and `a.i`",
+      "path": "each path interpolates the sender's alias raw and appends a route segment the method chooses, so the route and the resource can only agree by the caller picking the matching method"
+    }
+  },
+  "embedded_artifacts": {
+    "acdc_raw": "{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}}",
+    "iss_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"}",
+    "anc_raw": "{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]}",
+    "anchor_attachment": "-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
+    "schema": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "lei": "5493001KJTIIGC8Y1R17",
+    "note": "the same three the Roadmap 6.3 fixture embeds, rebuilt here from `mockCredential` by the reference's own `Saider` and `interact`"
+  },
+  "messages": {
+    "apply": {
+      "raw": "{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}}",
+      "said": "ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL",
+      "route": "/ipex/apply",
+      "addressed_to": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+      "attachment": "",
+      "signatures": [
+        "AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF"
+      ]
+    },
+    "offer": {
+      "raw": "{\"v\":\"KERI10JSON000357_\",\"t\":\"exn\",\"d\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/offer\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"How about this\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"d\":\"EK72JZyOyz81Jvt--iebptfhIWiw2ZdQg7ondKd-EyJF\"}}",
+      "said": "EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU",
+      "route": "/ipex/offer",
+      "addressed_to": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+      "attachment": "",
+      "signatures": [
+        "AADUeKpUxTKVS1DYRuHC3YDM8T4YMREnQLi00QiJH2Q_WjtMZTd7rBLH12xAJkt8h4KEOn4U_c-jpHdj9S9qKXsO"
+      ]
+    },
+    "agree": {
+      "raw": "{\"v\":\"KERI10JSON00017b_\",\"t\":\"exn\",\"d\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/agree\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"OK!\"},\"e\":{}}",
+      "said": "EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8",
+      "route": "/ipex/agree",
+      "addressed_to": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+      "attachment": "",
+      "signatures": [
+        "AADgFlQVwRU7PF_gi4_o-wEgh3lZxzDtiwnIr9XFBrLOxhR6nBJNhrHZ_MkagCQcFHMpFkD9Vhxgq8HkV2gssPcO"
+      ]
+    },
+    "grant": {
+      "raw": "{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}}",
+      "said": "ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N",
+      "route": "/ipex/grant",
+      "addressed_to": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+      "attachment": "-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
+      "signatures": [
+        "AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK"
+      ]
+    },
+    "admit": {
+      "raw": "{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}}",
+      "said": "EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF",
+      "route": "/ipex/admit",
+      "addressed_to": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+      "attachment": "",
+      "signatures": [
+        "AABqIUE6czxB5BotjxFUZT9Gu8tkFkAx7bOYQzWD422r-HS8z_6gaNuIlpnABHjxlX7PEXFDTj8WnoGVW197XlQP"
+      ]
+    }
+  },
+  "calls": [
+    {
+      "name": "apply",
+      "note": "the pinned unit test's apply submission, which sends no attachment at all",
+      "request": {
+        "path": "/identifiers/multisig/ipex/apply",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "offer",
+      "note": "the pinned unit test's offer submission, whose attachment is the empty string",
+      "request": {
+        "path": "/identifiers/multisig/ipex/offer",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000357_\",\"t\":\"exn\",\"d\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/offer\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"How about this\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"d\":\"EK72JZyOyz81Jvt--iebptfhIWiw2ZdQg7ondKd-EyJF\"}},\"sigs\":[\"AADUeKpUxTKVS1DYRuHC3YDM8T4YMREnQLi00QiJH2Q_WjtMZTd7rBLH12xAJkt8h4KEOn4U_c-jpHdj9S9qKXsO\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "agree",
+      "note": "the pinned unit test's agree submission, which sends no attachment at all",
+      "request": {
+        "path": "/identifiers/multisig/ipex/agree",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON00017b_\",\"t\":\"exn\",\"d\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/agree\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"OK!\"},\"e\":{}},\"sigs\":[\"AADgFlQVwRU7PF_gi4_o-wEgh3lZxzDtiwnIr9XFBrLOxhR6nBJNhrHZ_MkagCQcFHMpFkD9Vhxgq8HkV2gssPcO\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "grant",
+      "note": "the pinned unit test's grant submission, the only one carrying a real attachment",
+      "request": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"atc\":\"-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "admit",
+      "note": "the pinned unit test's admit submission, whose attachment is the empty string",
+      "request": {
+        "path": "/identifiers/multisig/ipex/admit",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EPcEK9tPuLOHbLiPm_FETkIVLjHhwuUiZDRDKW6Hh0JF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"AABqIUE6czxB5BotjxFUZT9Gu8tkFkAx7bOYQzWD422r-HS8z_6gaNuIlpnABHjxlX7PEXFDTj8WnoGVW197XlQP\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "grant_two_recipients",
+      "note": "a grant submitted to two recipients, which the body carries as a list",
+      "request": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"atc\":\"-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "grant_no_recipients",
+      "note": "a grant submitted to nobody, which the reference sends as an empty list",
+      "request": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"atc\":\"-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED\",\"rec\":[]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "grant_recipient_is_not_the_addressee",
+      "note": "a grant addressed to one identifier and submitted to another, which nothing compares",
+      "request": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"atc\":\"-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED\",\"rec\":[\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "apply_alias_needing_encoding",
+      "note": "an alias carrying a slash, which the path does not encode",
+      "request": {
+        "path": "/identifiers/a/b/ipex/apply",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "grant_through_the_apply_submitter",
+      "note": "a grant message posted to the apply resource, which the reference permits because the caller picks the method",
+      "request": {
+        "path": "/identifiers/multisig/ipex/apply",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "apply_through_the_grant_submitter",
+      "note": "an apply message posted to the grant resource with an attachment it never had",
+      "request": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "requests": 1,
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "unit_test_file": "test/app/credentialing.test.ts",
+    "unit_test_files_naming_ipex": [
+      "test/app/credentialing.test.ts"
+    ],
+    "published_submission_urls": [
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/grant",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/admit",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/apply",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/offer",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/agree",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/grant",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/admit",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/offer"
+    ],
+    "published_routes": [
+      "/ipex/admit",
+      "/ipex/agree",
+      "/ipex/apply",
+      "/ipex/grant",
+      "/ipex/offer"
+    ],
+    "accessor_assertion": false,
+    "accessor_assertions_that_do_exist": [
+      "credentials",
+      "registries",
+      "schemas",
+      "operations",
+      "identifiers"
+    ],
+    "submitter_call_sites": {
+      "apply": {
+        "needle": "submitApply(",
+        "total": 3,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/credentialing.test.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "offer": {
+        "needle": "submitOffer(",
+        "total": 4,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/credentialing.test.ts",
+            "count": 2
+          }
+        ],
+        "scanned_files": 117
+      },
+      "agree": {
+        "needle": "submitAgree(",
+        "total": 3,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/credentialing.test.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "grant": {
+        "needle": "submitGrant(",
+        "total": 12,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test-integration/singlesig-vlei-issuance.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/credentialing.test.ts",
+            "count": 2
+          }
+        ],
+        "scanned_files": 117
+      },
+      "admit": {
+        "needle": "submitAdmit(",
+        "total": 11,
+        "files": [
+          {
+            "file": "src/keri/app/credentialing.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/singlesig-vlei-issuance.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/utils/test-util.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/credentialing.test.ts",
+            "count": 2
+          }
+        ],
+        "scanned_files": 117
+      }
+    },
+    "driven_paths": [
+      "/identifiers/a/b/ipex/apply",
+      "/identifiers/multisig/ipex/admit",
+      "/identifiers/multisig/ipex/agree",
+      "/identifiers/multisig/ipex/apply",
+      "/identifiers/multisig/ipex/grant",
+      "/identifiers/multisig/ipex/offer"
+    ],
+    "note": "the pinned `credentialing.test.ts` calls all five submitters across its three IPEX cases and asserts each one's full URL, which is the whole of what it checks about them — no body is asserted anywhere. `clienting.test.ts` asserts the type of five other endpoint accessors and **not** this one, which is recorded as a scan rather than claimed. Every real call site in the pinned tree, unit and integration alike, passes exactly one recipient and it is the one the message itself addresses; nothing in the reference compares the two.",
+    "distinct_submission_urls": [
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/admit",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/agree",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/apply",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/grant",
+      "http://127.0.0.1:3901/identifiers/multisig/ipex/offer"
+    ]
+  },
+  "reference_quirks": {
+    "two_submitters_discard_their_own_attachment": {
+      "apply_parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "recp: string[]"
+      ],
+      "agree_parameters": [
+        "name: string",
+        "exn: Serder",
+        "sigs: string[]",
+        "recp: string[]"
+      ],
+      "apply_attachment": "",
+      "agree_attachment": "",
+      "apply_body": "{\"exn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}",
+      "agree_body": "{\"exn\":{\"v\":\"KERI10JSON00017b_\",\"t\":\"exn\",\"d\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EBkyi_fhfnDWJXi4FW6t_o4F7Oep3PvSZ6E-qT716kfU\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/agree\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"OK!\"},\"e\":{}},\"sigs\":[\"AADgFlQVwRU7PF_gi4_o-wEgh3lZxzDtiwnIr9XFBrLOxhR6nBJNhrHZ_MkagCQcFHMpFkD9Vhxgq8HkV2gssPcO\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}",
+      "note": "`Ipex.apply` and `Ipex.agree` each return an attachment as the third element of their tuple, and `submitApply` and `submitAgree` take no `atc` parameter and write no `atc` field — so the value is built and dropped. It is always the empty string, because neither route embeds anything, so nothing is actually lost; the asymmetry is in the API rather than in the bytes.",
+      "rust_decision": "reproduced exactly: the route decides whether the body carries `atc`, so an apply and an agree write three fields and the other three write four. A property asserts an apply's and an agree's attachment is always empty, which is what makes the omission lossless."
+    },
+    "the_route_and_the_resource_agree_only_by_convention": {
+      "grant_to_apply": {
+        "path": "/identifiers/multisig/ipex/apply",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "apply_to_grant": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "note": "each submitter appends its own route segment and accepts any `exn`, so posting a grant through `submitApply` addresses `/ipex/apply` with a message whose own `r` says `/ipex/grant` — and posting an apply through `submitGrant` adds an `atc` the message never had. Nothing checks either.",
+      "rust_decision": "unrepresentable: there is one `submit`, and the path segment is read from the message's own route, so the resource and the `r` field cannot disagree."
+    },
+    "nothing_compares_the_recipients_with_the_addressee": {
+      "detail": {
+        "total": 0,
+        "single_element": 0,
+        "lists": [],
+        "note": "read from the pinned source text rather than executed, because most call sites are integration tests needing a live KERIA; every one passes a single-element list"
+      },
+      "addressed_to": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+      "submitted_to": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"atc\":\"-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED\",\"rec\":[\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\"]}",
+      "note": "the recipient list is copied into the body as `rec` and is never compared with the `rp` and `a.i` the message itself carries, so a grant addressed to one identifier can be handed to the agent for delivery to another. Every call site in the pinned tree passes exactly one recipient and it is the addressee, so the reference has no evidence either way about fanning out.",
+      "rust_decision": "the list is kept as upstream and **not** narrowed to the addressee, because a multisig sender plausibly needs more than one and the pinned tree proves nothing either way; the method documents that it does not check. What is refused is an **empty** list, which asks the agent to deliver to nobody."
+    },
+    "an_empty_recipient_list_is_sent": {
+      "request": {
+        "path": "/identifiers/multisig/ipex/grant",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000511_\",\"t\":\"exn\",\"d\":\"ENwwMpAuZ3NaZqqeydm3G18EDZFWuHzeJMfzfwNkb99N\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDLk56nlLrPHzhy3-5BHkhBNi-7tWUseWL_83I5QRmZ8\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EK0GOjijKd8_RLYz9qDuuG29YbbXjU8yJuTQanf07b6P\",\"i\":\"EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW\",\"i\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"s\":\"0\",\"ri\":\"EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\"},\"anc\":{\"v\":\"KERI10JSON0000cd_\",\"t\":\"ixn\",\"d\":\"ECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm\",\"i\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"s\":\"1\",\"p\":\"EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo\",\"a\":[{}]},\"d\":\"EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-\"}},\"sigs\":[\"AAB61_g8jLGO1vx8Fadd6UrDItNACwFAiuAvWGrm_szxWWNZwT21V0N79Q7bRHNdVzZudgAKVUhNUHhnwrUW6jsK\"],\"atc\":\"-LAg4AACA-e-acdc-IABEMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo0AAAAAAAAAAAAAAAAAAAAAAAENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABECVCyxNpB4PJkpLbWqI02WXs1wf7VUxPNY2W28SN2qqm-LAa5AACAA-e-anc-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED\",\"rec\":[]}"
+      },
+      "note": "`recp: []` reaches the wire as `\"rec\":[]`, a submission the agent is asked to deliver to no one; the reference neither refuses it nor reports it",
+      "rust_decision": "a typed refusal before anything is sent"
+    },
+    "the_alias_is_not_encoded": {
+      "request": {
+        "path": "/identifiers/a/b/ipex/apply",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"exn\",\"d\":\"ELjIE5cr_M2r7oUYw2pwcdNY_ZBuEgRlefaP0zSs_bXL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-08-23T15:16:07.553000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"Applying\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AADJYSkOTxd8KfH4YUKWWjkNynAH4fm3wcKOPmepLiI_iuNPV9TL-sIRxLeCBG5rQmqXtnSP0Wi6jgI7sHC9PBgF\"],\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+      },
+      "paths": {
+        "apply": "`/identifiers/${name}/ipex/apply`",
+        "offer": "`/identifiers/${name}/ipex/offer`",
+        "agree": "`/identifiers/${name}/ipex/agree`",
+        "grant": "`/identifiers/${name}/ipex/grant`",
+        "admit": "`/identifiers/${name}/ipex/admit`"
+      },
+      "note": "all five paths interpolate the sender's alias raw, so an alias holding a slash addresses a different identifier's IPEX resource — and Roadmap 3.10 signs `@path`, so it changes what the signature covers",
+      "rust_decision": "refused by construction: Roadmap 5.3's `ResourcePath` encodes the alias exactly once"
+    },
+    "the_answer_is_cast_rather_than_decoded": {
+      "returns": "return response.json();",
+      "recorded_answer": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "note": "every submitter returns `response.json()` cast to `ExchangeOperation`, so whatever the agent sends is read as an operation",
+      "rust_decision": "decoded rather than cast, as Roadmap 6.8, 6.10, and 6.11 decided"
+    }
+  }
+}

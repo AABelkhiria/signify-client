@@ -218,6 +218,14 @@ pub enum ClientError {
         /// The identifier prefix that refused it.
         identifier: String,
     },
+    /// An IPEX message was submitted with no recipient at all.
+    ///
+    /// The reference sends `"rec":[]`, asking the agent to deliver the message to nobody and
+    /// reporting nothing; here it is a caller mistake rather than a request.
+    NoIpexRecipients {
+        /// The route of the message that would have been sent.
+        route: &'static str,
+    },
     /// A key-state listing named no identifier at all.
     ///
     /// The reference sends `/states?` with nothing after the question mark, which asks for
@@ -317,6 +325,10 @@ impl fmt::Display for ClientError {
             ),
             Self::Transaction { source } => write!(formatter, "transaction event construction failed: {source}"),
             Self::Credential { source } => write!(formatter, "credential encoding failed: {source}"),
+            Self::NoIpexRecipients { route } => write!(
+                formatter,
+                "an IPEX {route} message must name at least one recipient to be delivered to"
+            ),
             Self::EmptyKeyStateListing => formatter.write_str("a key-state listing must name at least one identifier"),
             Self::NoSigningKey { alias } => {
                 write!(formatter, "the identifier {alias:?} holds no signing key")
@@ -361,6 +373,7 @@ impl Error for ClientError {
             | Self::IdentifierNotAccepted { .. }
             | Self::EstablishmentOnlyIssuer { .. }
             | Self::CredentialIssuerMismatch { .. }
+            | Self::NoIpexRecipients { .. }
             | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
             | Self::UnrepresentableNumber
@@ -468,6 +481,7 @@ mod tests {
                 credential: "EISSUER".to_owned(),
                 anchoring: "EANCHOR".to_owned(),
             },
+            ClientError::NoIpexRecipients { route: "/ipex/grant" },
             ClientError::EmptyKeyStateListing,
             ClientError::NoSigningKey {
                 alias: "aid1".to_owned(),

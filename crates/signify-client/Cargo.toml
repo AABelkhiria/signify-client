@@ -53,5 +53,9 @@ harness = false
 name = "credentials"
 harness = false
 
+[[bench]]
+name = "ipex"
+harness = false
+
 [lints]
 workspace = true

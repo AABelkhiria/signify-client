@@ -54,6 +54,7 @@ use crate::config::ClientConfig;
 use crate::endpoint::config::Config;
 use crate::endpoint::credentials::Credentials;
 use crate::endpoint::identifiers::Identifiers;
+use crate::endpoint::ipex::Ipex;
 use crate::endpoint::key_events::KeyEvents;
 use crate::endpoint::key_states::KeyStates;
 use crate::endpoint::operations::Operations;
@@ -487,6 +488,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn credentials(&self) -> Credentials<'_> {
         Credentials::new(self)
+    }
+
+    /// Returns the IPEX endpoint family: disclosing a credential to somebody else.
+    #[must_use]
+    pub const fn ipex(&self) -> Ipex<'_> {
+        Ipex::new(self)
     }
 
     /// Returns the configuration endpoint family: what the *agent* was set up with.
