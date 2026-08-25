@@ -51,6 +51,7 @@ use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
+use crate::endpoint::challenges::Challenges;
 use crate::endpoint::config::Config;
 use crate::endpoint::contacts::Contacts;
 use crate::endpoint::credentials::Credentials;
@@ -512,6 +513,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn oobis(&self) -> Oobis<'_> {
         Oobis::new(self)
+    }
+
+    /// Returns the challenges endpoint family: proving somebody controls what they claim.
+    #[must_use]
+    pub const fn challenges(&self) -> Challenges<'_> {
+        Challenges::new(self)
     }
 
     /// Returns the contacts endpoint family: who this client knows.

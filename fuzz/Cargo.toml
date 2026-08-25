@@ -355,6 +355,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_challenges"
+path = "fuzz_targets/client_challenges.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_contacts"
 path = "fuzz_targets/client_contacts.rs"
 test = false

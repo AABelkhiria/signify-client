@@ -251,6 +251,19 @@ pub enum ClientError {
         /// How long the poll ran before giving up.
         elapsed: core::time::Duration,
     },
+    /// A challenge strength is not an entropy size BIP39 defines.
+    ///
+    /// The reference stringifies whatever number it is given into the query, so a fraction, a
+    /// negative, or `NaN` reaches the agent as a request no mnemonic generator can satisfy.
+    InvalidChallengeStrength {
+        /// The value that was asked for.
+        bits: u32,
+    },
+    /// A challenge verification named no words at all.
+    ///
+    /// The reference sends `{"words":[]}`, asking the agent to confirm that an identifier signed
+    /// nothing; here it is a caller mistake rather than a request.
+    EmptyChallengeWords,
     /// A module's own stored parameter is a number this port cannot write exactly.
     ///
     /// Roadmap 3.2 narrowed the number space deliberately so byte parity is provable; a
@@ -357,6 +370,12 @@ impl fmt::Display for ClientError {
                 formatter,
                 "the operation {name:?} was still running after {attempts} attempts over {elapsed:?}: {limit}"
             ),
+            Self::InvalidChallengeStrength { bits } => write!(
+                formatter,
+                "a challenge strength of {bits} bits is not one BIP39 defines ({declared:?})",
+                declared = crate::endpoint::challenges::ChallengeStrength::DECLARED
+            ),
+            Self::EmptyChallengeWords => formatter.write_str("a challenge verification named no words"),
             Self::UnrepresentableNumber => {
                 formatter.write_str("a stored parameter is a number that cannot be written exactly")
             }
@@ -401,6 +420,8 @@ impl Error for ClientError {
             | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
             | Self::PollingStopped { .. }
+            | Self::InvalidChallengeStrength { .. }
+            | Self::EmptyChallengeWords
             | Self::UnrepresentableNumber
             | Self::Randomness => None,
         }
