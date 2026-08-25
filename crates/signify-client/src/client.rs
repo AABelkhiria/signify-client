@@ -62,6 +62,7 @@ use crate::endpoint::operations::Operations;
 use crate::endpoint::registries::Registries;
 use crate::endpoint::schemas::Schemas;
 use crate::error::ClientError;
+use crate::operation::Poller;
 
 /// Path segment the agent resource lives under.
 pub const AGENT_SEGMENT: &str = "agent";
@@ -438,6 +439,14 @@ impl ConnectedClient {
         self.prefix_index.fetch_add(1, Ordering::SeqCst)
     }
 
+    /// Returns the clock this client measures and waits with.
+    ///
+    /// Crate-private: a client has exactly one clock, and reusing it is what lets Roadmap 7.2's
+    /// polling be driven deterministically by the same `TestClock` a request signature already is.
+    pub(crate) fn clock(&self) -> &Arc<dyn Clock> {
+        &self.clock
+    }
+
     /// Returns the `Signify-Resource` value every request is stamped with.
     #[must_use]
     pub const fn resource(&self) -> &HeaderValue {
@@ -502,6 +511,16 @@ impl ConnectedClient {
     #[must_use]
     pub const fn oobis(&self) -> Oobis<'_> {
         Oobis::new(self)
+    }
+
+    /// Returns a poller for long-running agent operations.
+    ///
+    /// A KERIA agent answers most writes with an operation rather than a result, so this is where
+    /// most workflows end. It is bounded where the reference's own loop is not; see
+    /// [`operation`](crate::operation).
+    #[must_use]
+    pub fn poller(&self) -> Poller<'_> {
+        Poller::new(self)
     }
 
     /// Returns the configuration endpoint family: what the *agent* was set up with.

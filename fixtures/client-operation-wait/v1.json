@@ -1,0 +1,727 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-25",
+  "sources": [
+    "src/keri/app/coring.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/coring.test.ts",
+    "test-integration/utils/test-util.ts"
+  ],
+  "provenance": {
+    "operation_name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+    "dependency_name": "witness.EABC.0",
+    "registry_name": "registry.EREG",
+    "note": "`Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is driven against a recorder, exactly as the pinned `coring.test.ts` drives it, with the **global timer replaced** so every delay is captured and nothing waits. Both techniques are Roadmap 6.5's and 5.4's. Nothing here derives a key, reads a clock, or is secret."
+  },
+  "declarations": {
+    "wait_body": "{ const minSleep = options.minSleep ?? 10; const maxSleep = options.maxSleep ?? 10000; const increaseFactor = options.increaseFactor ?? 50; if ( this.hasDepends(op) && op.metadata.depends && !op.metadata.depends.done ) { await this.wait(op.metadata.depends, options); } if (op.done === true) { this.throwIfFailed(op); return op; } let retries = 0; while (true) { op = await this.get(op.name); if (op.done === true) { this.throwIfFailed(op); return op; } const delay = Math.max( minSleep, Math.min(maxSleep, 2 ** retries * increaseFactor) ); retries++; await new Promise((resolve) => setTimeout(resolve, delay)); options.signal?.throwIfAborted(); } }",
+    "wait_overloads": 16,
+    "wait_defaults": {
+      "min_sleep": "minSleep = options.minSleep ?? 10",
+      "max_sleep": "maxSleep = options.maxSleep ?? 10000",
+      "increase_factor": "increaseFactor = options.increaseFactor ?? 50"
+    },
+    "wait_delay": "delay = Math.max( minSleep, Math.min(maxSleep, 2 ** retries * increaseFactor) )",
+    "wait_dependency_guard": "if ( this.hasDepends(op) && op.metadata.depends && !op.metadata.depends.done ) { await this.wait(op.metadata.depends, options); }",
+    "wait_loop": "while (true) { op = await this.get(op.name); if (op.done === true) { this.throwIfFailed(op); return op; } const delay = Math.max( minSleep, Math.min(maxSleep, 2 ** retries * increaseFactor) ); retries++; await new Promise((resolve) => setTimeout(resolve, delay)); options.signal?.throwIfAborted(); }",
+    "wait_abort": "options.signal?.throwIfAborted();",
+    "has_depends_body": "{ return op.metadata !== undefined && 'depends' in op.metadata; }",
+    "throw_if_failed_body": "{ if ('error' in op && op.error !== null) { const details = op.error.details ? ` Details: ${JSON.stringify(op.error.details)}` : ''; throw new Error( `Operation '${op.name}' failed [Code ${op.error.code}]: ${op.error.message}${details}` ); } }",
+    "depends_declarations": [
+      {
+        "owner": "RegistryOperationMetadata",
+        "declaration": "depends: components['schemas']['KelOperation'];"
+      },
+      {
+        "owner": "CredentialOperationMetadata",
+        "declaration": "depends?: components['schemas']['KelOperation'];"
+      },
+      {
+        "owner": "DelegatorOperationMetadata",
+        "declaration": "depends?: components['schemas']['KelOperation'];"
+      }
+    ],
+    "kel_operation_schema": "KelOperation: | components['schemas']['GroupOperation'] | components['schemas']['WitnessOperation'] | components['schemas']['DoneOperation'] | components['schemas']['DelegationOperation'];",
+    "kel_metadata_schemas": [
+      {
+        "name": "DoneOperationMetadata",
+        "declaration": "DoneOperationMetadata: { response: | components['schemas']['ICP_V_1'] | components['schemas']['ICP_V_2'] | components['schemas']['ROT_V_1'] | components['schemas']['ROT_V_2'] | components['schemas']['EXN_V_1'] | components['schemas']['EXN_V_2']; /** @default null */ pre: string | null; };"
+      }
+    ],
+    "integration_wait_operation": "export async function waitOperation( client: SignifyClient, op: Operation | string, signal?: AbortSignal ): Promise<Operation> { if (typeof op === 'string') { op = await client.operations().get(op); } op = await client .operations() .wait(op, { signal: signal ?? AbortSignal.timeout(30000) }); await deleteOperations(client, op); return op; }",
+    "integration_delete_operations": "async function deleteOperations(client: SignifyClient, op: Operation) { if (op.metadata && 'depends' in op.metadata && op.metadata.depends) { await deleteOperations(client, op.metadata.depends); } await client.operations().delete(op.name); }"
+  },
+  "calls": [
+    {
+      "name": "already_done",
+      "note": "the pinned `does not wait for operation that is already \"done\"` case: nothing is fetched at all, and the *same object* comes back",
+      "options": {},
+      "requests": [],
+      "request_count": 0,
+      "delays_ms": [],
+      "result": {
+        "name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+        "done": true,
+        "response": {}
+      },
+      "returned_the_same_object": true,
+      "error": null
+    },
+    {
+      "name": "done_after_first_poll",
+      "note": "the pinned `returns when operation is done after first call` case: one request, no sleep",
+      "options": {},
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": {
+        "name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+        "done": true
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "done_after_second_poll",
+      "note": "the pinned `returns when operation is done after second call` case, with its own `maxSleep: 10`",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 2,
+      "delays_ms": [
+        10
+      ],
+      "result": {
+        "name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+        "done": true
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "dependency_polled_first",
+      "note": "the pinned `returns when child operation is also done` case: four requests, the dependency's two before the parent's two",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EABC.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EABC.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/registry.EREG",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/registry.EREG",
+          "method": "GET"
+        }
+      ],
+      "request_count": 4,
+      "delays_ms": [
+        10,
+        10
+      ],
+      "result": {
+        "name": "registry.EREG",
+        "done": true,
+        "metadata": {
+          "pre": "EPRE",
+          "anchor": {
+            "pre": "EPRE",
+            "sn": 0,
+            "d": "EANCHOR"
+          },
+          "depends": {
+            "name": "witness.EABC.0",
+            "done": true
+          }
+        },
+        "response": {
+          "anchor": {
+            "pre": "EPRE",
+            "sn": 0,
+            "d": "EANCHOR"
+          }
+        }
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "dependency_already_done",
+      "note": "a dependency the snapshot already reports finished is never polled: only the parent is",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/registry.EREG",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": {
+        "name": "registry.EREG",
+        "done": true,
+        "metadata": {
+          "pre": "EPRE",
+          "anchor": {
+            "pre": "EPRE",
+            "sn": 0,
+            "d": "EANCHOR"
+          },
+          "depends": {
+            "name": "witness.EABC.0",
+            "done": true,
+            "response": {}
+          }
+        },
+        "response": {
+          "anchor": {
+            "pre": "EPRE",
+            "sn": 0,
+            "d": "EANCHOR"
+          }
+        }
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "dependency_done_but_failed",
+      "note": "a dependency the snapshot reports finished **and failed** is skipped in silence — the guard tests `done`, not success, so the parent is polled as though nothing were wrong",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/registry.EREG",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": {
+        "name": "registry.EREG",
+        "done": true,
+        "metadata": {
+          "pre": "EPRE",
+          "anchor": {
+            "pre": "EPRE",
+            "sn": 0,
+            "d": "EANCHOR"
+          },
+          "depends": {
+            "name": "witness.EABC.0",
+            "done": true
+          }
+        },
+        "response": {
+          "anchor": {
+            "pre": "EPRE",
+            "sn": 0,
+            "d": "EANCHOR"
+          }
+        }
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "dependency_fails_while_polled",
+      "note": "a dependency that fails while being polled throws under the **dependency's** name, not the parent's",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EABC.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": null,
+      "returned_the_same_object": null,
+      "error": "Operation 'witness.EABC.0' failed [Code 500]: witness receipts timed out"
+    },
+    {
+      "name": "dependency_null",
+      "note": "`hasDepends` is `'depends' in op.metadata`, so a metadata block carrying an explicit `null` passes the guard and is then skipped by the truthiness test beside it",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/registry.EREG",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": {
+        "name": "registry.EREG",
+        "done": true,
+        "response": {}
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "metadata_without_depends",
+      "note": "a family whose metadata has no `depends` at all — an OOBI resolution — skips the guard entirely",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/oobi.EABC",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": {
+        "name": "oobi.EABC",
+        "done": true,
+        "response": {}
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "already_failed",
+      "note": "a snapshot that already reports failure throws before any request is made",
+      "options": {},
+      "requests": [],
+      "request_count": 0,
+      "delays_ms": [],
+      "result": null,
+      "returned_the_same_object": null,
+      "error": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 400]: bad witness threshold"
+    },
+    {
+      "name": "fails_while_polling",
+      "note": "a failure discovered by polling throws with the reference's own interpolated message",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": null,
+      "returned_the_same_object": null,
+      "error": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 500]: witness receipts timed out"
+    },
+    {
+      "name": "fails_with_details",
+      "note": "the same, with the structured detail block the message appends whole",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": null,
+      "returned_the_same_object": null,
+      "error": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 500]: witness receipts timed out Details: {\"witnesses\":[\"BABC\"],\"received\":1}"
+    },
+    {
+      "name": "error_null_is_not_a_failure",
+      "note": "`throwIfFailed` tests `op.error !== null`, so a completed operation carrying an explicit `null` error is returned rather than thrown",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [],
+      "result": {
+        "name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+        "done": true,
+        "response": {},
+        "error": null
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "long_run_reaches_the_ceiling",
+      "note": "twelve sleeps, far enough for the 10 s ceiling to bind — the schedule Roadmap 5.4 already reproduces, recorded here beside its request count",
+      "options": {},
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        },
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 13,
+      "delays_ms": [
+        50,
+        100,
+        200,
+        400,
+        800,
+        1600,
+        3200,
+        6400,
+        10000,
+        10000,
+        10000,
+        10000
+      ],
+      "result": {
+        "name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+        "done": true,
+        "response": {}
+      },
+      "returned_the_same_object": false,
+      "error": null
+    },
+    {
+      "name": "aborted_during_sleep",
+      "note": "the pinned `throw if aborted` case, with the abort raised while the sleep is outstanding: the loop still completes the full delay and only then reads the signal",
+      "options": {
+        "maxSleep": 10
+      },
+      "requests": [
+        {
+          "path": "/operations/witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+          "method": "GET"
+        }
+      ],
+      "request_count": 1,
+      "delays_ms": [
+        10
+      ],
+      "requests_before_abort": 1,
+      "result": null,
+      "returned_the_same_object": null,
+      "error": "Aborted"
+    }
+  ],
+  "pinned_confirmations": {
+    "unit_test_cases": [
+      {
+        "title": "does not wait for operation that is already \"done\"",
+        "expects": 0,
+        "driven": "already_done",
+        "reproduced": 0
+      },
+      {
+        "title": "returns when operation is done after first call",
+        "expects": 1,
+        "driven": "done_after_first_poll",
+        "reproduced": 1
+      },
+      {
+        "title": "returns when operation is done after second call",
+        "expects": 2,
+        "driven": "done_after_second_poll",
+        "reproduced": 2
+      },
+      {
+        "title": "throw if aborted",
+        "expects": null,
+        "driven": "aborted_during_sleep",
+        "reproduced": null
+      },
+      {
+        "title": "returns when child operation is also done",
+        "expects": 4,
+        "driven": "dependency_polled_first",
+        "reproduced": 4
+      }
+    ],
+    "asserted_request_counts": [
+      "assert.equal(client.fetch.mock.calls.length, 0)",
+      "assert.equal(client.fetch.mock.calls.length, 1)",
+      "assert.equal(client.fetch.mock.calls.length, 2)",
+      "assert.equal(client.fetch.mock.calls.length, 4)"
+    ],
+    "returns_the_same_object": true,
+    "wait_call_sites": {
+      "needle": "operations().wait(",
+      "total": 6,
+      "files": [
+        {
+          "file": "test-integration/utils/test-util.ts",
+          "count": 1
+        },
+        {
+          "file": "test/app/coring.test.ts",
+          "count": 5
+        }
+      ],
+      "scanned_files": 117,
+      "normalized": true
+    },
+    "integration_wait_call_sites": {
+      "needle": "waitOperation(",
+      "total": 262,
+      "files": [
+        {
+          "file": "test-integration/challenge.test.ts",
+          "count": 5
+        },
+        {
+          "file": "test-integration/credentials.test.ts",
+          "count": 14
+        },
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "count": 12
+        },
+        {
+          "file": "test-integration/delegation.test.ts",
+          "count": 6
+        },
+        {
+          "file": "test-integration/endpoints.test.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/endroles-by-aid.test.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/externalModule.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 21
+        },
+        {
+          "file": "test-integration/multisig-inception.test.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 38
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 37
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 60
+        },
+        {
+          "file": "test-integration/randy.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/salty.test.ts",
+          "count": 5
+        },
+        {
+          "file": "test-integration/singlesig-dip.test.ts",
+          "count": 7
+        },
+        {
+          "file": "test-integration/singlesig-drt.test.ts",
+          "count": 6
+        },
+        {
+          "file": "test-integration/singlesig-ixn.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/singlesig-rot.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/singlesig-vlei-issuance.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/utils/test-util.ts",
+          "count": 24
+        },
+        {
+          "file": "test-integration/witness.test.ts",
+          "count": 4
+        }
+      ],
+      "scanned_files": 117,
+      "normalized": true
+    },
+    "integration_timeout": "client .operations() .wait(op, { signal: signal ?? AbortSignal.timeout(30000) })",
+    "note": "unlike most families this one has real pinned unit coverage of the *behaviour* rather than the address: five cases, four of which assert an exact request count, and one of which asserts the returned object is the very one passed in. Every count is reproduced here by driving the reference itself. The pinned tree calls `wait` directly only from those five cases; every other caller goes through `waitOperation`, which supplies a 30-second abort timeout and then deletes the operation."
+  },
+  "reference_quirks": {
+    "the_loop_has_no_bound_at_all": {
+      "loop": "while (true) { op = await this.get(op.name); if (op.done === true) { this.throwIfFailed(op); return op; } const delay = Math.max( minSleep, Math.min(maxSleep, 2",
+      "long_run": 13,
+      "note": "`while (true)` with no deadline, no attempt cap, and no total budget: an operation the agent never finishes is polled forever, ten seconds apart, for as long as the process lives",
+      "rust_decision": "bounded by construction. `PollPolicy` carries Roadmap 5.4's `RetryPolicy` — the same schedule, so every recorded delay still reproduces — plus a maximum attempt count and a total deadline, defaulting to the 30 seconds the reference's *own* integration helper supplies through `AbortSignal.timeout(30000)`. Giving up is a typed `ClientError::PollingStopped` naming which bound was reached."
+    },
+    "the_abort_is_read_only_after_sleeping": {
+      "statement": "options.signal?.throwIfAborted();",
+      "requests_before_abort": 1,
+      "delays": [
+        10
+      ],
+      "error": "Aborted",
+      "note": "`options.signal?.throwIfAborted()` sits *after* the `await` on the sleep, so a caller who aborts during a wait still waits out the full delay — up to the ten-second ceiling — before anything notices. The signal is also never read before the first request, so an already-aborted signal still costs one poll.",
+      "rust_decision": "**unrepresentable**: there is no signal. Cancellation is dropping the future, which is ADR `0019`'s decision for the whole crate, and dropping it cancels the outstanding sleep or request immediately. A test polls the future once, drops it mid-sleep, and asserts no further request is made."
+    },
+    "a_failed_dependency_is_skipped_in_silence": {
+      "guard": "if ( this.hasDepends(op) && op.metadata.depends && !op.metadata.depends.done ) { await this.wait(op.metadata.depends, options); }",
+      "requests": 1,
+      "error": null,
+      "note": "the guard is `!op.metadata.depends.done` — it tests whether the dependency *finished*, not whether it succeeded. A snapshot whose dependency is already done-and-failed therefore skips it entirely and polls the parent as though nothing were wrong, which is how a caller ends up waiting on an operation that can no longer complete.",
+      "rust_decision": "reproduced exactly, and documented on the method. Diverging would mean failing a wait the reference completes — and the parent's own outcome is the thing being waited on, so the agent still gets to decide. What is *not* reproduced is the silence: the condition is named in the rustdoc and a test pins it."
+    },
+    "the_chain_is_one_link_long": {
+      "declarations": [
+        {
+          "owner": "RegistryOperationMetadata",
+          "declaration": "depends: components['schemas']['KelOperation'];"
+        },
+        {
+          "owner": "CredentialOperationMetadata",
+          "declaration": "depends?: components['schemas']['KelOperation'];"
+        },
+        {
+          "owner": "DelegatorOperationMetadata",
+          "declaration": "depends?: components['schemas']['KelOperation'];"
+        }
+      ],
+      "kel_operation_schema": "KelOperation: | components['schemas']['GroupOperation'] | components['schemas']['WitnessOperation'] | components['schemas']['DoneOperation'] | components['schemas']['DelegationOperation'];",
+      "recursion": "if ( this.hasDepends(op) && op.metadata.depends && !op.metadata.depends.done ) { await this.wait(op.metadata.depends, options); }",
+      "note": "`wait` calls itself on `op.metadata.depends`, which reads as arbitrary depth — but the schema declares `depends` on exactly three shapes, and all three declare it as a `KelOperation`, whose own metadata declares none. The reference's own type declarations therefore bound its recursion at one link.",
+      "rust_decision": "reproduced as a **loop over one optional dependency** rather than as recursion, because the schema makes deeper chains unrepresentable and an unbounded recursion over remote data is a stack the agent controls. `PollableMetadata` is implemented for every metadata type; a unit test asserts exactly the three the schema declares return a dependency."
+    },
+    "the_guard_tests_the_key_not_the_value": {
+      "has_depends": "{ return op.metadata !== undefined && 'depends' in op.metadata; }",
+      "requests": 1,
+      "note": "`hasDepends` is `op.metadata !== undefined && 'depends' in op.metadata`, which is true for a metadata block carrying `depends: null`; the truthiness test beside it is what actually skips it",
+      "rust_decision": "an absent dependency and a null one are the same value here — `Option<Dependency>` — so the two-step guard collapses to one and the recorded request count is unchanged"
+    },
+    "an_already_finished_operation_costs_nothing": {
+      "requests": 0,
+      "same_object": true,
+      "note": "a snapshot that already reports `done` is returned without a single request, and it is returned *by identity* — the pinned test asserts `op === result`",
+      "rust_decision": "reproduced: the operation is taken by value and moved through, so the returned `Completed` owns exactly what was handed in. Zero requests, asserted."
+    },
+    "an_already_failed_operation_throws_before_asking": {
+      "requests": 0,
+      "error": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 400]: bad witness threshold",
+      "note": "`throwIfFailed` runs on the snapshot too, so waiting on an operation that already failed raises without contacting the agent",
+      "rust_decision": "reproduced, through Roadmap 6.5's `completed`, which keeps the failure's four parts apart"
+    },
+    "a_null_error_is_not_a_failure": {
+      "throw_if_failed": "{ if ('error' in op && op.error !== null) { const details = op.error.details ? ` Details: ${JSON.stringify(op.error.details)}` : ''; throw new Error( `Operation '${op.name}' failed [Code ${op.error.code}]: ${op.error.message}${details}` ); } }",
+      "result": {
+        "name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
+        "done": true,
+        "response": {},
+        "error": null
+      },
+      "error": null,
+      "note": "`'error' in op && op.error !== null` — a completed operation carrying an explicit `null` error is *not* a failure, which is the shape a KERIA agent sends for a successful long-running operation",
+      "rust_decision": "reproduced by Roadmap 4.1's decoder, which reads `done`, `response`, and `error` into one three-state outcome and refuses the combinations the schema does not admit"
+    },
+    "the_failure_message_is_one_interpolated_string": {
+      "plain": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 500]: witness receipts timed out",
+      "with_details": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 500]: witness receipts timed out Details: {\"witnesses\":[\"BABC\"],\"received\":1}",
+      "note": "`Operation '<name>' failed [Code <code>]: <message>` with ` Details: <JSON>` appended when the structured block is present — four values a caller can only recover by parsing a sentence",
+      "rust_decision": "Roadmap 6.5 already keeps the four apart in `ClientError::OperationFailed`, with the remote message bounded at 512 bytes; `wait` reuses it unchanged and adds no variant of its own for failure"
+    },
+    "the_integration_helper_deletes_what_it_waited_for": {
+      "helper": "export async function waitOperation( client: SignifyClient, op: Operation | string, signal?: AbortSignal ): Promise<Operation> { if (typeof op === 'string') { op = await client.operations().get(op); } op = await client .operations() .wait(op, { signal: signal ?? AbortSignal.timeout(30000) }); await deleteOperations(client, op); return op; }",
+      "deleter": "async function deleteOperations(client: SignifyClient, op: Operation) { if (op.metadata && 'depends' in op.metadata && op.metadata.depends) { await deleteOperations(client, op.metadata.depends); } await client.operations().delete(op.name); }",
+      "note": "`waitOperation` supplies a 30-second `AbortSignal.timeout` and then deletes the operation *and its whole dependency chain* — the only place the pinned tree recursively walks `depends` for anything other than waiting",
+      "rust_decision": "the timeout becomes `PollPolicy`'s default deadline, because it is the reference's own statement of how long polling should take. The deletion is **not** ported: it is a test helper's cleanup, `Operations::delete` is Roadmap 6.5's and already available, and a wait that silently deleted its subject would be a surprising side effect. Recorded here so the omission is a decision rather than an oversight."
+    }
+  }
+}

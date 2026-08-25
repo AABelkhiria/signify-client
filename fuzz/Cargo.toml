@@ -320,6 +320,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_operation_wait"
+path = "fuzz_targets/client_operation_wait.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_operations"
 path = "fuzz_targets/client_operations.rs"
 test = false

@@ -236,6 +236,21 @@ pub enum ClientError {
         /// The alias the identifier was looked up by.
         alias: String,
     },
+    /// Polling gave up before the operation finished.
+    ///
+    /// The reference has no such state: its `Operations.wait` is a `while (true)` with no deadline
+    /// and no attempt cap, so an operation the agent never finishes is polled forever. Roadmap 7.2
+    /// bounds it and reports which bound was reached.
+    PollingStopped {
+        /// The operation that was being waited on.
+        name: String,
+        /// Which bound stopped it.
+        limit: crate::operation::PollingLimit,
+        /// How many times the agent was asked.
+        attempts: u32,
+        /// How long the poll ran before giving up.
+        elapsed: core::time::Duration,
+    },
     /// A module's own stored parameter is a number this port cannot write exactly.
     ///
     /// Roadmap 3.2 narrowed the number space deliberately so byte parity is provable; a
@@ -333,6 +348,15 @@ impl fmt::Display for ClientError {
             Self::NoSigningKey { alias } => {
                 write!(formatter, "the identifier {alias:?} holds no signing key")
             }
+            Self::PollingStopped {
+                name,
+                limit,
+                attempts,
+                elapsed,
+            } => write!(
+                formatter,
+                "the operation {name:?} was still running after {attempts} attempts over {elapsed:?}: {limit}"
+            ),
             Self::UnrepresentableNumber => {
                 formatter.write_str("a stored parameter is a number that cannot be written exactly")
             }
@@ -376,6 +400,7 @@ impl Error for ClientError {
             | Self::NoIpexRecipients { .. }
             | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
+            | Self::PollingStopped { .. }
             | Self::UnrepresentableNumber
             | Self::Randomness => None,
         }
