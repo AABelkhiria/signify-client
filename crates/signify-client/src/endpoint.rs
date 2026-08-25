@@ -13,7 +13,9 @@
 //! about identifiers that are not its own; Roadmap 6.8 adds [`config`], the smallest of them.
 //! Roadmap 6.9 adds [`registries`] and 6.10 [`schemas`], the two halves of what a credential needs
 //! before it exists; Roadmap 6.11 adds [`credentials`], the family that issues and revokes them,
-//! and Roadmap 6.12 [`ipex`], the family that discloses one to somebody else.
+//! and Roadmap 6.12 [`ipex`], the family that discloses one to somebody else. Roadmap 7.1 opens
+//! Phase 7 with [`oobis`], which is how two identifiers that have never met learn about each
+//! other at all.
 
 pub(crate) mod body;
 pub mod config;
@@ -22,6 +24,7 @@ pub mod identifiers;
 pub mod ipex;
 pub mod key_events;
 pub mod key_states;
+pub mod oobis;
 pub mod operations;
 pub mod registries;
 pub mod schemas;

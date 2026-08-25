@@ -57,5 +57,9 @@ harness = false
 name = "ipex"
 harness = false
 
+[[bench]]
+name = "oobis"
+harness = false
+
 [lints]
 workspace = true

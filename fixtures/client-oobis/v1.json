@@ -1,0 +1,1030 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-25",
+  "sources": [
+    "src/keri/app/coring.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/coring.test.ts",
+    "test-integration/endroles-by-aid.test.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "group_aid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "unknown_aid": "EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "unknown_valid_aid": "EAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "schema_oobi": "http://vlei-server:7723/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "witness_oobi": "http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller",
+    "note": "`Oobis` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
+  },
+  "declarations": {
+    "get_path": "path = `/identifiers/${name}/oobis?role=${role}`",
+    "get_method": "method = 'GET'",
+    "get_parameters": [
+      "name: string",
+      "role: string = 'agent'"
+    ],
+    "get_return": "await res.json()",
+    "resolve_path": "path = `/oobis`",
+    "resolve_method": "method = 'POST'",
+    "resolve_parameters": [
+      "oobi: string",
+      "alias?: string"
+    ],
+    "resolve_body": "data: any = { url: oobi, }",
+    "resolve_alias": "if (alias !== undefined) { data.oobialias = alias; }",
+    "endroles_path": "path = role ? `/endroles/${aid}/${role}` : `/endroles/${aid}`",
+    "endroles_parameters": [
+      "aid: string",
+      "role?: string"
+    ],
+    "class_members": [
+      "client",
+      "<constructor>",
+      "get",
+      "resolve",
+      "endroles"
+    ],
+    "oobi_type": "OOBI: { /** @enum {string} */ role: OOBIRole; oobis: string[]; };",
+    "end_role_type": "EndRole: { cid: string; role: string; eid: string; };",
+    "oobi_role_enum": [
+      {
+        "name": "controller",
+        "value": "controller"
+      },
+      {
+        "name": "witness",
+        "value": "witness"
+      },
+      {
+        "name": "registrar",
+        "value": "registrar"
+      },
+      {
+        "name": "watcher",
+        "value": "watcher"
+      },
+      {
+        "name": "judge",
+        "value": "judge"
+      },
+      {
+        "name": "juror",
+        "value": "juror"
+      },
+      {
+        "name": "peer",
+        "value": "peer"
+      },
+      {
+        "name": "mailbox",
+        "value": "mailbox"
+      },
+      {
+        "name": "agent",
+        "value": "agent"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "name": "get_agent",
+      "note": "the pinned unit test's own call: `oobis.get('aid', 'agent')`",
+      "request": {
+        "path": "/identifiers/aid/oobis?role=agent",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "role": "agent",
+        "oobis": [
+          "http://127.0.0.1:3901/oobi/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get_default_role",
+      "note": "`singlesig-drt.test.ts` calls `get('delegate')` with no role at all, which is the only pinned call site that takes the `= 'agent'` default",
+      "request": {
+        "path": "/identifiers/delegate/oobis?role=agent",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "role": "agent",
+        "oobis": [
+          "http://127.0.0.1:3901/oobi/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get_witness_role",
+      "note": "`test-setup-single-client.test.ts` reads the witness role",
+      "request": {
+        "path": "/identifiers/name1/oobis?role=witness",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "role": "witness",
+        "oobis": [
+          "http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get_mailbox_role",
+      "note": "`singlesig-drt.test.ts` reads the mailbox role",
+      "request": {
+        "path": "/identifiers/aid1/oobis?role=mailbox",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "role": "mailbox",
+        "oobis": [
+          "http://127.0.0.1:3901/oobi/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/mailbox/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "get_name_needing_encoding",
+      "note": "an alias carrying path and query delimiters, which the reference concatenates raw",
+      "request": {
+        "path": "/identifiers/a/b?c=d/oobis?role=agent",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "role": "agent",
+        "oobis": []
+      },
+      "error": null
+    },
+    {
+      "name": "get_role_injecting_a_parameter",
+      "note": "a role carrying a query delimiter, which the reference interpolates raw into the query string",
+      "request": {
+        "path": "/identifiers/aid/oobis?role=agent&extra=1",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "role": "agent",
+        "oobis": []
+      },
+      "error": null
+    },
+    {
+      "name": "get_wrong_shape",
+      "note": "an answer that is not an OOBI listing at all — the reference casts it to `OOBI` and returns it",
+      "request": {
+        "path": "/identifiers/aid/oobis?role=agent",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "unexpected": true
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_without_alias",
+      "note": "the pinned unit test's own call: `oobis.resolve('http://oobiurl.com')`",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"http://oobiurl.com\"}"
+      },
+      "result": {
+        "name": "oobi.http://oobiurl.com",
+        "metadata": {
+          "oobi": "http://oobiurl.com"
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_with_alias",
+      "note": "the pinned unit test's second call, naming a contact alias",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"http://oobiurl.com\",\"oobialias\":\"witness\"}"
+      },
+      "result": {
+        "name": "oobi.http://oobiurl.com",
+        "metadata": {
+          "oobi": "http://oobiurl.com"
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_schema_oobi",
+      "note": "the vLEI schema OOBI every multisig integration test resolves, aliased `schema`",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"http://vlei-server:7723/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"oobialias\":\"schema\"}"
+      },
+      "result": {
+        "name": "oobi.http://vlei-server:7723/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "metadata": {
+          "oobi": "http://vlei-server:7723/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao"
+        },
+        "done": true,
+        "response": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-12-01T10:05:25.062609+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark"
+          ],
+          "nt": "1",
+          "n": [
+            "ELhJIWoUPBHgHW7oACRhfkFp5Ex9K8CnnDTD6QJ6x5gs"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_witness_oobi",
+      "note": "a controller OOBI of the shape another agent's `get` answers with",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller\",\"oobialias\":\"member1\"}"
+      },
+      "result": {
+        "name": "oobi.http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller",
+        "metadata": {
+          "oobi": "http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller"
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_empty_url",
+      "note": "an empty OOBI, which the reference sends as `{\"url\":\"\"}` and asks the agent to fetch",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"\"}"
+      },
+      "result": {
+        "name": "oobi.",
+        "metadata": {
+          "oobi": ""
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_not_a_url",
+      "note": "an OOBI that is not a URL at all, which the reference also sends unchallenged",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"not a url at all\"}"
+      },
+      "result": {
+        "name": "oobi.not a url at all",
+        "metadata": {
+          "oobi": "not a url at all"
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_url_with_newline",
+      "note": "an OOBI carrying a newline and a control byte",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"http://oobiurl.com/\\n\\r x\"}"
+      },
+      "result": {
+        "name": "oobi.bad",
+        "metadata": {
+          "oobi": "bad"
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "resolve_empty_alias",
+      "note": "an explicitly empty alias, which is written rather than dropped because only `undefined` is dropped",
+      "request": {
+        "path": "/oobis",
+        "method": "POST",
+        "body": "{\"url\":\"http://oobiurl.com\",\"oobialias\":\"\"}"
+      },
+      "result": {
+        "name": "oobi.http://oobiurl.com",
+        "metadata": {
+          "oobi": "http://oobiurl.com"
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "endroles_without_role",
+      "note": "the pinned `Endroles without role filter` case",
+      "request": {
+        "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "cid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "role": "agent",
+          "eid": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        },
+        {
+          "cid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "role": "mailbox",
+          "eid": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "endroles_with_role",
+      "note": "the pinned `Endroles with role filter` case",
+      "request": {
+        "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/agent",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "cid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "role": "agent",
+          "eid": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "endroles_mailbox",
+      "note": "`endroles-by-aid.test.ts` filters by a role the identifier has not granted and expects an empty list back",
+      "request": {
+        "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/mailbox",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "endroles_unknown_aid",
+      "note": "`endroles-by-aid.test.ts` asks about an AID the agent knows nothing about and expects an empty list",
+      "request": {
+        "path": "/endroles/EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "endroles_unknown_valid_aid",
+      "note": "the same question asked with an AID of the length a qualified prefix actually is, which is what this port sends",
+      "request": {
+        "path": "/endroles/EAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "endroles_aid_needing_encoding",
+      "note": "an AID carrying path and query delimiters, which the reference concatenates raw",
+      "request": {
+        "path": "/endroles/a/b?c=d",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "endroles_role_needing_encoding",
+      "note": "a role that climbs out of its own path segment, which the reference concatenates raw",
+      "request": {
+        "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/../identifiers",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "endroles_wrong_shape",
+      "note": "an answer whose records are missing declared fields — the reference casts it to `EndRole[]`",
+      "request": {
+        "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "cid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+        }
+      ],
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "unit_test_assertions": [
+      "url + '/identifiers/aid/oobis?role=agent'",
+      "url + '/oobis'",
+      "lastBody.url, 'http://oobiurl.com'",
+      "lastBody.oobialias, 'witness'",
+      "url + `/endroles/${aid}`",
+      "url + `/endroles/${aid}/agent`"
+    ],
+    "unit_test_paths": [
+      "/identifiers/aid/oobis?role=agent",
+      "/oobis",
+      "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/agent"
+    ],
+    "driven_paths": [
+      "/endroles/EAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/../identifiers",
+      "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/agent",
+      "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/mailbox",
+      "/endroles/EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "/endroles/a/b?c=d",
+      "/identifiers/a/b?c=d/oobis?role=agent",
+      "/identifiers/aid/oobis?role=agent",
+      "/identifiers/aid/oobis?role=agent&extra=1",
+      "/identifiers/aid1/oobis?role=mailbox",
+      "/identifiers/delegate/oobis?role=agent",
+      "/identifiers/name1/oobis?role=witness",
+      "/oobis"
+    ],
+    "get_call_sites": [
+      {
+        "file": "test-integration/challenge.test.ts",
+        "call": "oobis().get('alice', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/challenge.test.ts",
+        "call": "oobis().get('bob', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation-multisig.test.ts",
+        "call": "oobis().get(delegator1Name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation-multisig.test.ts",
+        "call": "oobis().get(delegator2Name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation-multisig.test.ts",
+        "call": "oobis().get(delegatee1Name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation-multisig.test.ts",
+        "call": "oobis().get(delegatee2Name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation-multisig.test.ts",
+        "call": "oobis().get(adelegatorGroupName.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation-multisig.test.ts",
+        "call": "oobis().get(adelegatorGroupName.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation.test.ts",
+        "call": "oobis().get('delegator', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/delegation.test.ts",
+        "call": "oobis().get('delegate')",
+        "argument_count": 1,
+        "role": null
+      },
+      {
+        "file": "test-integration/endpoints.test.ts",
+        "call": "oobis().get('aid1', 'mailbox')",
+        "argument_count": 2,
+        "role": "mailbox"
+      },
+      {
+        "file": "test-integration/endroles-by-aid.test.ts",
+        "call": "oobis().get('member1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/endroles-by-aid.test.ts",
+        "call": "oobis().get('member2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/endroles-by-aid.test.ts",
+        "call": "oobis().get(groupName, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "call": "oobis().get('member1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "call": "oobis().get('member2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "call": "oobis().get('issuer', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "call": "oobis().get('holder', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-inception.test.ts",
+        "call": "oobis().get('member1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-inception.test.ts",
+        "call": "oobis().get('member2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(nameMember1, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(nameMember2, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(nameMember1, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(nameMember2, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(nameMember3, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(nameMultisig, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "call": "oobis().get(name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('GAR1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('GAR2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('QAR1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('QAR2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('QAR3', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('LAR1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('LAR2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('LAR3', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get('ECR', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidGEDA.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidGEDA.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidGEDA.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidGEDA.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidQVI.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidQVI.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidQVI.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidQVI.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidQVI.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidQVI.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidLE.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidLE.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidLE.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidLE.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidLE.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig-vlei-issuance.test.ts",
+        "call": "oobis().get(aidLE.name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "call": "oobis().get('member1', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "call": "oobis().get('member2', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "call": "oobis().get('member3', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "call": "oobis().get('holder', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "call": "oobis().get('multisig', 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      },
+      {
+        "file": "test-integration/test-setup-single-client.test.ts",
+        "call": "oobis().get('name1', 'witness')",
+        "argument_count": 2,
+        "role": "witness"
+      },
+      {
+        "file": "test-integration/utils/test-util.ts",
+        "call": "oobis().get(name, 'agent')",
+        "argument_count": 2,
+        "role": "agent"
+      }
+    ],
+    "get_call_sites_taking_the_default": [
+      {
+        "file": "test-integration/delegation.test.ts",
+        "call": "oobis().get('delegate')",
+        "argument_count": 1,
+        "role": null
+      }
+    ],
+    "resolve_call_count": 34,
+    "endroles_call_sites": [
+      {
+        "file": "test-integration/endroles-by-aid.test.ts",
+        "count": 5
+      },
+      {
+        "file": "test/app/coring.test.ts",
+        "count": 2
+      }
+    ],
+    "integration_expectations": [
+      "await aliceClient.oobis().endroles(groupAid)",
+      ".endroles(groupAid, 'agent')",
+      ".endroles(groupAid, 'mailbox')",
+      ".endroles('EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')",
+      "expect(result).not.toHaveLength(0)",
+      "expect(result).toHaveLength(0)",
+      "expect(result).toHaveLength(1)",
+      "expect(result.every((r: EndRole) => r.cid === groupAid)).toBe(true)",
+      "expect(result.every((r: EndRole) => r.role === 'agent')).toBe(true)",
+      "const oobiUrl = groupOobi.oobis[0].split('/agent/')[0]"
+    ],
+    "note": "unlike Roadmap 6.9's and 6.10's families this one has real pinned unit coverage: three cases in `test/app/coring.test.ts` assert five exact paths, both `resolve` body fields, and both HTTP methods. Every one of those assertions is recomputed here from the reference's own driven output. `endroles-by-aid.test.ts` supplies the rest: the unknown-AID case that must answer with an empty list, and the role filter."
+  },
+  "reference_quirks": {
+    "the_name_is_not_encoded": {
+      "path": "/identifiers/a/b?c=d/oobis?role=agent",
+      "expression": "path = `/identifiers/${name}/oobis?role=${role}`",
+      "note": "`get` concatenates the alias straight into the path, so `get('a/b?c=d', 'agent')` addresses `/identifiers/a/b?c=d/oobis?role=agent` — a different resource, and a different `@path` for Roadmap 3.10 to sign",
+      "rust_decision": "refused by construction: Roadmap 5.3's builder encodes every path component exactly once and offers no way to skip it, which is the rule Roadmap 6.6 applied to the same alias in the same path"
+    },
+    "the_role_is_interpolated_into_the_query": {
+      "path": "/identifiers/aid/oobis?role=agent&extra=1",
+      "expression": "path = `/identifiers/${name}/oobis?role=${role}`",
+      "note": "`get` builds its query by string interpolation rather than with `URLSearchParams`, so a role holding `&` adds a query parameter of the caller's choosing — `get('aid', 'agent&extra=1')` sends `?role=agent&extra=1`",
+      "rust_decision": "refused by construction: the role is written through Roadmap 5.3's `parameter`, which percent-encodes the value exactly once, so a role can never introduce a second parameter whatever it holds"
+    },
+    "the_role_defaults_to_agent": {
+      "parameters": [
+        "name: string",
+        "role: string = 'agent'"
+      ],
+      "default_call": "/identifiers/delegate/oobis?role=agent",
+      "call_sites_taking_the_default": [
+        {
+          "file": "test-integration/delegation.test.ts",
+          "call": "oobis().get('delegate')",
+          "argument_count": 1,
+          "role": null
+        }
+      ],
+      "note": "`get(name, role = 'agent')` writes the default into the query, so an omitted role is still an observable request — `oobis().get('delegate')` sends `?role=agent`",
+      "rust_decision": "the role is a required argument and `DEFAULT_ROLE` names the reference's value, so what reaches the query is visible at the call site. Roadmap 6.7 made the same choice for `QuerySequence`, and Roadmap 3.6 for a reply's timestamp."
+    },
+    "the_oobi_is_never_validated": {
+      "empty": "{\"url\":\"\"}",
+      "not_a_url": "{\"url\":\"not a url at all\"}",
+      "with_control_bytes": "{\"url\":\"http://oobiurl.com/\\n\\r x\"}",
+      "expression": "data: any = { url: oobi, }",
+      "note": "`resolve` takes `oobi: string` and sends it unchallenged, so an empty string, a sentence, or a value carrying a newline all become `{\"url\":…}` and the agent is asked to fetch them",
+      "rust_decision": "**refused**: the argument is `signify_http::transport::RequestUrl`, the same non-normalizing validator Roadmap 5.1 built — an absolute `http`/`https` URL of visible ASCII, no fragment, bounded at 2 KiB — so an OOBI that could not resolve is a caller error rather than a request. It preserves its bytes exactly, which matters because the agent fetches what it is given. Every OOBI the pinned tree resolves is accepted."
+    },
+    "an_empty_alias_is_written": {
+      "body": "{\"url\":\"http://oobiurl.com\",\"oobialias\":\"\"}",
+      "absent": "{\"url\":\"http://oobiurl.com\"}",
+      "expression": "if (alias !== undefined) { data.oobialias = alias; }",
+      "note": "the alias is dropped only when it is `undefined`; an explicitly empty one is written as `\"oobialias\":\"\"`, which names a contact with no name",
+      "rust_decision": "reproduced: `Option<&str>` tells the two apart exactly as `undefined` does, and an empty alias is written rather than dropped"
+    },
+    "the_aid_is_not_encoded": {
+      "path": "/endroles/a/b?c=d",
+      "expression": "path = role ? `/endroles/${aid}/${role}` : `/endroles/${aid}`",
+      "note": "`endroles` concatenates its AID into the path with no encoding, so `endroles('a/b?c=d')` addresses `/endroles/a/b?c=d`",
+      "rust_decision": "refused twice over: the argument is Roadmap 3.4's validated `IdentifierPrefix` rather than a string, and the builder would encode it exactly once regardless. A qualified prefix's alphabet is URL-safe Base64, so every real AID reaches the path byte-identical — including the `EXXXX…` the integration test asks about."
+    },
+    "the_unknown_aid_is_not_a_prefix": {
+      "literal": "EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "length": 43,
+      "qualified_length": 44,
+      "path": "/endroles/EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "valid_path": "/endroles/EAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "note": "`endroles-by-aid.test.ts` asks about `EXXX…X`, which is 43 characters where a qualified `E` prefix is 44 — so the value the reference's own integration test sends is not an identifier prefix at all, and it reaches the path unchecked",
+      "rust_decision": "recorded verbatim and proven refused, which is what Roadmap 3.8 and Roadmap 6.9 did with the same situation. The case that test is actually making — an AID the agent has never heard of answers with an empty list rather than a failure — is reproduced with `EAXXX…X`, one character longer and a valid prefix, whose recorded path is here beside it."
+    },
+    "the_endrole_role_is_a_raw_path_segment": {
+      "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/../identifiers",
+      "expression": "path = role ? `/endroles/${aid}/${role}` : `/endroles/${aid}`",
+      "note": "the role filter is concatenated as a path segment, so `endroles(aid, '../identifiers')` addresses a resource two levels up",
+      "rust_decision": "refused by construction, as every other dynamic component in this crate is"
+    },
+    "the_answers_are_cast_rather_than_decoded": {
+      "get_wrong_shape": {
+        "unexpected": true
+      },
+      "endroles_wrong_shape": [
+        {
+          "cid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+        }
+      ],
+      "declaration": "await res.json()",
+      "note": "all three methods return `res.json()` cast to a declared type, so an answer of any shape reaches the caller as an `OOBI`, an `OOBIOperation`, or an `EndRole[]`",
+      "rust_decision": "decoded: each recorded wrong-shaped answer is proven refused, which is the rule Roadmap 6.8 and 6.10 applied to their own answers"
+    },
+    "resolve_does_not_wait": {
+      "declaration": "method = 'POST'",
+      "scan": {
+        "needle": "resolveOobi(",
+        "total": 61,
+        "files": [
+          {
+            "file": "test-integration/challenge.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 8
+          },
+          {
+            "file": "test-integration/delegation-multisig.test.ts",
+            "count": 4
+          },
+          {
+            "file": "test-integration/delegation.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/endroles-by-aid.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test-integration/multisig-inception.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/multisig-vlei-issuance.test.ts",
+            "count": 20
+          },
+          {
+            "file": "test-integration/singlesig-vlei-issuance.test.ts",
+            "count": 19
+          },
+          {
+            "file": "test-integration/utils/test-util.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/witness.test.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`resolve` returns the operation the agent created and never polls it; every caller in the pinned tree immediately hands it to `waitOperation`, which is `Operations.wait`",
+      "rust_decision": "reproduced exactly. Polling is Roadmap 7.2's item — Roadmap 5.4 already built and pinned the schedule `Operations.wait` uses — so `resolve` returns the typed operation and the caller drives it."
+    }
+  }
+}
