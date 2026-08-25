@@ -49,5 +49,9 @@ harness = false
 name = "schemas"
 harness = false
 
+[[bench]]
+name = "credentials"
+harness = false
+
 [lints]
 workspace = true

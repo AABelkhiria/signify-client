@@ -11,9 +11,12 @@
 //! Roadmap 6.6 adds [`identifiers`], the family that creates and rotates what everything else
 //! speaks for; Roadmap 6.7 adds [`key_events`] and [`key_states`], which are what a client knows
 //! about identifiers that are not its own; Roadmap 6.8 adds [`config`], the smallest of them.
+//! Roadmap 6.9 adds [`registries`] and 6.10 [`schemas`], the two halves of what a credential needs
+//! before it exists; Roadmap 6.11 adds [`credentials`], the family that issues and revokes them.
 
 pub(crate) mod body;
 pub mod config;
+pub mod credentials;
 pub mod identifiers;
 pub mod key_events;
 pub mod key_states;

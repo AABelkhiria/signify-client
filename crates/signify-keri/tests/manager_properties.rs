@@ -73,9 +73,16 @@ proptest! {
         }
     }
 
-    /// A non-empty stem puts every index in the path, so distinct positions derive distinct keys.
+    /// A non-empty stem puts both indices in the path, in the reference's own spelling.
+    ///
+    /// It does **not** separate them. The reference concatenates two variable-length hexadecimal
+    /// numbers with no delimiter, so the mapping from position to path is not injective: equal
+    /// indices always give equal paths, but equal paths do not imply equal indices. That is a
+    /// reference defect rather than a port defect — see
+    /// `distinct_positions_can_collide_onto_one_path` below, which pins the reference's own
+    /// colliding pair — so the property states the direction that actually holds.
     #[test]
-    fn a_stem_separates_every_position(
+    fn a_stem_places_both_indices_in_the_references_own_spelling(
         stem in "[a-z]{1,8}",
         first in (0_u32..32, 0_u32..32),
         second in (0_u32..32, 0_u32..32),
@@ -83,12 +90,21 @@ proptest! {
         let stem = Stem::new(stem)?;
         let left = DerivationPath::new(&stem, KeyIndices::new(0, first.0, first.1))?;
         let right = DerivationPath::new(&stem, KeyIndices::new(0, second.0, second.1))?;
-        prop_assert_eq!(left == right, first == second);
+        // Equal indices always derive equal paths; the converse is what does not hold.
+        if first == second {
+            prop_assert_eq!(&left, &right);
+        }
         prop_assert!(!left.reuses_keys_across_rotations());
         // The path is the stem followed by the two indices in lowercase hexadecimal.
         prop_assert_eq!(
             left.as_str(),
             format!("{}{:x}{:x}", stem.as_str(), first.0, first.1)
+        );
+        // A collision is possible only where the two renderings concatenate to the same text,
+        // which is exactly what the path equality says.
+        prop_assert_eq!(
+            left == right,
+            format!("{:x}{:x}", first.0, first.1) == format!("{:x}{:x}", second.0, second.1)
         );
     }
 
@@ -376,4 +392,52 @@ proptest! {
             prop_assert!(typed, "a passcode was refused for an unrelated reason");
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Named regressions.
+// ---------------------------------------------------------------------------
+
+/// Two distinct key positions derive **the same key**, which is a reference defect.
+///
+/// Found by `a_stem_places_both_indices_in_the_references_own_spelling` on 2026-08-25, during
+/// Roadmap 6.11. The reference builds a salty derivation path as
+/// `stem + ridx.toString(16) + (kidx + idx).toString(16)` — two variable-length hexadecimal numbers
+/// concatenated with no delimiter — so rotation 1 with key 16 and rotation 17 with key 0 both spell
+/// `"a110"` and therefore derive one key. That defeats pre-rotation at those positions exactly as
+/// the empty-stem path does at every position, which `PORTING.md` §9 already pins for Roadmap 4.2.
+///
+/// The port reproduces it deliberately: diverging would derive different identifiers from identical
+/// inputs. The public key below is the reference's own, produced by driving its compiled
+/// `SaltyCreator` at both positions.
+#[test]
+fn distinct_positions_can_collide_onto_one_path() -> Result<(), Box<dyn std::error::Error>> {
+    /// The key the reference derives at both positions, from salt `0AAwMTIzNDU2Nzg5YWJjZGVm`.
+    const SHARED_KEY: &str = "DGInBhzbDTr1NiDZkTofi1664nAF8QgTBiXVrhr1Q-P5";
+
+    let stem = Stem::new("a")?;
+    let first = DerivationPath::new(&stem, KeyIndices::new(0, 1, 16))?;
+    let second = DerivationPath::new(&stem, KeyIndices::new(0, 17, 0))?;
+    assert_eq!(first.as_str(), "a110");
+    assert_eq!(second.as_str(), "a110");
+    assert_eq!(first, second);
+
+    // And so the keys are the same, which is what makes it a defect rather than a curiosity.
+    let salt = salt()?;
+    let creator = SaltyKeyCreator::new(&salt, Stem::new("a")?);
+    let one = creator.create(
+        1,
+        KeyTransferability::Transferable,
+        KeyIndices::new(0, 1, 16),
+        KeyDerivationProfile::Temporary,
+    )?;
+    let other = creator.create(
+        1,
+        KeyTransferability::Transferable,
+        KeyIndices::new(0, 17, 0),
+        KeyDerivationProfile::Temporary,
+    )?;
+    assert_eq!(one.public_keys()?, other.public_keys()?);
+    assert_eq!(one.public_keys()?, vec![SHARED_KEY.to_owned()]);
+    Ok(())
 }

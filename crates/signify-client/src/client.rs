@@ -52,6 +52,7 @@ use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
 use crate::endpoint::config::Config;
+use crate::endpoint::credentials::Credentials;
 use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::key_events::KeyEvents;
 use crate::endpoint::key_states::KeyStates;
@@ -480,6 +481,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn schemas(&self) -> Schemas<'_> {
         Schemas::new(self)
+    }
+
+    /// Returns the credentials endpoint family: the ACDCs the agent holds, and their status.
+    #[must_use]
+    pub const fn credentials(&self) -> Credentials<'_> {
+        Credentials::new(self)
     }
 
     /// Returns the configuration endpoint family: what the *agent* was set up with.

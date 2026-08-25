@@ -8,6 +8,8 @@
 use core::fmt;
 use std::error::Error;
 
+use signify_acdc::credential::CredentialError;
+use signify_acdc::error::TransactionError;
 use signify_cesr::CesrError;
 use signify_crypto::CryptoError;
 use signify_http::header::HeaderError;
@@ -184,10 +186,34 @@ pub enum ClientError {
         /// Underlying failure.
         source: Box<RegistryError>,
     },
-    /// A registry was asked for under an identifier that may carry only establishment events.
+    /// A credential names an issuer that is not the identifier being used to anchor it.
     ///
-    /// The reference builds the whole registry inception and *then* throws
-    /// `establishment only not implemented`; here nothing is derived and nothing is sent.
+    /// The reference never compares the two: the credential's issuer is `args.i ?? hab.prefix` and
+    /// the anchor is signed by whichever identifier the caller named, so a credential can claim an
+    /// issuer whose key event log contains no anchor for it. No verifier can resolve such a
+    /// credential, so it is refused here before anything is signed.
+    CredentialIssuerMismatch {
+        /// The issuer the credential names.
+        credential: String,
+        /// The identifier whose keeper would sign the anchor.
+        anchoring: String,
+    },
+    /// A credential transaction event could not be built or anchored.
+    Transaction {
+        /// Underlying failure.
+        source: Box<TransactionError>,
+    },
+    /// A credential or registry identifier could not be encoded.
+    Credential {
+        /// Underlying failure.
+        source: Box<CredentialError>,
+    },
+    /// A registry, issuance, or revocation was asked for under an identifier that may carry only
+    /// establishment events.
+    ///
+    /// Such an identifier anchors only in a rotation event, which neither the reference nor this
+    /// port builds. The reference throws `establishment only not implemented` — for a registry,
+    /// after building the whole inception; here nothing is derived and nothing is sent.
     EstablishmentOnlyIssuer {
         /// The identifier prefix that refused it.
         identifier: String,
@@ -283,8 +309,14 @@ impl fmt::Display for ClientError {
             Self::Registry { source } => write!(formatter, "registry event construction failed: {source}"),
             Self::EstablishmentOnlyIssuer { identifier } => write!(
                 formatter,
-                "the identifier {identifier} may carry only establishment events, so it cannot anchor a registry"
+                "the identifier {identifier} may carry only establishment events, so it cannot anchor an interaction event"
             ),
+            Self::CredentialIssuerMismatch { credential, anchoring } => write!(
+                formatter,
+                "the credential names issuer {credential}, which is not the identifier {anchoring} anchoring it"
+            ),
+            Self::Transaction { source } => write!(formatter, "transaction event construction failed: {source}"),
+            Self::Credential { source } => write!(formatter, "credential encoding failed: {source}"),
             Self::EmptyKeyStateListing => formatter.write_str("a key-state listing must name at least one identifier"),
             Self::NoSigningKey { alias } => {
                 write!(formatter, "the identifier {alias:?} holds no signing key")
@@ -316,6 +348,8 @@ impl Error for ClientError {
             Self::Identifier { source } => Some(source),
             Self::Said { source } => Some(source),
             Self::Registry { source } => Some(source),
+            Self::Transaction { source } => Some(source),
+            Self::Credential { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
             | Self::PasscodeNotBase64 { .. }
             | Self::AgentNotFound { .. }
@@ -326,6 +360,7 @@ impl Error for ClientError {
             | Self::OperationFailed { .. }
             | Self::IdentifierNotAccepted { .. }
             | Self::EstablishmentOnlyIssuer { .. }
+            | Self::CredentialIssuerMismatch { .. }
             | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
             | Self::UnrepresentableNumber
@@ -361,6 +396,8 @@ layered!(CesrError, Cesr);
 layered!(IdentifierError, Identifier);
 layered!(RegistryError, Registry);
 layered!(SaidError, Said);
+layered!(TransactionError, Transaction);
+layered!(CredentialError, Credential);
 
 impl From<PrefixError> for ClientError {
     /// A prefix read out of an identifier record is that record's failure, not the controller's.
@@ -426,6 +463,10 @@ mod tests {
             },
             ClientError::EstablishmentOnlyIssuer {
                 identifier: "EISS".to_owned(),
+            },
+            ClientError::CredentialIssuerMismatch {
+                credential: "EISSUER".to_owned(),
+                anchoring: "EANCHOR".to_owned(),
             },
             ClientError::EmptyKeyStateListing,
             ClientError::NoSigningKey {
