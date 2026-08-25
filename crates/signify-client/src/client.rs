@@ -52,6 +52,7 @@ use signify_types::api::KeyState;
 
 use crate::config::ClientConfig;
 use crate::endpoint::config::Config;
+use crate::endpoint::contacts::Contacts;
 use crate::endpoint::credentials::Credentials;
 use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::ipex::Ipex;
@@ -511,6 +512,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn oobis(&self) -> Oobis<'_> {
         Oobis::new(self)
+    }
+
+    /// Returns the contacts endpoint family: who this client knows.
+    #[must_use]
+    pub const fn contacts(&self) -> Contacts<'_> {
+        Contacts::new(self)
     }
 
     /// Returns a poller for long-running agent operations.

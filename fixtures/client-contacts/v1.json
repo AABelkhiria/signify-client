@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-25",
+  "sources": [
+    "src/keri/app/contacting.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/contacting.test.ts",
+    "test-integration/utils/test-util.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "contact_prefix": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "other_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "note": "`Contacts` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
+  },
+  "declarations": {
+    "list_parameters": [
+      "group?: string",
+      "filterField?: string",
+      "filterValue?: string"
+    ],
+    "list_group_guard": "if (group !== undefined) { params.append('group', group); }",
+    "list_filter_guard": "if (filterField !== undefined && filterValue !== undefined) { params.append('filter_field', filterField); params.append('filter_value', filterValue); }",
+    "list_path": "path = `/contacts` + '?' + params.toString()",
+    "get_path": "path = `/contacts/` + pre",
+    "get_method": "method = 'GET'",
+    "add_path": "path = `/contacts/` + pre",
+    "add_method": "method = 'POST'",
+    "add_fetch": "this.client.fetch(path, method, info)",
+    "delete_path": "path = `/contacts/` + pre",
+    "delete_method": "method = 'DELETE'",
+    "delete_fetch": "this.client.fetch(path, method, undefined)",
+    "update_path": "path = `/contacts/` + pre",
+    "update_method": "method = 'PUT'",
+    "update_fetch": "this.client.fetch(path, method, info)",
+    "get_return": "await res.json()",
+    "class_members": [
+      "client",
+      "<constructor>",
+      "list",
+      "get",
+      "add",
+      "delete",
+      "update"
+    ],
+    "contact_info_interface": "export interface ContactInfo { [key: string]: unknown; }",
+    "contact_type": "Contact: { id: string; alias?: string; oobi?: string; ends?: components['schemas']['MemberEnds']; challenges?: components['schemas']['Challenge'][]; wellKnowns?: components['schemas']['WellKnown'][]; } & { [key: string]: unknown; };"
+  },
+  "calls": [
+    {
+      "name": "list_filtered",
+      "note": "the pinned unit test's own call: a group and both halves of a filter",
+      "request": {
+        "path": "/contacts?group=mygroup&filter_field=company&filter_value=mycompany",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [
+        {
+          "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "alias": "John Doe",
+          "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "challenges": [],
+          "wellKnowns": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "list_unfiltered",
+      "note": "no arguments at all, which appends a bare question mark to the path — the same shape Roadmap 6.5 recorded for an unfiltered `/operations?`",
+      "request": {
+        "path": "/contacts?",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [
+        {
+          "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "alias": "John Doe",
+          "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "challenges": [],
+          "wellKnowns": []
+        },
+        {
+          "id": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "alias": "Jane Roe",
+          "oobi": "http://127.0.0.1:3901/oobi/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "challenges": [],
+          "wellKnowns": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "list_group_only",
+      "note": "a group with no filter, which is a real call shape and writes one parameter",
+      "request": {
+        "path": "/contacts?group=mygroup",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "list_filter_only",
+      "note": "`getOrCreateContact` in the reference's own integration helper: no group, both filter halves, and a value that is a regular expression",
+      "request": {
+        "path": "/contacts?filter_field=alias&filter_value=%5Ealice%24",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [
+        {
+          "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "alias": "alice",
+          "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "challenges": [],
+          "wellKnowns": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "list_half_a_filter",
+      "note": "a filter field with no value: the guard tests both, so **the whole filter is silently dropped** and the listing comes back unfiltered",
+      "request": {
+        "path": "/contacts?",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [
+        {
+          "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "alias": "John Doe",
+          "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+          "challenges": [],
+          "wellKnowns": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "list_half_a_filter_value_only",
+      "note": "the other half, dropped the same way",
+      "request": {
+        "path": "/contacts?",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "list_filter_needing_encoding",
+      "note": "a filter value carrying a query delimiter, which `URLSearchParams` **does** encode — one of the few dynamic values the reference encodes at all",
+      "request": {
+        "path": "/contacts?filter_field=alias&filter_value=a%26b%3Dc",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "get",
+      "note": "the pinned unit test's own read",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": {
+        "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "alias": "John Doe",
+        "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "challenges": [],
+        "wellKnowns": []
+      },
+      "error": null
+    },
+    {
+      "name": "get_prefix_needing_encoding",
+      "note": "a prefix carrying path and query delimiters, which the reference concatenates raw",
+      "request": {
+        "path": "/contacts/a/b?c=d",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "add",
+      "note": "the pinned unit test's own write, with the two-field info it sends",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "POST",
+        "body": "{\"name\":\"John Doe\",\"company\":\"My Company\"}",
+        "body_is_undefined": false
+      },
+      "result": {
+        "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "alias": "John Doe",
+        "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "challenges": [],
+        "wellKnowns": []
+      },
+      "error": null
+    },
+    {
+      "name": "add_empty_info",
+      "note": "an empty info object, which is written as `{}` rather than omitted",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "POST",
+        "body": "{}",
+        "body_is_undefined": false
+      },
+      "result": {
+        "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "alias": "John Doe",
+        "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "challenges": [],
+        "wellKnowns": []
+      },
+      "error": null
+    },
+    {
+      "name": "add_nested_info",
+      "note": "a nested and ordered info block, which reaches the wire in the caller's own field order",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "POST",
+        "body": "{\"z\":1,\"a\":{\"nested\":true},\"list\":[1,2,3]}",
+        "body_is_undefined": false
+      },
+      "result": {
+        "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "alias": "John Doe",
+        "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "challenges": [],
+        "wellKnowns": []
+      },
+      "error": null
+    },
+    {
+      "name": "update",
+      "note": "the pinned unit test's own update, with the same info",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "PUT",
+        "body": "{\"name\":\"John Doe\",\"company\":\"My Company\"}",
+        "body_is_undefined": false
+      },
+      "result": {
+        "id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "alias": "John Doe",
+        "oobi": "http://127.0.0.1:3901/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/agent/EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "challenges": [],
+        "wellKnowns": []
+      },
+      "error": null
+    },
+    {
+      "name": "delete",
+      "note": "the pinned unit test's own delete, which the test asserts carries **no body at all**",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "DELETE",
+        "body": null,
+        "body_is_undefined": true
+      },
+      "result": null,
+      "error": null
+    },
+    {
+      "name": "get_wrong_shape",
+      "note": "an answer that is not a contact — the reference casts it to `Contact` and returns it",
+      "request": {
+        "path": "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": {
+        "unexpected": true
+      },
+      "error": null
+    },
+    {
+      "name": "list_wrong_shape",
+      "note": "a listing whose entries are missing the one field the schema requires",
+      "request": {
+        "path": "/contacts?",
+        "method": "GET",
+        "body": null,
+        "body_is_undefined": false
+      },
+      "result": [
+        {
+          "alias": "John Doe"
+        }
+      ],
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "unit_test_assertions": [
+      "url + '/contacts?group=mygroup&filter_field=company&filter_value=mycompany'",
+      "url + '/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao'",
+      "assert.deepEqual(lastBody, info)",
+      "assert.equal(lastCall[1]!.body, undefined)"
+    ],
+    "unit_test_paths": [
+      "/contacts?group=mygroup&filter_field=company&filter_value=mycompany",
+      "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao"
+    ],
+    "unit_test_info": {
+      "name": "John Doe",
+      "company": "My Company"
+    },
+    "unit_test_methods": [
+      "GET",
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "integration_helper_call": "const list = await client.contacts().list(undefined, 'alias', `^${name}$`);",
+    "call_sites": {
+      "needle": "contacts().",
+      "total": 3,
+      "files": [
+        {
+          "file": "test-integration/challenge.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/utils/test-util.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117,
+      "normalized": true
+    },
+    "driven_paths": [
+      "/contacts/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+      "/contacts/a/b?c=d",
+      "/contacts?",
+      "/contacts?filter_field=alias&filter_value=%5Ealice%24",
+      "/contacts?filter_field=alias&filter_value=a%26b%3Dc",
+      "/contacts?group=mygroup",
+      "/contacts?group=mygroup&filter_field=company&filter_value=mycompany"
+    ],
+    "note": "the pinned `Contacts` case is unusually complete for this port: it asserts all five paths, all five HTTP methods, both write bodies field for field, and that a delete carries no body at all. Every one of those is recomputed here from the reference's own driven output. Outside that case the family is used three times in the whole tree, all of them `list` — twice with no arguments and once through the integration helper with a filter whose value is a regular expression."
+  },
+  "reference_quirks": {
+    "an_unfiltered_listing_addresses_a_bare_question_mark": {
+      "path": "/contacts?",
+      "expression": "path = `/contacts` + '?' + params.toString()",
+      "note": "`path` is `'/contacts' + '?' + params.toString()`, concatenated unconditionally, so a listing with no arguments addresses `/contacts?`",
+      "rust_decision": "this port sends `/contacts`, on ADR `0028`'s three grounds applied again: Roadmap 3.10 strips the query before signing so the **signed path is identical**, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell a bare `?` without a knob whose only users would be this call and `Operations.list`. Roadmap 9.2 owes it a live confirmation, as it does 6.5's."
+    },
+    "half_a_filter_is_silently_dropped": {
+      "guard": "if (filterField !== undefined && filterValue !== undefined) { params.append('filter_field', filterField); params.append('filter_value', filterValue); }",
+      "field_only": "/contacts?",
+      "value_only": "/contacts?",
+      "note": "the guard is `filterField !== undefined && filterValue !== undefined`, so naming one half without the other drops **both** — the caller asks for a filtered listing and is answered with an unfiltered one, which is the worst kind of wrong because it succeeds",
+      "rust_decision": "**unrepresentable**: the two are one `ContactFilter` value, so there is no way to name a field without a value. The group stays independent, because it genuinely is."
+    },
+    "the_prefix_is_not_encoded": {
+      "path": "/contacts/a/b?c=d",
+      "expression": "path = `/contacts/` + pre",
+      "note": "all four single-contact paths are `'/contacts/' + pre`, so a value carrying `/` or `?` addresses a different resource — and Roadmap 3.10 signs `@path`, so it changes what the signature commits to. Roadmap 5.3's own fixture already recorded `contacts().delete('a/b')` reaching two segments.",
+      "rust_decision": "refused twice over: the argument is Roadmap 3.4's validated `IdentifierPrefix` rather than a string, and Roadmap 5.3's builder would encode it exactly once regardless. A qualified prefix's alphabet is URL-safe Base64, so every real contact identifier reaches the path byte-identical."
+    },
+    "the_filter_value_is_encoded": {
+      "path": "/contacts?filter_field=alias&filter_value=a%26b%3Dc",
+      "expression": "path = `/contacts` + '?' + params.toString()",
+      "note": "the query is built with `URLSearchParams` rather than by interpolation, so a filter value holding `&` **is** encoded — one of the few dynamic values the reference encodes anywhere, and the opposite of what Roadmap 7.1 found in `Oobis.get`",
+      "rust_decision": "reproduced exactly; Roadmap 5.3's builder encodes every query value exactly once"
+    },
+    "a_delete_carries_no_body": {
+      "fetch": "this.client.fetch(path, method, undefined)",
+      "body_is_undefined": true,
+      "note": "`delete` passes `undefined` where the writes pass `info`, and the pinned test asserts the request's body is `undefined` rather than an empty object",
+      "rust_decision": "reproduced: no body is set on the request at all, which is what Roadmap 6.11's delete already does"
+    },
+    "the_info_is_an_open_bag": {
+      "declaration": "export interface ContactInfo { [key: string]: unknown; }",
+      "pinned": "{\"name\":\"John Doe\",\"company\":\"My Company\"}",
+      "ordered": "{\"z\":1,\"a\":{\"nested\":true},\"list\":[1,2,3]}",
+      "empty": "{}",
+      "note": "`ContactInfo` is `{[key: string]: unknown}` handed straight to `JSON.stringify`, so the body's field order is the caller's object literal's and any shape at all is accepted",
+      "rust_decision": "an **ordered document** — Roadmap 3.2's `Sad`, which is what Roadmap 6.6 settled a request body is here, so a caller controls the bytes exactly. The one narrowing is ADR `0008`'s number space: an exact integer is representable and a float is not, which is recorded as a limitation rather than worked around."
+    },
+    "the_answers_are_cast_rather_than_decoded": {
+      "declaration": "await res.json()",
+      "get_wrong_shape": {
+        "unexpected": true
+      },
+      "list_wrong_shape": [
+        {
+          "alias": "John Doe"
+        }
+      ],
+      "note": "all four reading methods return `res.json()` cast to `Contact` or `Contact[]`, so an answer of any shape reaches the caller as a contact",
+      "rust_decision": "decoded: both recorded wrong-shaped answers are proven refused, which is the rule Roadmap 6.8, 6.10, and 7.1 applied to their own answers. `id` is the one field the schema requires, and every other field the agent sends survives a round trip through Roadmap 4.1's open map."
+    },
+    "a_listing_has_no_paging": {
+      "parameters": [
+        "group?: string",
+        "filterField?: string",
+        "filterValue?: string"
+      ],
+      "note": "no range, no limit, no cursor: an agent holding many contacts answers with all of them in one body, where Roadmap 6.6's identifier listing at least accepts a `Range` header",
+      "rust_decision": "reproduced; the response is bounded only by Roadmap 5.1's transport limit, recorded as a limitation rather than a filter this port invents"
+    }
+  }
+}

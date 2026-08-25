@@ -15,10 +15,11 @@
 //! before it exists; Roadmap 6.11 adds [`credentials`], the family that issues and revokes them,
 //! and Roadmap 6.12 [`ipex`], the family that discloses one to somebody else. Roadmap 7.1 opens
 //! Phase 7 with [`oobis`], which is how two identifiers that have never met learn about each
-//! other at all.
+//! other at all, and 7.3 [`contacts`], which is what a client remembers about them afterwards.
 
 pub(crate) mod body;
 pub mod config;
+pub mod contacts;
 pub mod credentials;
 pub mod identifiers;
 pub mod ipex;

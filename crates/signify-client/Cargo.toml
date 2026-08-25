@@ -65,5 +65,9 @@ harness = false
 name = "operation_wait"
 harness = false
 
+[[bench]]
+name = "contacts"
+harness = false
+
 [lints]
 workspace = true
