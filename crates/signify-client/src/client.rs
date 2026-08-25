@@ -55,6 +55,7 @@ use crate::endpoint::challenges::Challenges;
 use crate::endpoint::config::Config;
 use crate::endpoint::contacts::Contacts;
 use crate::endpoint::credentials::Credentials;
+use crate::endpoint::escrows::Escrows;
 use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::ipex::Ipex;
 use crate::endpoint::key_events::KeyEvents;
@@ -532,6 +533,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn contacts(&self) -> Contacts<'_> {
         Contacts::new(self)
+    }
+
+    /// Returns the escrows endpoint family: what the agent received and could not yet accept.
+    #[must_use]
+    pub const fn escrows(&self) -> Escrows<'_> {
+        Escrows::new(self)
     }
 
     /// Returns a poller for long-running agent operations.
