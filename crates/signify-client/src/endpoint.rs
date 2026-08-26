@@ -19,7 +19,9 @@
 //! [`challenges`], which is how it comes to believe any of it. Roadmap 7.5 adds
 //! [`notifications`], which is how the agent tells the controller there is something to do, and 7.6
 //! [`escrows`], which is what the agent received and could not yet accept, and 7.7 [`exchanges`],
-//! which is how one controller says something to another that is not a key event.
+//! which is how one controller says something to another that is not a key event. Roadmap 8.1
+//! adds the route table and classifiers inside [`exchanges`], and 8.2 opens **Phase 8**'s
+//! endpoint work with [`groups`], the round of messages a multisig group decides through.
 
 pub(crate) mod body;
 pub mod challenges;
@@ -28,6 +30,7 @@ pub mod contacts;
 pub mod credentials;
 pub mod escrows;
 pub mod exchanges;
+pub mod groups;
 pub mod identifiers;
 pub mod ipex;
 pub mod key_events;

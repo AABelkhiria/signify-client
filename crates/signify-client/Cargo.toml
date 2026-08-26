@@ -89,5 +89,9 @@ harness = false
 name = "exchange_routes"
 harness = false
 
+[[bench]]
+name = "groups"
+harness = false
+
 [lints]
 workspace = true

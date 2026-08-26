@@ -249,6 +249,15 @@ pub struct SentExchange {
 }
 
 impl SentExchange {
+    /// Wraps one write's answer.
+    ///
+    /// Crate-private: the two endpoints that produce one are Roadmap 7.7's submission and Roadmap
+    /// 8.2's group request, which post the same message to different addresses and are declared to
+    /// be answered the same way. Sharing the type is what keeps that one decision in one place.
+    pub(crate) const fn from_body(response: Vec<u8>) -> Self {
+        Self { response }
+    }
+
     /// Returns the agent's answer, unparsed.
     #[must_use]
     pub fn response_body(&self) -> &[u8] {

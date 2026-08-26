@@ -1,0 +1,716 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "src/keri/app/grouping.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/grouping.test.ts",
+    "test-integration/utils/test-util.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "note": "`Groups` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would, with the clock and the agent's key pinned. Nothing here derives an identifier key. `PUBLIC TEST MATERIAL`: the passcode is the one `grouping.test.ts` publishes and has never protected anything."
+  },
+  "declarations": {
+    "get_request_path": "path = `/multisig/request/` + said",
+    "get_request_method": "method = 'GET'",
+    "get_request_signature": [
+      "said: string"
+    ],
+    "get_request_return_type": "Promise<ExnMultisig[]>",
+    "send_request_path": "path = `/identifiers/${name}/multisig/request`",
+    "send_request_data": "data = { exn: exn, sigs: sigs, atc: atc, }",
+    "send_request_method": "method = 'POST'",
+    "send_request_signature": [
+      "name: string",
+      "exn: Exn",
+      "sigs: string[]",
+      "atc: string"
+    ],
+    "send_request_return_type": "Promise<Exn>",
+    "join_path": "path = `/identifiers/${name}/multisig/join`",
+    "join_data": "data = { tpc: 'multisig', rot: rot.sad, sigs: sigs, gid: gid, smids: smids, rmids: rmids, }",
+    "join_method": "method = 'POST'",
+    "join_signature": [
+      "name: string",
+      "rot: any",
+      "sigs: any",
+      "gid: string",
+      "smids: string[]",
+      "rmids: string[]"
+    ],
+    "join_return_type": "Promise<GroupOperation>",
+    "groups_members": [
+      "client",
+      "<constructor>",
+      "getRequest",
+      "sendRequest",
+      "join"
+    ],
+    "schema_exn_multisig": "ExnMultisig: { exn: components['schemas']['Exn']; paths: { [key: string]: unknown; }; groupName?: string; memberName?: string; sender?: string; };",
+    "schema_group_operation_metadata": "GroupOperationMetadata: { pre: string; sn: number; };",
+    "get_request_consumers": {
+      "needle": "getRequest(",
+      "total": 24,
+      "consumer_files": [
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 16
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 2
+        }
+      ],
+      "consumer_total": 22,
+      "scanned_files": 117
+    },
+    "send_request_consumers": {
+      "needle": "sendRequest(",
+      "total": 2,
+      "consumer_files": [],
+      "consumer_total": 0,
+      "scanned_files": 117
+    },
+    "groups_accessor_uses": {
+      "needle": ".groups()",
+      "total": 25,
+      "files": [
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 16
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 2
+        },
+        {
+          "file": "test/app/clienting.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test/app/grouping.test.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "notes": {
+      "raw_interpolation": "`getRequest` concatenates `'/multisig/request/' + said` and both writes interpolate `${name}` into a template literal, so none of the three dynamic values is encoded",
+      "send_request_body": "`sendRequest` sends `{exn, sigs, atc}` — no topic and no recipient list, unlike `Exchanges.sendFromEvents`, which sends `{tpc, exn, sigs, atc, rec}` to a different path for what a member does with the same message",
+      "join_reads_a_serder": "`join` declares `rot: any` and writes `rot.sad`, so it takes a `Serder` rather than the rotation event its own JSDoc names; passing the event itself would send `undefined`",
+      "join_topic": "`join`'s `tpc` is the literal `'multisig'`, where `Exchanges.send` takes it as an argument",
+      "return_types": "`sendRequest` declares `Promise<Exn>` and `join` declares `Promise<GroupOperation>` — two writes under one resource, disagreeing about what a KERIA answers, which is the disagreement Roadmap 7.7 recorded between `sendFromEvents` and `Ipex.submit*`"
+    }
+  },
+  "pinned_arguments": {
+    "said": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00",
+    "said_length": 46,
+    "qualified_digest_length": 44,
+    "said_is_a_digest": false,
+    "rotation": "{ sad: {} }",
+    "signatures": [
+      "sig"
+    ],
+    "signing_members": [
+      "1",
+      "2",
+      "3"
+    ],
+    "rotation_members": [
+      "a",
+      "b",
+      "c"
+    ],
+    "send_request_signatures": [],
+    "note": "every argument the pinned `Groups` case passes is a value the protocol cannot hold: a forty-six-character SAID, a rotation whose event is `{}`, the signature `'sig'`, members named `1` and `a`, and — for `sendRequest` — no signature at all."
+  },
+  "calls": [
+    {
+      "name": "send_request_pinned",
+      "note": "the pinned unit test's own call: an unsigned exchange whose sender is the word `test`",
+      "answer": {},
+      "request": {
+        "path": "/identifiers/aid1/multisig/request",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0000bf_\",\"t\":\"exn\",\"d\":\"EPWm8LWxxQXmXlB8gbTZKDy7NIwXxpx49N_ZYTa5QkJV\",\"i\":\"test\",\"rp\":\"\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183Z\",\"r\":\"/multisig/request\",\"q\":{},\"a\":{\"i\":\"\"},\"e\":{}},\"sigs\":[],\"atc\":\"\"}"
+      },
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "send_request_signed",
+      "note": "a real multisig proposal with one qualified signature and a transposed attachment",
+      "answer": {},
+      "request": {
+        "path": "/identifiers/aid1/multisig/request",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000200_\",\"t\":\"exn\",\"d\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"rp\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"],\"rmids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"]},\"e\":{\"d\":\"EEMBED\",\"icp\":{\"v\":\"KERI10JSON000_\",\"t\":\"icp\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DAA\",\"DBB\"],\"nt\":\"2\",\"n\":[\"EAA\",\"EBB\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}}},\"sigs\":[\"AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"],\"atc\":\"-LAZ5AACAA-e-icp\"}"
+      },
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "send_request_escaping_alias",
+      "note": "an alias holding path delimiters, which the reference interpolates raw into the address",
+      "answer": {},
+      "request": {
+        "path": "/identifiers/a/b?c=d/multisig/request",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON000200_\",\"t\":\"exn\",\"d\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"rp\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"],\"rmids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"]},\"e\":{\"d\":\"EEMBED\",\"icp\":{\"v\":\"KERI10JSON000_\",\"t\":\"icp\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DAA\",\"DBB\"],\"nt\":\"2\",\"n\":[\"EAA\",\"EBB\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]}}},\"sigs\":[\"AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"],\"atc\":\"\"}"
+      },
+      "result": {},
+      "error": null
+    },
+    {
+      "name": "get_request_pinned",
+      "note": "the pinned unit test's own read, by a forty-six-character value where a qualified digest is forty-four",
+      "answer": [
+        {
+          "exn": {
+            "v": "KERI10JSON000200_",
+            "t": "exn",
+            "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "rp": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+            "p": "",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": "/multisig/icp",
+            "q": {},
+            "a": {
+              "gid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+              "smids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ],
+              "rmids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ]
+            },
+            "e": {
+              "d": "EEMBED",
+              "icp": {
+                "v": "KERI10JSON000_",
+                "t": "icp",
+                "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "s": "0",
+                "kt": "2",
+                "k": [
+                  "DAA",
+                  "DBB"
+                ],
+                "nt": "2",
+                "n": [
+                  "EAA",
+                  "EBB"
+                ],
+                "bt": "0",
+                "b": [],
+                "c": [],
+                "a": []
+              }
+            }
+          },
+          "paths": {
+            "-e-icp": "-AABAA"
+          },
+          "groupName": "multisig",
+          "memberName": "member1",
+          "sender": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        }
+      ],
+      "request": {
+        "path": "/multisig/request/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "exn": {
+            "v": "KERI10JSON000200_",
+            "t": "exn",
+            "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "rp": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+            "p": "",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": "/multisig/icp",
+            "q": {},
+            "a": {
+              "gid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+              "smids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ],
+              "rmids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ]
+            },
+            "e": {
+              "d": "EEMBED",
+              "icp": {
+                "v": "KERI10JSON000_",
+                "t": "icp",
+                "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "s": "0",
+                "kt": "2",
+                "k": [
+                  "DAA",
+                  "DBB"
+                ],
+                "nt": "2",
+                "n": [
+                  "EAA",
+                  "EBB"
+                ],
+                "bt": "0",
+                "b": [],
+                "c": [],
+                "a": []
+              }
+            }
+          },
+          "paths": {
+            "-e-icp": "-AABAA"
+          },
+          "groupName": "multisig",
+          "memberName": "member1",
+          "sender": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "get_request_real_said",
+      "note": "the same read by a genuine qualified digest, answered with one member's copy of a proposal",
+      "answer": [
+        {
+          "exn": {
+            "v": "KERI10JSON000200_",
+            "t": "exn",
+            "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "rp": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+            "p": "",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": "/multisig/icp",
+            "q": {},
+            "a": {
+              "gid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+              "smids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ],
+              "rmids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ]
+            },
+            "e": {
+              "d": "EEMBED",
+              "icp": {
+                "v": "KERI10JSON000_",
+                "t": "icp",
+                "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "s": "0",
+                "kt": "2",
+                "k": [
+                  "DAA",
+                  "DBB"
+                ],
+                "nt": "2",
+                "n": [
+                  "EAA",
+                  "EBB"
+                ],
+                "bt": "0",
+                "b": [],
+                "c": [],
+                "a": []
+              }
+            }
+          },
+          "paths": {
+            "-e-icp": "-AABAA"
+          },
+          "groupName": "multisig",
+          "memberName": "member1",
+          "sender": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        }
+      ],
+      "request": {
+        "path": "/multisig/request/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "GET",
+        "body": null
+      },
+      "result": [
+        {
+          "exn": {
+            "v": "KERI10JSON000200_",
+            "t": "exn",
+            "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "rp": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+            "p": "",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": "/multisig/icp",
+            "q": {},
+            "a": {
+              "gid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+              "smids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ],
+              "rmids": [
+                "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+              ]
+            },
+            "e": {
+              "d": "EEMBED",
+              "icp": {
+                "v": "KERI10JSON000_",
+                "t": "icp",
+                "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "s": "0",
+                "kt": "2",
+                "k": [
+                  "DAA",
+                  "DBB"
+                ],
+                "nt": "2",
+                "n": [
+                  "EAA",
+                  "EBB"
+                ],
+                "bt": "0",
+                "b": [],
+                "c": [],
+                "a": []
+              }
+            }
+          },
+          "paths": {
+            "-e-icp": "-AABAA"
+          },
+          "groupName": "multisig",
+          "memberName": "member1",
+          "sender": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "get_request_empty_said",
+      "note": "the empty string the reference's own `waitAndMarkNotification` falls back to when no notice arrived",
+      "answer": [],
+      "request": {
+        "path": "/multisig/request/",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "get_request_escaping_said",
+      "note": "a SAID carrying path delimiters, which reaches the address unencoded",
+      "answer": [],
+      "request": {
+        "path": "/multisig/request/../identifiers/aid1?x=1",
+        "method": "GET",
+        "body": null
+      },
+      "result": [],
+      "error": null
+    },
+    {
+      "name": "get_request_wrong_shape",
+      "note": "an answer that is not a group request listing at all; the reference casts it to `ExnMultisig[]`",
+      "answer": {
+        "notes": []
+      },
+      "request": {
+        "path": "/multisig/request/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "method": "GET",
+        "body": null
+      },
+      "result": {
+        "notes": []
+      },
+      "error": null
+    },
+    {
+      "name": "join_pinned",
+      "note": "the pinned unit test's own join: an empty rotation, the signature `'sig'`, and members named `1` and `a`",
+      "answer": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "request": {
+        "path": "/identifiers/aid1/multisig/join",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"rot\":{},\"sigs\":[\"sig\"],\"gid\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00\",\"smids\":[\"1\",\"2\",\"3\"],\"rmids\":[\"a\",\"b\",\"c\"]}"
+      },
+      "result": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_real",
+      "note": "a real join: a rotation event, one qualified signature, and two member prefixes",
+      "answer": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "request": {
+        "path": "/identifiers/aid1/multisig/join",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"rot\":{\"v\":\"KERI10JSON000_\",\"t\":\"rot\",\"d\":\"EROT\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"kt\":\"2\",\"k\":[\"DAA\",\"DBB\"],\"nt\":\"2\",\"n\":[\"EAA\",\"EBB\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"],\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"],\"rmids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"]}"
+      },
+      "result": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_no_members",
+      "note": "a join naming no members at all, which the reference sends unchallenged",
+      "answer": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "request": {
+        "path": "/identifiers/aid1/multisig/join",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"rot\":{\"v\":\"KERI10JSON000_\",\"t\":\"rot\",\"d\":\"EROT\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"kt\":\"2\",\"k\":[\"DAA\",\"DBB\"],\"nt\":\"2\",\"n\":[\"EAA\",\"EBB\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"],\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[],\"rmids\":[]}"
+      },
+      "result": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_event_instead_of_serder",
+      "note": "the rotation event passed directly, which is what the method's own JSDoc names — `rot.sad` is then `undefined`",
+      "answer": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "request": {
+        "path": "/identifiers/aid1/multisig/join",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"sigs\":[\"AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"],\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+      },
+      "result": {
+        "name": "group.ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "metadata": {
+          "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "send_request_path": "/identifiers/aid1/multisig/request",
+    "send_request_method": "POST",
+    "get_request_path": "/multisig/request/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00",
+    "get_request_method": "GET",
+    "join_path": "/identifiers/aid1/multisig/join",
+    "join_method": "POST",
+    "published_paths": [
+      "/identifiers/aid1/multisig/request",
+      "/multisig/request/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00",
+      "/identifiers/aid1/multisig/join"
+    ],
+    "every_pinned_assertion_is_driven": true,
+    "note": "the pinned `Groups` case asserts three addresses and three methods, and every one is recomputed here from the reference's own class. It asserts nothing about any body, which is why the bodies below are the reference's output rather than its expectations.",
+    "every_published_path_is_driven": true
+  },
+  "reference_quirks": {
+    "the_pinned_case_passes_junk_in_every_argument": {
+      "arguments": {
+        "said": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00",
+        "said_length": 46,
+        "qualified_digest_length": 44,
+        "said_is_a_digest": false,
+        "rotation": "{ sad: {} }",
+        "signatures": [
+          "sig"
+        ],
+        "signing_members": [
+          "1",
+          "2",
+          "3"
+        ],
+        "rotation_members": [
+          "a",
+          "b",
+          "c"
+        ],
+        "send_request_signatures": [],
+        "note": "every argument the pinned `Groups` case passes is a value the protocol cannot hold: a forty-six-character SAID, a rotation whose event is `{}`, the signature `'sig'`, members named `1` and `a`, and — for `sendRequest` — no signature at all."
+      },
+      "send_request": {
+        "path": "/identifiers/aid1/multisig/request",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0000bf_\",\"t\":\"exn\",\"d\":\"EPWm8LWxxQXmXlB8gbTZKDy7NIwXxpx49N_ZYTa5QkJV\",\"i\":\"test\",\"rp\":\"\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183Z\",\"r\":\"/multisig/request\",\"q\":{},\"a\":{\"i\":\"\"},\"e\":{}},\"sigs\":[],\"atc\":\"\"}"
+      },
+      "get_request": {
+        "path": "/multisig/request/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00",
+        "method": "GET",
+        "body": null
+      },
+      "join": {
+        "path": "/identifiers/aid1/multisig/join",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"rot\":{},\"sigs\":[\"sig\"],\"gid\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00\",\"smids\":[\"1\",\"2\",\"3\"],\"rmids\":[\"a\",\"b\",\"c\"]}"
+      },
+      "note": "the only test of this class in the pinned tree passes a forty-six-character SAID, a rotation whose event is `{}`, the signature `'sig'`, members named `1` and `a`, and an empty signature list — and asserts only the three addresses, so none of it is checked",
+      "rust_decision": "each recorded request is reproduced in shape rather than byte for byte, and each argument is proven unrepresentable — the pattern Roadmap 3.8, 6.9, and 7.1 used for a pinned vector the types cannot express. The three addresses, which are what the test actually asserts, reproduce exactly."
+    },
+    "a_request_may_carry_no_signature": {
+      "request": {
+        "path": "/identifiers/aid1/multisig/request",
+        "method": "POST",
+        "body": "{\"exn\":{\"v\":\"KERI10JSON0000bf_\",\"t\":\"exn\",\"d\":\"EPWm8LWxxQXmXlB8gbTZKDy7NIwXxpx49N_ZYTa5QkJV\",\"i\":\"test\",\"rp\":\"\",\"p\":\"\",\"dt\":\"2023-08-30T17:22:54.183Z\",\"r\":\"/multisig/request\",\"q\":{},\"a\":{\"i\":\"\"},\"e\":{}},\"sigs\":[],\"atc\":\"\"}"
+      },
+      "declaration": [
+        "name: string",
+        "exn: Exn",
+        "sigs: string[]",
+        "atc: string"
+      ],
+      "note": "`sendRequest` declares `sigs: string[]` and sends whatever it is given; the pinned test sends `[]`, which asks the agent to relay to every group member a proposal nobody signed",
+      "rust_decision": "refused. A `SignedExchange` comes from Roadmap 7.7's `create_message`, which signs, and an empty signature set is checked before the body is built — the reasoning Roadmap 6.12 applied to an empty recipient list."
+    },
+    "none_of_the_three_dynamic_values_is_encoded": {
+      "get_request_path": "path = `/multisig/request/` + said",
+      "send_request_path": "path = `/identifiers/${name}/multisig/request`",
+      "join_path": "path = `/identifiers/${name}/multisig/join`",
+      "escaping_alias": "/identifiers/a/b?c=d/multisig/request",
+      "escaping_said": "/multisig/request/../identifiers/aid1?x=1",
+      "note": "`getRequest` concatenates its SAID and both writes interpolate their alias, so a value holding `/` or `?` addresses a different resource — and Roadmap 3.10 signs `@path`",
+      "rust_decision": "closed by Roadmap 5.3's builder and by typing: the SAID is Roadmap 3.3's `Said` and the alias is encoded exactly once, so neither recorded input is representable."
+    },
+    "join_reads_a_serder_rather_than_an_event": {
+      "declaration": "data = { tpc: 'multisig', rot: rot.sad, sigs: sigs, gid: gid, smids: smids, rmids: rmids, }",
+      "signature": [
+        "name: string",
+        "rot: any",
+        "sigs: any",
+        "gid: string",
+        "smids: string[]",
+        "rmids: string[]"
+      ],
+      "with_serder": {
+        "v": "KERI10JSON000_",
+        "t": "rot",
+        "d": "EROT",
+        "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "s": "1",
+        "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "kt": "2",
+        "k": [
+          "DAA",
+          "DBB"
+        ],
+        "nt": "2",
+        "n": [
+          "EAA",
+          "EBB"
+        ],
+        "bt": "0",
+        "br": [],
+        "ba": [],
+        "a": []
+      },
+      "with_event": null,
+      "note": "`join` declares `rot: any` and writes `rot.sad`, so passing the rotation event its own JSDoc names sends `rot: undefined` — recorded both ways round",
+      "rust_decision": "the argument is Roadmap 4.6's `IdentifierArtifact`, which carries the event and the signatures that go with it, so there is no second thing to pass and nothing to read a field off."
+    },
+    "the_two_writes_disagree_about_their_answers": {
+      "send_request": "Promise<Exn>",
+      "join": "Promise<GroupOperation>",
+      "note": "two writes under one resource, one declaring an exchange message and the other a long-running operation, both unchecked `res.json()` casts — the disagreement Roadmap 7.7 recorded between `sendFromEvents` and `Ipex.submit*`, now inside a single class",
+      "rust_decision": "`join`'s answer is decoded as the operation it declares, which is what every other write in this crate is answered with; `send_request` reuses Roadmap 7.7's `SentExchange`, which keeps the body and offers a decoder for each shape. The §10 question that item raised covers this path too."
+    },
+    "a_join_may_name_no_members": {
+      "request": {
+        "path": "/identifiers/aid1/multisig/join",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"rot\":{\"v\":\"KERI10JSON000_\",\"t\":\"rot\",\"d\":\"EROT\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"kt\":\"2\",\"k\":[\"DAA\",\"DBB\"],\"nt\":\"2\",\"n\":[\"EAA\",\"EBB\"],\"bt\":\"0\",\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"],\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[],\"rmids\":[]}"
+      },
+      "note": "`join` sends whatever member lists it is given, including empty ones, which asks the agent to rotate a group into having no signers",
+      "rust_decision": "an empty signing-member list is refused; an empty rotation-member list is not, because the reference's own `Identifiers.rotate` writes an empty `rmids` for a single-signature identifier and Roadmap 6.6 reproduces it."
+    },
+    "a_request_body_carries_no_topic_and_no_recipients": {
+      "declaration": "data = { exn: exn, sigs: sigs, atc: atc, }",
+      "note": "`sendRequest` sends `{exn, sigs, atc}` where `Exchanges.sendFromEvents` sends `{tpc, exn, sigs, atc, rec}` for the same kind of message; the agent is left to work out both from the message's own route",
+      "rust_decision": "reproduced exactly. The two are different endpoints with different bodies, and this one's is the shorter; Roadmap 7.7's `SignedExchange` supplies all three fields it does write."
+    }
+  }
+}

@@ -290,6 +290,18 @@ pub enum ClientError {
         /// The wire label that was missing or unusable.
         label: &'static str,
     },
+    /// A group request was proposed with no signature at all.
+    ///
+    /// The reference's `Groups.sendRequest` declares `sigs: string[]` and sends whatever it is
+    /// given; its own unit test sends `[]`, which asks the agent to relay to every group member a
+    /// proposal nobody signed.
+    UnsignedGroupRequest,
+    /// A group join named no signing member.
+    ///
+    /// The reference sends empty member lists unchallenged, which asks the agent to rotate a group
+    /// into having no signers. An empty **rotation**-member list is allowed, because a
+    /// single-signature rotation writes one and Roadmap 6.6 reproduces it.
+    EmptyGroupMembers,
     /// An exchange message was submitted with no recipient at all.
     ///
     /// The reference's `sendFromEvents` sends `"rec":[]` unchallenged — its own unit test does
@@ -415,6 +427,10 @@ impl fmt::Display for ClientError {
             Self::MissingGroupAttribute { route, label } => {
                 write!(formatter, "a multisig proposal on {route} must name a usable {label}")
             }
+            Self::UnsignedGroupRequest => {
+                formatter.write_str("a group request must carry at least one signature to be relayed")
+            }
+            Self::EmptyGroupMembers => formatter.write_str("a group join must name at least one signing member"),
             Self::NoExchangeRecipients => {
                 formatter.write_str("an exchange message must name at least one recipient to be delivered to")
             }
@@ -482,6 +498,8 @@ impl Error for ClientError {
             | Self::NoIpexRecipients { .. }
             | Self::ExchangeEmbedMismatch { .. }
             | Self::MissingGroupAttribute { .. }
+            | Self::UnsignedGroupRequest
+            | Self::EmptyGroupMembers
             | Self::NoExchangeRecipients
             | Self::EmptyExchangeTopic
             | Self::EmptyKeyStateListing
