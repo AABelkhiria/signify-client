@@ -555,10 +555,16 @@ impl ConnectedClient {
         Groups::new(self)
     }
 
-    /// Returns the multisig workflows: bringing a group identifier into existence.
+    /// Returns the delegation endpoint family: a delegator's approval of a pending delegate.
+    #[must_use]
+    pub const fn delegations(&self) -> crate::endpoint::delegations::Delegations<'_> {
+        crate::endpoint::delegations::Delegations::new(self)
+    }
+
+    /// Returns the multisig workflows: bringing a group identifier into existence, and running it.
     ///
     /// A workflow rather than an endpoint family, like [`Self::poller`] — it composes several
-    /// families in an order the reference only ever writes in its own integration helpers.
+    /// families in an order the reference only ever writes in its own tests.
     #[must_use]
     pub const fn multisig(&self) -> crate::multisig::Multisig<'_> {
         crate::multisig::Multisig::new(self)

@@ -319,6 +319,21 @@ impl<'client> Identifiers<'client> {
     /// cannot be rebuilt, layered identifier failures, and whatever [`ConnectedClient::fetch`]
     /// returns.
     pub async fn interact(&self, name: &str, anchors: Vec<Sad>) -> Result<Submission<IdentifierArtifact>, ClientError> {
+        self.submit_interaction(name, EVENTS_SEGMENT, anchors).await
+    }
+
+    /// Builds and signs one interaction event and posts it under `segment`.
+    ///
+    /// Two addresses take the same body. [`Self::interact`] posts it to `events`, and Roadmap
+    /// 8.5's [`Delegations::approve`](crate::endpoint::delegations::Delegations::approve) posts the
+    /// identical bytes to `delegation` — which is the whole of the difference between them, in the
+    /// reference as here.
+    pub(crate) async fn submit_interaction(
+        &self,
+        name: &str,
+        segment: &str,
+        anchors: Vec<Sad>,
+    ) -> Result<Submission<IdentifierArtifact>, ClientError> {
         let record = self.get(name).await?;
         let keeper = self.client.keepers().keeper_for(&Hab::Accepted(record.clone()))?;
         let artifact = interact_identifier(keeper.as_ref(), &record.state, anchors)?;
@@ -329,7 +344,13 @@ impl<'client> Identifiers<'client> {
         insert_signatures(&mut body, &artifact)?;
         insert_algorithm(&mut body, keeper.as_ref(), stored_transferability(&record)?)?;
 
-        self.submit_event(name, artifact, body).await
+        let path = Self::sub_path(name, segment)?;
+        let request = ClientRequest::new(Method::Post, path).body(body.to_json_bytes().map_err(sad_error)?);
+        let response = self.client.fetch(request).await?;
+        Ok(Submission {
+            artifact,
+            response: response.into_body(),
+        })
     }
 
     /// Rotates a managed identifier to the keys it committed to.

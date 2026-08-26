@@ -1,0 +1,592 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "src/keri/app/delegating.ts",
+    "src/keri/app/aiding.ts",
+    "test/app/delegating.test.ts",
+    "test-integration/delegation.test.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "delegator_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "note": "`Delegations` takes a whole `SignifyClient`, so the real client is walked through boot, connect, and each call with `globalThis.fetch` replaced by a recorder that signs as a KERIA agent would. The clock is pinned because a signed request's timestamp is a clock reading; the identifier is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "approve": "async approve(name: string, data?: any): Promise<EventResult> { const { serder, sigs, jsondata } = await this.client .identifiers() .createInteract(name, data); const res = await this.client.fetch( '/identifiers/' + name + '/delegation', 'POST', jsondata ); return new EventResult(serder, sigs, res); }",
+    "members": [
+      "client",
+      "approve"
+    ],
+    "signature": {
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "optional": false
+        },
+        {
+          "name": "data",
+          "type": "any",
+          "optional": true
+        }
+      ],
+      "returns": "Promise<EventResult>"
+    },
+    "fetch_calls": [
+      {
+        "path": "'/identifiers/' + name + '/delegation'",
+        "method": "POST"
+      }
+    ],
+    "approve_calls": [
+      {
+        "file": "test/app/delegating.test.ts",
+        "arguments": [
+          "'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao'"
+        ]
+      },
+      {
+        "file": "test-integration/delegation.test.ts",
+        "arguments": [
+          "'delegator'",
+          "anchor"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "arguments": [
+          "multisigAID.name",
+          "anchor"
+        ]
+      }
+    ],
+    "prefix_discovery": {
+      "binds": "delegatePrefix",
+      "from": "op2.name.split('.')[1]"
+    },
+    "anchor_wrapping": "data = Array.isArray(data) ? data : [data];",
+    "delegations_accessor_uses": {
+      "needle": "delegations()",
+      "total": 4,
+      "files": [
+        {
+          "file": "src/keri/app/clienting.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/delegation.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        },
+        {
+          "file": "test/app/delegating.test.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "delegation_segment_uses": {
+      "needle": "/delegation",
+      "total": 2,
+      "files": [
+        {
+          "file": "src/keri/app/delegating.ts",
+          "count": 1
+        },
+        {
+          "file": "test/app/delegating.test.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "file_lines": 33,
+    "notes": {
+      "address": "the only difference between an approval and an ordinary interaction is the last path segment",
+      "anchor": "`data?: any` with `createInteract` wrapping a non-array, so an omitted anchor reaches the wire as `[null]`"
+    }
+  },
+  "identifier_record": {
+    "name": "delegator",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "calls": [
+    {
+      "name": "approve_with_no_anchor",
+      "note": "the pinned unit test's own call: `approve(name)` with no anchor at all, which sends `a: [null]`",
+      "requests": [
+        {
+          "path": "/identifiers/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON0000cf_\",\"t\":\"ixn\",\"d\":\"EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[null]},\"sigs\":[\"AAC4StAw-0IiV_LujceAXB3tnkaK011rPYPBKLgz-u6jI7hwfWGTCu5LDvBUsON4CqXbZAwPgIv6JqYjIusWKv0G\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON0000cf_\",\"t\":\"ixn\",\"d\":\"EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[null]}",
+          "_sad": {
+            "v": "KERI10JSON0000cf_",
+            "t": "ixn",
+            "d": "EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              null
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 207,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AAC4StAw-0IiV_LujceAXB3tnkaK011rPYPBKLgz-u6jI7hwfWGTCu5LDvBUsON4CqXbZAwPgIv6JqYjIusWKv0G"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "approve_a_delegate",
+      "note": "what an approval is for: the delegator anchors a seal of the delegate's inception",
+      "requests": [
+        {
+          "path": "/identifiers/delegator",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegator/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]},\"sigs\":[\"AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              {
+                "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "s": "0",
+                "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "approve_with_a_seal_list",
+      "note": "the same seal already wrapped, since `createInteract` leaves an array alone",
+      "requests": [
+        {
+          "path": "/identifiers/delegator",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegator/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]},\"sigs\":[\"AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              {
+                "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "s": "0",
+                "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "approve_two_delegates_at_once",
+      "note": "two seals in one event, which the wrapping permits and nothing upstream forbids",
+      "requests": [
+        {
+          "path": "/identifiers/delegator",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegator/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"ixn\",\"d\":\"EGZ8zOlSqgiHILN_tUi00DRS51cDCeVB5s2c7bAGpkF1\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"},{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]},\"sigs\":[\"AAAksfGhyhssUPjBfId0nIh2XACnGw8p_27ebgfXnRS_bZXmgBHZAKaXEJf1Q1xnof26L3R-ULwnzKoA1ay8TdoL\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON0001aa_\",\"t\":\"ixn\",\"d\":\"EGZ8zOlSqgiHILN_tUi00DRS51cDCeVB5s2c7bAGpkF1\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"},{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]}",
+          "_sad": {
+            "v": "KERI10JSON0001aa_",
+            "t": "ixn",
+            "d": "EGZ8zOlSqgiHILN_tUi00DRS51cDCeVB5s2c7bAGpkF1",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              {
+                "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "s": "0",
+                "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+              },
+              {
+                "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+                "s": "0",
+                "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 426,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AAAksfGhyhssUPjBfId0nIh2XACnGw8p_27ebgfXnRS_bZXmgBHZAKaXEJf1Q1xnof26L3R-ULwnzKoA1ay8TdoL"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "approve_a_seal_that_is_not_one",
+      "note": "an anchor that is a bare string: `data?: any`, so it is wrapped and signed like any other",
+      "requests": [
+        {
+          "path": "/identifiers/delegator",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegator/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON0000d7_\",\"t\":\"ixn\",\"d\":\"EBcfZFIw-P2MESP_ZK23LMNeaFX6zOPbySYwxjtcdNwT\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[\"not a seal\"]},\"sigs\":[\"AAAgpmR7hvYojWiYid2hQCKIGZdudZ0ILckP_Zf9Ymn6DUscdTzp5PutkAGnU29GPqH6EgVzSXhq_Ip8wV75JTYC\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON0000d7_\",\"t\":\"ixn\",\"d\":\"EBcfZFIw-P2MESP_ZK23LMNeaFX6zOPbySYwxjtcdNwT\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[\"not a seal\"]}",
+          "_sad": {
+            "v": "KERI10JSON0000d7_",
+            "t": "ixn",
+            "d": "EBcfZFIw-P2MESP_ZK23LMNeaFX6zOPbySYwxjtcdNwT",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              "not a seal"
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 215,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AAAgpmR7hvYojWiYid2hQCKIGZdudZ0ILckP_Zf9Ymn6DUscdTzp5PutkAGnU29GPqH6EgVzSXhq_Ip8wV75JTYC"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "interact_with_the_same_seal",
+      "note": "the sibling call: the identical body, posted to `events` instead of `delegation`",
+      "requests": [
+        {
+          "path": "/identifiers/delegator",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegator/events",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]},\"sigs\":[\"AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              {
+                "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "s": "0",
+                "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "approve_under_an_alias_holding_delimiters",
+      "note": "the alias reaches the path raw, as everywhere in the reference",
+      "requests": [
+        {
+          "path": "/identifiers/a%2Fb%3Fc%3Dd",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/a/b?c=d/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]},\"sigs\":[\"AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"s\":\"0\",\"d\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "EMMF0C7NyqdEUZwLhRqe6Ki4bEMwdmnDFKkejhQwQDUD",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              {
+                "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+                "s": "0",
+                "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AABtw7U9CsMBd5Iq9j5SsQsHSK3-E85SjzWCqakyTVGbO_8UrSDXjg2a6O5xsDwu2rVjhs8HsHYjMu5mOoriWQgD"
+        ],
+        "response": {}
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "pinned_name": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "pinned_path": "/identifiers/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao/delegation",
+    "pinned_body": "{\"ixn\":{\"v\":\"KERI10JSON0000cf_\",\"t\":\"ixn\",\"d\":\"EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[null]},\"sigs\":[\"AAC4StAw-0IiV_LujceAXB3tnkaK011rPYPBKLgz-u6jI7hwfWGTCu5LDvBUsON4CqXbZAwPgIv6JqYjIusWKv0G\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+    "approval_path": "/identifiers/delegator/delegation",
+    "delegator_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "delegate_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "seal": {
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+    },
+    "note": "the pinned test asserts one address, one method, and one body; all three are reproduced here, and the body is the one that approves nothing."
+  },
+  "reference_quirks": {
+    "the_pinned_test_approves_nothing": {
+      "declaration": "`approve(name: string, data?: any)` — the anchor is optional, and the one pinned test omits it",
+      "pinned_call": {
+        "file": "test/app/delegating.test.ts",
+        "arguments": [
+          "'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao'"
+        ]
+      },
+      "wrapping": "data = Array.isArray(data) ? data : [data];",
+      "anchored": [
+        null
+      ],
+      "said": "EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg",
+      "signatures": 1,
+      "note": "`createInteract` wraps a non-array, so an absent anchor becomes `[undefined]` and serializes as `[null]`. The event's SAID is computed over that list and the signature covers it, so the only body the pinned tree publishes for this endpoint is a signed approval of nothing. A delegate waiting on this seal waits forever.",
+      "rust_decision": "the seals are a required argument and an empty list is refused with `ClientError::NoDelegationSeals`. There is no way to spell an approval of nothing."
+    },
+    "the_address_is_the_whole_difference": {
+      "declaration": "`approve` calls `createInteract` and posts the result to `/delegation`; `interact` posts it to `/events`",
+      "approval_path": "/identifiers/delegator/delegation",
+      "interaction_path": "/identifiers/delegator/events",
+      "bodies_identical": true,
+      "note": "driven both ways with the same seal: the event, its SAID, its signature, and the key-manager block are byte for byte the same, and only the last path segment differs.",
+      "rust_decision": "one builder serves both, as one serves both upstream. `Identifiers::submit_interaction` takes the segment, and `Delegations::approve` is that call with `delegation` in it."
+    },
+    "the_delegate_reads_its_prefix_from_an_operations_name": {
+      "declaration": {
+        "binds": "delegatePrefix",
+        "from": "op2.name.split('.')[1]"
+      },
+      "note": "the integration test learns the identifier it just created by splitting a long-running operation's *name* on a full stop, and then hand-assembles the seal from the result. The prefix is in the inception event the same call returned.",
+      "rust_decision": "`InceptionSeal::of` takes the delegate's own artifact and reads the identifier and the digest out of the event, so the three seal fields cannot disagree with each other or with what they claim to anchor."
+    },
+    "an_anchor_may_be_anything": {
+      "declaration": "`data?: any`",
+      "string_anchor": [
+        "not a seal"
+      ],
+      "two_seals": [
+        {
+          "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "s": "0",
+          "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        },
+        {
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        }
+      ],
+      "note": "a bare string is wrapped, anchored, and signed exactly as a seal would be; two seals in one event are equally accepted. Nothing upstream looks at the shape.",
+      "rust_decision": "a seal is Roadmap 3.1's `Sad`, so an anchor is a block rather than anything at all; `InceptionSeal` names the three fields a delegated inception's seal carries. A list of more than one is still permitted, because the event format permits it."
+    },
+    "one_alias_is_encoded_on_the_read_and_raw_on_the_write": {
+      "declaration": "'/identifiers/' + name + '/delegation'",
+      "read_path": "/identifiers/a%2Fb%3Fc%3Dd",
+      "write_path": "/identifiers/a/b?c=d/delegation",
+      "note": "one call, one alias, two treatments. `approve` reads the identifier first through `identifiers().get`, which encodes its path component, and then writes to `'/identifiers/' + name + '/delegation'`, which concatenates — so `a/b?c=d` is one segment on the read and two segments and a query on the write. The reference disagrees with itself inside a single method, which is a sharper form of the raw interpolation Roadmap 7.1 and 8.2 recorded.",
+      "rust_decision": "closed by Roadmap 5.3's path builder, which percent-encodes every component of both addresses; the read and the write cannot diverge because they are built the same way."
+    }
+  }
+}

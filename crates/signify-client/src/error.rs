@@ -323,6 +323,17 @@ pub enum ClientError {
         /// What was found in its place.
         found: &'static str,
     },
+    /// A delegation approval was asked to anchor nothing.
+    ///
+    /// The reference declares its anchor optional and wraps a non-array in one, so `approve(name)`
+    /// with no anchor sends `"a": [null]` — an approval of nothing, which is the only body its own
+    /// unit test publishes for this endpoint; see `PORTING.md` §9.
+    NoDelegationSeals,
+    /// An event that is not a delegated inception was offered as one awaiting approval.
+    NotADelegatedInception {
+        /// The ilk that was found in its place.
+        found: &'static str,
+    },
     /// A group rotation proposal was expected and something else arrived.
     NotARotationProposal {
         /// What was found in its place.
@@ -498,6 +509,13 @@ impl fmt::Display for ClientError {
                     "a group inception proposal was expected, but {found} was found"
                 )
             }
+            Self::NoDelegationSeals => formatter.write_str("a delegation approval must anchor at least one seal"),
+            Self::NotADelegatedInception { found } => {
+                write!(
+                    formatter,
+                    "a delegated inception was expected, but a {found} event was found"
+                )
+            }
             Self::NotARotationProposal { found } => {
                 write!(
                     formatter,
@@ -588,6 +606,8 @@ impl Error for ClientError {
             | Self::NoIpexRecipients { .. }
             | Self::ExchangeEmbedMismatch { .. }
             | Self::MissingGroupAttribute { .. }
+            | Self::NoDelegationSeals
+            | Self::NotADelegatedInception { .. }
             | Self::NotARotationProposal { .. }
             | Self::NotAnInteractionProposal { .. }
             | Self::ProposalMismatch { .. }

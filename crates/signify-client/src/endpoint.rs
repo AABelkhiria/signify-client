@@ -28,6 +28,7 @@ pub mod challenges;
 pub mod config;
 pub mod contacts;
 pub mod credentials;
+pub mod delegations;
 pub mod escrows;
 pub mod exchanges;
 pub mod groups;
