@@ -355,6 +355,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_multisig_events"
+path = "fuzz_targets/client_multisig_events.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_oobis"
 path = "fuzz_targets/client_oobis.rs"
 test = false

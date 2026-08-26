@@ -359,7 +359,14 @@ pub struct RotationRecord<K = RotationIlk> {
     #[serde(rename = "n")]
     pub next_key_digests: Vec<String>,
     /// Witness threshold, wire label `bt`.
-    #[serde(rename = "bt")]
+    ///
+    /// **This field's JSON type depends on its value.** The generated schema types it a string and
+    /// an inception writes one, but `eventing.ts`'s `rotate` defaults `intive` to `true` and then
+    /// writes `bt: _toad` — a bare **number** — whenever the threshold is non-zero and fits in
+    /// thirty-two bits, falling back to `_toad.toString(16)` only at zero. So a rotation of the
+    /// same identifier whose inception carried `"bt":"3"` carries `"bt":3`. Both are read here and
+    /// both are kept as the text that arrived; see `PORTING.md` §9 (Roadmap 8.4).
+    #[serde(rename = "bt", deserialize_with = "deserialize_witness_threshold")]
     pub witness_threshold: String,
     /// Witness prefixes cut by this rotation, wire label `br`.
     #[serde(rename = "br")]
@@ -646,6 +653,42 @@ impl Serialize for KeyEvent {
     }
 }
 
+/// Reads a witness threshold written either as text or as a bare number.
+///
+/// The reference's `rotate` chooses between the two by value — see [`RotationRecord`] — so a
+/// reader that accepts only one of them cannot decode half the rotations the reference emits. The
+/// number is rendered as the decimal it was written as rather than converted to hexadecimal,
+/// because what a number on the wire *means* is the open question Roadmap 8.4 records: an
+/// inception's `bt` is hexadecimal text and a rotation's is a decimal number, and the two are the
+/// same field.
+fn deserialize_witness_threshold<'de, D: Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
+    struct TextOrNumber;
+
+    impl Visitor<'_> for TextOrNumber {
+        type Value = String;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str("a witness threshold as text or as a number")
+        }
+
+        fn visit_str<E: de::Error>(self, value: &str) -> Result<Self::Value, E> {
+            Ok(value.to_owned())
+        }
+
+        fn visit_u64<E: de::Error>(self, value: u64) -> Result<Self::Value, E> {
+            Ok(value.to_string())
+        }
+
+        fn visit_i64<E: de::Error>(self, value: i64) -> Result<Self::Value, E> {
+            u64::try_from(value)
+                .map(|value| value.to_string())
+                .map_err(|_| E::invalid_value(Unexpected::Signed(value), &self))
+        }
+    }
+
+    deserializer.deserialize_any(TextOrNumber)
+}
+
 impl<'de> Deserialize<'de> for KeyEvent {
     /// Chooses the variant from the `t` field.
     ///
@@ -681,6 +724,58 @@ pub struct KeyEventRecord {
 
 #[cfg(test)]
 mod tests {
+    /// One rotation whose `bt` is a bare number, which is what `rotate` writes for a non-zero
+    /// threshold, and one whose `bt` is text, which is what it writes at zero.
+    const ROTATION: &str = r#"{"v":"KERI10JSON000_","t":"rot","d":"EROT","i":"EGRP","s":"1","p":"EICP","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":3,"br":[],"ba":[],"a":[]}"#;
+    const ROTATION_AT_ZERO: &str = r#"{"v":"KERI10JSON000_","t":"rot","d":"EROT","i":"EGRP","s":"1","p":"EICP","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":"0","br":[],"ba":[],"a":[]}"#;
+
+    #[test]
+    fn a_rotation_threshold_reads_as_a_number_or_as_text() -> Result<(), Box<dyn Error>> {
+        // The reference emits both, choosing by value, so both must decode.
+        let numeric: RotationRecord = serde_json::from_str(ROTATION)?;
+        assert_eq!(numeric.witness_threshold, "3");
+        let text: RotationRecord = serde_json::from_str(ROTATION_AT_ZERO)?;
+        assert_eq!(text.witness_threshold, "0");
+        Ok(())
+    }
+
+    #[test]
+    fn a_rotation_threshold_is_kept_as_the_text_it_arrived_as() -> Result<(), Box<dyn Error>> {
+        // A number is rendered as the decimal it was written as, not converted: what a rotation's
+        // `bt` means is the open question, and rewriting it here would hide the disagreement.
+        let numeric: RotationRecord = serde_json::from_str(ROTATION)?;
+        let re_encoded = serde_json::to_string(&numeric)?;
+        assert!(re_encoded.contains(r#""bt":"3""#));
+        // Which round trips, because a string is what the schema declares.
+        let again: RotationRecord = serde_json::from_str(&re_encoded)?;
+        assert_eq!(again.witness_threshold, numeric.witness_threshold);
+        Ok(())
+    }
+
+    #[test]
+    fn a_rotation_threshold_that_is_neither_is_refused() {
+        for value in ["true", "null", "[]", "{}", "-1", "1.5"] {
+            let document = ROTATION.replace(r#""bt":3"#, &format!(r#""bt":{value}"#));
+            assert!(
+                serde_json::from_str::<RotationRecord>(&document).is_err(),
+                "{value} was accepted as a witness threshold"
+            );
+        }
+    }
+
+    #[test]
+    fn an_inception_and_its_rotation_disagree_about_one_fields_type() -> Result<(), Box<dyn Error>> {
+        // The finding, stated as a test: the same label, the same identifier, two JSON types.
+        let inception = r#"{"v":"KERI10JSON000_","t":"icp","d":"EICP","i":"EGRP","s":"0","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":"3","b":[],"c":[],"a":[]}"#;
+        let incepted: InceptionRecord = serde_json::from_str(inception)?;
+        let rotated: RotationRecord = serde_json::from_str(ROTATION)?;
+        assert_eq!(incepted.witness_threshold, rotated.witness_threshold);
+        // And they were written differently: one quoted, one not.
+        assert!(inception.contains(r#""bt":"3""#));
+        assert!(ROTATION.contains(r#""bt":3"#));
+        Ok(())
+    }
+
     use super::*;
     use std::error::Error;
 

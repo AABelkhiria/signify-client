@@ -1,0 +1,1531 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "test-integration/multisig.test.ts",
+    "test-integration/multisig-join.test.ts",
+    "test-integration/utils/multisig-utils.ts",
+    "src/keri/app/exchanging.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "note": "Both rounds are written inline in the integration scenario rather than in a function, so there is nothing to transpile and call. The syntax tree supplies what cannot be driven — every `exchanges().send` with its route and its embed slot, and every `waitAndMarkNotification` with the route it waits on — and the reference's own `interact`, `rotate`, `send`, and `join` supply the bytes, driven against the group Roadmap 8.3's helper incepted. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "send_calls": [
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rpy",
+        "embed_variable": "roleembeds",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rpy",
+        "embed_variable": "roleembeds",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rpy",
+        "embed_variable": "roleembeds",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "xembeds",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "xembeds",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "xembeds",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rot",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/vcp",
+        "embed_variable": "regbeds",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/vcp",
+        "embed_variable": "regbeds",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/vcp",
+        "embed_variable": "regbeds",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/exn",
+        "embed_variable": "gembeds",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/exn",
+        "embed_variable": "gembeds",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/exn",
+        "embed_variable": "gembeds",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisigIssue",
+        "route": "/multisig/iss",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "acdc",
+          "iss",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisigRevoke",
+        "route": "/multisig/rev",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "iss",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should create multisig",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should add member3 to multisig",
+        "route": "/multisig/rot",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "Rotate again to get aid3 to current signing keys and join",
+        "route": "/multisig/rot",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "acceptMultisigIncept",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "addEndRoleMultisig",
+        "route": "/multisig/rpy",
+        "embed_variable": "roleembeds",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/multisig/exn",
+        "embed_variable": "gembeds",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createAIDMultisig",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createRegistryMultisig",
+        "route": "/multisig/vcp",
+        "embed_variable": "regbeds",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "delegateMultisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "xembeds",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "grantMultisig",
+        "route": "/multisig/exn",
+        "embed_variable": "gembeds",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "issueCredentialMultisig",
+        "route": "/multisig/iss",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "acdc",
+          "iss",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "startMultisigIncept",
+        "route": "/multisig/icp",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "icp"
+        ]
+      }
+    ],
+    "wait_calls": [
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/icp"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/icp"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rpy"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rpy"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rot"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rot"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/vcp"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/vcp"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/iss"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/iss"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/exn"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/exn"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/exn/ipex/grant"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/exn/ipex/grant"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/exn/ipex/grant"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/exn/ipex/grant"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/exn/ipex/admit"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/exn/ipex/admit"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rev"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/rev"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should create multisig",
+        "route": "/multisig/icp"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should add member3 to multisig",
+        "route": "/multisig/rot"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should add member3 to multisig",
+        "route": "/multisig/rot"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "Rotate again to get aid3 to current signing keys and join",
+        "route": "/multisig/rot"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "addEndRoleMultisig",
+        "route": "/multisig/rpy"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/multisig/exn"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/exn/ipex/grant"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createAIDMultisig",
+        "route": "/multisig/icp"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createRegistryMultisig",
+        "route": "/multisig/vcp"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "delegateMultisig",
+        "route": "/multisig/ixn"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "grantMultisig",
+        "route": "/multisig/exn"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "issueCredentialMultisig",
+        "route": "/multisig/iss"
+      }
+    ],
+    "group_rotate_calls": [
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "arguments": "{ states: states, rstates: rstates }"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "arguments": "{ states: states, rstates: rstates }"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "arguments": "{ states: states, rstates: rstates }"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should add member3 to multisig",
+        "arguments": "{ states, rstates }"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "Rotate again to get aid3 to current signing keys and join",
+        "arguments": "{ states, rstates: states }"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "can replace a group member under a 3-of-3 threshold",
+        "arguments": "{ states, rstates }"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "can replace a group member under a 3-of-3 threshold",
+        "arguments": "{ states, rstates }"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "can replace a group member under a 3-of-3 threshold",
+        "arguments": "{ states, rstates }"
+      }
+    ],
+    "member_expressions": [
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "states.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "(exn.a! as { smids: string[] }).smids"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "exn.a && typeof exn.a === 'object' && exn.a !== null && 'smids' in exn.a && Array.isArray((exn.a as "
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "states.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "(exn.a as { smids: string[] }).smids"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "(exn.a as { smids: string[] }).smids"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "states.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "rotExn.a.smids"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "label": "smids",
+        "expression": "rotExn2.a.smids"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should create multisig",
+        "label": "smids",
+        "expression": "[aid2.state.i]"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should add member3 to multisig",
+        "label": "smids",
+        "expression": "states.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "should add member3 to multisig",
+        "label": "rmids",
+        "expression": "rstates.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "Rotate again to get aid3 to current signing keys and join",
+        "label": "smids",
+        "expression": "states.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/multisig-join.test.ts",
+        "enclosing": "Rotate again to get aid3 to current signing keys and join",
+        "label": "rmids",
+        "expression": "states.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "acceptMultisigIncept",
+        "label": "smids",
+        "expression": "exn.a.smids"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "acceptMultisigIncept",
+        "label": "rmids",
+        "expression": "exn.a.rmids ?? smids"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createAIDMultisig",
+        "label": "smids",
+        "expression": "kargs.states?.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "delegateMultisig",
+        "label": "smids",
+        "expression": "[aid.prefix, ...otherMembersAIDs.map((aid) => aid.prefix)]"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "startMultisigIncept",
+        "label": "smids",
+        "expression": "participantStates.map((state) => state['i'])"
+      }
+    ],
+    "mismatched_sends": [
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisig",
+        "route": "/multisig/ixn",
+        "embed_variable": "rembeds",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "multisigRevoke",
+        "route": "/multisig/rev",
+        "embed_variable": "embeds",
+        "embed_slots": [
+          "iss",
+          "anc"
+        ]
+      }
+    ],
+    "rotation_route": "/multisig/rot",
+    "interaction_route": "/multisig/ixn",
+    "scenario_anchor": {
+      "i": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG",
+      "s": "0",
+      "d": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG"
+    },
+    "scenario_files": [
+      "test-integration/multisig.test.ts",
+      "test-integration/multisig-join.test.ts",
+      "test-integration/utils/multisig-utils.ts"
+    ],
+    "scanned_files": 117,
+    "notes": {
+      "send_arguments": "send(name, topic, sender, route, payload, embeds, recipients) — argument three is the route and argument five is the embed block",
+      "embed_resolution": "an embed passed as a variable is resolved to the keys of the nearest object literal assigned to it before the call"
+    }
+  },
+  "key_states": {
+    "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "p": "",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "identifier_record": {
+    "name": "member1",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "group_record": {
+    "name": "multisig",
+    "prefix": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "transferable": true,
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00",
+    "group": {
+      "mhab": {
+        "name": "member1",
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "salty": {
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "tier": "low",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789abcdefghijk"
+        },
+        "transferable": true,
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "1",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-08-21T22:30:46.473545+00:00",
+          "et": "rot",
+          "kt": "1",
+          "k": [
+            "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly"
+          ],
+          "nt": "1",
+          "n": [
+            "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "1",
+            "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "windexes": [],
+        "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+      },
+      "keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "ndigs": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ]
+    },
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "s": "0",
+      "p": "",
+      "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "2",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "2",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "2",
+      "b": [
+        "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
+        "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
+        "BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX"
+      ],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "calls": [
+    {
+      "name": "incept_the_group",
+      "note": "Roadmap 8.3's own first step, run again so both rounds here act on a group the reference built",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EDOi3yDvRfy_2iTpX9dd4nU--cgEXVBVNwjYTGMxev2m\"}},\"sigs\":[\"AAA9LNCQ4cdQ3eXCT-QPCo2FcoZG7kTKTLfHVaRgLatYkmceD8y8rKP-IOgwrcj6-UgONMkzK0FfKppFN1rb9RsA\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "propose_interaction",
+      "note": "member1 anchors the scenario's own seal in the group's log",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/events",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\",\"s\":\"0\",\"d\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\"}]},\"sigs\":[\"BABgO3rkys8-9e1kADbniFdA8bNByYgJTmEFzhqQLLFLJ0CEqZj_5b6cr68XGkr-_DIegF_q_kDSBsKfoClED8AG\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\",\"s\":\"0\",\"d\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ",
+            "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "s": "1",
+            "p": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "a": [
+              {
+                "i": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG",
+                "s": "0",
+                "d": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "BABgO3rkys8-9e1kADbniFdA8bNByYgJTmEFzhqQLLFLJ0CEqZj_5b6cr68XGkr-_DIegF_q_kDSBsKfoClED8AG"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "announce_interaction",
+      "note": "and tells the other member, on the route whose name matches the embed it carries",
+      "requests": [
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0003bf_\",\"t\":\"exn\",\"d\":\"ED0Ax2d0RUrZqRA31wdL_LUODTymetBh5Un3NTlxaWoo\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/ixn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\",\"s\":\"0\",\"d\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\"}]},\"d\":\"EIh0XpG3MjT8U3cjZfw7FtGtTsoGFKUr4F6FkzviSCNk\"}},\"sigs\":[\"AADuXDDeFLe9U--XDCk9mcKTht59K67t96ih4q24K3D6I7Nr5-Axib-UcYvgox3IqFLHFfFOjQyeGbwHbRfWVCEN\"],\"atc\":\"-LAa5AACAA-e-ixn-AABBABgO3rkys8-9e1kADbniFdA8bNByYgJTmEFzhqQLLFLJ0CEqZj_5b6cr68XGkr-_DIegF_q_kDSBsKfoClED8AG\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "accept_interaction",
+      "note": "the joining member reads the anchor out of the embedded event and interacts with the same data",
+      "requests": [
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/events",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\",\"s\":\"0\",\"d\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\"}]},\"sigs\":[\"BABgO3rkys8-9e1kADbniFdA8bNByYgJTmEFzhqQLLFLJ0CEqZj_5b6cr68XGkr-_DIegF_q_kDSBsKfoClED8AG\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\",\"s\":\"0\",\"d\":\"EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ",
+            "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "s": "1",
+            "p": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "a": [
+              {
+                "i": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG",
+                "s": "0",
+                "d": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "BABgO3rkys8-9e1kADbniFdA8bNByYgJTmEFzhqQLLFLJ0CEqZj_5b6cr68XGkr-_DIegF_q_kDSBsKfoClED8AG"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "propose_rotation",
+      "note": "member1 rotates the group to the members' newly rotated key states",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/events",
+          "method": "POST",
+          "body": "{\"rot\":{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"rot\",\"kt\":\"1\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"1\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"1\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"ndigs\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"]}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]}",
+          "_sad": {
+            "v": "KERI10JSON0001bc_",
+            "t": "rot",
+            "d": "EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW",
+            "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "s": "1",
+            "p": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "kt": "2",
+            "k": [
+              "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly",
+              "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly"
+            ],
+            "nt": "2",
+            "n": [
+              "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk",
+              "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk"
+            ],
+            "bt": 3,
+            "br": [],
+            "ba": [],
+            "a": []
+          },
+          "_proto": "KERI",
+          "_size": 444,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "announce_rotation_on_its_own_route",
+      "note": "the initiator announces it on `/multisig/rot`, which is the route the joining members wait on",
+      "requests": [
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON000441_\",\"t\":\"exn\",\"d\":\"EI3DjPXzOwedKy7Ff-YN_Gat11a2Q92l-kgWCRkkafTE\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rot\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"rot\":{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]},\"d\":\"EJQBIG9h6Lzkon-grF1k6L1EXeVIxbPATio9KwMkiOId\"}},\"sigs\":[\"AAC4SDmjYU2Li_EOSPprQb4Brq59DEeKi29Q8Z9GukoAtDAvJwQ5-Q95gBST5b1HuvBnLxduZV0g8XswCt60mTQA\"],\"atc\":\"-LAa5AACAA-e-rot-AABAACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "announce_rotation_on_the_interaction_route",
+      "note": "and what the joining members actually send: the same `rot` embed under `/multisig/ixn`, which is the finding",
+      "requests": [
+        {
+          "path": "/identifiers/member2/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON000441_\",\"t\":\"exn\",\"d\":\"EIDn3QA2ZOllWA5xYf6-qkQxVS9ag7QdcTsoymC0NF5z\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/ixn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"rot\":{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]},\"d\":\"EJQBIG9h6Lzkon-grF1k6L1EXeVIxbPATio9KwMkiOId\"}},\"sigs\":[\"AABEHE4CVVtSYCjtiOwYGyvqBPvr6CC_jITUaLyocM754WiikjwkEsJYxbzor-RTp793-_MM3MkbbL9Pekllns8A\"],\"atc\":\"-LAa5AACAA-e-rot-AABAACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_the_proposed_rotation",
+      "note": "`multisig-join.test.ts`'s style: rebuild the proposed event, sign it, and post it to the join endpoint",
+      "requests": [
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/multisig/join",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"rot\":{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM\"],\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "rotate_the_group_again_without_reading_the_proposal",
+      "note": "`multisig.test.ts`'s style: the joining member rebuilds from its own key states and never reads the proposal",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/events",
+          "method": "POST",
+          "body": "{\"rot\":{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"rot\",\"kt\":\"1\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"1\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"1\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"ndigs\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"]}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]}",
+          "_sad": {
+            "v": "KERI10JSON0001bc_",
+            "t": "rot",
+            "d": "EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW",
+            "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "s": "1",
+            "p": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "kt": "2",
+            "k": [
+              "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly",
+              "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly"
+            ],
+            "nt": "2",
+            "n": [
+              "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk",
+              "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk"
+            ],
+            "bt": 3,
+            "br": [],
+            "ba": [],
+            "a": []
+          },
+          "_proto": "KERI",
+          "_size": 444,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AACpY9ulDoOEi8LLGzw-YD0EMtjhR2n4s3ov02p4ilvVvzG7DRC3AL16_3WOI8P7Xu3Z9soKPj_SI8t9nbkV_boM"
+        ],
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "rebuild_from_a_rotation_set_the_proposal_did_not_name",
+      "note": "the same style over a rotation set of the same size whose digests differ: it succeeds and signs a different event",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/events",
+          "method": "POST",
+          "body": "{\"rot\":{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"ENVkSHkpd0Kvo1mDr8egvgbsuiW34-Cm06hwaNVJwm4h\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]},\"sigs\":[\"AAAKfxOL5D5iqadpiNJu5oKoj9V42_7VcOWSky2t6iy_QBhPdfHEKGHjaV_MN5BI4Rn9o3wg9Buu5Afzqynxdg4G\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"rot\",\"kt\":\"1\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"1\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"1\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"ndigs\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        }
+      ],
+      "result": {
+        "_serder": {
+          "_raw": "{\"v\":\"KERI10JSON0001bc_\",\"t\":\"rot\",\"d\":\"ENVkSHkpd0Kvo1mDr8egvgbsuiW34-Cm06hwaNVJwm4h\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"kt\":\"2\",\"k\":[\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\",\"DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly\"],\"nt\":\"2\",\"n\":[\"EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":3,\"br\":[],\"ba\":[],\"a\":[]}",
+          "_sad": {
+            "v": "KERI10JSON0001bc_",
+            "t": "rot",
+            "d": "ENVkSHkpd0Kvo1mDr8egvgbsuiW34-Cm06hwaNVJwm4h",
+            "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "s": "1",
+            "p": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "kt": "2",
+            "k": [
+              "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly",
+              "DHgomzINlGJHr-XP3sv2ZcR9QsIEYS3LJhs4KRaZYKly"
+            ],
+            "nt": "2",
+            "n": [
+              "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk",
+              "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+            ],
+            "bt": 3,
+            "br": [],
+            "ba": [],
+            "a": []
+          },
+          "_proto": "KERI",
+          "_size": 444,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "_sigs": [
+          "AAAKfxOL5D5iqadpiNJu5oKoj9V42_7VcOWSky2t6iy_QBhPdfHEKGHjaV_MN5BI4Rn9o3wg9Buu5Afzqynxdg4G"
+        ],
+        "response": {}
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "interaction_paths": [
+      "GET /identifiers/multisig",
+      "POST /identifiers/multisig/events"
+    ],
+    "rotation_paths": [
+      "GET /identifiers/multisig",
+      "POST /identifiers/multisig/events"
+    ],
+    "join_path": [
+      "GET /multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+      "POST /identifiers/multisig/multisig/join"
+    ],
+    "group_prefix": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "interaction_digest": "ECS_5iiA8VTPkb5pzps7_MyY5muZ6Lg4zB0F0CNsSEEQ",
+    "rotation_digest": "EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW",
+    "note": "both rounds act on a group Roadmap 8.3's helper incepted here. Its identifier differs from that item's fixture because the key states are different: a group rotation only works if the members' key states chain, so the next digests here are derived from the member's own salt where `mockGetAID` invents them."
+  },
+  "reference_quirks": {
+    "a_rotation_is_announced_on_the_interaction_route": {
+      "declaration": "in `multisig.test.ts` only the initiator sends `/multisig/rot`; both joining members send the same `rot` embed under `/multisig/ixn`, while both peers wait on `/multisig/rot`",
+      "sends_on_rotation_route": 3,
+      "rotations_sent_on_interaction_route": [
+        {
+          "file": "test-integration/multisig.test.ts",
+          "enclosing": "multisig",
+          "route": "/multisig/ixn",
+          "embed_variable": "rembeds",
+          "embed_slots": [
+            "rot"
+          ]
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "enclosing": "multisig",
+          "route": "/multisig/ixn",
+          "embed_variable": "rembeds",
+          "embed_slots": [
+            "rot"
+          ]
+        }
+      ],
+      "waits_on_rotation_route": 5,
+      "announced_route": "/multisig/ixn",
+      "announced_embed_slots": [
+        "rot"
+      ],
+      "note": "the route says interaction and the embed carries a rotation, so a member that trusts the route reads the wrong message and one that waits on the rotation route never sees the join at all. Nothing upstream compares the two, because nothing upstream looks inside the embed.",
+      "rust_decision": "the route decides the embed. Roadmap 8.1's classifier refuses a message whose embed slot is not the one its route names, so this pair cannot be built here — `propose_rotation` and `accept_rotation` both send `/multisig/rot`."
+    },
+    "a_joining_member_never_reads_the_rotation_it_joins": {
+      "declaration": "`multisig.test.ts` calls `rotate` again with its own `states`/`rstates` and signs whatever that produces; `multisig-join.test.ts` rebuilds the proposed `Serder` and signs that",
+      "rebuilt_event_digest": "EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW",
+      "proposed_event_digest": "EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW",
+      "styles_agree": true,
+      "signed_by_the_join": "EBaGGetNesJ5OEAtDuc9LuFfP_N_VqR3fzf6aAD1hCGW",
+      "divergent": {
+        "rebuilt_from": "a rotation set of the same size whose next digests differ from the proposal's",
+        "rebuilt_event_digest": "ENVkSHkpd0Kvo1mDr8egvgbsuiW34-Cm06hwaNVJwm4h",
+        "matches_the_proposal": false,
+        "rebuilt_next_digests": [
+          "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk",
+          "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+        ],
+        "proposed_next_digests": [
+          "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk",
+          "EJMovBlrBuD6BVeUsGSxLjczbLEbZU9YnTSud9K4nVzk"
+        ],
+        "error": null
+      },
+      "note": "the two styles agree only while the members' key states do. Driven both ways: with the same states the digests match, and with one rotation member where the proposal named two the rebuilding member signs a different event — no error, no comparison, and the signature it contributes is over something nobody proposed. This is Roadmap 8.3's witness threshold in a second place.",
+      "rust_decision": "a joining member checks. `accept_rotation` rebuilds as the reference does and then compares what it built with the digest the proposal carries, refusing to sign a different event. A digest comparison rather than a byte one, because a decoded record cannot reproduce the bytes it arrived as — but an event's SAID is a digest over the event, so two events with one SAID are one event."
+    },
+    "the_two_rotation_call_sites_disagree_about_rmids": {
+      "declaration": "one rotation announcement maps `rstates` into `rmids` and the other maps `states`",
+      "expressions": [
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "enclosing": "should add member3 to multisig",
+          "label": "rmids",
+          "expression": "rstates.map((state) => state['i'])"
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "enclosing": "Rotate again to get aid3 to current signing keys and join",
+          "label": "rmids",
+          "expression": "states.map((state) => state['i'])"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "enclosing": "acceptMultisigIncept",
+          "label": "rmids",
+          "expression": "exn.a.rmids ?? smids"
+        }
+      ],
+      "note": "Roadmap 8.3 recorded the accepting member substituting the signing set for the rotation set. It is not a one-off: the rotation round does the same thing at one of its two call sites, so the two are inconsistent with each other as well as with the field's name.",
+      "rust_decision": "the rotation set is a separate argument from the signing set and neither defaults to the other."
+    },
+    "an_interaction_relays_the_data_it_read": {
+      "declaration": "`multisig.test.ts` reads `exn.e.ixn.a` and passes it straight back into `interact`, where `delegateMultisig` reads `ixn.a[0]`",
+      "proposed_anchors": [
+        {
+          "i": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG",
+          "s": "0",
+          "d": "EBgew7O4yp8SBle0FU-wwN3GtnaroI0BQfBGAj33QiIG"
+        }
+      ],
+      "note": "this is the half the reference gets right: the joining member anchors the same seal the initiator did, because `createInteract` wraps a non-array and leaves an array alone. The two readers disagree about the shape — one takes the array, the other its first element — but both reach the same seal.",
+      "rust_decision": "reproduced. The anchors are read from the embedded event and passed through unchanged."
+    },
+    "there_is_no_source_file": {
+      "declaration": "neither round exists under `src`; both are written inline in the integration scenario",
+      "interact_scan": {
+        "needle": "identifiers().interact(",
+        "total": 13,
+        "files": [
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test-integration/randy.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/salty.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/singlesig-dip.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/singlesig-drt.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/singlesig-ixn.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test/app/aiding.test.ts",
+            "count": 3
+          }
+        ],
+        "scanned_files": 117
+      },
+      "rotate_scan": {
+        "needle": ".rotate(",
+        "total": 42,
+        "files": [
+          {
+            "file": "src/keri/app/aiding.ts",
+            "count": 1
+          },
+          {
+            "file": "src/keri/app/clienting.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "count": 13
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 6
+          },
+          {
+            "file": "test-integration/randy.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/salty.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/singlesig-drt.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/singlesig-rot.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/witness.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test/app/aiding.test.ts",
+            "count": 6
+          },
+          {
+            "file": "test/app/clienting.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test/core/manager.test.ts",
+            "count": 7
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "Roadmap 8.3 had helpers to transpile. This item does not even have those: the rounds are statements in a test body, so what is ported is the shape the statements describe and the evidence is the reference's own primitives driven in that order.",
+      "rust_decision": "ported as workflows beside Roadmap 8.3's in `signify-client::multisig`, and recorded in §4.5 on that item's row."
+    }
+  }
+}

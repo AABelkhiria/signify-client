@@ -323,6 +323,29 @@ pub enum ClientError {
         /// What was found in its place.
         found: &'static str,
     },
+    /// A group rotation proposal was expected and something else arrived.
+    NotARotationProposal {
+        /// What was found in its place.
+        found: &'static str,
+    },
+    /// A group interaction proposal was expected and something else arrived.
+    NotAnInteractionProposal {
+        /// What was found in its place.
+        found: &'static str,
+    },
+    /// A member built an event that is not the event it was asked to sign.
+    ///
+    /// Every member of a group builds the same event independently, so a disagreement about one
+    /// field of it produces a different digest and the group never converges. The reference
+    /// compares nothing anywhere — `multisig.test.ts` has its joining member rebuild a rotation
+    /// from its own key states and sign whatever comes out — so this failure has no upstream
+    /// counterpart; see `PORTING.md` §9.
+    ProposalMismatch {
+        /// The digest the proposal carried.
+        proposed: String,
+        /// The digest this member built.
+        built: String,
+    },
     /// A group request was proposed with no signature at all.
     ///
     /// The reference's `Groups.sendRequest` declares `sigs: string[]` and sends whatever it is
@@ -475,6 +498,24 @@ impl fmt::Display for ClientError {
                     "a group inception proposal was expected, but {found} was found"
                 )
             }
+            Self::NotARotationProposal { found } => {
+                write!(
+                    formatter,
+                    "a group rotation proposal was expected, but {found} was found"
+                )
+            }
+            Self::NotAnInteractionProposal { found } => {
+                write!(
+                    formatter,
+                    "a group interaction proposal was expected, but {found} was found"
+                )
+            }
+            Self::ProposalMismatch { proposed, built } => {
+                write!(
+                    formatter,
+                    "this member built the event {built} where the proposal it read carries {proposed}"
+                )
+            }
             Self::UnsignedGroupRequest => {
                 formatter.write_str("a group request must carry at least one signature to be relayed")
             }
@@ -547,6 +588,9 @@ impl Error for ClientError {
             | Self::NoIpexRecipients { .. }
             | Self::ExchangeEmbedMismatch { .. }
             | Self::MissingGroupAttribute { .. }
+            | Self::NotARotationProposal { .. }
+            | Self::NotAnInteractionProposal { .. }
+            | Self::ProposalMismatch { .. }
             | Self::LocalMemberNotAParticipant { .. }
             | Self::LonelyGroup
             | Self::UnknownGroupMember { .. }

@@ -97,5 +97,9 @@ harness = false
 name = "multisig_inception"
 harness = false
 
+[[bench]]
+name = "multisig_events"
+harness = false
+
 [lints]
 workspace = true
