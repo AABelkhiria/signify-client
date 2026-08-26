@@ -555,6 +555,15 @@ impl ConnectedClient {
         Groups::new(self)
     }
 
+    /// Returns the multisig workflows: bringing a group identifier into existence.
+    ///
+    /// A workflow rather than an endpoint family, like [`Self::poller`] — it composes several
+    /// families in an order the reference only ever writes in its own integration helpers.
+    #[must_use]
+    pub const fn multisig(&self) -> crate::multisig::Multisig<'_> {
+        crate::multisig::Multisig::new(self)
+    }
+
     /// Returns a poller for long-running agent operations.
     ///
     /// A KERIA agent answers most writes with an operation rather than a result, so this is where

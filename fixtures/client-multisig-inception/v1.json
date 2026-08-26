@@ -1,0 +1,677 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "test-integration/utils/multisig-utils.ts",
+    "test-integration/utils/test-util.ts",
+    "test-integration/multisig-inception.test.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "note": "The ported unit lives only in the reference's integration utilities, which import the package by name and are not built into `dist`. So `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a three-entry module shim — the built `dist`, a checked stub for the one `test-util.ts` helper it needs, and node's `assert`. Nothing is written into the submodule, and what runs is the reference's own code. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "start_multisig_incept": "export async function startMultisigIncept( client: SignifyClient, { groupName, localMemberName, participants, ...args }: StartMultisigInceptArgs ) { const aid1 = await client.identifiers().get(localMemberName); const participantStates = await getStates(client, participants); const icpResult1 = await client.identifiers().create(groupName, { algo: Algos.group, mhab: aid1, isith: args.isith, nsith: args.nsith, toad: args.toad, wits: args.wits, delpre: args.delpre, states: participantStates, rstates: participantStates, }); const op1 = await icpResult1.op(); const serder = icpResult1.serder; const sigs = icpResult1.sigs; const sigers = sigs.map((sig) => new Siger({ qb64: sig })); const ims = d(messagize(serder, sigers)); const atc = ims.substring(serder.size); const embeds = { icp: [serder, atc], }; const smids = participantStates.map((state) => state['i']); await client .exchanges() .send( localMemberName, groupName, aid1, '/multisig/icp', { gid: serder.pre, smids: smids, rmids: smids }, embeds, participants ); return op1; }",
+    "accept_multisig_incept": "export async function acceptMultisigIncept( client2: SignifyClient, { groupName, localMemberName, msgSaid }: AcceptMultisigInceptArgs ) { const memberHab = await client2.identifiers().get(localMemberName); const res = await client2.groups().getRequest(msgSaid); const groupExn = assertMultisigIcp(res[0]); const exn = groupExn.exn; const icp = exn.e.icp; const smids = exn.a.smids; const rmids = exn.a.rmids ?? smids; const states = await getStates(client2, smids); const rstates = await getStates(client2, rmids); const delpre = 'di' in icp ? icp.di : undefined; const icpResult2 = await client2.identifiers().create(groupName, { algo: Algos.group, mhab: memberHab, isith: icp.kt, nsith: icp.nt, toad: parseInt(icp.bt), wits: icp.b, states: states, rstates: rstates, delpre: delpre, }); const op2 = await icpResult2.op(); const serder = icpResult2.serder; const sigs = icpResult2.sigs; const sigers = sigs.map((sig) => new Siger({ qb64: sig })); const ims = d(messagize(serder, sigers)); const atc = ims.substring(serder.size); const embeds = { icp: [serder, atc], }; const recipients = smids.filter((id: string) => memberHab.prefix !== id); client2 .exchanges() .send( localMemberName, groupName, memberHab, '/multisig/icp', { gid: serder.pre, smids: smids, rmids: smids }, embeds, recipients ); return op2; }",
+    "get_states": "export async function getStates(client: SignifyClient, prefixes: string[]) { const participantStates = await Promise.all( prefixes.map((p) => client.keyStates().get(p)) ); return participantStates.map((s) => s[0]); }",
+    "start_args": "export interface StartMultisigInceptArgs { groupName: string; localMemberName: string; participants: string[]; isith?: string | number | string[] | string[][]; nsith?: string | number | string[] | string[][]; toad?: number; wits?: string[]; delpre?: string; }",
+    "accept_args": "export interface AcceptMultisigInceptArgs { groupName: string; localMemberName: string; msgSaid: string; }",
+    "send_calls": [
+      {
+        "enclosing": "acceptMultisigIncept",
+        "awaited": false,
+        "text": "client2 .exchanges() .send( localMemberName, groupName, memberHab, '/multisig/icp', { gid: serder.pre, smids: smids, rmi"
+      },
+      {
+        "enclosing": "addEndRoleMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, groupName, aid, '/multisig/rpy', { gid: multisigAID.prefix }, roleembeds, recp )"
+      },
+      {
+        "enclosing": "admitMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/exn', { gid: multisigAID.prefix }, gembeds, recp )"
+      },
+      {
+        "enclosing": "createAIDMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/icp', { gid: serder.pre, smids: smids, rmids: smids }, "
+      },
+      {
+        "enclosing": "createRegistryMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, 'registry', aid, '/multisig/vcp', { gid: multisigAID.prefix }, regbeds, recp )"
+      },
+      {
+        "enclosing": "delegateMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, multisigAID.name, aid, '/multisig/ixn', { gid: serder.pre, smids: smids, rmids: smi"
+      },
+      {
+        "enclosing": "grantMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/exn', { gid: multisigAID.prefix }, gembeds, recp )"
+      },
+      {
+        "enclosing": "issueCredentialMultisig",
+        "awaited": true,
+        "text": "client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/iss', { gid: multisigAID.prefix }, embeds, recp )"
+      },
+      {
+        "enclosing": "startMultisigIncept",
+        "awaited": true,
+        "text": "client .exchanges() .send( localMemberName, groupName, aid1, '/multisig/icp', { gid: serder.pre, smids: smids, rmids: sm"
+      }
+    ],
+    "scenario_witnesses": [
+      "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
+      "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
+      "BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX"
+    ],
+    "start_uses": {
+      "needle": "startMultisigIncept(",
+      "total": 8,
+      "files": [
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/endroles-by-aid.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-inception.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "accept_uses": {
+      "needle": "acceptMultisigIncept(",
+      "total": 9,
+      "files": [
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/endroles-by-aid.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-inception.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "no_source_file": true,
+    "notes": {
+      "no_upstream_file": "neither helper exists under `src`: the reference writes this orchestration only in its own integration utilities, which is why `PORTING.md` §4.5 gets a Rust-only row",
+      "initiator_addresses_itself": "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop Roadmap 7.7 recorded, the message is addressed to its own sender",
+      "accepter_discards_rmids": "`acceptMultisigIncept` reads `exn.a.rmids ?? smids`, derives `rstates` from it, and then sends `{ gid, smids, rmids: smids }` — the rotation set it read never reaches the members it relays to",
+      "accepter_does_not_await": "the accepting member's `exchanges().send(...)` is not awaited and its result is not returned, so the helper reports success whether or not the message left",
+      "toad_is_parsed_base_ten": "`toad: parseInt(icp.bt)` reads a field the protocol writes in hexadecimal; below ten the two agree, and at ten or more the accepting member derives a different group identifier"
+    }
+  },
+  "key_states": {
+    "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "p": "",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "identifier_record": {
+    "name": "member1",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "calls": [
+    {
+      "name": "start_multisig_incept",
+      "note": "the pinned scenario's own first step: member1 proposes a two-of-two group over three witnesses",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EDOi3yDvRfy_2iTpX9dd4nU--cgEXVBVNwjYTGMxev2m\"}},\"sigs\":[\"AAA9LNCQ4cdQ3eXCT-QPCo2FcoZG7kTKTLfHVaRgLatYkmceD8y8rKP-IOgwrcj6-UgONMkzK0FfKppFN1rb9RsA\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "start_multisig_incept_no_witnesses",
+      "note": "the scenario's second group: the same proposal with no witnesses and a witness threshold of zero",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig2\",\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"BACWHA-k-EojZjFbaUOJw8KzEoXpXQjcShstarTiDjGVzMphjL3JFdYXyboSfx6_ZKo-rqS8QsJ-HrUAv4L04FAA\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig2\",\"exn\":{\"v\":\"KERI10JSON00040e_\",\"t\":\"exn\",\"d\":\"EH2__kgmDC29LgCMrtoOembq9LbQ3y8Qy-I1lC-dHRId\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"d\":\"ELvM_RZ_BreMizGIyMVVu5vhPBpqT-zOuJaSbDynUJ73\"}},\"sigs\":[\"AACyRjMvtJB_ZucxWGP2OQz29z-urAlgcsPz0XTLWDUScKOsAv9UuMoi2tv2CnO6SG_AQE3FoOySursauO6jVZEC\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACWHA-k-EojZjFbaUOJw8KzEoXpXQjcShstarTiDjGVzMphjL3JFdYXyboSfx6_ZKo-rqS8QsJ-HrUAv4L04FAA\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "accept_multisig_incept",
+      "note": "the second half: a member reads the proposal the initiator sent and joins the group it describes",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"ENTuzeCdH30c2sUL-A5pis_aPDLfRQzYrRZ8uY3CfRKL\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EDOi3yDvRfy_2iTpX9dd4nU--cgEXVBVNwjYTGMxev2m\"}},\"sigs\":[\"AADBGbUpN0N2Ok6CxZBB9m6A5GFscVI_9imdUe7DC1bxnzld-A-Wg5sCK54A0SIMthxWgWsyMDDL3o_eOduTeMYH\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "accept_with_divergent_rotation_members",
+      "note": "a proposal whose rmids differ from its smids: the accepting member reads them, uses them for rstates, and relays smids in their place",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON0001e6_\",\"t\":\"icp\",\"d\":\"EJEnhGW1oKBjeo9N9rR4Q7HTx3KRKZnJUcf-yo4ePFbA\",\"i\":\"EJEnhGW1oKBjeo9N9rR4Q7HTx3KRKZnJUcf-yo4ePFbA\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BAC4D5TR8KXahIO0QKtuUh6I3XLSD0ST8m6jp2qRlzYDAJhfIA6cIXxBtVNtAe6mtCplnFXcQpnQTWzSwK9OiWoA\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00046b_\",\"t\":\"exn\",\"d\":\"ELZkhn4elQdvcs5bnFTMo_hxRrbH_xb2FWpr-dVCA4QK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EJEnhGW1oKBjeo9N9rR4Q7HTx3KRKZnJUcf-yo4ePFbA\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON0001e6_\",\"t\":\"icp\",\"d\":\"EJEnhGW1oKBjeo9N9rR4Q7HTx3KRKZnJUcf-yo4ePFbA\",\"i\":\"EJEnhGW1oKBjeo9N9rR4Q7HTx3KRKZnJUcf-yo4ePFbA\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EPgY0Fl-0dUTQDXuyhQaPdeOcgwUjiFNtNgEUwSEm1bJ\"}},\"sigs\":[\"AAAD9ac1v_HKnkrWg6jukp-SiuCbubbuvWadJuD7ku3mbJ3dVCblUGXHW_dG566ejKBSCcaOIudOGacF7clvg-kI\"],\"atc\":\"-LAa5AACAA-e-icp-AABBAC4D5TR8KXahIO0QKtuUh6I3XLSD0ST8m6jp2qRlzYDAJhfIA6cIXxBtVNtAe6mtCplnFXcQpnQTWzSwK9OiWoA\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "accept_with_hexadecimal_witness_threshold",
+      "note": "a proposal whose `bt` is the hexadecimal `a`, which `parseInt` reads as not-a-number",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        }
+      ],
+      "result": null,
+      "error": "Invalid num = NaN, too large to encode."
+    },
+    {
+      "name": "accept_with_two_digit_hexadecimal_threshold",
+      "note": "a proposal whose `bt` is the hexadecimal `10` — sixteen — which `parseInt` reads as ten, so nothing fails and a different group is derived",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000478_\",\"t\":\"icp\",\"d\":\"EGr5G-KvvPNtYFqyspUvLY_ID1GZBjidQFAN1Gs5-GDr\",\"i\":\"EGr5G-KvvPNtYFqyspUvLY_ID1GZBjidQFAN1Gs5-GDr\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"a\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HA\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HB\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HC\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HD\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HE\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HF\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HG\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HH\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HI\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HJ\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HK\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HL\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HM\"],\"c\":[],\"a\":[]},\"sigs\":[\"BAB7LAi6Wl5uMa7Cj6fwE55CH-SyEwJFlk5YYSvn5NIp3hgG1gTtN2yVBTl3JfYU76fsx9gaVNX2V-WEe3WtOBMM\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0006fd_\",\"t\":\"exn\",\"d\":\"ENQnA1JoyLc-1RUtKFTDa2KG29nt_VNThLrxoUhI9EWl\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EGr5G-KvvPNtYFqyspUvLY_ID1GZBjidQFAN1Gs5-GDr\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000478_\",\"t\":\"icp\",\"d\":\"EGr5G-KvvPNtYFqyspUvLY_ID1GZBjidQFAN1Gs5-GDr\",\"i\":\"EGr5G-KvvPNtYFqyspUvLY_ID1GZBjidQFAN1Gs5-GDr\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"a\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HA\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HB\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HC\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HD\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HE\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HF\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HG\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HH\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HI\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HJ\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HK\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HL\",\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2HM\"],\"c\":[],\"a\":[]},\"d\":\"ELxRWSgalNAkryONtOGQyj2qAEDHsVwL9AOy2nkBCWeu\"}},\"sigs\":[\"AABRukR4xvfWGtLvfas9N7PBqJmDKj8kaj-LqO6PIsXX1xgNWPeKvNIT00YKlr--VCoNZX432z98OSlieI5CdQUP\"],\"atc\":\"-LAa5AACAA-e-icp-AABBAB7LAi6Wl5uMa7Cj6fwE55CH-SyEwJFlk5YYSvn5NIp3hgG1gTtN2yVBTl3JfYU76fsx9gaVNX2V-WEe3WtOBMM\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "group.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "scenario_group_names": [
+      "multisig inception",
+      "multisig",
+      "multisig2"
+    ],
+    "scenario_member_names": [
+      "member1",
+      "member2"
+    ],
+    "scenario_route": [
+      "/multisig/icp"
+    ],
+    "initiator_paths": [
+      "GET /identifiers/member1",
+      "GET /states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "GET /states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "POST /identifiers",
+      "POST /identifiers/member1/exchanges"
+    ],
+    "proposal_route": "/multisig/icp",
+    "proposal_addressed_to": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "proposal_sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "proposal_delivered_to": [
+      "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+    ],
+    "group_prefix": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "note": "the pinned scenario has no unit-test counterpart, so what it publishes is the shape of the workflow rather than an address: two group names, two member names, one route, and three witnesses. Each is driven here through the reference's own helpers."
+  },
+  "reference_quirks": {
+    "the_initiator_addresses_its_proposal_to_itself": {
+      "declaration": "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop Roadmap 7.7 recorded, the message is addressed to its own sender",
+      "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "addressed_to": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "delivered_to": [
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "note": "`startMultisigIncept` passes `participants` as the recipient list and the scenario puts the local member first, so `Exchanges.send` — which addresses the message to `recipients[0]` and delivers it to all of them — produces an `exn` whose `rp` is its own `i`. Every other member receives a proposal addressed to the proposer.",
+      "rust_decision": "the addressee is a separate argument from the delivery list (Roadmap 7.7), and the local member is removed from the delivery list here as the *accepting* helper already does — so a proposal is addressed to a peer and delivered to the peers."
+    },
+    "the_accepting_member_discards_the_rotation_set": {
+      "declaration": "`acceptMultisigIncept` reads `exn.a.rmids ?? smids`, derives `rstates` from it, and then sends `{ gid, smids, rmids: smids }` — the rotation set it read never reaches the members it relays to",
+      "read_rmids": [
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "relayed_rmids": [
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "relayed_smids": [
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "note": "`acceptMultisigIncept` computes `rmids` from the proposal and derives `rstates` from it, then relays `{ gid, smids, rmids: smids }` — so a third member joining from the accepter's message sees the signing set where the rotation set belongs",
+      "rust_decision": "the rotation set read from the proposal is the rotation set relayed. Nothing is silently substituted, and a proposal whose two sets differ survives the round."
+    },
+    "the_accepting_member_does_not_await_its_message": {
+      "send_calls": [
+        {
+          "enclosing": "acceptMultisigIncept",
+          "awaited": false,
+          "text": "client2 .exchanges() .send( localMemberName, groupName, memberHab, '/multisig/icp', { gid: serder.pre, smids: smids, rmi"
+        },
+        {
+          "enclosing": "startMultisigIncept",
+          "awaited": true,
+          "text": "client .exchanges() .send( localMemberName, groupName, aid1, '/multisig/icp', { gid: serder.pre, smids: smids, rmids: sm"
+        }
+      ],
+      "note": "the accepting helper's `exchanges().send(...)` is a floating promise whose result is discarded, so the helper returns its operation whether or not the message ever left — and a transport failure there is unobservable",
+      "rust_decision": "awaited. The proposal is part of joining, so `accept_inception` fails when it fails; a member that could not tell its peers has not joined."
+    },
+    "the_witness_threshold_is_read_in_the_wrong_base": {
+      "declaration": "`toad: parseInt(icp.bt)` reads a field the protocol writes in hexadecimal; below ten the two agree, and at ten or more the accepting member derives a different group identifier",
+      "hexadecimal_bt": "a",
+      "parsed_as": null,
+      "correct_value": 10,
+      "loud_failure": "Invalid num = NaN, too large to encode.",
+      "silent": {
+        "proposed_bt": "10",
+        "proposed_bt_means": 16,
+        "rebuilt_bt": "a",
+        "rebuilt_bt_means": 10,
+        "thresholds_agree": false,
+        "rebuilt_group": "EGr5G-KvvPNtYFqyspUvLY_ID1GZBjidQFAN1Gs5-GDr",
+        "error": null
+      },
+      "note": "`toad: parseInt(icp.bt)` reads a field the protocol writes in hexadecimal. Below ten the two agree. `'a'` is ten and parses to `NaN`, which throws — loudly, at least. `'10'` is sixteen and parses to ten, which throws nothing: the accepting member rebuilds the inception with a different witness threshold, derives a different group identifier, and the two members never converge on a group at all.",
+      "rust_decision": "the threshold is not re-parsed at all: the accepting member takes the proposal's own witness configuration as the typed value Roadmap 4.1 decoded, so there is no string to read in the wrong base. This is the same class of question Roadmap 6.7 raised about `KeyStates.query`, and unlike that one it is settled — `bt` is written by `toad.toString(16)` in the reference's own builder, so hexadecimal is not a guess."
+    },
+    "there_is_no_source_file": {
+      "scan": {
+        "needle": "startMultisigIncept(",
+        "total": 8,
+        "files": [
+          {
+            "file": "test-integration/delegation-multisig.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/endroles-by-aid.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig-inception.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 1
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "neither helper exists under `src`; the reference writes this orchestration only in its own integration utilities, so there is no exported API to port and no unit test to reproduce",
+      "rust_decision": "ported as a workflow in `signify-client::multisig`, and recorded in §4.5 as a Rust-only row — the fifth, after Roadmap 5.1, 5.2, 5.4, and 5.5."
+    }
+  }
+}

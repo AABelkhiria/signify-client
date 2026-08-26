@@ -93,5 +93,9 @@ harness = false
 name = "groups"
 harness = false
 
+[[bench]]
+name = "multisig_inception"
+harness = false
+
 [lints]
 workspace = true

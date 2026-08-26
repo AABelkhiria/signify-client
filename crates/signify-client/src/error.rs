@@ -18,6 +18,7 @@ use signify_http::response::ResponseError;
 use signify_http::signature::authentication::AuthenticationError;
 use signify_http::signature::transport::{ResponseAuthenticationError, SigningError};
 use signify_http::transport::TransportError;
+use signify_keri::attachment::AttachmentError;
 use signify_keri::controller::ControllerError;
 use signify_keri::event::EventError;
 use signify_keri::identifier::IdentifierError;
@@ -192,6 +193,11 @@ pub enum ClientError {
         /// Underlying failure.
         source: Box<EventError>,
     },
+    /// A signed message's CESR attachment could not be framed.
+    Attachment {
+        /// Underlying failure.
+        source: Box<AttachmentError>,
+    },
     /// A credential names an issuer that is not the identifier being used to anchor it.
     ///
     /// The reference never compares the two: the credential's issuer is `args.i ?? hab.prefix` and
@@ -289,6 +295,33 @@ pub enum ClientError {
         route: &'static str,
         /// The wire label that was missing or unusable.
         label: &'static str,
+    },
+    /// A group inception named the local member nowhere among its participants.
+    ///
+    /// The reference never compares them: it passes the member's habitat to `create` and the
+    /// participant list to `send`, so a member can propose a group it is not in — and then hold a
+    /// key the group's own event does not name.
+    LocalMemberNotAParticipant {
+        /// The local member's prefix.
+        member: String,
+    },
+    /// A group inception named only the local member.
+    ///
+    /// There is nobody to propose to and no signature but this one, which is an identifier rather
+    /// than a group. The reference sends the proposal to itself.
+    LonelyGroup,
+    /// A group inception named a member the agent knows no key state for.
+    ///
+    /// The reference reads `states[0]` without checking there is one, so an unknown participant
+    /// reaches the group's key list as `undefined`.
+    UnknownGroupMember {
+        /// The member whose key state was missing.
+        member: String,
+    },
+    /// A message read as a group inception proposal is not one.
+    NotAnInceptionProposal {
+        /// What was found in its place.
+        found: &'static str,
     },
     /// A group request was proposed with no signature at all.
     ///
@@ -420,12 +453,27 @@ impl fmt::Display for ClientError {
                 "an IPEX {route} message must name at least one recipient to be delivered to"
             ),
             Self::Exchange { source } => write!(formatter, "exchange message construction failed: {source}"),
+            Self::Attachment { source } => write!(formatter, "attachment framing failed: {source}"),
             Self::ExchangeEmbedMismatch { route, expected, found } => write!(
                 formatter,
                 "an exchange on {route} must embed {expected}, but it embeds {found}"
             ),
             Self::MissingGroupAttribute { route, label } => {
                 write!(formatter, "a multisig proposal on {route} must name a usable {label}")
+            }
+            Self::LocalMemberNotAParticipant { member } => write!(
+                formatter,
+                "the local member {member} is not among the group's participants"
+            ),
+            Self::LonelyGroup => formatter.write_str("a multisig group must name a member besides the local one"),
+            Self::UnknownGroupMember { member } => {
+                write!(formatter, "the agent knows no key state for the group member {member}")
+            }
+            Self::NotAnInceptionProposal { found } => {
+                write!(
+                    formatter,
+                    "a group inception proposal was expected, but {found} was found"
+                )
             }
             Self::UnsignedGroupRequest => {
                 formatter.write_str("a group request must carry at least one signature to be relayed")
@@ -482,6 +530,7 @@ impl Error for ClientError {
             Self::Said { source } => Some(source),
             Self::Registry { source } => Some(source),
             Self::Exchange { source } => Some(source),
+            Self::Attachment { source } => Some(source),
             Self::Transaction { source } => Some(source),
             Self::Credential { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
@@ -498,6 +547,10 @@ impl Error for ClientError {
             | Self::NoIpexRecipients { .. }
             | Self::ExchangeEmbedMismatch { .. }
             | Self::MissingGroupAttribute { .. }
+            | Self::LocalMemberNotAParticipant { .. }
+            | Self::LonelyGroup
+            | Self::UnknownGroupMember { .. }
+            | Self::NotAnInceptionProposal { .. }
             | Self::UnsignedGroupRequest
             | Self::EmptyGroupMembers
             | Self::NoExchangeRecipients
@@ -540,6 +593,7 @@ layered!(CesrError, Cesr);
 layered!(IdentifierError, Identifier);
 layered!(RegistryError, Registry);
 layered!(EventError, Exchange);
+layered!(AttachmentError, Attachment);
 layered!(SaidError, Said);
 layered!(TransactionError, Transaction);
 layered!(CredentialError, Credential);
