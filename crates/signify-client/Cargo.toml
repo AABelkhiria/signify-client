@@ -81,5 +81,9 @@ harness = false
 name = "escrows"
 harness = false
 
+[[bench]]
+name = "exchanges"
+harness = false
+
 [lints]
 workspace = true

@@ -6,18 +6,16 @@
 //! answer with [`responded`](Challenges::responded), which is what puts an `authenticated` verdict
 //! into that identifier's contact record.
 //!
-//! This ports `Challenges` from the pinned `src/keri/app/contacting.ts`, minus `respond`.
+//! This ports `Challenges` from the pinned `src/keri/app/contacting.ts` — all four methods.
 //!
-//! # `respond` is Roadmap 7.7's
+//! # `respond` arrived with Roadmap 7.7
 //!
 //! The reference's fourth method reads the habitat and then calls
-//! `exchanges.send(name, 'challenge', hab, '/challenge/response', {words}, {}, [recipient])` — so
-//! it needs `Exchanges::{create_exchange_message, send, send_from_events}` whole, which is the
-//! write half of Roadmap 7.7 and which Roadmap 7.4 does not have as a prerequisite. It is recorded
-//! in `PORTING.md` §5.13 and moved rather than duplicated. Until then a caller **can still answer a
-//! challenge**: the message itself is Roadmap 3.8's `exchange` builder over the
-//! [`CHALLENGE_RESPONSE_ROUTE`] route, signed with the identifier's keeper; only the generic
-//! submission is missing.
+//! `exchanges.send(name, 'challenge', hab, '/challenge/response', {words}, {}, [recipient])`, so it
+//! needs the whole generic submission that is Roadmap 7.7's write half. Roadmap 7.4 did not have
+//! 7.7 as a prerequisite, so `PORTING.md` §5.13 moved the capability rather than duplicating it;
+//! [`Challenges::respond`] is that capability, delivered here as a wrapper over
+//! [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) exactly as upstream is.
 //!
 //! # A strength is an entropy size, not a number
 //!
@@ -28,6 +26,7 @@
 
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
+use signify_keri::event::timestamp::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
@@ -36,6 +35,7 @@ use signify_types::api::{Challenge, ChallengeOperation};
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::sad_error;
 use crate::endpoint::decode_json;
+use crate::endpoint::exchanges::{ExchangeDraft, SentExchange};
 use crate::error::ClientError;
 
 /// Path segment a challenge word list is generated under.
@@ -59,6 +59,12 @@ pub const CHALLENGE_RESPONSE_ROUTE: &str = "/challenge/response";
 
 /// The exchange topic a challenge answer is filed under; the reference's `'challenge'`.
 pub const CHALLENGE_TOPIC: &str = "challenge";
+
+/// Field label carrying the word list, in both a verification body and a response message.
+///
+/// One label, two places: `verify` sends `{"words": …}` to the agent and `respond` writes the same
+/// label into the exchange message's attribute block. Naming it once is what keeps them equal.
+pub const CHALLENGE_WORDS_LABEL: &str = "words";
 
 /// How much entropy a generated challenge carries, in bits.
 ///
@@ -188,7 +194,7 @@ impl<'client> Challenges<'client> {
         }
         let mut body = Sad::new();
         body.insert(
-            "words",
+            CHALLENGE_WORDS_LABEL,
             SadValue::Array(words.iter().map(|word| SadValue::text(word.clone())).collect()),
         )
         .map_err(sad_error)?;
@@ -217,6 +223,50 @@ impl<'client> Challenges<'client> {
         let request =
             ClientRequest::new(Method::Put, Self::verify_path(source)?).body(body.to_json_bytes().map_err(sad_error)?);
         self.client.fetch(request).await.map(|_| ())
+    }
+
+    /// Answers a challenge by signing its words into an exchange message.
+    ///
+    /// `alias` names the identifier being challenged — the one that signs and the one the message
+    /// is posted under, which upstream are two arguments that need not agree (see
+    /// [`Exchanges`](crate::endpoint::exchanges::Exchanges)). The message goes out on
+    /// [`CHALLENGE_RESPONSE_ROUTE`] under [`CHALLENGE_TOPIC`], addressed and delivered to
+    /// `recipient` — the challenger, who will then ask their own agent to
+    /// [`verify`](Self::verify) it.
+    ///
+    /// The timestamp is a required argument, where the reference reads the system clock: a
+    /// message's `dt` is inside its SAID and inside every signature over it. That is Roadmap 3.8's
+    /// decision, applied again.
+    ///
+    /// An **empty word list** is refused, as [`Self::verify`] refuses one: it would answer a
+    /// challenge nobody issued.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::EmptyChallengeWords`] for an empty word list, plus whatever
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) returns.
+    pub async fn respond(
+        &self,
+        alias: &str,
+        recipient: &IdentifierPrefix,
+        words: &[String],
+        timestamp: Timestamp,
+    ) -> Result<SentExchange, ClientError> {
+        if words.is_empty() {
+            return Err(ClientError::EmptyChallengeWords);
+        }
+        let mut payload = Sad::new();
+        payload
+            .insert(
+                CHALLENGE_WORDS_LABEL,
+                SadValue::Array(words.iter().map(|word| SadValue::text(word.clone())).collect()),
+            )
+            .map_err(sad_error)?;
+        let draft = ExchangeDraft::new(CHALLENGE_RESPONSE_ROUTE, recipient.clone(), timestamp).payload(payload);
+        self.client
+            .exchanges()
+            .send(alias, CHALLENGE_TOPIC, &draft, core::slice::from_ref(recipient))
+            .await
     }
 
     /// Builds the path `verify` and `responded` share.
@@ -355,6 +405,43 @@ mod tests {
             rendered,
             r#"{"words":["shell","gloom","mimic","cereal","stool","furnace","nominee","nation","sauce","sausage","rather","venue"]}"#
         );
+        Ok(())
+    }
+
+    #[test]
+    fn a_response_writes_the_same_label_the_verification_does() -> Result<(), Box<dyn Error>> {
+        // `verify` sends `{"words": …}` to the agent and `respond` writes the same label into the
+        // message's attribute block; upstream they are two separate literals.
+        assert_eq!(CHALLENGE_WORDS_LABEL, "words");
+
+        let words = words();
+        let mut verification = Sad::new();
+        verification.insert(
+            CHALLENGE_WORDS_LABEL,
+            SadValue::Array(words.iter().map(|word| SadValue::text(word.clone())).collect()),
+        )?;
+        let mut attributes = Sad::new();
+        attributes.insert(
+            CHALLENGE_WORDS_LABEL,
+            SadValue::Array(words.iter().map(|word| SadValue::text(word.clone())).collect()),
+        )?;
+        assert_eq!(verification.to_json_bytes()?, attributes.to_json_bytes()?);
+        Ok(())
+    }
+
+    #[test]
+    fn a_response_is_addressed_and_routed_by_the_references_own_constants() -> Result<(), Box<dyn Error>> {
+        let recipient = IdentifierPrefix::from_qb64(SOURCE)?;
+        let draft = ExchangeDraft::new(
+            CHALLENGE_RESPONSE_ROUTE,
+            recipient.clone(),
+            "2023-11-14T22:13:20.123000+00:00".parse()?,
+        );
+        assert_eq!(draft.route(), "/challenge/response");
+        // The challenger is both the addressee and the one recipient: unlike a multisig proposal,
+        // an answer has exactly one reader.
+        assert_eq!(draft.addressee(), &recipient);
+        assert_eq!(CHALLENGE_TOPIC, "challenge");
         Ok(())
     }
 

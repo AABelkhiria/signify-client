@@ -19,6 +19,7 @@ use signify_http::signature::authentication::AuthenticationError;
 use signify_http::signature::transport::{ResponseAuthenticationError, SigningError};
 use signify_http::transport::TransportError;
 use signify_keri::controller::ControllerError;
+use signify_keri::event::EventError;
 use signify_keri::identifier::IdentifierError;
 use signify_keri::manager::ManagerError;
 use signify_keri::prefix::PrefixError;
@@ -186,6 +187,11 @@ pub enum ClientError {
         /// Underlying failure.
         source: Box<RegistryError>,
     },
+    /// An exchange message could not be built.
+    Exchange {
+        /// Underlying failure.
+        source: Box<EventError>,
+    },
     /// A credential names an issuer that is not the identifier being used to anchor it.
     ///
     /// The reference never compares the two: the credential's issuer is `args.i ?? hab.prefix` and
@@ -259,6 +265,18 @@ pub enum ClientError {
         /// The value that was asked for.
         bits: u32,
     },
+    /// An exchange message was submitted with no recipient at all.
+    ///
+    /// The reference's `sendFromEvents` sends `"rec":[]` unchallenged — its own unit test does
+    /// exactly that — while `send` throws, and only because its loop cannot run. Here both refuse
+    /// it: asking the agent to deliver a message to nobody is a caller mistake, which is the same
+    /// reasoning Roadmap 6.12 applied to an IPEX submission.
+    NoExchangeRecipients,
+    /// An exchange message was submitted under no topic at all.
+    ///
+    /// The topic is what the agent files the recipient's notification under, so an empty one asks
+    /// for a notification nobody can find. The reference sends it unchallenged.
+    EmptyExchangeTopic,
     /// A challenge verification named no words at all.
     ///
     /// The reference sends `{"words":[]}`, asking the agent to confirm that an identifier signed
@@ -357,6 +375,11 @@ impl fmt::Display for ClientError {
                 formatter,
                 "an IPEX {route} message must name at least one recipient to be delivered to"
             ),
+            Self::Exchange { source } => write!(formatter, "exchange message construction failed: {source}"),
+            Self::NoExchangeRecipients => {
+                formatter.write_str("an exchange message must name at least one recipient to be delivered to")
+            }
+            Self::EmptyExchangeTopic => formatter.write_str("an exchange message must be submitted under a topic"),
             Self::EmptyKeyStateListing => formatter.write_str("a key-state listing must name at least one identifier"),
             Self::NoSigningKey { alias } => {
                 write!(formatter, "the identifier {alias:?} holds no signing key")
@@ -403,6 +426,7 @@ impl Error for ClientError {
             Self::Identifier { source } => Some(source),
             Self::Said { source } => Some(source),
             Self::Registry { source } => Some(source),
+            Self::Exchange { source } => Some(source),
             Self::Transaction { source } => Some(source),
             Self::Credential { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
@@ -417,6 +441,8 @@ impl Error for ClientError {
             | Self::EstablishmentOnlyIssuer { .. }
             | Self::CredentialIssuerMismatch { .. }
             | Self::NoIpexRecipients { .. }
+            | Self::NoExchangeRecipients
+            | Self::EmptyExchangeTopic
             | Self::EmptyKeyStateListing
             | Self::NoSigningKey { .. }
             | Self::PollingStopped { .. }
@@ -454,6 +480,7 @@ layered!(CryptoError, Crypto);
 layered!(CesrError, Cesr);
 layered!(IdentifierError, Identifier);
 layered!(RegistryError, Registry);
+layered!(EventError, Exchange);
 layered!(SaidError, Said);
 layered!(TransactionError, Transaction);
 layered!(CredentialError, Credential);

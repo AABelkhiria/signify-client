@@ -56,6 +56,7 @@ use crate::endpoint::config::Config;
 use crate::endpoint::contacts::Contacts;
 use crate::endpoint::credentials::Credentials;
 use crate::endpoint::escrows::Escrows;
+use crate::endpoint::exchanges::Exchanges;
 use crate::endpoint::identifiers::Identifiers;
 use crate::endpoint::ipex::Ipex;
 use crate::endpoint::key_events::KeyEvents;
@@ -539,6 +540,12 @@ impl ConnectedClient {
     #[must_use]
     pub const fn escrows(&self) -> Escrows<'_> {
         Escrows::new(self)
+    }
+
+    /// Returns the exchange endpoint family: peer-to-peer messages and their delivery.
+    #[must_use]
+    pub const fn exchanges(&self) -> Exchanges<'_> {
+        Exchanges::new(self)
     }
 
     /// Returns a poller for long-running agent operations.

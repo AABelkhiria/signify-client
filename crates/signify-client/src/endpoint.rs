@@ -18,7 +18,8 @@
 //! other at all, 7.3 [`contacts`], which is what a client remembers about them afterwards, and 7.4
 //! [`challenges`], which is how it comes to believe any of it. Roadmap 7.5 adds
 //! [`notifications`], which is how the agent tells the controller there is something to do, and 7.6
-//! [`escrows`], which is what the agent received and could not yet accept.
+//! [`escrows`], which is what the agent received and could not yet accept, and 7.7 [`exchanges`],
+//! which is how one controller says something to another that is not a key event.
 
 pub(crate) mod body;
 pub mod challenges;
@@ -26,6 +27,7 @@ pub mod config;
 pub mod contacts;
 pub mod credentials;
 pub mod escrows;
+pub mod exchanges;
 pub mod identifiers;
 pub mod ipex;
 pub mod key_events;

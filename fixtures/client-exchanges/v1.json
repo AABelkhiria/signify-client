@@ -1,0 +1,797 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-25",
+  "sources": [
+    "src/keri/app/exchanging.ts",
+    "src/keri/app/contacting.ts",
+    "src/keri/app/credentialing.ts",
+    "src/types/keria-api-schema.ts",
+    "test/app/exchanging.test.ts",
+    "test/app/contacting.test.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "identifier_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "recipient": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "second_recipient": "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1",
+    "note": "`Exchanges` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The clock and the agent's key are pinned, and the identifier is the reference's own `mockGetAID` read out of `test/app/test-utils.ts` — which is why `exn.i` here is the literal `contacting.test.ts` asserts. Signing uses a real keeper at the reference's production Argon2 profile, so this generator takes several seconds. `PUBLIC TEST MATERIAL`: the passcode and the encrypted salt are the pinned tests' own and have never protected anything."
+  },
+  "declarations": {
+    "create_signature": [
+      "sender: HabState",
+      "route: string",
+      "payload: Dict<any>",
+      "embeds: Dict<any>",
+      "recipient: string",
+      "datetime?: string",
+      "dig?: string"
+    ],
+    "create_keeper": "keeper = this.client.manager!.get(sender)",
+    "create_exchange_call": "exchange( route, payload, sender['prefix'], recipient, datetime, dig, undefined, embeds )",
+    "create_sign": "sigs = await keeper.sign(b(exn.raw))",
+    "create_return": "return [exn, sigs, d(end)];",
+    "send_signature": [
+      "name: string",
+      "topic: string",
+      "sender: HabState",
+      "route: string",
+      "payload: Dict<any>",
+      "embeds: Dict<any>",
+      "recipients: string[]"
+    ],
+    "send_body": "{ for (const recipient of recipients) { const [exn, sigs, atc] = await this.createExchangeMessage( sender, route, payload, embeds, recipient ); return await this.sendFromEvents( name, topic, exn, sigs, atc, recipients ); } throw new Error('recipients list was empty'); }",
+    "send_loop": "for (const recipient of recipients) { const [exn, sigs, atc] = await this.createExchangeMessage( sender, route, payload, embeds, recipient ); return await this.sendFromEvents( name, topic, exn, sigs, atc, recipients ); }",
+    "send_throw": "throw new Error('recipients list was empty');",
+    "send_return_type": "Promise<Exn>",
+    "send_from_events_signature": [
+      "name: string",
+      "topic: string",
+      "exn: Serder",
+      "sigs: string[]",
+      "atc: string",
+      "recipients: string[]"
+    ],
+    "send_from_events_path": "path = `/identifiers/${name}/exchanges`",
+    "send_from_events_data": "data: any = { tpc: topic, exn: exn.sad, sigs: sigs, atc: atc, rec: recipients, }",
+    "send_from_events_method": "method = 'POST'",
+    "send_from_events_return_type": "Promise<Exn>",
+    "get_path": "path = `/exchanges/${said}`",
+    "get_signature": [
+      "said: string"
+    ],
+    "get_return_type": "Promise<ExchangeResourceV1>",
+    "get_return": "await res.json()",
+    "exchanges_members": [
+      "client",
+      "<constructor>",
+      "createExchangeMessage",
+      "send",
+      "sendFromEvents",
+      "get"
+    ],
+    "respond_body": "{ const hab = await this.client.identifiers().get(name); const exchanges = this.client.exchanges(); const resp = await exchanges.send( name, 'challenge', hab, '/challenge/response', { words: words }, {}, [recipient] ); return resp; }",
+    "respond_return_type": "Promise<Exn>",
+    "submit_grant_return_type": "Promise<ExchangeOperation>",
+    "route_constants": {
+      "MULTISIG_ICP_ROUTE": "/multisig/icp",
+      "MULTISIG_ROT_ROUTE": "/multisig/rot",
+      "MULTISIG_IXN_ROUTE": "/multisig/ixn",
+      "MULTISIG_RPY_ROUTE": "/multisig/rpy",
+      "MULTISIG_VCP_ROUTE": "/multisig/vcp",
+      "MULTISIG_ISS_ROUTE": "/multisig/iss",
+      "MULTISIG_EXN_ROUTE": "/multisig/exn",
+      "MULTISIG_REV_ROUTE": "/multisig/rev",
+      "IPEX_GRANT_ROUTE": "/ipex/grant",
+      "IPEX_OFFER_ROUTE": "/ipex/offer",
+      "IPEX_APPLY_ROUTE": "/ipex/apply",
+      "IPEX_AGREE_ROUTE": "/ipex/agree",
+      "IPEX_ADMIT_ROUTE": "/ipex/admit"
+    },
+    "exn_schema": "Exn: | components['schemas']['EXN_V_1'] | components['schemas']['EXN_V_2'];",
+    "exchange_resource_schema": "ExchangeResource: { exn: components['schemas']['Exn']; pathed: { [key: string]: unknown; }; };",
+    "exchanges_accessor_uses": {
+      "needle": ".exchanges()",
+      "total": 53,
+      "files": [
+        {
+          "file": "src/keri/app/contacting.ts",
+          "count": 1
+        },
+        {
+          "file": "src/keri/app/credentialing.ts",
+          "count": 5
+        },
+        {
+          "file": "test-integration/credentials.test.ts",
+          "count": 4
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 7
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 21
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 9
+        },
+        {
+          "file": "test/app/clienting.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test/app/exchanging.test.ts",
+          "count": 2
+        }
+      ],
+      "scanned_files": 117
+    },
+    "send_uses": {
+      "needle": ".send(",
+      "total": 38,
+      "files": [
+        {
+          "file": "src/keri/app/contacting.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 5
+        },
+        {
+          "file": "test-integration/multisig-join.test.ts",
+          "count": 3
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "count": 20
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 9
+        }
+      ],
+      "scanned_files": 117
+    },
+    "send_from_events_uses": {
+      "needle": "sendFromEvents",
+      "total": 3,
+      "files": [
+        {
+          "file": "src/keri/app/exchanging.ts",
+          "count": 2
+        },
+        {
+          "file": "test/app/exchanging.test.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "pinned_words": [
+      "shell",
+      "gloom",
+      "mimic",
+      "cereal",
+      "stool",
+      "furnace",
+      "nominee",
+      "nation",
+      "sauce",
+      "sausage",
+      "rather",
+      "venue"
+    ],
+    "notes": {
+      "dead_loop": "`send` iterates `recipients` and `return`s inside the loop, so only the first iteration ever runs: the message is addressed to `recipients[0]` and delivered to all of them. The `throw` after the loop is reachable only for an empty list.",
+      "clock": "`send` calls `createExchangeMessage` with five arguments, so `datetime` and `dig` are `undefined` and `exchange(...)` falls back to `nowUTC()` — the message's `dt`, and therefore its SAID and every signature over it, depend on when it was built",
+      "two_identifiers": "`send(name, topic, sender, ...)` takes the alias that addresses the resource and the identifier whose keeper signs as two independent arguments; nothing compares them",
+      "return_types": "`sendFromEvents` declares `Promise<Exn>` while the sibling `Ipex.submit*` methods declare `Promise<ExchangeOperation>` for the same shape of POST to the same agent. Both are `res.json()` casts, so at most one can be right and neither is checked.",
+      "routes": "the thirteen exported route constants are Roadmap 8.1's, not this item's: they are recorded here to pin the split, and because `send`'s route argument is the plain `string` they are values of"
+    }
+  },
+  "mock_shortfall": {
+    "identifier_record": {
+      "name": "aid1",
+      "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "salty": {
+        "sxlt": "<SXLT>",
+        "pidx": 0,
+        "kidx": 0,
+        "stem": "signify:aid",
+        "tier": "low",
+        "dcode": "E",
+        "icodes": [
+          "A"
+        ],
+        "ncodes": [
+          "A"
+        ],
+        "transferable": true,
+        "sxlt_opens_to": "0AA0123456789abcdefghijk"
+      },
+      "transferable": true,
+      "state": {
+        "vn": [
+          1,
+          0
+        ],
+        "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "s": "0",
+        "p": "",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "f": "0",
+        "dt": "2023-08-21T22:30:46.473545+00:00",
+        "et": "icp",
+        "kt": "1",
+        "k": [
+          "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+        ],
+        "nt": "1",
+        "n": [
+          "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+        ],
+        "bt": "0",
+        "b": [],
+        "c": [],
+        "ee": {
+          "s": "0",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "br": [],
+          "ba": []
+        },
+        "di": ""
+      },
+      "windexes": [],
+      "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+    },
+    "identifier_record_fields": [
+      "name",
+      "prefix",
+      "salty",
+      "transferable",
+      "state",
+      "windexes"
+    ],
+    "identifier_record_missing": [
+      "icp_dt"
+    ],
+    "added_inception_stamp": "2023-08-21T22:30:46.473545+00:00",
+    "note": "`mockGetAID` omits `icp_dt`, which the generated `HabState` schema declares required. The field is added here so the record decodes on the Rust side; nothing derived reads it. Roadmap 6.11 recorded the same omission."
+  },
+  "calls": [
+    {
+      "name": "create_challenge_response",
+      "note": "the message `Challenges.respond` builds: a challenge response with a word list and no embeds",
+      "requests": [],
+      "result": {
+        "exn": {
+          "v": "KERI10JSON0001c0_",
+          "t": "exn",
+          "d": "EEr0kVtjzK1osjqtfIQstDfPmy30EIGEYT-2pabo2EQg",
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "rp": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "p": "",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": "/challenge/response",
+          "q": {},
+          "a": {
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "words": [
+              "shell",
+              "gloom",
+              "mimic",
+              "cereal",
+              "stool",
+              "furnace",
+              "nominee",
+              "nation",
+              "sauce",
+              "sausage",
+              "rather",
+              "venue"
+            ]
+          },
+          "e": {}
+        },
+        "raw": "{\"v\":\"KERI10JSON0001c0_\",\"t\":\"exn\",\"d\":\"EEr0kVtjzK1osjqtfIQstDfPmy30EIGEYT-2pabo2EQg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/challenge/response\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"words\":[\"shell\",\"gloom\",\"mimic\",\"cereal\",\"stool\",\"furnace\",\"nominee\",\"nation\",\"sauce\",\"sausage\",\"rather\",\"venue\"]},\"e\":{}}",
+        "sigs": [
+          "AADFj85z7gx2lIWVAVf5kWmHl_8Ke9dFq9knr7KVrhAZ-Gk8kjHy3KH47H-GjNgKUw1xDj-7nTio1y8bmr-VYPgM"
+        ],
+        "atc": ""
+      },
+      "error": null
+    },
+    {
+      "name": "create_multisig_icp_with_embed",
+      "note": "a multisig inception proposal carrying an embedded inception and its signature, so the pathed attachment stream is non-empty",
+      "requests": [],
+      "result": {
+        "exn": {
+          "v": "KERI10JSON0002fa_",
+          "t": "exn",
+          "d": "ED2P1FwGJVQdNCE_e9dVH6tODPAK0KWYcNPx4DBBhz1j",
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "rp": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "p": "",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": "/multisig/icp",
+          "q": {},
+          "a": {
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "gid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "smids": [
+              "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+            ],
+            "rmids": [
+              "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+            ]
+          },
+          "e": {
+            "icp": {
+              "v": "KERI10JSON0000d3_",
+              "t": "icp",
+              "d": "",
+              "i": "",
+              "s": "0",
+              "kt": "1",
+              "k": [
+                "DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e"
+              ],
+              "nt": "1",
+              "n": [
+                "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj"
+              ],
+              "bt": "0",
+              "b": [],
+              "c": [],
+              "a": []
+            },
+            "d": "EBizoZIws8udMEvRMYT9UJ9H-01nIRruZpL4XoYXjs0I"
+          }
+        },
+        "raw": "{\"v\":\"KERI10JSON0002fa_\",\"t\":\"exn\",\"d\":\"ED2P1FwGJVQdNCE_e9dVH6tODPAK0KWYcNPx4DBBhz1j\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"d\":\"EBizoZIws8udMEvRMYT9UJ9H-01nIRruZpL4XoYXjs0I\"}}",
+        "sigs": [
+          "AABd2g3hdJbOFKx9qXcOkeXEEpxoHnw217WAb1ky3B2zG4m_wmNseSssOSQ5V_RG5vC4XeINtVXHhke0dNjuxP4A"
+        ],
+        "atc": "-LAZ5AACAA-e-icpAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
+      },
+      "error": null
+    },
+    {
+      "name": "create_with_explicit_datetime_and_prior",
+      "note": "the two arguments `send` never passes: an explicit timestamp and a prior message digest",
+      "requests": [],
+      "result": {
+        "exn": {
+          "v": "KERI10JSON0001a8_",
+          "t": "exn",
+          "d": "EIZ0_sl5sQNR5_AaR-Vlf6rw_qPhbEyCBJT4h2z7i8UP",
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "rp": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "p": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "dt": "2023-08-30T17:22:54.183000+00:00",
+          "r": "/multisig/vcp",
+          "q": {},
+          "a": {
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+            "gid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK"
+          },
+          "e": {}
+        },
+        "raw": "{\"v\":\"KERI10JSON0001a8_\",\"t\":\"exn\",\"d\":\"EIZ0_sl5sQNR5_AaR-Vlf6rw_qPhbEyCBJT4h2z7i8UP\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"dt\":\"2023-08-30T17:22:54.183000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}}",
+        "sigs": [
+          "AAArz6AKlhe-T7uz9V0wXrRJcRy_uCefCtCFuXyuA3dTyufhE1JVJY1w7x8RlO1nK21xxjNFZ5YDoLLBBw5ZQ8ML"
+        ],
+        "atc": ""
+      },
+      "error": null
+    },
+    {
+      "name": "send_from_events_pinned",
+      "note": "the pinned unit test's own call: an empty topic, one empty signature, an empty attachment, and an empty recipient list",
+      "requests": [
+        {
+          "path": "/identifiers/aid1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"\",\"exn\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"\"],\"atc\":\"\",\"rec\":[]}"
+        }
+      ],
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "send_single_recipient",
+      "note": "one recipient: the ordinary case, and the shape `Challenges.respond` produces",
+      "requests": [
+        {
+          "path": "/identifiers/aid1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00017c_\",\"t\":\"exn\",\"d\":\"EJZbsjsPerWuE9Lwzpo26YsYDmwo2IKoSSnx8sMp54As\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}},\"sigs\":[\"AAAZCmJaUbjEtXfUgg2GRMvXA1aoeQMUQYAnLZWxHwyCyxuvla_eu5XhlBYvbbC0NUOO7SZT6Pq9Uc6hRzfg9HoC\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "send_two_recipients",
+      "note": "two recipients, which is how `multisig.test.ts` calls it eighteen times: the loop returns on its first pass, so the message is addressed to the first and delivered to both",
+      "requests": [
+        {
+          "path": "/identifiers/aid1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00017c_\",\"t\":\"exn\",\"d\":\"EJZbsjsPerWuE9Lwzpo26YsYDmwo2IKoSSnx8sMp54As\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}},\"sigs\":[\"AAAZCmJaUbjEtXfUgg2GRMvXA1aoeQMUQYAnLZWxHwyCyxuvla_eu5XhlBYvbbC0NUOO7SZT6Pq9Uc6hRzfg9HoC\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"]}"
+        }
+      ],
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "send_alias_disagrees_with_sender",
+      "note": "the alias that addresses the resource and the identifier whose keeper signs are two arguments, and nothing compares them",
+      "requests": [
+        {
+          "path": "/identifiers/some-other-alias/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00017c_\",\"t\":\"exn\",\"d\":\"EJZbsjsPerWuE9Lwzpo26YsYDmwo2IKoSSnx8sMp54As\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}},\"sigs\":[\"AAAZCmJaUbjEtXfUgg2GRMvXA1aoeQMUQYAnLZWxHwyCyxuvla_eu5XhlBYvbbC0NUOO7SZT6Pq9Uc6hRzfg9HoC\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "send_empty_recipients",
+      "note": "an empty recipient list, which is the only way the `throw` after the loop is reached",
+      "requests": [],
+      "result": null,
+      "error": "recipients list was empty"
+    },
+    {
+      "name": "send_answered_with_an_exchange",
+      "note": "the same submission answered with an `exn`, which is what `sendFromEvents` declares it returns",
+      "requests": [
+        {
+          "path": "/identifiers/aid1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00017c_\",\"t\":\"exn\",\"d\":\"EJZbsjsPerWuE9Lwzpo26YsYDmwo2IKoSSnx8sMp54As\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}},\"sigs\":[\"AAAZCmJaUbjEtXfUgg2GRMvXA1aoeQMUQYAnLZWxHwyCyxuvla_eu5XhlBYvbbC0NUOO7SZT6Pq9Uc6hRzfg9HoC\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "v": "KERI10JSON0000bf_",
+        "t": "exn",
+        "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "rp": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "p": "",
+        "dt": "2023-11-14T22:13:20.123000+00:00",
+        "r": "/multisig/icp",
+        "q": {},
+        "a": {
+          "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        },
+        "e": {}
+      },
+      "error": null
+    },
+    {
+      "name": "get_pinned_said",
+      "note": "the SAID the pinned unit test reads an exchange by",
+      "requests": [
+        {
+          "path": "/exchanges/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "method": "GET",
+          "body": null
+        }
+      ],
+      "result": {
+        "exn": {
+          "v": "KERI10JSON0000bf_",
+          "t": "exn",
+          "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "rp": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "p": "",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": "/multisig/icp",
+          "q": {},
+          "a": {
+            "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+          },
+          "e": {}
+        },
+        "pathed": {}
+      },
+      "error": null
+    },
+    {
+      "name": "get_escaping_said",
+      "note": "a SAID carrying path delimiters, which the reference interpolates raw into the address",
+      "requests": [
+        {
+          "path": "/exchanges/../identifiers/aid1?x=1",
+          "method": "GET",
+          "body": null
+        }
+      ],
+      "result": {
+        "exn": {},
+        "pathed": {}
+      },
+      "error": null
+    },
+    {
+      "name": "respond_pinned",
+      "note": "the pinned `contacting.test.ts` call, which is the capability Roadmap 7.4 deferred to this item",
+      "requests": [
+        {
+          "path": "/identifiers/aid1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/aid1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"challenge\",\"exn\":{\"v\":\"KERI10JSON0001c0_\",\"t\":\"exn\",\"d\":\"EEr0kVtjzK1osjqtfIQstDfPmy30EIGEYT-2pabo2EQg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/challenge/response\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"words\":[\"shell\",\"gloom\",\"mimic\",\"cereal\",\"stool\",\"furnace\",\"nominee\",\"nation\",\"sauce\",\"sausage\",\"rather\",\"venue\"]},\"e\":{}},\"sigs\":[\"AADFj85z7gx2lIWVAVf5kWmHl_8Ke9dFq9knr7KVrhAZ-Gk8kjHy3KH47H-GjNgKUw1xDj-7nTio1y8bmr-VYPgM\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "exchanging_test": {
+      "send_from_events_path": "/identifiers/aid1/exchanges",
+      "send_from_events_method": "POST",
+      "get_path": "/exchanges/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+      "get_method": "GET"
+    },
+    "contacting_test": {
+      "path": "/identifiers/aid1/exchanges",
+      "method": "POST",
+      "tpc": "challenge",
+      "exn_route": "/challenge/response",
+      "exn_sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "exn_words": [
+        "shell",
+        "gloom",
+        "mimic",
+        "cereal",
+        "stool",
+        "furnace",
+        "nominee",
+        "nation",
+        "sauce",
+        "sausage",
+        "rather",
+        "venue"
+      ],
+      "first_signature_length": 88
+    },
+    "every_pinned_assertion_is_driven": true,
+    "note": "`exchanging.test.ts` asserts two addresses and two methods; `contacting.test.ts`'s `respond` case asserts an address, a method, the topic, the message's route, its sender, its word list, and the length of its first signature. All eleven are recomputed here from the reference's own classes."
+  },
+  "reference_quirks": {
+    "send_addresses_only_the_first_recipient": {
+      "loop": "for (const recipient of recipients) { const [exn, sigs, atc] = await this.createExchangeMessage( sender, route, payload, embeds, recipient ); return await this.sendFromEvents( name, topic, exn, sigs, atc, recipients ); }",
+      "recipients": [
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+      ],
+      "message_addressed_to": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "attribute_addressed_to": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "delivered_to": [
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+      ],
+      "call_sites": {
+        "needle": ".send(",
+        "total": 38,
+        "files": [
+          {
+            "file": "src/keri/app/contacting.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 5
+          },
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "count": 3
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 20
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 9
+          }
+        ],
+        "scanned_files": 117
+      },
+      "note": "`send` iterates `recipients` and returns inside the loop, so only the first pass runs: `createExchangeMessage` is called with `recipients[0]` and the resulting message — whose `rp` and `a.i` name that one identifier — is then delivered to every recipient. `multisig.test.ts` calls it with two recipients eighteen times, so every member but the first receives a message addressed to somebody else.",
+      "rust_decision": "the addressee is a separate, explicit argument from the delivery list, so the port cannot silently pick one recipient out of many. The reference's own behaviour is still expressible — address the message to the first and deliver to all — but it has to be written down."
+    },
+    "the_alias_and_the_signer_are_two_arguments": {
+      "signature": [
+        "name: string",
+        "topic: string",
+        "sender: HabState",
+        "route: string",
+        "payload: Dict<any>",
+        "embeds: Dict<any>",
+        "recipients: string[]"
+      ],
+      "request": {
+        "path": "/identifiers/some-other-alias/exchanges",
+        "method": "POST",
+        "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00017c_\",\"t\":\"exn\",\"d\":\"EJZbsjsPerWuE9Lwzpo26YsYDmwo2IKoSSnx8sMp54As\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}},\"sigs\":[\"AAAZCmJaUbjEtXfUgg2GRMvXA1aoeQMUQYAnLZWxHwyCyxuvla_eu5XhlBYvbbC0NUOO7SZT6Pq9Uc6hRzfg9HoC\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+      },
+      "sender_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "note": "`send(name, topic, sender, ...)` posts under `/identifiers/{name}/exchanges` while signing with `sender`'s keeper; nothing compares them, so a message signed by one identifier can be posted under another's resource — and Roadmap 3.10 signs `@path`, so the two also disagree about what the HTTP signature covers.",
+      "rust_decision": "one alias. The sending identifier's record is looked up from the alias the message is posted under, so the resource, the signer, and the message's own `i` field are the same identifier by construction."
+    },
+    "the_timestamp_is_a_clock_reading": {
+      "declaration": "exchange( route, payload, sender['prefix'], recipient, datetime, dig, undefined, embeds )",
+      "note": "`send` calls `createExchangeMessage` with five arguments, so `datetime` and `dig` are `undefined` and `exchange(...)` falls back to `nowUTC()` — the message's `dt`, and therefore its SAID and every signature over it, depend on when it was built",
+      "rust_decision": "a required parameter, which is the decision Roadmap 3.8 took for `exchange(...)` itself and Roadmap 4.6 for the authorization replies. A caller that wants `now` says so."
+    },
+    "the_submission_answer_has_two_declared_types": {
+      "send_from_events": "Promise<Exn>",
+      "send": "Promise<Exn>",
+      "ipex_submit_grant": "Promise<ExchangeOperation>",
+      "operation_answer": {
+        "name": "exchange.EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-",
+        "metadata": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        },
+        "done": true,
+        "response": {
+          "said": "EGpSjqjavdzgjQiyt0AtrOutWfKrj5gR63lOUUq-1sL-"
+        }
+      },
+      "exchange_answer": {
+        "v": "KERI10JSON0000bf_",
+        "t": "exn",
+        "d": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+        "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "rp": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "p": "",
+        "dt": "2023-11-14T22:13:20.123000+00:00",
+        "r": "/multisig/icp",
+        "q": {},
+        "a": {
+          "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+        },
+        "e": {}
+      },
+      "note": "`sendFromEvents` declares `Promise<Exn>` and `Ipex.submitGrant` declares `Promise<ExchangeOperation>` for the same shape of POST to the same agent, and both are unchecked `res.json()` casts. At most one is right; the pinned tree contains no assertion either way, because its only unit case ignores the answer.",
+      "rust_decision": "the answer is kept as owned bytes with a decoder for each shape, so neither reading is imposed and a wrong-shaped answer is refused rather than cast. The question of which one a live KERIA sends is raised to §10 for Roadmap 9.2, as Roadmap 6.7 raised the sequence-number base."
+    },
+    "the_said_is_interpolated_raw": {
+      "declaration": "path = `/exchanges/${said}`",
+      "request": {
+        "path": "/exchanges/../identifiers/aid1?x=1",
+        "method": "GET",
+        "body": null
+      },
+      "note": "`get(said)` concatenates its argument into the path, so a value carrying `/` or `?` addresses a different resource — and changes the path Roadmap 3.10 signs",
+      "rust_decision": "the argument is Roadmap 3.3's validated `Said`, which cannot hold a delimiter, and Roadmap 5.3's builder would encode it exactly once even if it could. The recorded input is proven refused."
+    },
+    "the_pinned_unit_call_is_three_empty_values": {
+      "request": {
+        "path": "/identifiers/aid1/exchanges",
+        "method": "POST",
+        "body": "{\"tpc\":\"\",\"exn\":{\"v\":\"KERI10JSON0000d3_\",\"t\":\"icp\",\"d\":\"\",\"i\":\"\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e\"],\"nt\":\"1\",\"n\":[\"EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"\"],\"atc\":\"\",\"rec\":[]}"
+      },
+      "body": {
+        "tpc": "",
+        "exn": {
+          "v": "KERI10JSON0000d3_",
+          "t": "icp",
+          "d": "",
+          "i": "",
+          "s": "0",
+          "kt": "1",
+          "k": [
+            "DAUDqkmn-hqlQKD8W-FAEa5JUvJC2I9yarEem-AAEg3e"
+          ],
+          "nt": "1",
+          "n": [
+            "EAKUR-LmLHWMwXTLWQ1QjxHrihBmwwrV2tYaSG7hOrWj"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "a": []
+        },
+        "sigs": [
+          ""
+        ],
+        "atc": "",
+        "rec": []
+      },
+      "note": "`sendFromEvents('aid1', '', serder, [''], '', [])` sends an empty topic, a single empty string where a qualified signature belongs, and an empty recipient list — asking the agent to file a notification under no topic and deliver it to nobody. The reference validates none of the three; its own `send` refuses only the last, and only because the loop cannot run.",
+      "rust_decision": "all three are unrepresentable: the topic is refused when empty, the signatures come from a keeper rather than from the caller, and an empty recipient list is refused as Roadmap 6.12 refuses it. The recorded request is therefore reproduced in shape rather than byte for byte, and each input is proven refused — the pattern Roadmap 3.8, 6.9, and 7.1 used for a pinned vector their types cannot express."
+    },
+    "the_route_table_belongs_to_8_1": {
+      "constants": {
+        "MULTISIG_ICP_ROUTE": "/multisig/icp",
+        "MULTISIG_ROT_ROUTE": "/multisig/rot",
+        "MULTISIG_IXN_ROUTE": "/multisig/ixn",
+        "MULTISIG_RPY_ROUTE": "/multisig/rpy",
+        "MULTISIG_VCP_ROUTE": "/multisig/vcp",
+        "MULTISIG_ISS_ROUTE": "/multisig/iss",
+        "MULTISIG_EXN_ROUTE": "/multisig/exn",
+        "MULTISIG_REV_ROUTE": "/multisig/rev",
+        "IPEX_GRANT_ROUTE": "/ipex/grant",
+        "IPEX_OFFER_ROUTE": "/ipex/offer",
+        "IPEX_APPLY_ROUTE": "/ipex/apply",
+        "IPEX_AGREE_ROUTE": "/ipex/agree",
+        "IPEX_ADMIT_ROUTE": "/ipex/admit"
+      },
+      "note": "thirteen exported route constants and the resource variants and type guards over them are Roadmap 8.1's, not this item's; `send`'s route parameter is the bare `string` they are values of",
+      "rust_decision": "the route stays borrowed text here, exactly as Roadmap 3.8 left it in `ExchangeBuilder` and 7.6 left the escrow filter. 8.1 owns the typed table."
+    }
+  }
+}
