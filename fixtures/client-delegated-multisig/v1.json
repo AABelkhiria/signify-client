@@ -1,0 +1,933 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "test-integration/utils/multisig-utils.ts",
+    "test-integration/delegation-multisig.test.ts",
+    "test-integration/utils/test-util.ts",
+    "test-integration/multisig.test.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "note": "The ported unit is `delegateMultisig`, which lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a three-entry module shim exactly as Roadmap 8.3's generator does. Nothing is written into the submodule, and what runs is the reference's own code. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "delegate_multisig": "export async function delegateMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, anchor: { i: string; s: string; d: string }, isInitiator: boolean = false ) { if (!isInitiator) { const msgSaid = await waitAndMarkNotification(client, '/multisig/ixn'); console.log( `${aid.name}(${aid.prefix}) received exchange message to join the interaction event` ); const res = await client.groups().getRequest(msgSaid); const groupExn = assertMultisigIxn(res[0]); const exn = groupExn.exn; const ixn = exn.e.ixn; anchor = (ixn.a as Array<{ i: string; s: string; d: string }>)[0]; } // const {delResult, delOp} = await retry(async () => { const delResult = await client .delegations() .approve(multisigAID.name, anchor); const appOp = await delResult.op(); console.log( `Delegator ${aid.name}(${aid.prefix}) approved delegation for ${ multisigAID.name } with anchor ${JSON.stringify(anchor)}` ); const expectedAnchor = Array.isArray(delResult.serder.sad.a) ? delResult.serder.sad.a[0] : delResult.serder.sad.a; assert.equal(JSON.stringify(expectedAnchor), JSON.stringify(anchor)); const serder = delResult.serder; const sigs = delResult.sigs; const sigers = sigs.map((sig) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(serder, sigers)); const atc = ims.substring(serder.size); const xembeds = { ixn: [serder, atc], }; const smids = [aid.prefix, ...otherMembersAIDs.map((aid) => aid.prefix)]; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, multisigAID.name, aid, '/multisig/ixn', { gid: serder.pre, smids: smids, rmids: smids }, xembeds, recp ); if (isInitiator) { console.log( `${aid.name}(${aid.prefix}) initiates delegation interaction event, waiting for others to join...` ); } else { console.log(`${aid.name}(${aid.prefix}) joins interaction event`); } return appOp; }",
+    "signature": {
+      "parameters": [
+        {
+          "name": "client",
+          "type": "SignifyClient",
+          "default": null
+        },
+        {
+          "name": "aid",
+          "type": "HabState",
+          "default": null
+        },
+        {
+          "name": "otherMembersAIDs",
+          "type": "HabState[]",
+          "default": null
+        },
+        {
+          "name": "multisigAID",
+          "type": "HabState",
+          "default": null
+        },
+        {
+          "name": "anchor",
+          "type": "{ i: string; s: string; d: string }",
+          "default": null
+        },
+        {
+          "name": "isInitiator",
+          "type": "boolean",
+          "default": "false"
+        }
+      ],
+      "returns": "<inferred>"
+    },
+    "anchor_reads": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "binds": "anchor",
+        "expression": "(ixn.a as Array<{ i: string; s: string; d: string }>)[0]",
+        "takes": "the first seal"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "binds": "multisigData",
+        "expression": "embeds1.ixn.a",
+        "takes": "the whole list"
+      }
+    ],
+    "member_expressions": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "smids",
+        "expression": "exn.a.smids"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "rmids",
+        "expression": "exn.a.rmids ?? smids"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "smids",
+        "expression": "kargs.states?.map((state) => state['i'])"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "smids",
+        "expression": "[aid.prefix, ...otherMembersAIDs.map((aid) => aid.prefix)]"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "recp",
+        "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "label": "smids",
+        "expression": "participantStates.map((state) => state['i'])"
+      }
+    ],
+    "assertions": [
+      "assert.equal(JSON.stringify(expectedAnchor), JSON.stringify(anchor))"
+    ],
+    "inception_arguments": [
+      {
+        "properties": [
+          "groupName",
+          "localMemberName",
+          "participants",
+          "isith",
+          "nsith",
+          "toad",
+          "wits"
+        ],
+        "delegated": false
+      },
+      {
+        "properties": [
+          "groupName",
+          "localMemberName",
+          "participants",
+          "isith",
+          "nsith",
+          "toad",
+          "delpre",
+          "wits"
+        ],
+        "delegated": true
+      }
+    ],
+    "prefix_discoveries": [
+      {
+        "binds": "torpre",
+        "from": "otor1.name.split('.')[1]"
+      },
+      {
+        "binds": "teepre",
+        "from": "opDelegatee1.name.split('.')[1]"
+      }
+    ],
+    "delegate_multisig_uses": {
+      "needle": "delegateMultisig(",
+      "total": 5,
+      "files": [
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "delegated_inception_uses": {
+      "needle": "delpre",
+      "total": 36,
+      "files": [
+        {
+          "file": "src/keri/app/aiding.ts",
+          "count": 8
+        },
+        {
+          "file": "src/keri/app/habery.ts",
+          "count": 3
+        },
+        {
+          "file": "src/keri/core/eventing.ts",
+          "count": 7
+        },
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/delegation.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/singlesig-dip.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/singlesig-drt.test.ts",
+          "count": 1
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 6
+        },
+        {
+          "file": "test/app/test-utils.ts",
+          "count": 6
+        }
+      ],
+      "scanned_files": 117
+    },
+    "scanned_files": 117,
+    "notes": {
+      "composition": "8.3's group inception with a delegator, 8.4's interaction announcement, and 8.5's approval address",
+      "one_seal": "the joining half reads `ixn.a[0]`; Roadmap 8.4's plain interaction round reads `ixn.a`"
+    }
+  },
+  "key_states": {
+    "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "p": "",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "identifier_record": {
+    "name": "delegator1",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "group_record": {
+    "name": "delegators",
+    "prefix": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "transferable": true,
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00",
+    "group": {
+      "mhab": {
+        "name": "delegator1",
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "salty": {
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "tier": "low",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789abcdefghijk"
+        },
+        "transferable": true,
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-08-21T22:30:46.473545+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+          ],
+          "nt": "1",
+          "n": [
+            "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "windexes": [],
+        "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+      },
+      "keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "ndigs": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ]
+    },
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "s": "0",
+      "p": "",
+      "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "2",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "2",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "2",
+      "b": [
+        "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
+        "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
+        "BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX"
+      ],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "calls": [
+    {
+      "name": "incept_the_delegator_group",
+      "note": "the scenario's first step: an undelegated two-of-two group, which will approve the delegatee",
+      "requests": [
+        {
+          "path": "/identifiers/delegator1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"delegators\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/delegator1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"delegators\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EDOi3yDvRfy_2iTpX9dd4nU--cgEXVBVNwjYTGMxev2m\"}},\"sigs\":[\"AAA9LNCQ4cdQ3eXCT-QPCo2FcoZG7kTKTLfHVaRgLatYkmceD8y8rKP-IOgwrcj6-UgONMkzK0FfKppFN1rb9RsA\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "delegation.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "incept_the_delegatee_group",
+      "note": "the same helper with a `delpre`: a group whose inception names the delegator group and stays pending",
+      "requests": [
+        {
+          "path": "/identifiers/delegator1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"delegatees\",\"icp\":{\"v\":\"KERI10JSON000249_\",\"t\":\"dip\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[],\"di\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"sigs\":[\"BACqn_cD9YWLsoPLu2Ako6EQTPpriFrNrmy3zBUKblZvWqMUTEsTyw0Igq1MQ4XoGkiJQeCCZ1QsKTAMI4ihnmwG\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/delegator1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"delegatees\",\"exn\":{\"v\":\"KERI10JSON0004ce_\",\"t\":\"exn\",\"d\":\"EN14STazO5KftgwZjKfyGOl822R9-elIWV26nASmuoQI\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000249_\",\"t\":\"dip\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[],\"di\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"d\":\"EJFT8A8_hsZKeY8o0wFlCbaXNr46bBKBA3vBq4PCrNfG\"}},\"sigs\":[\"AAA7oPPHV2EKWIaY0ziDrOELZcALme8xZYPfqRd-cqriIS3rIs1a5qv7t6w3lCHtDCDUoonm_mSvAAc9hFdV3SsI\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACqn_cD9YWLsoPLu2Ako6EQTPpriFrNrmy3zBUKblZvWqMUTEsTyw0Igq1MQ4XoGkiJQeCCZ1QsKTAMI4ihnmwG\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "delegation.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "approve_as_the_initiator",
+      "note": "the first delegator member approves with the seal it was given and tells the other",
+      "requests": [
+        {
+          "path": "/identifiers/delegators",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}]},\"sigs\":[\"BADO4tGU7nO8qJy9Y5URDmaxI2zfrtPIU0yCAG2y__901ukdm2y3TnYHsDv7fXH-NULSQhLbd0NjEZBDMX4mBVMD\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/delegator1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"delegators\",\"exn\":{\"v\":\"KERI10JSON0003bf_\",\"t\":\"exn\",\"d\":\"EMSdNFJTS9JvVM804QFj23U5Ki8LozutKvrmtbSxqj76\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/ixn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}]},\"d\":\"EBcVc9mcADVA4iU3tpE9OFpJ7QTCFtIL-nICCDltD1m3\"}},\"sigs\":[\"AABZF6YC2Gb2I7GbK2H3PUWsWOKRO3cMoWurQ4FM7MG6rsndA7YcX9yh24QjMayI0rafZn1QCmGLgo5igOoyyg4D\"],\"atc\":\"-LAa5AACAA-e-ixn-AABBADO4tGU7nO8qJy9Y5URDmaxI2zfrtPIU0yCAG2y__901ukdm2y3TnYHsDv7fXH-NULSQhLbd0NjEZBDMX4mBVMD\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "delegation.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "approve_as_a_joining_member",
+      "note": "the second member reads the announcement, takes the anchor out of it, and approves the same delegation",
+      "requests": [
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}]},\"sigs\":[\"BADO4tGU7nO8qJy9Y5URDmaxI2zfrtPIU0yCAG2y__901ukdm2y3TnYHsDv7fXH-NULSQhLbd0NjEZBDMX4mBVMD\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/delegator1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"delegators\",\"exn\":{\"v\":\"KERI10JSON0003bf_\",\"t\":\"exn\",\"d\":\"EMSdNFJTS9JvVM804QFj23U5Ki8LozutKvrmtbSxqj76\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/ixn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}]},\"d\":\"EBcVc9mcADVA4iU3tpE9OFpJ7QTCFtIL-nICCDltD1m3\"}},\"sigs\":[\"AABZF6YC2Gb2I7GbK2H3PUWsWOKRO3cMoWurQ4FM7MG6rsndA7YcX9yh24QjMayI0rafZn1QCmGLgo5igOoyyg4D\"],\"atc\":\"-LAa5AACAA-e-ixn-AABBADO4tGU7nO8qJy9Y5URDmaxI2zfrtPIU0yCAG2y__901ukdm2y3TnYHsDv7fXH-NULSQhLbd0NjEZBDMX4mBVMD\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "delegation.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "approve_two_delegations_at_once",
+      "note": "the initiator anchors two seals in one event, which the endpoint and the event format both permit",
+      "requests": [
+        {
+          "path": "/identifiers/delegators",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"ixn\",\"d\":\"EOzDAQgTLKtJ89re-_ys5LaFbhSJITIDrCY_8mHo2sWr\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"},{\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"}]},\"sigs\":[\"BABndv-ePiNfrEmnlh-fzGzjYD2qQ2lDR-C0t3q_Pw-Lgq5Sf3jZhDRDasOXl-pAd2tsAVemhWyDzg2aNHFvWH4F\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        }
+      ],
+      "result": null,
+      "error": "'{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}' == '[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"},{\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"}]'"
+    },
+    {
+      "name": "announce_two_delegations_by_hand",
+      "note": "the announcement the helper cannot send, built from the reference's own `interact` and `send`",
+      "requests": [
+        {
+          "path": "/identifiers/delegators",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators/events",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"ixn\",\"d\":\"EOzDAQgTLKtJ89re-_ys5LaFbhSJITIDrCY_8mHo2sWr\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"},{\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"}]},\"sigs\":[\"BABndv-ePiNfrEmnlh-fzGzjYD2qQ2lDR-C0t3q_Pw-Lgq5Sf3jZhDRDasOXl-pAd2tsAVemhWyDzg2aNHFvWH4F\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/delegator1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"delegators\",\"exn\":{\"v\":\"KERI10JSON00042f_\",\"t\":\"exn\",\"d\":\"EFfepnHpOXlYm6dIPEU_E2eiexZ0eHeZEA3aKc4xJfyy\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/ixn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"ixn\":{\"v\":\"KERI10JSON0001aa_\",\"t\":\"ixn\",\"d\":\"EOzDAQgTLKtJ89re-_ys5LaFbhSJITIDrCY_8mHo2sWr\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"},{\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"}]},\"d\":\"EIUONVoCJm3NjSgE5No2a6EJmiNOw_6LvTWlG5t-vLS8\"}},\"sigs\":[\"AACVotT63HHX7JT6_dYz6EMhcZoLN6lQRMisBGsbd5UdeheefUEMoynI0Q0wWr4sdWiCA1YNN9wmSfX_zZVpYNAE\"],\"atc\":\"-LAa5AACAA-e-ixn-AABBABndv-ePiNfrEmnlh-fzGzjYD2qQ2lDR-C0t3q_Pw-Lgq5Sf3jZhDRDasOXl-pAd2tsAVemhWyDzg2aNHFvWH4F\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "anchored": [
+          {
+            "i": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR",
+            "s": "0",
+            "d": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR"
+          },
+          {
+            "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+            "s": "0",
+            "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk"
+          }
+        ],
+        "digest": "EOzDAQgTLKtJ89re-_ys5LaFbhSJITIDrCY_8mHo2sWr"
+      },
+      "error": null
+    },
+    {
+      "name": "join_an_announcement_carrying_two_seals",
+      "note": "and the joining member reads `ixn.a[0]`, so it approves only the first and signs a different event",
+      "requests": [
+        {
+          "path": "/multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/delegators/delegation",
+          "method": "POST",
+          "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}]},\"sigs\":[\"BADO4tGU7nO8qJy9Y5URDmaxI2zfrtPIU0yCAG2y__901ukdm2y3TnYHsDv7fXH-NULSQhLbd0NjEZBDMX4mBVMD\"],\"group\":{\"mhab\":{\"name\":\"delegator1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/delegator1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"delegators\",\"exn\":{\"v\":\"KERI10JSON0003bf_\",\"t\":\"exn\",\"d\":\"EMSdNFJTS9JvVM804QFj23U5Ki8LozutKvrmtbSxqj76\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/ixn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}]},\"d\":\"EBcVc9mcADVA4iU3tpE9OFpJ7QTCFtIL-nICCDltD1m3\"}},\"sigs\":[\"AABZF6YC2Gb2I7GbK2H3PUWsWOKRO3cMoWurQ4FM7MG6rsndA7YcX9yh24QjMayI0rafZn1QCmGLgo5igOoyyg4D\"],\"atc\":\"-LAa5AACAA-e-ixn-AABBADO4tGU7nO8qJy9Y5URDmaxI2zfrtPIU0yCAG2y__901ukdm2y3TnYHsDv7fXH-NULSQhLbd0NjEZBDMX4mBVMD\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "delegation.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "delegator_group": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "delegatee_group": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR",
+    "seal": {
+      "i": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR",
+      "s": "0",
+      "d": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR"
+    },
+    "approval_path": "/identifiers/delegators/delegation",
+    "initiator_paths": [
+      "GET /identifiers/delegators",
+      "POST /identifiers/delegators/delegation",
+      "POST /identifiers/delegator1/exchanges"
+    ],
+    "joiner_paths": [
+      "GET /multisig/request/EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+      "GET /identifiers/delegators",
+      "POST /identifiers/delegators/delegation",
+      "POST /identifiers/delegator1/exchanges"
+    ],
+    "announcement_route": "/multisig/ixn",
+    "announcement_topic": "delegators",
+    "note": "the delegatee group's inception is a `dip` naming the delegator group, and the approval is an interaction on the delegator group posted to the delegation address."
+  },
+  "reference_quirks": {
+    "the_joining_member_takes_only_the_first_seal": {
+      "declaration": "`anchor = (ixn.a as Array<{ i: string; s: string; d: string }>)[0]`",
+      "reads": [
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "binds": "anchor",
+          "expression": "(ixn.a as Array<{ i: string; s: string; d: string }>)[0]",
+          "takes": "the first seal"
+        },
+        {
+          "file": "test-integration/multisig.test.ts",
+          "binds": "multisigData",
+          "expression": "embeds1.ixn.a",
+          "takes": "the whole list"
+        }
+      ],
+      "initiator_anchored": [
+        {
+          "i": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR",
+          "s": "0",
+          "d": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR"
+        },
+        {
+          "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+          "s": "0",
+          "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk"
+        }
+      ],
+      "initiator_event": "EOzDAQgTLKtJ89re-_ys5LaFbhSJITIDrCY_8mHo2sWr",
+      "joiner_anchored": [
+        {
+          "i": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR",
+          "s": "0",
+          "d": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR"
+        }
+      ],
+      "joiner_event": "EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI",
+      "events_agree": false,
+      "joiner_error": null,
+      "note": "the initiator anchors both seals; the joining member reads `ixn.a[0]` and anchors one. The two members sign different interaction events, the group never reaches its threshold, and the second delegation is never approved — with no error on either side. Roadmap 8.4's plain interaction round reads the same field whole, so the pinned tree contains both readings of one shape.",
+      "rust_decision": "the whole seal list is read. `accept_delegation_approval` anchors every seal the proposal names, and then compares the event it built with the digest the proposal carries — so a disagreement is a typed error rather than a group that never converges."
+    },
+    "the_rotation_set_is_the_signing_set_a_third_time": {
+      "declaration": "`{ gid: serder.pre, smids: smids, rmids: smids }`",
+      "expressions": [
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "smids",
+          "expression": "exn.a.smids"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "rmids",
+          "expression": "exn.a.rmids ?? smids"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "smids",
+          "expression": "kargs.states?.map((state) => state['i'])"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "smids",
+          "expression": "[aid.prefix, ...otherMembersAIDs.map((aid) => aid.prefix)]"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "recp",
+          "expression": "otherMembersAIDs.map((aid) => aid.prefix)"
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "label": "smids",
+          "expression": "participantStates.map((state) => state['i'])"
+        }
+      ],
+      "announced_smids": [
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "announced_rmids": [
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "identical": true,
+      "note": "Roadmap 8.3 recorded this in the accepting half of an inception and 8.4 found it again at one of two rotation call sites. Here it is unconditional: the rotation set is written as the signing set with no rotation set consulted at all.",
+      "rust_decision": "the two sets are separate arguments and neither defaults to the other."
+    },
+    "the_member_list_is_hand_assembled": {
+      "declaration": "`const smids = [aid.prefix, ...otherMembersAIDs.map((aid) => aid.prefix)]`",
+      "announced_smids": [
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "recipients": [
+        "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+      ],
+      "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "sender_is_a_recipient": false,
+      "note": "the members are whatever the caller passed, in the caller's order, rather than read from the group's own key states — so a member omitted from `otherMembersAIDs` is omitted from the message the group is agreeing on. The delivery list does exclude the sender here, which is what Roadmap 8.3's *proposing* half fails to do.",
+      "rust_decision": "the members are read from the group's record and the delivery list is Roadmap 8.3's `delivery_list`, which excludes the sender and refuses a member that is not one."
+    },
+    "the_reference_checks_its_own_work_exactly_once": {
+      "declaration": [
+        "assert.equal(JSON.stringify(expectedAnchor), JSON.stringify(anchor))"
+      ],
+      "note": "`delegateMultisig` reads the anchor back out of the event it built and asserts it equals the anchor it was given. It is the only comparison of its kind in the multisig tree — Roadmap 8.4 recorded that the rotation round compares nothing — and it lives in a test helper, so no consumer of the library gets it.",
+      "rust_decision": "reproduced and moved into the port: the joining half compares the event it built with the digest the proposal carries, on every round, and refuses rather than asserting."
+    },
+    "the_check_fires_after_the_approval_is_already_posted": {
+      "declaration": "`approve` is awaited, then `op()`, then `assert.equal(...)`, and only then `exchanges().send`",
+      "error": "'{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"}' == '[{\"i\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\",\"s\":\"0\",\"d\":\"EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR\"},{\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"}]'",
+      "anchored_anyway": [
+        {
+          "i": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR",
+          "s": "0",
+          "d": "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR"
+        },
+        {
+          "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+          "s": "0",
+          "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk"
+        }
+      ],
+      "requests_made": [
+        "GET /identifiers/delegators",
+        "POST /identifiers/delegators/delegation"
+      ],
+      "announced": false,
+      "note": "the assertion compares `serder.sad.a[0]` with the whole anchor argument, so a two-seal anchor fails it — but the approval has already been posted by then. The delegator's log holds both seals, the peers are never told, and the caller gets an exception instead of the operation it needs to wait on. The one check the reference performs is placed after the irreversible step and compares the wrong shape.",
+      "rust_decision": "checked before anything is written. `propose_delegation_approval` refuses an empty seal list before it reads the group, and the joining half compares the event it built with the digest it was shown before announcing — and a mismatch is a typed error, not an assertion."
+    },
+    "a_delegated_group_inception_is_a_dip": {
+      "declaration": [
+        {
+          "properties": [
+            "groupName",
+            "localMemberName",
+            "participants",
+            "isith",
+            "nsith",
+            "toad",
+            "wits"
+          ],
+          "delegated": false
+        },
+        {
+          "properties": [
+            "groupName",
+            "localMemberName",
+            "participants",
+            "isith",
+            "nsith",
+            "toad",
+            "delpre",
+            "wits"
+          ],
+          "delegated": true
+        }
+      ],
+      "delegator": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "ilk": "dip",
+      "undelegated_ilk": "icp",
+      "note": "the same helper builds both, and the only difference in the request is `delpre` — which becomes the event's `di` and changes its ilk from `icp` to `dip`. This is the first item in the port to drive a delegated group inception at all; Roadmap 8.3's fixture drove only undelegated ones.",
+      "rust_decision": "reproduced. Roadmap 8.3's `GroupInceptionRequest` already carries a delegator, and Roadmap 8.1's inception embed accepts both ilks, so a delegated group proposal classifies as an inception like any other."
+    }
+  }
+}

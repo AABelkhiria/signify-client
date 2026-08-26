@@ -369,6 +369,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_delegated_multisig"
+path = "fuzz_targets/client_delegated_multisig.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_oobis"
 path = "fuzz_targets/client_oobis.rs"
 test = false

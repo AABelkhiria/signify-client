@@ -105,5 +105,9 @@ harness = false
 name = "delegations"
 harness = false
 
+[[bench]]
+name = "delegated_multisig"
+harness = false
+
 [lints]
 workspace = true

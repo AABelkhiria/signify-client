@@ -10,9 +10,12 @@
 //! | inception | [`Multisig::propose_inception`] | [`Multisig::accept_inception`] |
 //! | rotation | [`Multisig::propose_rotation`] | [`Multisig::accept_rotation`] |
 //! | interaction | [`Multisig::propose_interaction`] | [`Multisig::accept_interaction`] |
+//! | delegation approval | [`Multisig::propose_delegation_approval`] | [`Multisig::accept_delegation_approval`] |
 //!
 //! An inception creates the identifier, a rotation changes who controls it, and an interaction
-//! anchors seals in its log without changing anything about its keys.
+//! anchors seals in its log without changing anything about its keys. A **delegation approval** is
+//! an interaction that goes to a different address: the group is a delegator, and the seals it
+//! anchors bring delegated identifiers — themselves often groups — into existence. Roadmap 8.6.
 //!
 //! # The joining half always checks
 //!
@@ -25,6 +28,16 @@
 //! **The reference compares nothing, anywhere.** Its joining members rebuild a rotation from their
 //! own key states and sign whatever comes out; where two members' states differ they sign different
 //! events, the group never rotates, and nothing says so. Roadmap 8.4's fixture drives exactly that.
+//!
+//! # A delegation approval anchors every seal it was shown
+//!
+//! The reference's `delegateMultisig` reads `ixn.a[0]` — the first seal and no other — where its
+//! own plain interaction round reads the same field whole. A delegator group anchoring two
+//! delegations in one event therefore has the second silently dropped by every member but the
+//! initiator. And the one check it does perform fires *after* the approval is posted, comparing the
+//! first seal of what it built against the whole anchor it was given: a two-seal approval reaches
+//! the delegator's log, then throws, and the peers are never told. Here the seals are checked
+//! before anything is written and all of them are anchored.
 //!
 //! # The route names the embed
 //!
@@ -256,6 +269,31 @@ pub struct GroupInteractionRequest<'a> {
     /// The seals the interaction anchors; the reference's `data`.
     pub anchors: Vec<Sad>,
     /// When the proposal message is stamped.
+    pub timestamp: Timestamp,
+}
+
+/// What a group's delegation approval commits to.
+///
+/// The group named here is the **delegator**: it is anchoring seals of identifiers that named it,
+/// and each of its members must anchor the same ones.
+#[derive(Debug)]
+pub struct GroupDelegationRequest<'a> {
+    /// Local alias of the delegator group; also the notification topic.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// Every member of the delegator group, this one included.
+    pub members: &'a [IdentifierPrefix],
+    /// The seals to anchor; Roadmap 8.5's [`InceptionSeal::to_sad`] builds one.
+    ///
+    /// [`InceptionSeal::to_sad`]: crate::endpoint::delegations::InceptionSeal::to_sad
+    ///
+    /// More than one is permitted, because the event format permits it and the endpoint accepts it.
+    /// The reference's helper cannot send more than one: its own assertion compares the first seal
+    /// of what it built against the whole anchor it was given, and fails — after the approval has
+    /// been posted.
+    pub seals: &'a [Sad],
+    /// When the announcement is stamped.
     pub timestamp: Timestamp,
 }
 
@@ -640,6 +678,129 @@ impl<'client> Multisig<'client> {
         let submission = self.client.identifiers().interact(group_name, anchors).await?;
 
         // What was built against what was shown. The reference compares nothing anywhere.
+        let proposed_digest = digest_of(&embed.ixn)?;
+        let built = submission.artifact().event.said().qb64()?;
+        if built != proposed_digest {
+            return Err(ClientError::ProposalMismatch {
+                proposed: proposed_digest,
+                built,
+            });
+        }
+
+        self.announce(
+            submission,
+            &Announcement {
+                group_name,
+                local_member,
+                route: INTERACTION_ROUTE,
+                slot: INTERACTION_SLOT,
+                signing: &signing,
+                rotation: &rotation,
+                recipients: &recipients,
+                timestamp,
+            },
+        )
+        .await
+    }
+
+    /// Proposes a delegation approval to the group's other members.
+    ///
+    /// The group is the **delegator**: each of its members anchors the same seals in the group's log
+    /// and tells the others, and the delegation completes when enough have signed. The event is an
+    /// interaction, posted to Roadmap 8.5's `delegation` address rather than to `events` — which is
+    /// what tells the agent it completes a pending delegated inception — and announced on
+    /// [`INTERACTION_ROUTE`], which is what it embeds.
+    ///
+    /// **The seals are checked before anything is written.** The reference's `delegateMultisig`
+    /// posts the approval first and asserts afterwards, comparing `serder.sad.a[0]` against the
+    /// whole anchor it was given — so a two-seal approval is anchored in the delegator's log, then
+    /// fails its own assertion, and the peers are never told.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NoDelegationSeals`] for an empty seal list,
+    /// [`ClientError::LocalMemberNotAParticipant`] when the local member is not among the members,
+    /// [`ClientError::LonelyGroup`] when it is the only one, and whatever
+    /// [`Delegations::approve`](crate::endpoint::delegations::Delegations::approve) and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn propose_delegation_approval(
+        &self,
+        request: &GroupDelegationRequest<'_>,
+    ) -> Result<GroupEvent, ClientError> {
+        if request.seals.is_empty() {
+            return Err(ClientError::NoDelegationSeals);
+        }
+        let member = self.local_member(request.local_member).await?;
+        let recipients = peers(&member, request.members)?;
+        let submission = self
+            .client
+            .delegations()
+            .approve(request.group_name, request.seals)
+            .await?;
+
+        self.announce(
+            submission,
+            &Announcement {
+                group_name: request.group_name,
+                local_member: request.local_member,
+                route: INTERACTION_ROUTE,
+                slot: INTERACTION_SLOT,
+                signing: request.members,
+                rotation: request.members,
+                recipients: &recipients,
+                timestamp: request.timestamp.clone(),
+            },
+        )
+        .await
+    }
+
+    /// Joins a delegation approval another member proposed, anchoring **every** seal it named.
+    ///
+    /// The reference reads `ixn.a[0]` — the first seal and no other — where its own plain
+    /// interaction round reads the same field whole. So a delegator group anchoring two delegations
+    /// in one event has the second silently dropped by every member but the initiator, the members
+    /// sign different events, and the group never reaches its threshold. Driven, with no error on
+    /// either side.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NotAnInteractionProposal`] when the message under `proposal` is not a
+    /// group interaction, [`ClientError::NoDelegationSeals`] when it anchors nothing,
+    /// [`ClientError::ProposalMismatch`] when the event this member builds is not the event it was
+    /// shown, and whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// [`Delegations::approve`](crate::endpoint::delegations::Delegations::approve), and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn accept_delegation_approval(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        proposal: &Said,
+        timestamp: Timestamp,
+    ) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let proposed = self.read_proposal(proposal, MultisigRoute::Interaction).await?;
+        let ApiEmbed::Interaction(embed) = &proposed.proposed.message else {
+            return Err(ClientError::NotAnInteractionProposal {
+                found: "an embed that is not an interaction",
+            });
+        };
+
+        // Every seal, not the first one.
+        let seals = anchors_of(&embed.ixn)?;
+        if seals.is_empty() {
+            return Err(ClientError::NoDelegationSeals);
+        }
+        let signing = proposed.attributes.signing_members.clone().unwrap_or_default();
+        let rotation = proposed
+            .attributes
+            .rotation_members
+            .clone()
+            .unwrap_or_else(|| signing.clone());
+        let recipients = peers(&member, &signing)?;
+
+        let submission = self.client.delegations().approve(group_name, &seals).await?;
+
+        // What was built against what was shown, before the peers are told.
         let proposed_digest = digest_of(&embed.ixn)?;
         let built = submission.artifact().event.said().qb64()?;
         if built != proposed_digest {
@@ -1201,6 +1362,28 @@ mod tests {
         assert!(refused, "an inception was read for seals");
         let no_digest = matches!(digest_of(&inception), Err(ClientError::NotAnInteractionProposal { .. }));
         assert!(no_digest, "an inception answered for an interaction's digest");
+        Ok(())
+    }
+
+    #[test]
+    fn a_delegation_approval_anchors_every_seal_it_was_shown() -> Result<(), Box<dyn Error>> {
+        // The reference reads `ixn.a[0]`; this reads the list. Two seals in, two seals out.
+        let two = interaction(r#"[{"i":"EBgew7O4","s":"0","d":"EBgew7O4"},{"i":"EMQQpnSk","s":"0","d":"EMQQpnSk"}]"#)?;
+        let seals = anchors_of(&two)?;
+        assert_eq!(seals.len(), 2);
+        assert_eq!(seals.first().and_then(|seal| seal.get_text("i")), Some("EBgew7O4"));
+        assert_eq!(seals.get(1).and_then(|seal| seal.get_text("i")), Some("EMQQpnSk"));
+        // Which is what makes the two members' events the same one: taking only the first would
+        // change the digest, and nothing upstream compares them.
+        assert_ne!(seals.len(), 1, "the second delegation was dropped");
+        Ok(())
+    }
+
+    #[test]
+    fn a_delegation_approval_that_anchors_nothing_is_refused() -> Result<(), Box<dyn Error>> {
+        // An interaction anchoring an empty list is a valid event and a meaningless approval.
+        let empty = interaction("[]")?;
+        assert!(anchors_of(&empty)?.is_empty());
         Ok(())
     }
 
