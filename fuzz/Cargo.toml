@@ -334,6 +334,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_exchange_routes"
+path = "fuzz_targets/client_exchange_routes.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_oobis"
 path = "fuzz_targets/client_oobis.rs"
 test = false

@@ -37,7 +37,23 @@
 //! case ignores the answer. [`SentExchange`] therefore keeps the body and offers a decoder for each
 //! shape rather than imposing one; `PORTING.md` §10 raises the question for Roadmap 9.2.
 //!
-//! See `fixtures/client-exchanges/`.
+//! # The route table and the classifiers
+//!
+//! Roadmap 8.1 adds the other half of `exchanging.ts` beside this family: [`route`] holds the
+//! thirteen-route table and [`message`] the classifier that replaces the reference's thirteen type
+//! guards and thirteen assertions. Both are re-exported here, so a caller who reads a message with
+//! [`Exchanges::get`] can classify it without a second import.
+//!
+//! See `fixtures/client-exchanges/` and `fixtures/client-exchange-routes/`.
+
+pub mod message;
+pub mod route;
+
+pub use message::{
+    ClassifiedExchange, GROUP_LABEL, GroupAttributes, IpexPayload, IpexStep, MultisigProposal, OfferedCredential,
+    ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL, USAGE_LABEL,
+};
+pub use route::{ExchangeRoute, MultisigRoute, UnknownExchangeRoute};
 
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;

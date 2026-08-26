@@ -1,0 +1,1431 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "src/keri/app/exchanging.ts",
+    "src/types/keria-api-schema.ts",
+    "test-integration/multisig.test.ts"
+  ],
+  "provenance": {
+    "note": "The unit here is a type system, so the evidence has two halves. The run-time half is **executed**: every guard and every assertion is called on its own route, on another, on a message whose declared payload is absent, and on six shapes that are not messages, with the exact verdict or error recorded. The compile-time half is **read from the syntax tree**, because there is nothing to execute. No key is derived and no client is built; nothing here is secret."
+  },
+  "declarations": {
+    "route_constants": [
+      {
+        "name": "MULTISIG_ICP_ROUTE",
+        "value": "/multisig/icp"
+      },
+      {
+        "name": "MULTISIG_ROT_ROUTE",
+        "value": "/multisig/rot"
+      },
+      {
+        "name": "MULTISIG_IXN_ROUTE",
+        "value": "/multisig/ixn"
+      },
+      {
+        "name": "MULTISIG_RPY_ROUTE",
+        "value": "/multisig/rpy"
+      },
+      {
+        "name": "MULTISIG_VCP_ROUTE",
+        "value": "/multisig/vcp"
+      },
+      {
+        "name": "MULTISIG_ISS_ROUTE",
+        "value": "/multisig/iss"
+      },
+      {
+        "name": "MULTISIG_EXN_ROUTE",
+        "value": "/multisig/exn"
+      },
+      {
+        "name": "MULTISIG_REV_ROUTE",
+        "value": "/multisig/rev"
+      },
+      {
+        "name": "IPEX_GRANT_ROUTE",
+        "value": "/ipex/grant"
+      },
+      {
+        "name": "IPEX_OFFER_ROUTE",
+        "value": "/ipex/offer"
+      },
+      {
+        "name": "IPEX_APPLY_ROUTE",
+        "value": "/ipex/apply"
+      },
+      {
+        "name": "IPEX_AGREE_ROUTE",
+        "value": "/ipex/agree"
+      },
+      {
+        "name": "IPEX_ADMIT_ROUTE",
+        "value": "/ipex/admit"
+      }
+    ],
+    "assert_route": "function assertRoute<T extends ExnMessage>( msg: T, route: string, label: string ): T { if (msg.exn?.r !== route) { throw new Error(`Expected ${label} but got route: ${msg.exn?.r}`); } return msg; }",
+    "exn_message_alias": "type ExnMessage = ExchangeResourceV1 | ExnMultisig;",
+    "exchange_resource_v1_alias": "export type ExchangeResourceV1 = Omit<ExchangeResource, 'exn'> & { exn: ExnV1 };",
+    "anchor_event_alias": "export type AnchorEvent = | components['schemas']['IXN_V_1'] | components['schemas']['ICP_V_1'] | components['schemas']['ROT_V_1'] | components['schemas']['DIP_V_1'] | components['schemas']['DIP_V_2'];",
+    "with_group_metadata_alias": "type WithGroupMetadata = Pick< ExnMultisig, 'paths' | 'groupName' | 'memberName' | 'sender' >;",
+    "schema_exn_embeds": "ExnEmbeds: { d: string; } & ( | components['schemas']['MultisigInceptEmbeds'] | components['schemas']['MultisigRotateEmbeds'] | components['schemas']['MultisigInteractEmbeds'] | components['schemas']['MultisigRegistryInceptEmbeds'] | components['schemas']['MultisigIssueEmbeds'] | components['schemas']['MultisigRevokeEmbeds'] | components['schemas']['MultisigRpyEmbeds'] | components['schemas']['MultisigExnEmbeds'] );",
+    "schema_multisig_revoke_embeds": "MultisigRevokeEmbeds: { rev: components['schemas']['REV_V_1']; anc: | components['schemas']['IXN_V_1'] | components['schemas']['IXN_V_2'] | components['schemas']['ICP_V_1'] | components['schemas']['ICP_V_2'] | components['schemas']['ROT_V_1'] | components['schemas']['ROT_V_2'] | components['schemas']['DIP_V_1'] | components['schemas']['DIP_V_2'] | components['schemas']['DRT_V_1'] | components['schemas']['DRT_V_2']; };",
+    "schema_multisig_issue_embeds": "MultisigIssueEmbeds: { acdc: | components['schemas']['ACDC_V_1'] | components['schemas']['ACDC_V_2']; iss: components['schemas']['Iss']; anc: | components['schemas']['IXN_V_1'] | components['schemas']['IXN_V_2'] | components['schemas']['ICP_V_1'] | components['schemas']['ICP_V_2'] | components['schemas']['ROT_V_1'] | components['schemas']['ROT_V_2'] | components['schemas']['DIP_V_1'] | components['schemas']['DIP_V_2'] | components['schemas']['DRT_V_1'] | components['schemas']['DRT_V_2']; };",
+    "schema_exn_multisig": "ExnMultisig: { exn: components['schemas']['Exn']; paths: { [key: string]: unknown; }; groupName?: string; memberName?: string; sender?: string; };",
+    "schema_exchange_resource": "ExchangeResource: { exn: components['schemas']['Exn']; pathed: { [key: string]: unknown; }; };",
+    "attribute_labels_in_schema": {
+      "gid": 47,
+      "smids": 26,
+      "rmids": 18,
+      "note": "counted across the whole pinned tree; the numbers below record how many of those hits are in the generated schema, which is zero",
+      "in_generated_schema": {
+        "gid": 0,
+        "smids": 0,
+        "rmids": 0
+      }
+    }
+  },
+  "route_table": [
+    {
+      "constant": "MULTISIG_ICP_ROUTE",
+      "variant": "MultisigIcpExchange",
+      "group": "MultisigIcpGroup",
+      "guard": "isMultisigIcp",
+      "assertion": "assertMultisigIcp",
+      "slot": "icp",
+      "value": "/multisig/icp",
+      "variant_declaration": "export type MultisigIcpExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_ICP_ROUTE; e: { icp: Icp | Dip; d?: string; }; a: { gid: string; smids: string[]; rmids?: string[]; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigIcpGroup = Omit<MultisigIcpExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigIcp(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_ICP_ROUTE; }",
+      "assertion_body": "export function assertMultisigIcp(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_ICP_ROUTE, 'Multisig ICP message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigIcp(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigIcp(",
+        "total": 7,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 1
+          }
+        ],
+        "consumer_total": 4,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_ROT_ROUTE",
+      "variant": "MultisigRotExchange",
+      "group": "MultisigRotGroup",
+      "guard": "isMultisigRot",
+      "assertion": "assertMultisigRot",
+      "slot": "rot",
+      "value": "/multisig/rot",
+      "variant_declaration": "export type MultisigRotExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_ROT_ROUTE; e: { rot: components['schemas']['ROT_V_1']; d?: string; }; a: { gid: string; smids: string[]; rmids?: string[]; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigRotGroup = Omit<MultisigRotExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigRot(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_ROT_ROUTE; }",
+      "assertion_body": "export function assertMultisigRot(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_ROT_ROUTE, 'Multisig ROT message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigRot(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigRot(",
+        "total": 6,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/multisig-join.test.ts",
+            "count": 1
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 2
+          }
+        ],
+        "consumer_total": 3,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_IXN_ROUTE",
+      "variant": "MultisigIxnExchange",
+      "group": "MultisigIxnGroup",
+      "guard": "isMultisigIxn",
+      "assertion": "assertMultisigIxn",
+      "slot": "ixn",
+      "value": "/multisig/ixn",
+      "variant_declaration": "export type MultisigIxnExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_IXN_ROUTE; e: { ixn: Ixn; d?: string; }; a: { gid: string; smids: string[]; rmids?: string[]; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigIxnGroup = Omit<MultisigIxnExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigIxn(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_IXN_ROUTE; }",
+      "assertion_body": "export function assertMultisigIxn(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_IXN_ROUTE, 'Multisig IXN message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigIxn(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigIxn(",
+        "total": 6,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/utils/multisig-utils.ts",
+            "count": 1
+          }
+        ],
+        "consumer_total": 3,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_RPY_ROUTE",
+      "variant": "MultisigRpyExchange",
+      "group": "MultisigRpyGroup",
+      "guard": "isMultisigRpy",
+      "assertion": "assertMultisigRpy",
+      "slot": "rpy",
+      "value": "/multisig/rpy",
+      "variant_declaration": "export type MultisigRpyExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_RPY_ROUTE; e: { rpy: Rpy; d?: string; }; a: { gid: string; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigRpyGroup = Omit<MultisigRpyExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigRpy(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_RPY_ROUTE; }",
+      "assertion_body": "export function assertMultisigRpy(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_RPY_ROUTE, 'Multisig RPY message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigRpy(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigRpy(",
+        "total": 7,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 2
+          },
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 2
+          }
+        ],
+        "consumer_total": 4,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_VCP_ROUTE",
+      "variant": "MultisigVcpExchange",
+      "group": "MultisigVcpGroup",
+      "guard": "isMultisigVcp",
+      "assertion": "assertMultisigVcp",
+      "slot": "vcp",
+      "value": "/multisig/vcp",
+      "variant_declaration": "export type MultisigVcpExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_VCP_ROUTE; e: { vcp: components['schemas']['VCP_V_1']; anc: AnchorEvent; d?: string; }; a: { gid: string; usage?: string; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigVcpGroup = Omit<MultisigVcpExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigVcp(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_VCP_ROUTE; }",
+      "assertion_body": "export function assertMultisigVcp(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_VCP_ROUTE, 'Multisig VCP message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigVcp(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigVcp(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_ISS_ROUTE",
+      "variant": "MultisigIssExchange",
+      "group": "MultisigIssGroup",
+      "guard": "isMultisigIss",
+      "assertion": "assertMultisigIss",
+      "slot": "iss",
+      "value": "/multisig/iss",
+      "variant_declaration": "export type MultisigIssExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_ISS_ROUTE; e: { acdc: components['schemas']['ACDC_V_1']; iss: components['schemas']['ISS_V_1']; anc: AnchorEvent; d?: string; }; a: { gid: string; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigIssGroup = Omit<MultisigIssExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigIss(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_ISS_ROUTE; }",
+      "assertion_body": "export function assertMultisigIss(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_ISS_ROUTE, 'Multisig ISS message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigIss(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigIss(",
+        "total": 5,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/multisig.test.ts",
+            "count": 2
+          }
+        ],
+        "consumer_total": 2,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_EXN_ROUTE",
+      "variant": "MultisigExnExchange",
+      "group": "MultisigExnGroup",
+      "guard": "isMultisigExn",
+      "assertion": "assertMultisigExn",
+      "slot": "exn",
+      "value": "/multisig/exn",
+      "variant_declaration": "export type MultisigExnExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_EXN_ROUTE; e: { exn: ExnV1; d?: string; }; a: { gid: string; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigExnGroup = Omit<MultisigExnExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigExn(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_EXN_ROUTE; }",
+      "assertion_body": "export function assertMultisigExn(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_EXN_ROUTE, 'Multisig EXN message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigExn(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigExn(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "MULTISIG_REV_ROUTE",
+      "variant": "MultisigRevExchange",
+      "group": "MultisigRevGroup",
+      "guard": "isMultisigRev",
+      "assertion": "assertMultisigRev",
+      "slot": "rev",
+      "value": "/multisig/rev",
+      "variant_declaration": "export type MultisigRevExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_REV_ROUTE; e: { rev: components['schemas']['REV_V_1']; d?: string; }; a: { gid: string; [key: string]: unknown; }; }; };",
+      "group_declaration": "export type MultisigRevGroup = Omit<MultisigRevExchange, 'pathed'> & WithGroupMetadata;",
+      "guard_body": "export function isMultisigRev(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_REV_ROUTE; }",
+      "assertion_body": "export function assertMultisigRev(msg: ExnMessage): ExnMessage { return assertRoute(msg, MULTISIG_REV_ROUTE, 'Multisig REV message'); }",
+      "guard_consumers": {
+        "needle": "isMultisigRev(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertMultisigRev(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "IPEX_GRANT_ROUTE",
+      "variant": "IpexGrantExchange",
+      "group": null,
+      "guard": "isIpexGrant",
+      "assertion": "assertIpexGrant",
+      "slot": "acdc",
+      "value": "/ipex/grant",
+      "variant_declaration": "export type IpexGrantExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof IPEX_GRANT_ROUTE; e: { acdc: components['schemas']['ACDC_V_1']; iss: components['schemas']['ISS_V_1']; anc: AnchorEvent; d?: string; }; }; };",
+      "group_declaration": null,
+      "guard_body": "export function isIpexGrant(msg: ExchangeResourceV1): msg is IpexGrantExchange { return msg.exn.r === IPEX_GRANT_ROUTE; }",
+      "assertion_body": "export function assertIpexGrant(msg: ExnMessage): ExnMessage { return assertRoute(msg, IPEX_GRANT_ROUTE, 'IPEX grant message'); }",
+      "guard_consumers": {
+        "needle": "isIpexGrant(",
+        "total": 1,
+        "declared_in": 1,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertIpexGrant(",
+        "total": 5,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/multisig-holder.test.ts",
+            "count": 2
+          }
+        ],
+        "consumer_total": 2,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "IPEX_OFFER_ROUTE",
+      "variant": "IpexOfferExchange",
+      "group": null,
+      "guard": "isIpexOffer",
+      "assertion": "assertIpexOffer",
+      "slot": "acdc",
+      "value": "/ipex/offer",
+      "variant_declaration": "export type IpexOfferExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof IPEX_OFFER_ROUTE; e: { acdc: components['schemas']['ACDC_V_1']; d?: string; }; }; };",
+      "group_declaration": null,
+      "guard_body": "export function isIpexOffer(msg: ExchangeResourceV1): msg is IpexOfferExchange { return msg.exn.r === IPEX_OFFER_ROUTE; }",
+      "assertion_body": "export function assertIpexOffer(msg: ExnMessage): ExnMessage { return assertRoute(msg, IPEX_OFFER_ROUTE, 'IPEX offer message'); }",
+      "guard_consumers": {
+        "needle": "isIpexOffer(",
+        "total": 1,
+        "declared_in": 1,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertIpexOffer(",
+        "total": 4,
+        "declared_in": 3,
+        "consumer_files": [
+          {
+            "file": "test-integration/credentials.test.ts",
+            "count": 1
+          }
+        ],
+        "consumer_total": 1,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "IPEX_APPLY_ROUTE",
+      "variant": "IpexApplyExchange",
+      "group": null,
+      "guard": "isIpexApply",
+      "assertion": "assertIpexApply",
+      "slot": null,
+      "value": "/ipex/apply",
+      "variant_declaration": "export type IpexApplyExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof IPEX_APPLY_ROUTE; e: object; }; };",
+      "group_declaration": null,
+      "guard_body": "export function isIpexApply(msg: ExchangeResourceV1): msg is IpexApplyExchange { return msg.exn.r === IPEX_APPLY_ROUTE; }",
+      "assertion_body": "export function assertIpexApply(msg: ExnMessage): ExnMessage { return assertRoute(msg, IPEX_APPLY_ROUTE, 'IPEX apply message'); }",
+      "guard_consumers": {
+        "needle": "isIpexApply(",
+        "total": 1,
+        "declared_in": 1,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertIpexApply(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "IPEX_AGREE_ROUTE",
+      "variant": "IpexAgreeExchange",
+      "group": null,
+      "guard": "isIpexAgree",
+      "assertion": "assertIpexAgree",
+      "slot": null,
+      "value": "/ipex/agree",
+      "variant_declaration": "export type IpexAgreeExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof IPEX_AGREE_ROUTE; e: object; }; };",
+      "group_declaration": null,
+      "guard_body": "export function isIpexAgree(msg: ExchangeResourceV1): msg is IpexAgreeExchange { return msg.exn.r === IPEX_AGREE_ROUTE; }",
+      "assertion_body": "export function assertIpexAgree(msg: ExnMessage): ExnMessage { return assertRoute(msg, IPEX_AGREE_ROUTE, 'IPEX agree message'); }",
+      "guard_consumers": {
+        "needle": "isIpexAgree(",
+        "total": 1,
+        "declared_in": 1,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertIpexAgree(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      }
+    },
+    {
+      "constant": "IPEX_ADMIT_ROUTE",
+      "variant": "IpexAdmitExchange",
+      "group": null,
+      "guard": "isIpexAdmit",
+      "assertion": "assertIpexAdmit",
+      "slot": null,
+      "value": "/ipex/admit",
+      "variant_declaration": "export type IpexAdmitExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof IPEX_ADMIT_ROUTE; e: object; }; };",
+      "group_declaration": null,
+      "guard_body": "export function isIpexAdmit(msg: ExchangeResourceV1): msg is IpexAdmitExchange { return msg.exn.r === IPEX_ADMIT_ROUTE; }",
+      "assertion_body": "export function assertIpexAdmit(msg: ExnMessage): ExnMessage { return assertRoute(msg, IPEX_ADMIT_ROUTE, 'IPEX admit message'); }",
+      "guard_consumers": {
+        "needle": "isIpexAdmit(",
+        "total": 1,
+        "declared_in": 1,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      },
+      "assertion_consumers": {
+        "needle": "assertIpexAdmit(",
+        "total": 3,
+        "declared_in": 3,
+        "consumer_files": [],
+        "consumer_total": 0,
+        "scanned_files": 117
+      }
+    }
+  ],
+  "variant_shapes": [
+    {
+      "route": "/multisig/icp",
+      "variant": "MultisigIcpExchange",
+      "embed_block": "icp: Icp | Dip; d?: string;",
+      "attribute_block": "gid: string; smids: string[]; rmids?: string[];",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/rot",
+      "variant": "MultisigRotExchange",
+      "embed_block": "rot: components['schemas']['ROT_V_1']; d?: string;",
+      "attribute_block": "gid: string; smids: string[]; rmids?: string[];",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/ixn",
+      "variant": "MultisigIxnExchange",
+      "embed_block": "ixn: Ixn; d?: string;",
+      "attribute_block": "gid: string; smids: string[]; rmids?: string[];",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/rpy",
+      "variant": "MultisigRpyExchange",
+      "embed_block": "rpy: Rpy; d?: string;",
+      "attribute_block": "gid: string;",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/vcp",
+      "variant": "MultisigVcpExchange",
+      "embed_block": "vcp: components['schemas']['VCP_V_1']; anc: AnchorEvent; d?: string;",
+      "attribute_block": "gid: string; usage?: string;",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/iss",
+      "variant": "MultisigIssExchange",
+      "embed_block": "acdc: components['schemas']['ACDC_V_1']; iss: components['schemas']['ISS_V_1']; anc: AnchorEvent; d?: string;",
+      "attribute_block": "gid: string;",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/exn",
+      "variant": "MultisigExnExchange",
+      "embed_block": "exn: ExnV1; d?: string;",
+      "attribute_block": "gid: string;",
+      "has_group_variant": true
+    },
+    {
+      "route": "/multisig/rev",
+      "variant": "MultisigRevExchange",
+      "embed_block": "rev: components['schemas']['REV_V_1']; d?: string;",
+      "attribute_block": "gid: string;",
+      "has_group_variant": true
+    },
+    {
+      "route": "/ipex/grant",
+      "variant": "IpexGrantExchange",
+      "embed_block": "acdc: components['schemas']['ACDC_V_1']; iss: components['schemas']['ISS_V_1']; anc: AnchorEvent; d?: string;",
+      "attribute_block": null,
+      "has_group_variant": false
+    },
+    {
+      "route": "/ipex/offer",
+      "variant": "IpexOfferExchange",
+      "embed_block": "acdc: components['schemas']['ACDC_V_1']; d?: string;",
+      "attribute_block": null,
+      "has_group_variant": false
+    },
+    {
+      "route": "/ipex/apply",
+      "variant": "IpexApplyExchange",
+      "embed_block": "object",
+      "attribute_block": null,
+      "has_group_variant": false
+    },
+    {
+      "route": "/ipex/agree",
+      "variant": "IpexAgreeExchange",
+      "embed_block": "object",
+      "attribute_block": null,
+      "has_group_variant": false
+    },
+    {
+      "route": "/ipex/admit",
+      "variant": "IpexAdmitExchange",
+      "embed_block": "object",
+      "attribute_block": null,
+      "has_group_variant": false
+    }
+  ],
+  "observed_attributes": {
+    "/challenge/response": {
+      "call_sites": 1,
+      "label_sets": [
+        "words"
+      ]
+    },
+    "/multisig/rpy": {
+      "call_sites": 8,
+      "label_sets": [
+        "gid"
+      ]
+    },
+    "/multisig/exn": {
+      "call_sites": 6,
+      "label_sets": [
+        "gid"
+      ]
+    },
+    "/multisig/icp": {
+      "call_sites": 7,
+      "label_sets": [
+        "gid,smids,rmids"
+      ]
+    },
+    "/multisig/rot": {
+      "call_sites": 3,
+      "label_sets": [
+        "gid,smids,rmids"
+      ]
+    },
+    "/multisig/ixn": {
+      "call_sites": 6,
+      "label_sets": [
+        "gid,smids,rmids"
+      ]
+    },
+    "/multisig/vcp": {
+      "call_sites": 4,
+      "label_sets": [
+        "gid",
+        "gid,usage"
+      ]
+    },
+    "/multisig/iss": {
+      "call_sites": 2,
+      "label_sets": [
+        "gid"
+      ]
+    },
+    "/multisig/rev": {
+      "call_sites": 1,
+      "label_sets": [
+        "gid"
+      ]
+    }
+  },
+  "send_call_sites": 38,
+  "executed": [
+    {
+      "route": "/multisig/icp",
+      "guard": "isMultisigIcp",
+      "assertion": "assertMultisigIcp",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: /multisig/rot",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/rot",
+      "guard": "isMultisigRot",
+      "assertion": "assertMultisigRot",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig ROT message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/ixn",
+      "guard": "isMultisigIxn",
+      "assertion": "assertMultisigIxn",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig IXN message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/rpy",
+      "guard": "isMultisigRpy",
+      "assertion": "assertMultisigRpy",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig RPY message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/vcp",
+      "guard": "isMultisigVcp",
+      "assertion": "assertMultisigVcp",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig VCP message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/iss",
+      "guard": "isMultisigIss",
+      "assertion": "assertMultisigIss",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig ISS message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/exn",
+      "guard": "isMultisigExn",
+      "assertion": "assertMultisigExn",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig EXN message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/multisig/rev",
+      "guard": "isMultisigRev",
+      "assertion": "assertMultisigRev",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected Multisig REV message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/ipex/grant",
+      "guard": "isIpexGrant",
+      "assertion": "assertIpexGrant",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected IPEX grant message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/ipex/offer",
+      "guard": "isIpexOffer",
+      "assertion": "assertIpexOffer",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected IPEX offer message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": false
+    },
+    {
+      "route": "/ipex/apply",
+      "guard": "isIpexApply",
+      "assertion": "assertIpexApply",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected IPEX apply message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": null
+    },
+    {
+      "route": "/ipex/agree",
+      "guard": "isIpexAgree",
+      "assertion": "assertIpexAgree",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected IPEX agree message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": null
+    },
+    {
+      "route": "/ipex/admit",
+      "guard": "isIpexAdmit",
+      "assertion": "assertIpexAdmit",
+      "guard_on_own_route": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "guard_on_other_route": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion_on_own_route": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "assertion_on_other_route": {
+        "outcome": "threw",
+        "error": "Expected IPEX admit message but got route: /multisig/icp",
+        "kind": "Error"
+      },
+      "guard_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "assertion_on_empty_payload": {
+        "outcome": "returned",
+        "verdict": "the message itself"
+      },
+      "declared_slot_present_when_empty": null
+    }
+  ],
+  "hostile": [
+    {
+      "name": "no_exn_at_all",
+      "value": {},
+      "guard": {
+        "outcome": "threw",
+        "error": "Cannot read properties of undefined (reading 'r')",
+        "kind": "TypeError"
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: undefined",
+        "kind": "Error"
+      }
+    },
+    {
+      "name": "exn_is_null",
+      "value": {
+        "exn": null
+      },
+      "guard": {
+        "outcome": "threw",
+        "error": "Cannot read properties of null (reading 'r')",
+        "kind": "TypeError"
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: undefined",
+        "kind": "Error"
+      }
+    },
+    {
+      "name": "exn_has_no_route",
+      "value": {
+        "exn": {}
+      },
+      "guard": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: undefined",
+        "kind": "Error"
+      }
+    },
+    {
+      "name": "route_is_a_number",
+      "value": {
+        "exn": {
+          "r": 7
+        }
+      },
+      "guard": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: 7",
+        "kind": "Error"
+      }
+    },
+    {
+      "name": "route_carries_the_label_text",
+      "value": {
+        "exn": {
+          "r": "Multisig ICP message"
+        }
+      },
+      "guard": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: Multisig ICP message",
+        "kind": "Error"
+      }
+    },
+    {
+      "name": "an_unknown_route",
+      "value": {
+        "exn": {
+          "v": "KERI10JSON000100_",
+          "t": "exn",
+          "d": "EEXN",
+          "i": "EMEM",
+          "rp": "EPEER",
+          "p": "",
+          "dt": "2023-11-14T22:13:20.123000+00:00",
+          "r": "/challenge/response",
+          "q": {},
+          "a": {},
+          "e": {}
+        },
+        "pathed": {}
+      },
+      "guard": {
+        "outcome": "returned",
+        "verdict": false
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: /challenge/response",
+        "kind": "Error"
+      }
+    }
+  ],
+  "shape_findings": {
+    "revocation_hides_its_anchor": {
+      "hand_written": "rev: components['schemas']['REV_V_1']; d?: string;",
+      "generated_schema": "MultisigRevokeEmbeds: { rev: components['schemas']['REV_V_1']; anc: | components['schemas']['IXN_V_1'] | components['schemas']['IXN_V_2'] | components['schemas']['ICP_V_1'] | components['schemas']['ICP_V_2'] | components['schemas']['ROT_V_1'] | components['schemas']['ROT_V_2'] | components['schemas']['DIP_V_1'] | components['schemas']['DIP_V_2'] | components['schemas']['DRT_V_1'] | components['schemas']['DRT_V_2']; };",
+      "note": "`MultisigRevExchange` declares `e: { rev, d? }` where the generated schema's `MultisigRevokeEmbeds` declares `{ rev, anc }`. The hand-written variant hides the anchoring key event, so a caller who narrows through `assertMultisigRev` cannot reach it — while `assertMultisigVcp` and `assertMultisigIss`, whose schema counterparts carry the same field, both expose it.",
+      "rust_decision": "Roadmap 4.1 modelled the schema, so `ExchangeEmbed::Revocation` carries the anchor and this port keeps it. The schema is generated from a live KERIA and the hand-written variant is the outlier; nothing is hidden."
+    },
+    "a_grant_and_an_issuance_share_one_embed": {
+      "grant": "acdc: components['schemas']['ACDC_V_1']; iss: components['schemas']['ISS_V_1']; anc: AnchorEvent; d?: string;",
+      "issuance": "acdc: components['schemas']['ACDC_V_1']; iss: components['schemas']['ISS_V_1']; anc: AnchorEvent; d?: string;",
+      "note": "`IpexGrantExchange.e` and `MultisigIssExchange.e` declare the same three fields, so one embed shape serves two routes on opposite sides of the table",
+      "rust_decision": "reused rather than duplicated: Roadmap 4.1's `MultisigIssuanceEmbed` decodes both, which is why eight schema embed shapes cover nine of the thirteen routes."
+    },
+    "the_schema_models_no_ipex_embed": {
+      "schema_union": "ExnEmbeds: { d: string; } & ( | components['schemas']['MultisigInceptEmbeds'] | components['schemas']['MultisigRotateEmbeds'] | components['schemas']['MultisigInteractEmbeds'] | components['schemas']['MultisigRegistryInceptEmbeds'] | components['schemas']['MultisigIssueEmbeds'] | components['schemas']['MultisigRevokeEmbeds'] | components['schemas']['MultisigRpyEmbeds'] | components['schemas']['MultisigExnEmbeds'] );",
+      "note": "the schema's `ExnEmbeds` union has exactly eight members, all multisig; an IPEX offer's `e: { acdc }` is not among them, and apply, agree, and admit declare `e: object`",
+      "rust_decision": "the IPEX payloads are modelled here rather than added to Roadmap 4.1's enum, because they were never part of the schema's union and widening a verified untagged enum would change how existing documents decode."
+    },
+    "the_schema_names_no_group_attribute": {
+      "counts": {
+        "gid": 0,
+        "smids": 0,
+        "rmids": 0
+      },
+      "note": "`gid`, `smids`, and `rmids` appear zero times in the generated schema. The `a` block shapes exist only in this file's hand-written types, which is why they are checked against what the integration tests actually send rather than against a schema.",
+      "rust_decision": "one `GroupAttributes` value, with the route deciding which of its optional fields are required."
+    }
+  },
+  "reference_quirks": {
+    "a_guard_narrows_without_checking": {
+      "guard": "export function isMultisigIcp(msg: ExnMessage): msg is ExnMessage { return msg.exn.r === MULTISIG_ICP_ROUTE; }",
+      "variant": "export type MultisigIcpExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_ICP_ROUTE; e: { icp: Icp | Dip; d?: string; }; a: { gid: string; smids: string[]; rmids?: string[]; [key: string]: unknown; }; }; };",
+      "empty_payload": {
+        "outcome": "returned",
+        "verdict": true
+      },
+      "note": "every guard and every assertion is one route comparison. The variant it narrows to declares an `e` block and an `a` block, and neither is looked at — so `assertMultisigIcp` accepts a message on `/multisig/icp` carrying no `icp` at all, hands back a value typed as though it did, and the caller's `exn.e.icp` is `undefined` while the compiler says it is an inception.",
+      "rust_decision": "the classifier decodes the payload the route promises, so a route and a payload that disagree are a typed refusal rather than a wrong type. That is the whole difference between the two: upstream the narrowing is a claim, here it is a check."
+    },
+    "the_guards_have_no_consumers": {
+      "guards": [
+        {
+          "name": "isMultisigIcp",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigRot",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigIxn",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigRpy",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigVcp",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigIss",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigExn",
+          "consumers": 0
+        },
+        {
+          "name": "isMultisigRev",
+          "consumers": 0
+        },
+        {
+          "name": "isIpexGrant",
+          "consumers": 0
+        },
+        {
+          "name": "isIpexOffer",
+          "consumers": 0
+        },
+        {
+          "name": "isIpexApply",
+          "consumers": 0
+        },
+        {
+          "name": "isIpexAgree",
+          "consumers": 0
+        },
+        {
+          "name": "isIpexAdmit",
+          "consumers": 0
+        }
+      ],
+      "assertions": [
+        {
+          "name": "assertMultisigIcp",
+          "consumers": 4
+        },
+        {
+          "name": "assertMultisigRot",
+          "consumers": 3
+        },
+        {
+          "name": "assertMultisigIxn",
+          "consumers": 3
+        },
+        {
+          "name": "assertMultisigRpy",
+          "consumers": 4
+        },
+        {
+          "name": "assertMultisigVcp",
+          "consumers": 0
+        },
+        {
+          "name": "assertMultisigIss",
+          "consumers": 2
+        },
+        {
+          "name": "assertMultisigExn",
+          "consumers": 0
+        },
+        {
+          "name": "assertMultisigRev",
+          "consumers": 0
+        },
+        {
+          "name": "assertIpexGrant",
+          "consumers": 2
+        },
+        {
+          "name": "assertIpexOffer",
+          "consumers": 1
+        },
+        {
+          "name": "assertIpexApply",
+          "consumers": 0
+        },
+        {
+          "name": "assertIpexAgree",
+          "consumers": 0
+        },
+        {
+          "name": "assertIpexAdmit",
+          "consumers": 0
+        }
+      ],
+      "used_assertions": [
+        "assertIpexGrant",
+        "assertIpexOffer",
+        "assertMultisigIcp",
+        "assertMultisigIss",
+        "assertMultisigIxn",
+        "assertMultisigRot",
+        "assertMultisigRpy"
+      ],
+      "unused_symbol_count": 19,
+      "note": "thirteen exported type guards, zero call sites anywhere in the pinned tree outside their own declaration — and six of the thirteen assertions beside them have none either. Nineteen of the twenty-six are dead exports; the seven that are used account for nineteen call sites, all in `test-integration/multisig*.test.ts`.",
+      "rust_decision": "not ported as functions. A guard is `matches!` on the classified enum, which costs nothing and cannot drift from the assertion beside it — the same reasoning that recorded `Unqualified` and `CredentialTypes` as having no Rust equivalent, applied to a capability the enum simply subsumes."
+    },
+    "a_guard_and_its_assertion_disagree_on_a_malformed_message": {
+      "guard": {
+        "outcome": "threw",
+        "error": "Cannot read properties of undefined (reading 'r')",
+        "kind": "TypeError"
+      },
+      "assertion": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: undefined",
+        "kind": "Error"
+      },
+      "declaration": "function assertRoute<T extends ExnMessage>( msg: T, route: string, label: string ): T { if (msg.exn?.r !== route) { throw new Error(`Expected ${label} but got route: ${msg.exn?.r}`); } return msg; }",
+      "note": "`assertRoute` reads `msg.exn?.r` and every guard reads `msg.exn.r`, so a value with no `exn` gives the assertion a clean `Error` and the guard a `TypeError`. Two functions that differ by one question mark and by which exception a caller has to catch.",
+      "rust_decision": "unrepresentable: a classified message is decoded from a typed `ExchangeResource`, which has no shape without an `exn`."
+    },
+    "the_failure_message_repeats_the_route": {
+      "declaration": "function assertRoute<T extends ExnMessage>( msg: T, route: string, label: string ): T { if (msg.exn?.r !== route) { throw new Error(`Expected ${label} but got route: ${msg.exn?.r}`); } return msg; }",
+      "example": {
+        "outcome": "threw",
+        "error": "Expected Multisig ICP message but got route: /multisig/rot",
+        "kind": "Error"
+      },
+      "note": "`Expected ${label} but got route: ${msg.exn?.r}` interpolates a value that came from the agent into the error a caller logs",
+      "rust_decision": "the refusal names the route it expected and the route it found, both bounded — the found one is the message's own field, already length-bounded by Roadmap 5.1's response limit, and neither is formatted into a message a caller is invited to trust."
+    },
+    "the_route_table_is_not_closed": {
+      "unknown_route": {
+        "name": "an_unknown_route",
+        "value": {
+          "exn": {
+            "v": "KERI10JSON000100_",
+            "t": "exn",
+            "d": "EEXN",
+            "i": "EMEM",
+            "rp": "EPEER",
+            "p": "",
+            "dt": "2023-11-14T22:13:20.123000+00:00",
+            "r": "/challenge/response",
+            "q": {},
+            "a": {},
+            "e": {}
+          },
+          "pathed": {}
+        },
+        "guard": {
+          "outcome": "returned",
+          "verdict": false
+        },
+        "assertion": {
+          "outcome": "threw",
+          "error": "Expected Multisig ICP message but got route: /challenge/response",
+          "kind": "Error"
+        }
+      },
+      "note": "thirteen constants, and the reference's own `Challenges.respond` sends a fourteenth — `/challenge/response` — which no variant, guard, or assertion names. Every guard simply returns false for it and every assertion throws.",
+      "rust_decision": "the classifier has an `Other` case rather than refusing: a route this table does not name is a message, not an error, because this crate itself sends one. Only a *named* route whose payload disagrees is refused."
+    },
+    "only_multisig_routes_have_a_group_variant": {
+      "with_group": [
+        "/multisig/icp",
+        "/multisig/rot",
+        "/multisig/ixn",
+        "/multisig/rpy",
+        "/multisig/vcp",
+        "/multisig/iss",
+        "/multisig/exn",
+        "/multisig/rev"
+      ],
+      "without_group": [
+        "/ipex/grant",
+        "/ipex/offer",
+        "/ipex/apply",
+        "/ipex/agree",
+        "/ipex/admit"
+      ],
+      "declaration": "type WithGroupMetadata = Pick< ExnMultisig, 'paths' | 'groupName' | 'memberName' | 'sender' >;",
+      "note": "the eight multisig routes each have a `*Group` variant for the form a group request returns; the five IPEX routes have none, so `assertIpexGrant(msg: ExnMultisig)` returns the unnarrowed `ExnMultisig`",
+      "rust_decision": "one classifier over both containers. The group form differs only in its wrapper — `paths` beside `pathed`, plus three optional labels — so the message inside it classifies identically and the asymmetry disappears."
+    }
+  }
+}

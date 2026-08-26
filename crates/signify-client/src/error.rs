@@ -265,6 +265,31 @@ pub enum ClientError {
         /// The value that was asked for.
         bits: u32,
     },
+    /// An exchange message's route promises an embed the message does not carry.
+    ///
+    /// The reference's thirteen `assert*` functions compare the route and stop, so a message on
+    /// `/multisig/icp` carrying no `icp` block is handed to the caller typed as though it did.
+    /// Here the route selects a shape and the shape is decoded, so the two cannot disagree.
+    ExchangeEmbedMismatch {
+        /// The route the message carried.
+        route: &'static str,
+        /// The embed slot that route requires.
+        expected: &'static str,
+        /// The slot the message actually carried, or `nothing` when it carried no embed at all.
+        found: &'static str,
+    },
+    /// A multisig proposal's attribute block is missing a label its route requires.
+    ///
+    /// The reference declares `gid` on all eight multisig routes and `smids` on the three that
+    /// name members, and checks neither. A label that is present but is not a list of qualified
+    /// prefixes reports the same way an absent one does, so a malformed member list can never read
+    /// as an unset one.
+    MissingGroupAttribute {
+        /// The route the message carried.
+        route: &'static str,
+        /// The wire label that was missing or unusable.
+        label: &'static str,
+    },
     /// An exchange message was submitted with no recipient at all.
     ///
     /// The reference's `sendFromEvents` sends `"rec":[]` unchallenged — its own unit test does
@@ -306,6 +331,13 @@ impl ClientError {
 }
 
 impl fmt::Display for ClientError {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "one arm per variant is the clearest form for a Display over a large error enum, \
+                  and it is what keeps the match exhaustive: every alternative either needs a \
+                  catch-all, which would let a new variant render as something generic, or \
+                  scatters the wording across several functions"
+    )]
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidPasscodeLength { expected, actual } => write!(
@@ -376,6 +408,13 @@ impl fmt::Display for ClientError {
                 "an IPEX {route} message must name at least one recipient to be delivered to"
             ),
             Self::Exchange { source } => write!(formatter, "exchange message construction failed: {source}"),
+            Self::ExchangeEmbedMismatch { route, expected, found } => write!(
+                formatter,
+                "an exchange on {route} must embed {expected}, but it embeds {found}"
+            ),
+            Self::MissingGroupAttribute { route, label } => {
+                write!(formatter, "a multisig proposal on {route} must name a usable {label}")
+            }
             Self::NoExchangeRecipients => {
                 formatter.write_str("an exchange message must name at least one recipient to be delivered to")
             }
@@ -441,6 +480,8 @@ impl Error for ClientError {
             | Self::EstablishmentOnlyIssuer { .. }
             | Self::CredentialIssuerMismatch { .. }
             | Self::NoIpexRecipients { .. }
+            | Self::ExchangeEmbedMismatch { .. }
+            | Self::MissingGroupAttribute { .. }
             | Self::NoExchangeRecipients
             | Self::EmptyExchangeTopic
             | Self::EmptyKeyStateListing
