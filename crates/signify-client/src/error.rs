@@ -9,6 +9,7 @@ use core::fmt;
 use std::error::Error;
 
 use signify_acdc::credential::CredentialError;
+use signify_acdc::error::IpexError;
 use signify_acdc::error::TransactionError;
 use signify_cesr::CesrError;
 use signify_crypto::CryptoError;
@@ -20,7 +21,7 @@ use signify_http::signature::transport::{ResponseAuthenticationError, SigningErr
 use signify_http::transport::TransportError;
 use signify_keri::attachment::AttachmentError;
 use signify_keri::controller::ControllerError;
-use signify_keri::event::EventError;
+use signify_keri::event::{EventError, TimestampError};
 use signify_keri::identifier::IdentifierError;
 use signify_keri::manager::ManagerError;
 use signify_keri::prefix::PrefixError;
@@ -237,6 +238,69 @@ pub enum ClientError {
     NoIpexRecipients {
         /// The route of the message that would have been sent.
         route: &'static str,
+    },
+    /// A timestamp read back off the wire is not a KERI timestamp.
+    ///
+    /// A joining member reads the stamp out of the proposal it is joining, because the stamp is
+    /// inside the SAID it must reproduce; an agent that returns a malformed one is a failure here
+    /// rather than a message nobody can sign.
+    Timestamp {
+        /// Underlying failure.
+        source: Box<TimestampError>,
+    },
+    /// A group request was read expecting a proposed exchange message and was something else.
+    NotAnExchangeProposal {
+        /// What was found instead.
+        found: &'static str,
+    },
+    /// An IPEX message could not be built or signed.
+    Ipex {
+        /// Underlying failure.
+        source: Box<IpexError>,
+    },
+    /// A disclosure step was answered as though it were a different step.
+    ///
+    /// Answering a grant with an agree, or an apply with an admit, produces a message chained to
+    /// something its recipient is not waiting for. Upstream every step takes a bare SAID, so any
+    /// step can be handed to any answer.
+    WrongDisclosureStep {
+        /// The step the method answers.
+        expected: &'static str,
+        /// The step it was handed.
+        found: &'static str,
+    },
+    /// A notification announced a message but named none.
+    ///
+    /// The reference's waiter ends `?.a.d ?? ''`, so this case reaches its callers as the empty
+    /// string and is built into an answer chained to nothing.
+    UnaddressedNotification {
+        /// Identifier of the notification.
+        notification: String,
+    },
+    /// A notification named a message that is not an IPEX step.
+    NotADisclosureStep {
+        /// The route the message carried.
+        route: String,
+    },
+    /// A notification's route is not the route the message it names carries.
+    DisclosureRouteMismatch {
+        /// The route the notification claimed.
+        notified: String,
+        /// The route the message actually carries.
+        carried: &'static str,
+    },
+    /// A credential could not be re-serialized to the bytes its SAID names.
+    ///
+    /// The SAID of an event is a digest over its exact encoding, so an event whose field order did
+    /// not survive the agent's JSON can no longer be disclosed under the name it arrived with.
+    NonCanonicalCredential {
+        /// Which of the three parts of a disclosure failed.
+        part: &'static str,
+    },
+    /// An apply's attribute block is not the shape a request must have.
+    MalformedDisclosureRequest {
+        /// What the block was required to be or to name.
+        what: &'static str,
     },
     /// A key-state listing named no identifier at all.
     ///
@@ -502,6 +566,37 @@ impl fmt::Display for ClientError {
             ),
             Self::Transaction { source } => write!(formatter, "transaction event construction failed: {source}"),
             Self::Credential { source } => write!(formatter, "credential encoding failed: {source}"),
+            Self::Timestamp { source } => write!(formatter, "a timestamp could not be read: {source}"),
+            Self::NotAnExchangeProposal { found } => {
+                write!(
+                    formatter,
+                    "a proposed exchange message was expected, and {found} was found"
+                )
+            }
+            Self::Ipex { source } => write!(formatter, "IPEX message construction failed: {source}"),
+            Self::WrongDisclosureStep { expected, found } => {
+                write!(formatter, "a disclosure {expected} cannot answer a {found}")
+            }
+            Self::UnaddressedNotification { notification } => write!(
+                formatter,
+                "notification {notification} announces a message but names none"
+            ),
+            Self::NotADisclosureStep { route } => {
+                write!(
+                    formatter,
+                    "a notification named a message on {route}, which is not an IPEX step"
+                )
+            }
+            Self::DisclosureRouteMismatch { notified, carried } => write!(
+                formatter,
+                "a notification on {notified} named a message carrying {carried}"
+            ),
+            Self::NonCanonicalCredential { part } => {
+                write!(formatter, "{part} does not re-serialize to the bytes its SAID names")
+            }
+            Self::MalformedDisclosureRequest { what } => {
+                write!(formatter, "a disclosure request must carry {what}")
+            }
             Self::NoIpexRecipients { route } => write!(
                 formatter,
                 "an IPEX {route} message must name at least one recipient to be delivered to"
@@ -633,6 +728,8 @@ impl Error for ClientError {
             Self::Attachment { source } => Some(source),
             Self::Transaction { source } => Some(source),
             Self::Credential { source } => Some(source),
+            Self::Ipex { source } => Some(source),
+            Self::Timestamp { source } => Some(source),
             Self::InvalidPasscodeLength { .. }
             | Self::PasscodeNotBase64 { .. }
             | Self::AgentNotFound { .. }
@@ -645,6 +742,13 @@ impl Error for ClientError {
             | Self::EstablishmentOnlyIssuer { .. }
             | Self::CredentialIssuerMismatch { .. }
             | Self::NoIpexRecipients { .. }
+            | Self::NotAnExchangeProposal { .. }
+            | Self::WrongDisclosureStep { .. }
+            | Self::UnaddressedNotification { .. }
+            | Self::NotADisclosureStep { .. }
+            | Self::DisclosureRouteMismatch { .. }
+            | Self::NonCanonicalCredential { .. }
+            | Self::MalformedDisclosureRequest { .. }
             | Self::ExchangeEmbedMismatch { .. }
             | Self::MissingGroupAttribute { .. }
             | Self::NoDelegationSeals
@@ -706,6 +810,8 @@ layered!(AttachmentError, Attachment);
 layered!(SaidError, Said);
 layered!(TransactionError, Transaction);
 layered!(CredentialError, Credential);
+layered!(IpexError, Ipex);
+layered!(TimestampError, Timestamp);
 
 impl From<PrefixError> for ClientError {
     /// A prefix read out of an identifier record is that record's failure, not the controller's.

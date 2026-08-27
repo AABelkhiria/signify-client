@@ -383,6 +383,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_ipex_presentation"
+path = "fuzz_targets/client_ipex_presentation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_oobis"
 path = "fuzz_targets/client_oobis.rs"
 test = false

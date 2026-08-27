@@ -20,4 +20,5 @@ pub mod endpoint;
 pub mod error;
 pub mod multisig;
 pub mod operation;
+pub mod presentation;
 pub mod random;

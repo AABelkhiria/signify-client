@@ -14,6 +14,8 @@
 //! | registry | [`Multisig::propose_registry`] | [`Multisig::accept_registry`] |
 //! | issuance | [`Multisig::propose_issuance`] | [`Multisig::accept_issuance`] |
 //! | revocation | [`Multisig::propose_revocation`] | [`Multisig::accept_revocation`] |
+//! | disclosure | [`Multisig::propose_disclosure`] | [`Multisig::accept_disclosure`] |
+//! | admittance | [`Multisig::propose_admittance`] | [`Multisig::accept_admittance`] |
 //!
 //! An inception creates the identifier, a rotation changes who controls it, and an interaction
 //! anchors seals in its log without changing anything about its keys. A **delegation approval** is
@@ -51,6 +53,21 @@
 //! attributes issue different credentials, and in both cases the group simply never reaches its
 //! threshold. Here the nonce and the credential are read out of the proposal, and what this member
 //! derives is compared with what it was shown.
+//!
+//! # A group's IPEX rounds read their timestamp out of the proposal
+//!
+//! The last two rounds send an IPEX message rather than a key or registry event: the group grants a
+//! credential to somebody outside it, or acknowledges one it was granted. Roadmap 8.8. The message
+//! is built under the group's alias and announced under the member's, and the announcement carries
+//! it whole in [`EXCHANGE_SLOT`] with the group's establishment seal over the member's signature.
+//!
+//! An IPEX message's SAID covers **its timestamp**, so two members stamping their own clocks build
+//! two different messages. The reference's helpers take the stamp as an argument and its holder test
+//! reads a module-level `TIME` constant, so both members agree only because one process handed them
+//! the same value; `assert.equal(admitResult1.admitSaid, admitResult2.admitSaid)` passes there and
+//! would fail in any real deployment. Here [`Multisig::accept_admittance`] takes no timestamp at
+//! all — it reads the stamp, the recipient, the text, and the grant being acknowledged out of the
+//! proposal, and compares the SAID it derives with the one it was shown.
 //!
 //! # The route names the embed
 //!
@@ -110,8 +127,10 @@
 //! group's keys come from the participants' key states either way, so nothing rests on it.
 
 use signify_acdc::credential::Credential;
+use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_acdc::revocation::RevocationEvent;
-use signify_keri::attachment::SignedMessageBuilder;
+use signify_cesr::sequence::SequenceNumber;
+use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::Timestamp;
 use signify_keri::event::exchange::ExchangeEmbed;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, RotateIdentifierRequest};
@@ -120,8 +139,8 @@ use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
 use signify_keri::threshold::SigningThreshold;
 use signify_types::api::{
-    AcceptedHab, ExchangeEmbed as ApiEmbed, Hab, KeyEvent, KeyManagerState, KeyState, RegistryInceptionRecord,
-    Threshold,
+    AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, Hab, KeyEvent, KeyManagerState, KeyState,
+    RegistryInceptionRecord, Threshold,
 };
 
 use crate::client::ConnectedClient;
@@ -132,6 +151,7 @@ use crate::endpoint::exchanges::{
     ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL, SentExchange,
 };
 use crate::endpoint::identifiers::Submission;
+use crate::endpoint::ipex::SubmittedIpexMessage;
 use crate::endpoint::registries::{CreateRegistryRequest, CreatedRegistry, RegistryBacking};
 use crate::error::ClientError;
 
@@ -1803,6 +1823,73 @@ mod tests {
         Ok(IdentifierPrefix::from_qb64(text)?)
     }
 
+    /// A grant a group is acknowledging.
+    const GRANT: &str = "EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF";
+
+    /// One proposed IPEX step, as the embedded `exn` of a `/multisig/exn` proposal.
+    fn embedded_step(route: &str, prior: &str, stamp: &str) -> Result<ExchangeRecord, Box<dyn Error>> {
+        let document = format!(
+            r#"{{"v":"KERI10JSON000100_","t":"exn","d":"EADMIT","i":"EGRP","rp":"{PEER}","p":"{prior}","dt":"{stamp}","r":"{route}","q":{{}},"a":{{"m":"a note"}},"e":{{}}}}"#
+        );
+        Ok(serde_json::from_str(&document)?)
+    }
+
+    #[test]
+    fn a_joining_member_reads_the_stamp_out_of_the_proposal() -> Result<(), Box<dyn Error>> {
+        let stamp = "2023-11-14T22:13:20.123000+00:00";
+        let proposed = embedded_step(IpexRoute::Admit.as_str(), GRANT, stamp)?;
+        let step = proposed_step(&proposed, IpexRoute::Admit)?;
+
+        // Everything that decides the message's SAID comes from the proposal, not from an
+        // argument — which is the whole of what the reference's shared `timestamp` parameter
+        // leaves to its caller.
+        assert_eq!(step.timestamp.to_string(), stamp);
+        assert_eq!(step.recipient.qb64()?, PEER);
+        assert_eq!(step.message, "a note");
+        assert_eq!(step.prior.map(|said| said.qb64()).transpose()?, Some(GRANT.to_owned()));
+        Ok(())
+    }
+
+    #[test]
+    fn a_proposal_on_another_step_is_refused() -> Result<(), Box<dyn Error>> {
+        let proposed = embedded_step(IpexRoute::Grant.as_str(), "", "2023-11-14T22:13:20.123000+00:00")?;
+        let refused = matches!(
+            proposed_step(&proposed, IpexRoute::Admit),
+            Err(ClientError::WrongDisclosureStep { .. })
+        );
+        assert!(refused, "a grant was accepted as a proposed admit");
+        Ok(())
+    }
+
+    #[test]
+    fn a_proposal_addressed_to_nobody_is_refused() -> Result<(), Box<dyn Error>> {
+        let document = r#"{"v":"KERI10JSON000100_","t":"exn","d":"EADMIT","i":"EGRP","p":"","dt":"2023-11-14T22:13:20.123000+00:00","r":"/ipex/admit","q":{},"a":{"m":""},"e":{}}"#;
+        let proposed: ExchangeRecord = serde_json::from_str(document)?;
+        let refused = matches!(
+            proposed_step(&proposed, IpexRoute::Admit),
+            Err(ClientError::WrongDisclosureStep { .. })
+        );
+        assert!(refused, "a step addressed to nobody was accepted");
+        Ok(())
+    }
+
+    #[test]
+    fn a_proposed_step_with_no_prior_answers_nothing() -> Result<(), Box<dyn Error>> {
+        let proposed = embedded_step(IpexRoute::Grant.as_str(), "", "2023-11-14T22:13:20.123000+00:00")?;
+        let step = proposed_step(&proposed, IpexRoute::Grant)?;
+        // An issuer's grant opens the exchange, so it names no predecessor — and the empty string
+        // reads as "answers nothing" rather than as a SAID.
+        assert!(step.prior.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn the_exchange_route_and_slot_are_the_ones_the_reference_sends() {
+        assert_eq!(EXCHANGE_ROUTE, "/multisig/exn");
+        assert_eq!(EXCHANGE_SLOT, "exn");
+        assert_eq!(EXCHANGE_ROUTE, MultisigRoute::Exchange.as_str());
+    }
+
     /// One inception event, used where a test needs an embed that is not an interaction.
     const INCEPTION_EVENT: &str = r#"{"v":"KERI10JSON000_","t":"icp","d":"EICP","i":"EGRP","s":"0","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":"0","b":[],"c":[],"a":[]}"#;
 
@@ -2145,4 +2232,443 @@ mod tests {
             Err(ClientError::UnsignedGroupRequest)
         ));
     }
+}
+
+/// Route a group proposes another exchange message on; the reference's `/multisig/exn`.
+pub const EXCHANGE_ROUTE: &str = "/multisig/exn";
+
+/// Slot the proposed message travels in.
+pub const EXCHANGE_SLOT: &str = "exn";
+
+/// What a group's disclosure commits to.
+#[derive(Debug)]
+pub struct GroupDisclosureRequest<'a> {
+    /// Local alias of the disclosing group.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// Every member of the group, this one included.
+    pub members: &'a [IdentifierPrefix],
+    /// Who the credential is being disclosed to.
+    pub recipient: IdentifierPrefix,
+    /// The credential, its issuance, and the key event anchoring it.
+    pub disclosure: Disclosure,
+    /// Human-readable text carried in the grant's `m` field.
+    pub message: String,
+    /// When the grant is stamped — and, because the joining members read it back out of the
+    /// proposal, what makes their grants identical to this one.
+    pub timestamp: Timestamp,
+}
+
+/// What a group's acknowledgement of a disclosure commits to.
+#[derive(Debug)]
+pub struct GroupAdmittanceRequest<'a> {
+    /// Local alias of the admitting group.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// Every member of the group, this one included.
+    pub members: &'a [IdentifierPrefix],
+    /// Who disclosed the credential.
+    pub discloser: IdentifierPrefix,
+    /// The grant being acknowledged.
+    pub grant: Said,
+    /// Human-readable text carried in the admit's `m` field.
+    pub message: String,
+    /// When the admit is stamped.
+    pub timestamp: Timestamp,
+}
+
+/// What one member did in a group's IPEX round.
+#[derive(Debug)]
+pub struct GroupDisclosure {
+    submitted: SubmittedIpexMessage,
+    announcement: SentExchange,
+    said: Said,
+}
+
+impl GroupDisclosure {
+    /// Returns the agent's answer to the IPEX submission.
+    #[must_use]
+    pub const fn submitted(&self) -> &SubmittedIpexMessage {
+        &self.submitted
+    }
+
+    /// Returns the agent's answer to the announcement.
+    #[must_use]
+    pub const fn announcement(&self) -> &SentExchange {
+        &self.announcement
+    }
+
+    /// Returns the SAID of the message this member built.
+    ///
+    /// Every member's is the same, which is the whole point of the round: the agent collects
+    /// signatures on one message. The reference's own holder test asserts exactly this equality —
+    /// and it holds there only because both members read one module-level `TIME` constant.
+    #[must_use]
+    pub const fn said(&self) -> Said {
+        self.said
+    }
+}
+
+impl Multisig<'_> {
+    /// Proposes disclosing a credential to somebody outside the group.
+    ///
+    /// The group grants the credential and each member tells the others, so the agent can collect
+    /// enough signatures on one grant. The message is built under the *group's* alias and announced
+    /// under this member's own, which is the same split every other round here uses.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::LocalMemberNotAParticipant`] when the local member is not among the
+    /// members, [`ClientError::LonelyGroup`] when it is the only one, [`ClientError::Ipex`] when the
+    /// grant cannot be built, and whatever
+    /// [`Ipex::submit`](crate::endpoint::ipex::Ipex::submit) and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn propose_disclosure(
+        &self,
+        request: &GroupDisclosureRequest<'_>,
+    ) -> Result<GroupDisclosure, ClientError> {
+        let member = self.local_member(request.local_member).await?;
+        let recipients = peers(&member, request.members)?;
+
+        let grant = self
+            .build_grant(
+                request.group_name,
+                &request.recipient,
+                &request.disclosure,
+                &request.message,
+                &request.timestamp,
+            )
+            .await?;
+        self.run_ipex_round(
+            request.group_name,
+            request.local_member,
+            &recipients,
+            grant,
+            &request.recipient,
+        )
+        .await
+    }
+
+    /// Joins a disclosure another member proposed, granting the credential it was shown.
+    ///
+    /// Everything that decides the grant's SAID is read out of the proposal — the recipient, the
+    /// text, and **the timestamp** — and the grant this member builds is compared with the one it
+    /// was shown. The credential itself is the caller's, because a grant embeds it rather than
+    /// naming it, and this member must hold it to disclose it.
+    ///
+    /// **Upstream nothing is read.** `grantMultisig` waits for a `/multisig/exn` notification,
+    /// discards its SAID, and builds from its own arguments; the two members agree only because the
+    /// test process hands both the same `timestamp`. Two members stamping their own clocks build
+    /// two different grants, the group never reaches its threshold, and nothing says so.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NotAnExchangeProposal`] when the message under `proposal` is not a
+    /// proposed exchange, [`ClientError::WrongDisclosureStep`] when the message it carries is not a
+    /// grant, [`ClientError::ProposalMismatch`] when this member derives a different grant, and
+    /// whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests) returns.
+    pub async fn accept_disclosure(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        proposal: &Said,
+        disclosure: &Disclosure,
+    ) -> Result<GroupDisclosure, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let (proposed, embedded) = self.read_exchange_proposal(proposal).await?;
+        let step = proposed_step(&embedded, IpexRoute::Grant)?;
+
+        let members = self.members_of(&proposed, group_name).await?;
+        let recipients = peers(&member, &members)?;
+
+        let grant = self
+            .build_grant(group_name, &step.recipient, disclosure, &step.message, &step.timestamp)
+            .await?;
+        require_same(&embedded.digest, &grant)?;
+
+        self.run_ipex_round(group_name, local_member, &recipients, grant, &step.recipient)
+            .await
+    }
+
+    /// Proposes acknowledging a disclosure the group received.
+    ///
+    /// # Errors
+    ///
+    /// Returns the failures [`Self::propose_disclosure`] returns, for the admit rather than the
+    /// grant.
+    pub async fn propose_admittance(
+        &self,
+        request: &GroupAdmittanceRequest<'_>,
+    ) -> Result<GroupDisclosure, ClientError> {
+        let member = self.local_member(request.local_member).await?;
+        let recipients = peers(&member, request.members)?;
+
+        let admit = self
+            .build_admit(
+                request.group_name,
+                &request.discloser,
+                request.grant,
+                &request.message,
+                &request.timestamp,
+            )
+            .await?;
+        self.run_ipex_round(
+            request.group_name,
+            request.local_member,
+            &recipients,
+            admit,
+            &request.discloser,
+        )
+        .await
+    }
+
+    /// Joins an acknowledgement another member proposed.
+    ///
+    /// As with [`Self::accept_disclosure`], the grant being acknowledged, the recipient, the text,
+    /// and the timestamp are all read out of the proposal, and the admit this member builds is
+    /// compared with the one it was shown. This method takes **no timestamp**, because taking one
+    /// would let a caller build something the group cannot sign.
+    ///
+    /// # Errors
+    ///
+    /// Returns the failures [`Self::accept_disclosure`] returns, for the admit rather than the
+    /// grant.
+    pub async fn accept_admittance(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        proposal: &Said,
+    ) -> Result<GroupDisclosure, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let (proposed, embedded) = self.read_exchange_proposal(proposal).await?;
+        let step = proposed_step(&embedded, IpexRoute::Admit)?;
+        let granted = step.prior.ok_or(ClientError::WrongDisclosureStep {
+            expected: IpexRoute::Admit.as_str(),
+            found: "an admit chained to nothing",
+        })?;
+
+        let members = self.members_of(&proposed, group_name).await?;
+        let recipients = peers(&member, &members)?;
+
+        let admit = self
+            .build_admit(group_name, &step.recipient, granted, &step.message, &step.timestamp)
+            .await?;
+        require_same(&embedded.digest, &admit)?;
+
+        self.run_ipex_round(group_name, local_member, &recipients, admit, &step.recipient)
+            .await
+    }
+
+    /// Builds and signs one grant under the group's own alias.
+    async fn build_grant(
+        &self,
+        group_name: &str,
+        recipient: &IdentifierPrefix,
+        disclosure: &Disclosure,
+        message: &str,
+        timestamp: &Timestamp,
+    ) -> Result<IpexMessage, ClientError> {
+        let (keeper, group) = self.group_signer(group_name).await?;
+        let envelope = IpexEnvelope::new(group, recipient.clone(), message, timestamp.clone())?;
+        Ok(ipex::grant(keeper.as_ref(), &envelope, disclosure, None)?)
+    }
+
+    /// Builds and signs one admit under the group's own alias.
+    async fn build_admit(
+        &self,
+        group_name: &str,
+        recipient: &IdentifierPrefix,
+        grant: Said,
+        message: &str,
+        timestamp: &Timestamp,
+    ) -> Result<IpexMessage, ClientError> {
+        let (keeper, group) = self.group_signer(group_name).await?;
+        let envelope = IpexEnvelope::new(group, recipient.clone(), message, timestamp.clone())?;
+        Ok(ipex::admit(keeper.as_ref(), &envelope, grant)?)
+    }
+
+    /// Reads the group's keeper and prefix.
+    async fn group_signer(
+        &self,
+        group_name: &str,
+    ) -> Result<
+        (
+            Box<dyn signify_keri::manager::keeper::IdentifierKeeper>,
+            IdentifierPrefix,
+        ),
+        ClientError,
+    > {
+        let record = self.client.identifiers().get(group_name).await?;
+        let group = IdentifierPrefix::from_qb64(&record.common.prefix)?;
+        let keeper = self.client.keepers().keeper_for(&Hab::Accepted(record))?;
+        Ok((keeper, group))
+    }
+
+    /// Submits the message to its recipient, then announces it to the group's other members.
+    async fn run_ipex_round(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        recipients: &[IdentifierPrefix],
+        message: IpexMessage,
+        addressee: &IdentifierPrefix,
+    ) -> Result<GroupDisclosure, ClientError> {
+        let said = message.said();
+        let embed = self.transposed_embed(group_name, &message).await?;
+
+        let submitted = self
+            .client
+            .ipex()
+            .submit(group_name, &message, std::slice::from_ref(addressee))
+            .await?;
+
+        let mut payload = Sad::new();
+        let group = self.client.identifiers().get(group_name).await?;
+        payload
+            .insert(GROUP_LABEL, group.common.prefix.clone())
+            .map_err(sad_error)?;
+
+        let peer = recipients.first().ok_or(ClientError::LonelyGroup)?.clone();
+        let draft = ExchangeDraft::new(EXCHANGE_ROUTE, peer, message_stamp(&message)?)
+            .payload(payload)
+            .embeds(vec![embed]);
+        let announcement = self
+            .client
+            .exchanges()
+            .send(
+                local_member,
+                crate::endpoint::exchanges::MULTISIG_TOPIC,
+                &draft,
+                recipients,
+            )
+            .await?;
+
+        Ok(GroupDisclosure {
+            submitted,
+            announcement,
+            said,
+        })
+    }
+
+    /// Builds the `exn` embed: the message, its signatures under the group's establishment seal,
+    /// and whatever its own embeds attached.
+    async fn transposed_embed(&self, group_name: &str, message: &IpexMessage) -> Result<ExchangeEmbed, ClientError> {
+        let record = self.client.identifiers().get(group_name).await?;
+        let establishment = &record.state.latest_establishment_event;
+
+        let mut attachment = SignedMessageBuilder::new(message.exchange().serialized())
+            .controller_signatures(indexed(message.signatures())?)
+            .seal(SignatureSeal::Event {
+                identifier: IdentifierPrefix::from_qb64(&record.common.prefix)?,
+                sequence_number: SequenceNumber::from_hex(&establishment.sequence_number)?,
+                said: Said::from_qb64(&establishment.digest)?,
+            })
+            .build()
+            .map_err(|source| ClientError::Attachment {
+                source: Box::new(source),
+            })?
+            .attachments()
+            .to_vec();
+        attachment.extend_from_slice(message.attachments());
+
+        Ok(ExchangeEmbed::new(EXCHANGE_SLOT, message.exchange().serialized())?.with_attachment(attachment)?)
+    }
+
+    /// Reads one group request and requires it to be a proposed exchange message.
+    async fn read_exchange_proposal(&self, said: &Said) -> Result<(MultisigProposal, ExchangeRecord), ClientError> {
+        let listing = self.client.groups().requests(said).await?;
+        let first = listing.first().ok_or(ClientError::NotAnExchangeProposal {
+            found: "an empty listing",
+        })?;
+        let classified = ClassifiedExchange::try_from(first)?;
+        let proposal = classified
+            .as_multisig()
+            .ok_or(ClientError::NotAnExchangeProposal {
+                found: "a message on another route",
+            })?
+            .clone();
+        if proposal.route != MultisigRoute::Exchange {
+            return Err(ClientError::NotAnExchangeProposal {
+                found: proposal.route.as_str(),
+            });
+        }
+        let ApiEmbed::Exchange(embed) = &proposal.proposed.message else {
+            return Err(ClientError::NotAnExchangeProposal {
+                found: "an embed that is not an exchange message",
+            });
+        };
+        let embedded = embed.exn.clone();
+        Ok((proposal, embedded))
+    }
+}
+
+/// Everything a joining member must read out of a proposed IPEX step to rebuild it.
+struct ProposedStep {
+    recipient: IdentifierPrefix,
+    message: String,
+    timestamp: Timestamp,
+    prior: Option<Said>,
+}
+
+/// Reads a proposed IPEX step, requiring it to be on `expected`.
+fn proposed_step(embedded: &ExchangeRecord, expected: IpexRoute) -> Result<ProposedStep, ClientError> {
+    if embedded.route != expected.as_str() {
+        return Err(ClientError::WrongDisclosureStep {
+            expected: expected.as_str(),
+            found: match IpexRoute::ALL.iter().find(|route| route.as_str() == embedded.route) {
+                Some(route) => route.as_str(),
+                None => "a message on another route",
+            },
+        });
+    }
+    let addressed = embedded.recipient.as_deref().ok_or(ClientError::WrongDisclosureStep {
+        expected: expected.as_str(),
+        found: "a step addressed to nobody",
+    })?;
+    let message = embedded
+        .attributes
+        .get(ipex::MESSAGE_LABEL)
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_default()
+        .to_owned();
+    let prior = if embedded.prior.is_empty() {
+        None
+    } else {
+        Some(Said::from_qb64(&embedded.prior)?)
+    };
+
+    Ok(ProposedStep {
+        recipient: IdentifierPrefix::from_qb64(addressed)?,
+        message,
+        timestamp: embedded.stamp.parse()?,
+        prior,
+    })
+}
+
+/// Requires the message this member built to be the one it was shown.
+fn require_same(proposed: &str, built: &IpexMessage) -> Result<(), ClientError> {
+    let derived = built.said().qb64()?;
+    if derived == proposed {
+        Ok(())
+    } else {
+        Err(ClientError::ProposalMismatch {
+            proposed: proposed.to_owned(),
+            built: derived,
+        })
+    }
+}
+
+/// Reads a built message's own timestamp back, so the announcement carries the same one.
+fn message_stamp(message: &IpexMessage) -> Result<Timestamp, ClientError> {
+    let text = message
+        .exchange()
+        .sad()
+        .get_text("dt")
+        .ok_or(ClientError::WrongDisclosureStep {
+            expected: "a stamped message",
+            found: "one with no timestamp",
+        })?;
+    Ok(text.parse()?)
 }

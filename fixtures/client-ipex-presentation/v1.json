@@ -1,0 +1,1437 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-27",
+  "sources": [
+    "test-integration/credentials.test.ts",
+    "test-integration/multisig-holder.test.ts",
+    "test-integration/utils/multisig-utils.ts",
+    "test-integration/utils/test-util.ts",
+    "src/keri/app/credentialing.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "shared_stamp": "2023-11-14T22:13:20.123000+00:00",
+    "other_stamp": "2023-11-14T22:13:21.456000+00:00",
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "subject_prefix": "EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei",
+    "verifier_prefix": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
+    "notified_grant": "EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
+    "note": "The single-signature conversation is written inline in `credentials.test.ts`, so each step is driven through the reference's own `Ipex` method with the same arguments in the same order. The group rounds live in `multisig-utils.ts`, which is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "grant_multisig": "export async function grantMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, recipientAID: HabState, credential: any, timestamp: string, isInitiator: boolean = false ): Promise<string> { if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn'); const [grant, sigs, end] = await client.ipex().grant({ senderName: multisigAID.name, acdc: new Serder(credential.sad), anc: new Serder(credential.anc), iss: new Serder(credential.iss), recipient: recipientAID.prefix, datetime: timestamp, }); await client .ipex() .submitGrant(multisigAID.name, grant, sigs, end, [recipientAID.prefix]); const mstate = multisigAID.state; const seal = [ 'SealEvent', { i: multisigAID.prefix, s: mstate['ee']['s'], d: mstate['ee']['d'] }, ]; const sigers = sigs.map((sig) => new signify.Siger({ qb64: sig })); const gims = signify.d(signify.messagize(grant, sigers, seal)); let atc = gims.substring(grant.size); atc += end; const gembeds = { exn: [grant, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/exn', { gid: multisigAID.prefix }, gembeds, recp ); return grant.said; }",
+    "admit_multisig": "export async function admitMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, recipientAID: HabState, timestamp: string, isInitiator: boolean = false // numGrantMsgs: number ): Promise<string> { if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn'); const grantMsgSaid = await waitAndMarkNotification( client, '/exn/ipex/grant' ); const [admit, sigs, end] = await client.ipex().admit({ senderName: multisigAID.name, message: '', grantSaid: grantMsgSaid, recipient: recipientAID.prefix, datetime: timestamp, }); await client .ipex() .submitAdmit(multisigAID.name, admit, sigs, end, [recipientAID.prefix]); const mstate = multisigAID.state; const seal = [ 'SealEvent', { i: multisigAID.prefix, s: mstate['ee']['s'], d: mstate['ee']['d'] }, ]; const sigers = sigs.map((sig: string) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(admit, sigers, seal)); let atc = ims.substring(admit.size); atc += end; const gembeds = { exn: [admit, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/exn', { gid: multisigAID.prefix }, gembeds, recp ); return admit.said; }",
+    "multisig_admit_credential": "async function multisigAdmitCredential( client: SignifyClient, groupName: string, memberAlias: string, grantSaid: string, issuerPrefix: string, recipients: string[], isInitiator: boolean = false ): Promise<{ op: Operation; admitSaid: string }> { const mHab = await client.identifiers().get(memberAlias); const gHab = await client.identifiers().get(groupName); if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn'); const [admit, sigs, end] = await client.ipex().admit({ senderName: groupName, message: '', grantSaid: grantSaid, recipient: issuerPrefix, datetime: TIME, }); const op = await client .ipex() .submitAdmit(groupName, admit, sigs, end, [issuerPrefix]); const mstate = gHab['state']; const seal = [ 'SealEvent', { i: gHab['prefix'], s: mstate['ee']['s'], d: mstate['ee']['d'] }, ]; const sigers = sigs.map((sig: any) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(admit, sigers, seal)); let atc = ims.substring(admit.size); atc += end; const gembeds = { exn: [admit, atc], }; await client .exchanges() .send( mHab.name, 'multisig', mHab, '/multisig/exn', { gid: gHab['prefix'] }, gembeds, recipients ); return { op, admitSaid: admit.said }; }",
+    "waiter_return": "return notes[notes.length - 1]?.a.d ?? '';",
+    "admit_parameters": {
+      "declared": [
+        "client: SignifyClient",
+        "aid: HabState",
+        "otherMembersAIDs: HabState[]",
+        "multisigAID: HabState",
+        "recipientAID: HabState",
+        "timestamp: string",
+        "isInitiator: boolean = false"
+      ],
+      "commented_out": [
+        "numGrantMsgs: number"
+      ]
+    },
+    "grant_defaults": {
+      "text": "async grant(args: IpexGrantArgs): Promise<[Serder, string[], string]> { const hab = await this.client.identifiers().get(args.senderName); const data = { m: args.message ?? '', }; let atc = args.ancAttachment; if (atc === undefined) { const keeper = this.client.manager!.get(hab); const sigs = await keeper.sign(b(args.anc.raw)); const sigers = sigs.map((sig: string) => new Siger({ qb64: sig })); const ims = d(messagize(args.anc, sigers)); atc = ims.substring(args.anc.size); } const acdcAtc = args.acdcAttachment === undefined ? d(serializeACDCAttachment(args.iss)) : args.acdcAttachment; const issAtc = args.issAttachment === undefined ? d(serializeIssExnAttachment(args.anc)) : args.issAttachment; const embeds: Record<string, [Serder, string]> = { acdc: [args.acdc, acdcAtc], iss: [args.iss, issAtc], anc: [args.anc, atc], }; return this.client .exchanges() .createExchangeMessage( hab, '/ipex/grant', data, embeds, args.recipient, args.datetime, args.agreeSaid ); }",
+      "resigns_the_anchor": true,
+      "credential_attachment_default": true,
+      "issuance_attachment_default": true
+    },
+    "notification_waits": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "addEndRoleMultisig",
+        "route": "/multisig/rpy",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/exn/ipex/grant",
+        "binds": "grantMsgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createAIDMultisig",
+        "route": "/multisig/icp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createRegistryMultisig",
+        "route": "/multisig/vcp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "delegateMultisig",
+        "route": "/multisig/ixn",
+        "binds": "msgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "grantMultisig",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "issueCredentialMultisig",
+        "route": "/multisig/iss",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/icp",
+        "binds": "msgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rpy",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rpy",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": "grantMsgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": "grantMsgSaid2",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "issueCredential",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "multisigAdmitCredential",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/apply",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/offer",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/agree",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      }
+    ],
+    "ipex_calls": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "step": "admit",
+        "enclosing": "admitMultisig",
+        "arguments": [
+          "senderName",
+          "message",
+          "grantSaid",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "step": "grant",
+        "enclosing": "grantMultisig",
+        "arguments": [
+          "senderName",
+          "acdc",
+          "anc",
+          "iss",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "step": "grant",
+        "enclosing": "issueCredential",
+        "arguments": [
+          "senderName",
+          "recipient",
+          "datetime",
+          "acdc",
+          "anc",
+          "iss"
+        ]
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "step": "admit",
+        "enclosing": "multisigAdmitCredential",
+        "arguments": [
+          "senderName",
+          "message",
+          "grantSaid",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "grant",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "acdc",
+          "anc",
+          "iss",
+          "ancAttachment",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "admit",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "message",
+          "grantSaid",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "apply",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "schemaSaid",
+          "attributes",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "offer",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "recipient",
+          "acdc",
+          "applySaid",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "agree",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "recipient",
+          "offerSaid",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "grant",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "recipient",
+          "acdc",
+          "anc",
+          "iss",
+          "acdcAttachment",
+          "ancAttachment",
+          "issAttachment",
+          "agreeSaid",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "admit",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "message",
+          "grantSaid",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "grant",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "acdc",
+          "anc",
+          "iss",
+          "ancAttachment",
+          "recipient",
+          "datetime"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "step": "admit",
+        "enclosing": "<top level>",
+        "arguments": [
+          "senderName",
+          "message",
+          "grantSaid",
+          "recipient",
+          "datetime"
+        ]
+      }
+    ],
+    "grant_arguments": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "grantMultisig",
+        "attachments": []
+      },
+      {
+        "file": "test-integration/multisig-holder.test.ts",
+        "enclosing": "issueCredential",
+        "attachments": []
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "attachments": [
+          "ancAttachment"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "attachments": [
+          "acdcAttachment",
+          "ancAttachment",
+          "issAttachment"
+        ]
+      },
+      {
+        "file": "test-integration/credentials.test.ts",
+        "enclosing": "<top level>",
+        "attachments": [
+          "ancAttachment"
+        ]
+      }
+    ],
+    "said_guards": {
+      "admitMultisig": false,
+      "multisigAdmitCredential": false,
+      "credentials_test_inline": true
+    },
+    "shared_clock": {
+      "declaration": true,
+      "text": "const TIME = createTimestamp();",
+      "file": "test-integration/multisig-holder.test.ts",
+      "asserted": true
+    },
+    "timestamp_uses": {
+      "needle": "datetime: TIME",
+      "total": 1,
+      "files": [
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "scanned_files": 117,
+    "notes": {
+      "waiter": "`return notes[notes.length - 1]?.a.d ?? '';` — marks every match read, returns the last, and yields the empty string when a notification names no message",
+      "stamp": "an IPEX message's SAID covers its `dt`, so two members must agree on a timestamp to build one message"
+    }
+  },
+  "key_states": {
+    "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "p": "",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "identifier_record": {
+    "name": "member1",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "group_record": {
+    "name": "multisig",
+    "prefix": "EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC",
+    "transferable": true,
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00",
+    "group": {
+      "mhab": {
+        "name": "member1",
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "salty": {
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "tier": "low",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789abcdefghijk"
+        },
+        "transferable": true,
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-08-21T22:30:46.473545+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+          ],
+          "nt": "1",
+          "n": [
+            "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "windexes": [],
+        "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+      },
+      "keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "ndigs": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ]
+    },
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC",
+      "s": "0",
+      "p": "",
+      "d": "EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "2",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "2",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "held_credential": {
+    "sad": {
+      "v": "ACDC10JSON0001ca_",
+      "d": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+      "u": "AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s",
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "ri": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+      "s": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+      "a": {
+        "d": "EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq",
+        "i": "EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei",
+        "LEI": "5493001KJTIIGC8Y1R17",
+        "dt": "2023-11-14T22:13:20.123000+00:00"
+      }
+    },
+    "atc": "-IABEEXN0AAAAAAAAAAAAAAAAAAAAAAAEEXN",
+    "iss": {
+      "v": "KERI10JSON0000ed_",
+      "t": "iss",
+      "d": "EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE",
+      "i": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+      "s": "0",
+      "ri": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+      "dt": "2023-11-14T22:13:20.123000+00:00"
+    },
+    "issatc": "-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAAAEEXN",
+    "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "schema": {
+      "$id": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Qualified vLEI Issuer Credential",
+      "description": "A vLEI Credential issued by GLEIF to Qualified vLEI Issuers",
+      "type": "object",
+      "credentialType": "QualifiedvLEIIssuervLEICredential",
+      "version": "1.0.0",
+      "properties": {},
+      "additionalProperties": false,
+      "required": [
+        "i",
+        "ri",
+        "s",
+        "d"
+      ]
+    },
+    "chains": [],
+    "status": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+      "s": "0",
+      "d": "EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE",
+      "ri": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+      "a": {
+        "s": "1",
+        "d": "ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp"
+      },
+      "dt": "2023-11-14T22:13:20.123000+00:00",
+      "et": "iss",
+      "ra": {}
+    },
+    "anchor": {
+      "pre": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "sn": 0,
+      "d": "ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp"
+    },
+    "anc": {
+      "v": "KERI10JSON00013a_",
+      "t": "ixn",
+      "d": "ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp",
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "1",
+      "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "a": [
+        {
+          "i": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+          "s": "0",
+          "d": "EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE"
+        }
+      ]
+    },
+    "ancatc": [
+      "-AABAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+    ]
+  },
+  "calls": [
+    {
+      "name": "issue_the_credential",
+      "note": "the issuer issues a credential to its subject, so there is something to disclose",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/credentials",
+          "method": "POST",
+          "body": "{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"sigs\":[\"AACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\"],\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}"
+        }
+      ],
+      "result": {
+        "acdc": {
+          "_raw": "{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}}",
+          "_sad": {
+            "v": "ACDC10JSON0001ca_",
+            "d": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+            "u": "AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "ri": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+            "s": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+            "a": {
+              "d": "EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq",
+              "i": "EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei",
+              "LEI": "5493001KJTIIGC8Y1R17",
+              "dt": "2023-11-14T22:13:20.123000+00:00"
+            }
+          },
+          "_proto": "ACDC",
+          "_size": 458,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "iss": {
+          "_raw": "{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}",
+          "_sad": {
+            "v": "KERI10JSON0000ed_",
+            "t": "iss",
+            "d": "EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE",
+            "i": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+            "s": "0",
+            "ri": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+            "dt": "2023-11-14T22:13:20.123000+00:00"
+          },
+          "_proto": "KERI",
+          "_size": 237,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "anc": {
+          "_raw": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]}",
+          "_sad": {
+            "v": "KERI10JSON00013a_",
+            "t": "ixn",
+            "d": "ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp",
+            "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "s": "1",
+            "p": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "a": [
+              {
+                "i": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+                "s": "0",
+                "d": "EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE"
+              }
+            ]
+          },
+          "_proto": "KERI",
+          "_size": 314,
+          "_version": {
+            "major": 1,
+            "minor": 0
+          },
+          "_code": "E",
+          "_kind": "JSON"
+        },
+        "op": {
+          "name": "exn.EEXN",
+          "metadata": {
+            "pre": "EEXN",
+            "sn": 0
+          },
+          "done": false
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "issuer_grants_the_credential",
+      "note": "the grant that opens an issuance: it chains to nothing, and passes only the anchor's attachment",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/grant",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"sigs\":[\"AADPW_fP-9x9lG3TDN96Wlnc5LeAwEzfCnmUriXc8qMbAaTNhVenDsF18U29mum1dU1x_tJUomQUleFyIwRW0WAD\"],\"atc\":\"-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\",\"rec\":[\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\"]}"
+        }
+      ],
+      "result": {
+        "said": "EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC",
+        "prior": "",
+        "slots": [
+          "acdc",
+          "iss",
+          "anc"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "issuer_grants_with_no_attachments",
+      "note": "the same grant with no attachments at all — the shape `multisig-holder.test.ts` sends, which re-signs the anchor",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/grant",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"sigs\":[\"AADPW_fP-9x9lG3TDN96Wlnc5LeAwEzfCnmUriXc8qMbAaTNhVenDsF18U29mum1dU1x_tJUomQUleFyIwRW0WAD\"],\"atc\":\"-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABAACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\"]}"
+        }
+      ],
+      "result": {
+        "said": "EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC",
+        "attachment_length": 332
+      },
+      "error": null
+    },
+    {
+      "name": "holder_admits_the_grant",
+      "note": "the admit that closes an issuance, chained to the grant it answers",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/admit",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"ED23gP5EgGpDWhM2upGUwCYcHHwvSWi2s-CtXbjShmpE\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"AADy_cLsS5XVBbMJyvNmX-0iROq14CjPvETZY3YbqvuDT-opB-YYL-VBC4IpkGMMZ6yGgS8V87S9ctm3J7fxKLUD\"],\"atc\":\"\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"]}"
+        }
+      ],
+      "result": {
+        "said": "ED23gP5EgGpDWhM2upGUwCYcHHwvSWi2s-CtXbjShmpE",
+        "prior": "EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF"
+      },
+      "error": null
+    },
+    {
+      "name": "holder_admits_an_unnamed_grant",
+      "note": "the same admit given the empty string the waiter returns when a notification names no message",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/admit",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON00014c_\",\"t\":\"exn\",\"d\":\"EGa_FybZvbj7DrYsgrZyvdF_4Su4Xd94GFJiL68gRjNK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"AAAsZMyvr5RKmAX8s6RNuXzZGwJq0qnIujUW5j9P4-lPxZ5iw4eNy6mfVSBkZgfGcSkuntkB3HQl8MStXAsXcdwD\"],\"atc\":\"\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"]}"
+        }
+      ],
+      "result": {
+        "said": "EGa_FybZvbj7DrYsgrZyvdF_4Su4Xd94GFJiL68gRjNK",
+        "prior": ""
+      },
+      "error": null
+    },
+    {
+      "name": "verifier_applies",
+      "note": "the apply that opens a presentation: a schema and the attributes it must carry",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/apply",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON0001a2_\",\"t\":\"exn\",\"d\":\"EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/apply\",\"q\":{},\"a\":{\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"m\":\"\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"LEI\":\"5493001KJTIIGC8Y1R17\"}},\"e\":{}},\"sigs\":[\"AABQ18JShqeWMt58zhvDi3s_V7IXqJKIkJapWkNzN2qLYpXs-u4fU8Rwi-FYDuf6KtMudoNKqHkIuYwC0vVyjRQM\"],\"rec\":[\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\"]}"
+        }
+      ],
+      "result": {
+        "said": "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg",
+        "attributes": {
+          "i": "EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei",
+          "m": "",
+          "s": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+          "a": {
+            "LEI": "5493001KJTIIGC8Y1R17"
+          }
+        },
+        "slots": []
+      },
+      "error": null
+    },
+    {
+      "name": "holder_offers",
+      "note": "the offer that answers it, chained to the apply and embedding the credential alone",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/offer",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON00037c_\",\"t\":\"exn\",\"d\":\"EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/offer\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"d\":\"EHzjxwpCumFeCwqssiSgy3i1wsuqSoCWDgdvCLSKFFO0\"}},\"sigs\":[\"AAAL2nLw2Q8Guj03s11oImjKQuFkfvCHNPPnH5vkc_IEf7c79mkF1a4OyE5Ju-WyMmxafMDxXylPduWeY2hKlCMF\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        }
+      ],
+      "result": {
+        "said": "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v",
+        "prior": "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg",
+        "slots": [
+          "acdc"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "verifier_agrees",
+      "note": "the agree, chained to the offer and embedding nothing",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/agree",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"p\":\"EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/agree\",\"q\":{},\"a\":{\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"AADmxt1xWw6rURLHsgx4TlYlL21m9zaL59sR3gJvKbTNJ0C-nHQDz_l-2UiGpAZtHHBkU9F9I761PqwEBDBlgysI\"],\"rec\":[\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\"]}"
+        }
+      ],
+      "result": {
+        "said": "EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE",
+        "prior": "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v"
+      },
+      "error": null
+    },
+    {
+      "name": "holder_discloses",
+      "note": "the presentation grant, chained to the agree and passing all three attachments",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/ipex/grant",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON0005b1_\",\"t\":\"exn\",\"d\":\"EAE8T9PXpZ7U7Z_hA8THZ_33QFJFmD3XTTCLKoT4ojFS\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"sigs\":[\"AAD0zYMa90OMjpQI1Bz_ihBOQvoCExI_6Wq8R7vmxbJOVxfn9ZZ3aLACkQQhDIr_Q_SXezmhODEaTZktwQJiqiIM\"],\"atc\":\"-LAM4AACA-e-acdc-IABEEXN0AAAAAAAAAAAAAAAAAAAAAAAEEXN-LAM5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAAAEEXN-LAa5AACAA-e-anc-AABAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        }
+      ],
+      "result": {
+        "said": "EAE8T9PXpZ7U7Z_hA8THZ_33QFJFmD3XTTCLKoT4ojFS",
+        "prior": "EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE",
+        "slots": [
+          "acdc",
+          "iss",
+          "anc"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "incept_the_group",
+      "note": "the group that will disclose and admit, from Roadmap 8.3's own helper",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"BACWHA-k-EojZjFbaUOJw8KzEoXpXQjcShstarTiDjGVzMphjL3JFdYXyboSfx6_ZKo-rqS8QsJ-HrUAv4L04FAA\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00040e_\",\"t\":\"exn\",\"d\":\"EH2__kgmDC29LgCMrtoOembq9LbQ3y8Qy-I1lC-dHRId\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"d\":\"ELvM_RZ_BreMizGIyMVVu5vhPBpqT-zOuJaSbDynUJ73\"}},\"sigs\":[\"AACyRjMvtJB_ZucxWGP2OQz29z-urAlgcsPz0XTLWDUScKOsAv9UuMoi2tv2CnO6SG_AQE3FoOySursauO6jVZEC\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACWHA-k-EojZjFbaUOJw8KzEoXpXQjcShstarTiDjGVzMphjL3JFdYXyboSfx6_ZKo-rqS8QsJ-HrUAv4L04FAA\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "exn.EEXN",
+        "metadata": {
+          "pre": "EEXN",
+          "sn": 0
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "group_proposes_the_disclosure",
+      "note": "the initiator grants under the group's alias, submits it to the recipient, and tells the other member",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/ipex/grant",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"sigs\":[\"BAC2OwtYzNjAM-u2v4Otc3vq1LuVaShIqxh3AWdDrg4M_nQM9hdrvJQcYAniPH5p8n3GS_ekn74NqxRme1z9VN0L\"],\"atc\":\"-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABBACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00073a_\",\"t\":\"exn\",\"d\":\"EP6ZerUryTZX9jHqCrVzK3AFgxKBYzKMu1vSmGHBrQQG\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"d\":\"EKQLZtSxQAkhSZxhugYVcG5-c9QIbLpsre7m0AmwumUI\"}},\"sigs\":[\"AAC0nTnuWiajga9n9VlrmYBGRvzngjNopj_3GQ3Wol6WVWi6-8l340VuDkB_PZ3KFvC-5FDL2FzQ-GW6QiumJ0cC\"],\"atc\":\"-LCK5AACAA-e-exn-FABEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC0AAAAAAAAAAAAAAAAAAAAAAAEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC-AABBAC2OwtYzNjAM-u2v4Otc3vq1LuVaShIqxh3AWdDrg4M_nQM9hdrvJQcYAniPH5p8n3GS_ekn74NqxRme1z9VN0L-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABBACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": "EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk",
+      "error": null
+    },
+    {
+      "name": "group_joins_the_disclosure",
+      "note": "the joining member waits for `/multisig/exn`, discards it, and grants from its own arguments",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/ipex/grant",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"sigs\":[\"BAC2OwtYzNjAM-u2v4Otc3vq1LuVaShIqxh3AWdDrg4M_nQM9hdrvJQcYAniPH5p8n3GS_ekn74NqxRme1z9VN0L\"],\"atc\":\"-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABBACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00073a_\",\"t\":\"exn\",\"d\":\"EP6ZerUryTZX9jHqCrVzK3AFgxKBYzKMu1vSmGHBrQQG\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"d\":\"EKQLZtSxQAkhSZxhugYVcG5-c9QIbLpsre7m0AmwumUI\"}},\"sigs\":[\"AAC0nTnuWiajga9n9VlrmYBGRvzngjNopj_3GQ3Wol6WVWi6-8l340VuDkB_PZ3KFvC-5FDL2FzQ-GW6QiumJ0cC\"],\"atc\":\"-LCK5AACAA-e-exn-FABEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC0AAAAAAAAAAAAAAAAAAAAAAAEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC-AABBAC2OwtYzNjAM-u2v4Otc3vq1LuVaShIqxh3AWdDrg4M_nQM9hdrvJQcYAniPH5p8n3GS_ekn74NqxRme1z9VN0L-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABBACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": "EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk",
+      "error": null
+    },
+    {
+      "name": "group_joins_the_disclosure_on_another_clock",
+      "note": "the same call one second later: it succeeds, and builds a different grant",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/ipex/grant",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EKgoEKD5WzyxxXebdx0X_yKDh8YW06mvtf945he1v7k5\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:21.456000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"sigs\":[\"BAC0YZcJol7hkBnBA8KO_8iut7yHJ0h_sIlzLxxtmbxVrVf_kLWSQWtKCpORyMKJLSZDE05Z8t83hoWaWG34UqgN\"],\"atc\":\"-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABBACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00073a_\",\"t\":\"exn\",\"d\":\"EALeN0C0-5_cx3gbS8jEuJkuRhkUgEJ7j_8O1icfqi7b\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000585_\",\"t\":\"exn\",\"d\":\"EKgoEKD5WzyxxXebdx0X_yKDh8YW06mvtf945he1v7k5\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:21.456000+00:00\",\"r\":\"/ipex/grant\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON0001ca_\",\"d\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"u\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EEFxHQx0OGcDaw0bf3pwX7F_Hn22f2YkMkFd_75Wkoiq\",\"i\":\"EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\",\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"1\",\"p\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"a\":[{\"i\":\"EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd\",\"s\":\"0\",\"d\":\"EMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE\"}]},\"d\":\"EGbw_uGiIwM69m7eJJXekHHgjHa1Z_EOIvHYrMnItweh\"}},\"d\":\"ENGtz_fOl7vYn8CRK2AmmdY4_lokxQBoYk4KcoXg4rls\"}},\"sigs\":[\"AADm4nBlLPkWcyStNnvrvMjgrtL13BVzY2pAP880aicn2QlaYhglgR3sGgbkpajJPVTUmx0Z08Md4_LHWmWzBwMC\"],\"atc\":\"-LCK5AACAA-e-exn-FABEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC0AAAAAAAAAAAAAAAAAAAAAAAEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC-AABBAC0YZcJol7hkBnBA8KO_8iut7yHJ0h_sIlzLxxtmbxVrVf_kLWSQWtKCpORyMKJLSZDE05Z8t83hoWaWG34UqgN-LAg4AACA-e-acdc-IABEGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd0AAAAAAAAAAAAAAAAAAAAAAAEMFAvliTgYk3VZj494rcpDXjNM7aUPqLWsi5oiFi8RiE-LAW5AACAA-e-iss-VAS-GAB0AAAAAAAAAAAAAAAAAAAAAABED7zZqk9IjmWprvCqKLvEvp0oAvLWIBmqhGLmc0jbebp-LAa5AACAA-e-anc-AABBACd_6Mr-yM_UcCUrse7FIzz79Rd6VassIxMzdrdzX1Y7e0Sb8EKZwpzml0PSBcSxTpPN8zi3O2HRVAheCBcApQF\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": "EKgoEKD5WzyxxXebdx0X_yKDh8YW06mvtf945he1v7k5",
+      "error": null
+    },
+    {
+      "name": "group_proposes_the_admittance",
+      "note": "the initiator admits the grant it was notified of, under the group's alias",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/ipex/admit",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"BACv4aAyxeOS37C686KYagFd1thU2mZezb-SAZICn5zDDRtAsvUtCXOAP33ytNWRuIuRM0ch412ayBfvZ-erG4ML\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00032d_\",\"t\":\"exn\",\"d\":\"EKlkpty7wqDoiyEibnBc2AYghiX3sK9SpnC4D1Nn59Df\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"d\":\"EIj1M9xcD_3fiYDJVR2KbklWKXNT7Y5xKuHWcPEf0rXq\"}},\"sigs\":[\"AAD91jaat06TQRI6MwIqtdXTRHy5mvZkjfbu_1lM7KwEgr_KPl-jD_FtINGHxLGxhF8TWufQ-jO73ManrgKe8ToO\"],\"atc\":\"-LA35AACAA-e-exn-FABEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC0AAAAAAAAAAAAAAAAAAAAAAAEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC-AABBACv4aAyxeOS37C686KYagFd1thU2mZezb-SAZICn5zDDRtAsvUtCXOAP33ytNWRuIuRM0ch412ayBfvZ-erG4ML\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": "EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k",
+      "error": null
+    },
+    {
+      "name": "group_joins_the_admittance",
+      "note": "the joining member, handed the same stamp: the same admit",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/ipex/admit",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"BACv4aAyxeOS37C686KYagFd1thU2mZezb-SAZICn5zDDRtAsvUtCXOAP33ytNWRuIuRM0ch412ayBfvZ-erG4ML\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00032d_\",\"t\":\"exn\",\"d\":\"EKlkpty7wqDoiyEibnBc2AYghiX3sK9SpnC4D1Nn59Df\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"d\":\"EIj1M9xcD_3fiYDJVR2KbklWKXNT7Y5xKuHWcPEf0rXq\"}},\"sigs\":[\"AAD91jaat06TQRI6MwIqtdXTRHy5mvZkjfbu_1lM7KwEgr_KPl-jD_FtINGHxLGxhF8TWufQ-jO73ManrgKe8ToO\"],\"atc\":\"-LA35AACAA-e-exn-FABEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC0AAAAAAAAAAAAAAAAAAAAAAAEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC-AABBACv4aAyxeOS37C686KYagFd1thU2mZezb-SAZICn5zDDRtAsvUtCXOAP33ytNWRuIuRM0ch412ayBfvZ-erG4ML\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": "EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k",
+      "error": null
+    },
+    {
+      "name": "group_joins_the_admittance_on_another_clock",
+      "note": "and handed its own clock: a different admit, with no error",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/ipex/admit",
+          "method": "POST",
+          "body": "{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EBiTJwqBZWcqN8g5uR1VGt3uCJyz3OEa9OwFKPOpoxrc\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:21.456000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"sigs\":[\"BADk5aiFGrpr0XfslucFJGAa_tKczgx7uWj4yG-sH2hFxFc-hw0T7hLFm878FXYJiFnS2cI78yGjxVBJF6-JhToM\"],\"atc\":\"\",\"rec\":[\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00032d_\",\"t\":\"exn\",\"d\":\"EMr2eAMHIWLgSDpuThMfOkNUe5oG2CdXA3dk_nKO9P9U\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/exn\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\"},\"e\":{\"exn\":{\"v\":\"KERI10JSON000178_\",\"t\":\"exn\",\"d\":\"EBiTJwqBZWcqN8g5uR1VGt3uCJyz3OEa9OwFKPOpoxrc\",\"i\":\"EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC\",\"rp\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"p\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"dt\":\"2023-11-14T22:13:21.456000+00:00\",\"r\":\"/ipex/admit\",\"q\":{},\"a\":{\"i\":\"ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k\",\"m\":\"\"},\"e\":{}},\"d\":\"EIdn7CZZrmehgSU_XpIVUK3dYzyWn0RoX-ttOiBpNXoU\"}},\"sigs\":[\"AAAhPiRhc6lia82L2mUNqd6mEVEjG4ZXQEQ_99J0REsofU_F4JRmlvdNDfgvL8TVdDOBO72z11RFDhjoIU-o6ssD\"],\"atc\":\"-LA35AACAA-e-exn-FABEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC0AAAAAAAAAAAAAAAAAAAAAAAEKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC-AABBADk5aiFGrpr0XfslucFJGAa_tKczgx7uWj4yG-sH2hFxFc-hw0T7hLFm878FXYJiFnS2cI78yGjxVBJF6-JhToM\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": "EBiTJwqBZWcqN8g5uR1VGt3uCJyz3OEa9OwFKPOpoxrc",
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "group": "EKh_-GmL-3CjdfgzxLY2pdSflHKO4AvS_4I_LOmwetjC",
+    "schema": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "credential": "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd",
+    "apply": "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg",
+    "offer": "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v",
+    "agree": "EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE",
+    "chain": [
+      {
+        "step": "apply",
+        "said": "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg",
+        "prior": ""
+      },
+      {
+        "step": "offer",
+        "said": "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v",
+        "prior": "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg"
+      },
+      {
+        "step": "agree",
+        "said": "EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE",
+        "prior": "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v"
+      },
+      {
+        "step": "grant",
+        "said": "EAE8T9PXpZ7U7Z_hA8THZ_33QFJFmD3XTTCLKoT4ojFS",
+        "prior": "EOR1oCgc5bO5aTeoBrcH0OzeUwQoRHvUz0cZQ9TyrpHE"
+      }
+    ],
+    "apply_slots": [],
+    "offer_slots": [
+      "acdc"
+    ],
+    "grant_slots": [
+      "acdc",
+      "iss",
+      "anc"
+    ],
+    "issuance_grant_slots": [
+      "acdc",
+      "iss",
+      "anc"
+    ],
+    "announcement_route": "/multisig/exn",
+    "announcement_topic": "multisig",
+    "announcement_slots": [
+      "exn"
+    ],
+    "announcement_attributes": [
+      "i",
+      "gid"
+    ],
+    "presentation_paths": [
+      "GET /identifiers/member1",
+      "POST /identifiers/member1/ipex/apply"
+    ],
+    "note": "an apply and an agree embed nothing, an offer embeds `acdc` alone, and a grant embeds `{acdc, iss, anc}`. A group announces the whole message under `exn` on `/multisig/exn`."
+  },
+  "reference_quirks": {
+    "a_group_round_agrees_only_on_a_shared_clock": {
+      "declaration": "`datetime: timestamp` on both halves; `const TIME = createTimestamp()` in the holder test",
+      "proposed_grant": "EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk",
+      "joined_grant": "EA4Mdb3KYUMExjykjlP3BwQYDmYTqMqxN63mx4M5QTgk",
+      "divergent_grant": "EKgoEKD5WzyxxXebdx0X_yKDh8YW06mvtf945he1v7k5",
+      "grants_agree": true,
+      "divergent_grant_agrees": false,
+      "proposed_admit": "EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k",
+      "joined_admit": "EFPf1xNz2jz4sZGJkcMmwp-rxoDp-r9SsAEe9nPq7h-k",
+      "divergent_admit": "EBiTJwqBZWcqN8g5uR1VGt3uCJyz3OEa9OwFKPOpoxrc",
+      "admits_agree": true,
+      "divergent_admit_agrees": false,
+      "divergent_errors": [
+        null,
+        null
+      ],
+      "asserted_upstream": "assert.equal(admitResult1.admitSaid, admitResult2.admitSaid)",
+      "note": "an IPEX message's SAID covers its `dt`. Both helpers take the stamp as a parameter and the holder test reads one module-level constant, so the members agree only because one process handed both the same value. One second apart they build different messages, the group never reaches its threshold on either, and neither call fails. The reference's own equality assertion is the only thing that would notice, and it lives inside the process that made them equal.",
+      "rust_decision": "`accept_admittance` takes no timestamp at all: the stamp, the recipient, the text, and the grant being acknowledged are read out of the proposal, and the SAID this member derives is compared with the one it was shown. `accept_disclosure` does the same."
+    },
+    "a_joining_member_never_reads_the_proposal": {
+      "declaration": "`if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn');`",
+      "waits": [
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "enclosing": "admitMultisig",
+          "route": "/multisig/exn",
+          "binds": null,
+          "discarded": true
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "enclosing": "grantMultisig",
+          "route": "/multisig/exn",
+          "binds": null,
+          "discarded": true
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "enclosing": "multisigAdmitCredential",
+          "route": "/multisig/exn",
+          "binds": null,
+          "discarded": true
+        }
+      ],
+      "routes_waited_on": [
+        "/multisig/exn",
+        "/multisig/exn",
+        "/exn/ipex/grant",
+        "/multisig/exn",
+        "/exn/ipex/grant",
+        "/multisig/exn",
+        "/exn/ipex/grant"
+      ],
+      "group_requests_made": false,
+      "note": "the same shape Roadmap 8.7 pinned for the transaction rounds, in all three group IPEX helpers. Driven across six group rounds, not one fetches a group request.",
+      "rust_decision": "the proposed message is read out of the `/multisig/exn` proposal and rebuilt from its own fields."
+    },
+    "a_notification_need_not_name_a_message": {
+      "declaration": "return notes[notes.length - 1]?.a.d ?? '';",
+      "guards": {
+        "admitMultisig": false,
+        "multisigAdmitCredential": false,
+        "credentials_test_inline": true
+      },
+      "admit_prior": "",
+      "admit_said": "EGa_FybZvbj7DrYsgrZyvdF_4Su4Xd94GFJiL68gRjNK",
+      "error": null,
+      "note": "the waiter yields the empty string when a notification carries no `a.d`, and `admitMultisig` passes it straight into `grantSaid`. Driven: the admit is built and posted with an empty `p`, acknowledging nothing, with no error. The inline step in `credentials.test.ts` guards the same value with `assert(grantNotification.a.d)` first; the helper beside it does not.",
+      "rust_decision": "`Presentation::read` requires the notification to name a SAID and refuses with `UnaddressedNotification`, so no step can be built from a notification that announces nothing."
+    },
+    "only_the_last_notification_survives": {
+      "declaration": "return notes[notes.length - 1]?.a.d ?? '';",
+      "commented_out_parameter": [
+        "numGrantMsgs: number"
+      ],
+      "note": "`waitAndMarkNotification` marks every matching notification read and returns only the last one's SAID. A holder group admitting from a multisig issuer receives one grant per issuer member; it answers one and silently marks the rest read. The parameter that would have said how many to expect — `numGrantMsgs: number` — is still in the tree, commented out.",
+      "rust_decision": "`Presentation::waiting` returns every unread notification on the route, and the caller answers each."
+    },
+    "a_grant_assembles_its_attachments_three_ways": {
+      "call_sites": [
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "enclosing": "grantMultisig",
+          "attachments": []
+        },
+        {
+          "file": "test-integration/multisig-holder.test.ts",
+          "enclosing": "issueCredential",
+          "attachments": []
+        },
+        {
+          "file": "test-integration/credentials.test.ts",
+          "enclosing": "<top level>",
+          "attachments": [
+            "ancAttachment"
+          ]
+        },
+        {
+          "file": "test-integration/credentials.test.ts",
+          "enclosing": "<top level>",
+          "attachments": [
+            "acdcAttachment",
+            "ancAttachment",
+            "issAttachment"
+          ]
+        },
+        {
+          "file": "test-integration/credentials.test.ts",
+          "enclosing": "<top level>",
+          "attachments": [
+            "ancAttachment"
+          ]
+        }
+      ],
+      "defaults": {
+        "text": "async grant(args: IpexGrantArgs): Promise<[Serder, string[], string]> { const hab = await this.client.identifiers().get(args.senderName); const data = { m: args.message ?? '', }; let atc = args.ancAttachment; if (atc === undefined) { const keeper = this.client.manager!.get(hab); const sigs = await keeper.sign(b(args.anc.raw)); const sigers = sigs.map((sig: string) => new Siger({ qb64: sig })); const ims = d(messagize(args.anc, sigers)); atc = ims.substring(args.anc.size); } const acdcAtc = args.acdcAttachment === undefined ? d(serializeACDCAttachment(args.iss)) : args.acdcAttachment; const issAtc = args.issAttachment === undefined ? d(serializeIssExnAttachment(args.anc)) : args.issAttachment; const embeds: Record<string, [Serder, string]> = { acdc: [args.acdc, acdcAtc], iss: [args.iss, issAtc], anc: [args.anc, atc], }; return this.client .exchanges() .createExchangeMessage( hab, '/ipex/grant', data, embeds, args.recipient, args.datetime, args.agreeSaid ); }",
+        "resigns_the_anchor": true,
+        "credential_attachment_default": true,
+        "issuance_attachment_default": true
+      },
+      "with_attachment": "EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC",
+      "without_attachment": "EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC",
+      "note": "the presentation grant passes all three attachments, the issuance grant passes the anchor's only, and `multisig-holder.test.ts` passes none. Passing none reaches the branch that signs `args.anc.raw` with the *sender's* keeper — correct only when the sender is the issuer, and reached in the tree where it is not.",
+      "rust_decision": "Roadmap 6.11 refused that branch: a `Disclosure` carries its own three attachments, derived from the issuance artifacts or read off the credential. `presentation::disclosure_of` assembles them from a credential in hand, and re-serializes each of the three events to check its bytes still reproduce the SAID that names it."
+    }
+  }
+}

@@ -570,6 +570,12 @@ impl ConnectedClient {
         crate::multisig::Multisig::new(self)
     }
 
+    /// Returns the IPEX disclosure workflow.
+    #[must_use]
+    pub const fn presentation(&self) -> crate::presentation::Presentation<'_> {
+        crate::presentation::Presentation::new(self)
+    }
+
     /// Returns a poller for long-running agent operations.
     ///
     /// A KERIA agent answers most writes with an operation rather than a result, so this is where

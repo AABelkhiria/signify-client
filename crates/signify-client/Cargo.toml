@@ -113,5 +113,9 @@ harness = false
 name = "multisig_credentials"
 harness = false
 
+[[bench]]
+name = "ipex_presentation"
+harness = false
+
 [lints]
 workspace = true
