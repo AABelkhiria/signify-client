@@ -538,7 +538,7 @@
               ],
               "ridx": 0,
               "kidx": 0,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             },
             "nxt": {
               "pubs": [
@@ -546,7 +546,7 @@
               ],
               "ridx": 1,
               "kidx": 1,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             }
           },
           "key_sets": [
@@ -618,7 +618,7 @@
               ],
               "ridx": 1,
               "kidx": 1,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             },
             "new": {
               "pubs": [
@@ -626,7 +626,7 @@
               ],
               "ridx": 2,
               "kidx": 2,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             },
             "nxt": {
               "pubs": [
@@ -634,7 +634,7 @@
               ],
               "ridx": 3,
               "kidx": 3,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             }
           },
           "key_sets": [
@@ -715,7 +715,7 @@
               ],
               "ridx": 0,
               "kidx": 0,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             },
             "nxt": {
               "pubs": [
@@ -723,7 +723,7 @@
               ],
               "ridx": 1,
               "kidx": 1,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             }
           },
           "key_sets": [
@@ -786,7 +786,7 @@
               ],
               "ridx": 0,
               "kidx": 0,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             },
             "new": {
               "pubs": [
@@ -794,7 +794,7 @@
               ],
               "ridx": 1,
               "kidx": 1,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             },
             "nxt": {
               "pubs": [
@@ -802,7 +802,7 @@
               ],
               "ridx": 2,
               "kidx": 2,
-              "dt_shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)"
+              "dt_shape": "@@@ @@@ ## #### ##:##:## @@@+####"
             }
           },
           "key_sets": [
@@ -960,7 +960,7 @@
       "rust_decision": "there is no separate code to forget: this port derives Ed25519 only, and a stored path carries the profile it was derived under"
     },
     "public_key_lot_timestamp": {
-      "shape": "Thu Aug ## #### ##:##:## GMT+#### (Central European Summer Time)",
+      "shape": "@@@ @@@ ## #### ##:##:## @@@+####",
       "note": "`new Date().toString()` is written into every PubLot and read nowhere in the pinned source",
       "rust_decision": "omitted; a protocol crate does not read the clock, as Roadmap 3.6 decided for the reply timestamp"
     },

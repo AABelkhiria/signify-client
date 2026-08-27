@@ -334,6 +334,26 @@ pub enum ClientError {
         /// The ilk that was found in its place.
         found: &'static str,
     },
+    /// A group registry proposal was expected and something else arrived.
+    NotARegistryProposal {
+        /// What was found in its place.
+        found: &'static str,
+    },
+    /// A group credential issuance proposal was expected and something else arrived.
+    NotAnIssuanceProposal {
+        /// What was found in its place.
+        found: &'static str,
+    },
+    /// A group credential revocation proposal was expected and something else arrived.
+    NotARevocationProposal {
+        /// What was found in its place.
+        found: &'static str,
+    },
+    /// An identifier a group workflow was asked to act for is not a group.
+    NotAGroupIdentifier {
+        /// The identifier that was named.
+        identifier: String,
+    },
     /// A group rotation proposal was expected and something else arrived.
     NotARotationProposal {
         /// What was found in its place.
@@ -516,6 +536,27 @@ impl fmt::Display for ClientError {
                     "a delegated inception was expected, but a {found} event was found"
                 )
             }
+            Self::NotARegistryProposal { found } => {
+                write!(
+                    formatter,
+                    "a group registry proposal was expected, but {found} was found"
+                )
+            }
+            Self::NotAnIssuanceProposal { found } => {
+                write!(
+                    formatter,
+                    "a group credential issuance was expected, but {found} was found"
+                )
+            }
+            Self::NotARevocationProposal { found } => {
+                write!(
+                    formatter,
+                    "a group credential revocation was expected, but {found} was found"
+                )
+            }
+            Self::NotAGroupIdentifier { identifier } => {
+                write!(formatter, "the identifier {identifier} is not a multisig group")
+            }
             Self::NotARotationProposal { found } => {
                 write!(
                     formatter,
@@ -608,6 +649,10 @@ impl Error for ClientError {
             | Self::MissingGroupAttribute { .. }
             | Self::NoDelegationSeals
             | Self::NotADelegatedInception { .. }
+            | Self::NotARegistryProposal { .. }
+            | Self::NotAnIssuanceProposal { .. }
+            | Self::NotARevocationProposal { .. }
+            | Self::NotAGroupIdentifier { .. }
             | Self::NotARotationProposal { .. }
             | Self::NotAnInteractionProposal { .. }
             | Self::ProposalMismatch { .. }

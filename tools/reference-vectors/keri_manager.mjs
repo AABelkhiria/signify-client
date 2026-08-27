@@ -98,9 +98,15 @@ function snapshot(manager, prefixes) {
       pubs: value.pubs,
       ridx: value.ridx,
       kidx: value.kidx,
-      // `new Date().toString()` — masked so the fixture stays reproducible while its shape and
-      // length are still pinned. Nothing in the reference ever reads it.
-      dt_shape: value.dt.replace(/[0-9]/g, "#"),
+      // `new Date().toString()` — masked so the fixture stays reproducible while its shape is
+      // still pinned. Nothing in the reference ever reads it. Letters are masked as well as
+      // digits because the weekday and month names change with the day, and the parenthesised
+      // timezone name is dropped because it changes with the machine and with daylight saving:
+      // masking only digits left this fixture stale the day after it was written.
+      dt_shape: value.dt
+        .replace(/\s*\([^)]*\)\s*$/, "")
+        .replace(/[0-9]/g, "#")
+        .replace(/[A-Za-z]/g, "@"),
     });
     identifiers[prefix] = {
       parameters: {

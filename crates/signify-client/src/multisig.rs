@@ -11,6 +11,9 @@
 //! | rotation | [`Multisig::propose_rotation`] | [`Multisig::accept_rotation`] |
 //! | interaction | [`Multisig::propose_interaction`] | [`Multisig::accept_interaction`] |
 //! | delegation approval | [`Multisig::propose_delegation_approval`] | [`Multisig::accept_delegation_approval`] |
+//! | registry | [`Multisig::propose_registry`] | [`Multisig::accept_registry`] |
+//! | issuance | [`Multisig::propose_issuance`] | [`Multisig::accept_issuance`] |
+//! | revocation | [`Multisig::propose_revocation`] | [`Multisig::accept_revocation`] |
 //!
 //! An inception creates the identifier, a rotation changes who controls it, and an interaction
 //! anchors seals in its log without changing anything about its keys. A **delegation approval** is
@@ -38,6 +41,16 @@
 //! first seal of what it built against the whole anchor it was given: a two-seal approval reaches
 //! the delegator's log, then throws, and the peers are never told. Here the seals are checked
 //! before anything is written and all of them are anchored.
+//!
+//! # A joining member reads the proposal
+//!
+//! Roadmap 8.7's three rounds are where the reference stops reading altogether.
+//! `createRegistryMultisig` and `issueCredentialMultisig` **wait for a notification, discard its
+//! SAID, and then build from their own arguments** — no `getRequest`, no comparison, nothing read.
+//! So two members handed a different nonce create different registries, and two handed different
+//! attributes issue different credentials, and in both cases the group simply never reaches its
+//! threshold. Here the nonce and the credential are read out of the proposal, and what this member
+//! derives is compared with what it was shown.
 //!
 //! # The route names the embed
 //!
@@ -96,6 +109,8 @@
 //! makes six requests here where the reference — passing the hab it already has — makes five. The
 //! group's keys come from the participants' key states either way, so nothing rests on it.
 
+use signify_acdc::credential::Credential;
+use signify_acdc::revocation::RevocationEvent;
 use signify_keri::attachment::SignedMessageBuilder;
 use signify_keri::event::Timestamp;
 use signify_keri::event::exchange::ExchangeEmbed;
@@ -104,15 +119,20 @@ use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
 use signify_keri::threshold::SigningThreshold;
-use signify_types::api::{AcceptedHab, ExchangeEmbed as ApiEmbed, Hab, KeyEvent, KeyState, Threshold};
+use signify_types::api::{
+    AcceptedHab, ExchangeEmbed as ApiEmbed, Hab, KeyEvent, KeyManagerState, KeyState, RegistryInceptionRecord,
+    Threshold,
+};
 
 use crate::client::ConnectedClient;
 use crate::endpoint::body::{sad_error, text_array};
+use crate::endpoint::credentials::{IssuedCredential, RevokedCredential};
 use crate::endpoint::exchanges::{
-    ClassifiedExchange, ExchangeDraft, GROUP_LABEL, MultisigProposal, MultisigRoute, ROTATION_MEMBERS_LABEL,
-    SIGNING_MEMBERS_LABEL, SentExchange,
+    ClassifiedExchange, ExchangeDraft, GROUP_LABEL, MultisigProposal, MultisigRoute, REGISTRY_TOPIC,
+    ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL, SentExchange,
 };
 use crate::endpoint::identifiers::Submission;
+use crate::endpoint::registries::{CreateRegistryRequest, CreatedRegistry, RegistryBacking};
 use crate::error::ClientError;
 
 /// The route a group inception is proposed on.
@@ -293,6 +313,63 @@ pub struct GroupDelegationRequest<'a> {
     /// of what it built against the whole anchor it was given, and fails — after the approval has
     /// been posted.
     pub seals: &'a [Sad],
+    /// When the announcement is stamped.
+    pub timestamp: Timestamp,
+}
+
+/// What a group's registry creation commits to.
+///
+/// The registry identifier is a digest over its inception, and the **nonce** is inside that digest
+/// — so every member must supply the same one or they create different registries. The reference
+/// makes that the caller's problem twice over: its joining half waits for a notification, discards
+/// the SAID, and then creates a registry from its own arguments without ever reading the proposal.
+#[derive(Debug)]
+pub struct GroupRegistryRequest<'a> {
+    /// Local alias of the group that will own the registry.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// Every member of the group, this one included.
+    pub members: &'a [IdentifierPrefix],
+    /// Alias the registry is stored under; the reference's `registryName`.
+    pub registry: &'a str,
+    /// Nonce the registry identifier derives from.
+    ///
+    /// Required here, where the reference's endpoint draws one from the operating system when it
+    /// is absent — which for a group means every member deriving a different registry.
+    pub nonce: &'a str,
+    /// Who witnesses the registry's events.
+    pub backing: RegistryBacking,
+    /// When the announcement is stamped.
+    pub timestamp: Timestamp,
+}
+
+/// What a group's credential issuance commits to.
+#[derive(Debug)]
+pub struct GroupIssuanceRequest<'a> {
+    /// Local alias of the issuing group.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// Every member of the group, this one included.
+    pub members: &'a [IdentifierPrefix],
+    /// The credential to issue; every field of it is inside its SAID.
+    pub credential: Credential,
+    /// When the announcement is stamped.
+    pub timestamp: Timestamp,
+}
+
+/// What a group's credential revocation commits to.
+#[derive(Debug)]
+pub struct GroupRevocationRequest<'a> {
+    /// Local alias of the issuing group.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// Every member of the group, this one included.
+    pub members: &'a [IdentifierPrefix],
+    /// The revocation event to record.
+    pub revocation: RevocationEvent,
     /// When the announcement is stamped.
     pub timestamp: Timestamp,
 }
@@ -826,6 +903,356 @@ impl<'client> Multisig<'client> {
         .await
     }
 
+    /// Proposes a credential registry for the group to own.
+    ///
+    /// A registry identifier is a digest over its own inception, and the **nonce is inside that
+    /// digest** — so every member must supply the same one or the group creates several registries
+    /// and agrees on none. The nonce is required here for that reason; the endpoint beneath draws
+    /// one from the operating system when it is absent, which is right for a single signer and
+    /// wrong for a group.
+    ///
+    /// The announcement carries two embeds — the registry inception and the key event anchoring it
+    /// — on [`REGISTRY_ROUTE`], under the reference's own `registry` topic.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::LocalMemberNotAParticipant`] when the local member is not among the
+    /// members, [`ClientError::LonelyGroup`] when it is the only one, and whatever
+    /// [`Registries::create`](crate::endpoint::registries::Registries::create) and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn propose_registry(&self, request: &GroupRegistryRequest<'_>) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(request.local_member).await?;
+        let recipients = peers(&member, request.members)?;
+
+        let created = self
+            .client
+            .registries()
+            .create(&CreateRegistryRequest {
+                identifier: request.group_name.to_owned(),
+                registry: request.registry.to_owned(),
+                backing: request.backing.clone(),
+                nonce: Some(request.nonce.to_owned()),
+            })
+            .await?;
+
+        let (submission, embeds) = registry_announcement(created)?;
+        self.send_announcement(
+            submission,
+            &Announcement {
+                group_name: request.group_name,
+                local_member: request.local_member,
+                route: REGISTRY_ROUTE,
+                slot: REGISTRY_SLOT,
+                signing: request.members,
+                rotation: request.members,
+                recipients: &recipients,
+                timestamp: request.timestamp.clone(),
+            },
+            REGISTRY_TOPIC,
+            embeds,
+        )
+        .await
+    }
+
+    /// Joins a registry creation another member proposed, taking the nonce from the proposal.
+    ///
+    /// **The reference does not read the proposal at all.** `createRegistryMultisig` waits for a
+    /// `/multisig/vcp` notification, *discards its SAID*, and then creates a registry from its own
+    /// arguments — so a member handed a different nonce derives a different registry and nothing
+    /// says so. Here the registry inception is read out of the message, its nonce is what this
+    /// member uses, and the registry it derives is compared with the one it was shown.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NotARegistryProposal`] when the message under `proposal` is not a
+    /// registry inception, [`ClientError::ProposalMismatch`] when this member derives a different
+    /// registry, and whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// [`Registries::create`](crate::endpoint::registries::Registries::create), and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn accept_registry(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        registry: &str,
+        proposal: &Said,
+        timestamp: Timestamp,
+    ) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let proposed = self.read_proposal(proposal, MultisigRoute::RegistryInception).await?;
+        let ApiEmbed::RegistryInception(embed) = &proposed.proposed.message else {
+            return Err(ClientError::NotARegistryProposal {
+                found: "an embed that is not a registry inception",
+            });
+        };
+
+        let signing = proposed.attributes.signing_members.clone().unwrap_or_default();
+        let members = if signing.is_empty() {
+            // A registry proposal names only the group, so the members come from the record when
+            // the message does not name them.
+            group_members(&self.client.identifiers().get(group_name).await?)?
+        } else {
+            signing
+        };
+        let recipients = peers(&member, &members)?;
+
+        let created = self
+            .client
+            .registries()
+            .create(&CreateRegistryRequest {
+                identifier: group_name.to_owned(),
+                registry: registry.to_owned(),
+                backing: backing_of(&embed.vcp),
+                // The nonce that decides the identifier, read from what was proposed.
+                nonce: Some(embed.vcp.nonce.clone()),
+            })
+            .await?;
+
+        let built = created.inception.identifier().qb64()?;
+        if built != embed.vcp.registry {
+            return Err(ClientError::ProposalMismatch {
+                proposed: embed.vcp.registry.clone(),
+                built,
+            });
+        }
+
+        let (submission, embeds) = registry_announcement(created)?;
+        self.send_announcement(
+            submission,
+            &Announcement {
+                group_name,
+                local_member,
+                route: REGISTRY_ROUTE,
+                slot: REGISTRY_SLOT,
+                signing: &members,
+                rotation: &members,
+                recipients: &recipients,
+                timestamp,
+            },
+            REGISTRY_TOPIC,
+            embeds,
+        )
+        .await
+    }
+
+    /// Proposes a credential for the group to issue.
+    ///
+    /// Three embeds travel: the credential, the transaction event recording its issuance, and the
+    /// key event anchoring that. Only the last is signed — the other two are authorized by the
+    /// anchor, which is why they carry no attachment.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::LocalMemberNotAParticipant`] when the local member is not among the
+    /// members, [`ClientError::LonelyGroup`] when it is the only one, and whatever
+    /// [`Credentials::issue`](crate::endpoint::credentials::Credentials::issue) and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn propose_issuance(&self, request: &GroupIssuanceRequest<'_>) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(request.local_member).await?;
+        let recipients = peers(&member, request.members)?;
+
+        let issued = self
+            .client
+            .credentials()
+            .issue(request.group_name, request.credential.clone())
+            .await?;
+        let (submission, embeds) = issuance_announcement(issued)?;
+        self.send_announcement(
+            submission,
+            &Announcement {
+                group_name: request.group_name,
+                local_member: request.local_member,
+                route: ISSUANCE_ROUTE,
+                slot: ISSUANCE_SLOT,
+                signing: request.members,
+                rotation: request.members,
+                recipients: &recipients,
+                timestamp: request.timestamp.clone(),
+            },
+            request.group_name,
+            embeds,
+        )
+        .await
+    }
+
+    /// Joins an issuance another member proposed, issuing the credential it was shown.
+    ///
+    /// **The reference does not read the proposal here either.** `issueCredentialMultisig` waits
+    /// for a `/multisig/iss` notification, discards its SAID, and issues from its own
+    /// `CredentialData` — so two members handed different attributes issue different credentials.
+    /// Here the credential is read out of the message and the SAID this member derives is compared
+    /// with the one it was shown.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NotAnIssuanceProposal`] when the message under `proposal` is not a
+    /// credential issuance, [`ClientError::ProposalMismatch`] when this member derives a different
+    /// credential, and whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// [`Credentials::issue`](crate::endpoint::credentials::Credentials::issue), and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn accept_issuance(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        credential: Credential,
+        proposal: &Said,
+        timestamp: Timestamp,
+    ) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let proposed = self.read_proposal(proposal, MultisigRoute::Issuance).await?;
+        let ApiEmbed::Issuance(embed) = &proposed.proposed.message else {
+            return Err(ClientError::NotAnIssuanceProposal {
+                found: "an embed that is not a credential issuance",
+            });
+        };
+
+        let members = self.members_of(&proposed, group_name).await?;
+        let recipients = peers(&member, &members)?;
+
+        let issued = self.client.credentials().issue(group_name, credential).await?;
+
+        let built = issued.artifacts.credential.said().qb64()?;
+        if built != embed.acdc.digest {
+            return Err(ClientError::ProposalMismatch {
+                proposed: embed.acdc.digest.clone(),
+                built,
+            });
+        }
+
+        let (submission, embeds) = issuance_announcement(issued)?;
+        self.send_announcement(
+            submission,
+            &Announcement {
+                group_name,
+                local_member,
+                route: ISSUANCE_ROUTE,
+                slot: ISSUANCE_SLOT,
+                signing: &members,
+                rotation: &members,
+                recipients: &recipients,
+                timestamp,
+            },
+            group_name,
+            embeds,
+        )
+        .await
+    }
+
+    /// Proposes revoking a credential the group issued.
+    ///
+    /// The revocation travels in [`REVOCATION_SLOT`], which is the slot its route names. **The
+    /// reference sends it in `iss` instead** — the issuance slot — so a member narrowing through
+    /// its own `assertMultisigRev` finds no `rev` at all.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::LocalMemberNotAParticipant`] when the local member is not among the
+    /// members, [`ClientError::LonelyGroup`] when it is the only one, and whatever
+    /// [`Credentials::revoke`](crate::endpoint::credentials::Credentials::revoke) and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn propose_revocation(&self, request: &GroupRevocationRequest<'_>) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(request.local_member).await?;
+        let recipients = peers(&member, request.members)?;
+
+        let revoked = self
+            .client
+            .credentials()
+            .revoke(request.group_name, request.revocation.clone())
+            .await?;
+        let (submission, embeds) = revocation_announcement(revoked)?;
+        self.send_announcement(
+            submission,
+            &Announcement {
+                group_name: request.group_name,
+                local_member: request.local_member,
+                route: REVOCATION_ROUTE,
+                slot: REVOCATION_SLOT,
+                signing: request.members,
+                rotation: request.members,
+                recipients: &recipients,
+                timestamp: request.timestamp.clone(),
+            },
+            request.group_name,
+            embeds,
+        )
+        .await
+    }
+
+    /// Joins a revocation another member proposed, revoking the credential it was shown.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NotARevocationProposal`] when the message under `proposal` is not a
+    /// credential revocation, [`ClientError::ProposalMismatch`] when this member derives a
+    /// different revocation, and whatever
+    /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// [`Credentials::revoke`](crate::endpoint::credentials::Credentials::revoke), and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn accept_revocation(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        revocation: RevocationEvent,
+        proposal: &Said,
+        timestamp: Timestamp,
+    ) -> Result<GroupEvent, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let proposed = self.read_proposal(proposal, MultisigRoute::Revocation).await?;
+        let ApiEmbed::Revocation(embed) = &proposed.proposed.message else {
+            return Err(ClientError::NotARevocationProposal {
+                found: "an embed that is not a credential revocation",
+            });
+        };
+
+        let members = self.members_of(&proposed, group_name).await?;
+        let recipients = peers(&member, &members)?;
+
+        let revoked = self.client.credentials().revoke(group_name, revocation).await?;
+
+        let built = revoked.artifacts.revocation.said().qb64()?;
+        if built != embed.rev.digest {
+            return Err(ClientError::ProposalMismatch {
+                proposed: embed.rev.digest.clone(),
+                built,
+            });
+        }
+
+        let (submission, embeds) = revocation_announcement(revoked)?;
+        self.send_announcement(
+            submission,
+            &Announcement {
+                group_name,
+                local_member,
+                route: REVOCATION_ROUTE,
+                slot: REVOCATION_SLOT,
+                signing: &members,
+                rotation: &members,
+                recipients: &recipients,
+                timestamp,
+            },
+            group_name,
+            embeds,
+        )
+        .await
+    }
+
+    /// The members a transaction proposal is agreed by.
+    ///
+    /// A registry, issuance, or revocation proposal names only the group — the reference writes
+    /// `{ gid }` and nothing else — so the members come from the group's own record when the
+    /// message does not name them.
+    async fn members_of(
+        &self,
+        proposed: &MultisigProposal,
+        group_name: &str,
+    ) -> Result<Vec<IdentifierPrefix>, ClientError> {
+        let named = proposed.attributes.signing_members.clone().unwrap_or_default();
+        if named.is_empty() {
+            group_members(&self.client.identifiers().get(group_name).await?)
+        } else {
+            Ok(named)
+        }
+    }
+
     /// Announces an event this member submitted to the peers that must match it.
     ///
     /// The route and the embed slot arrive together and always agree, which is the whole of what
@@ -835,27 +1262,33 @@ impl<'client> Multisig<'client> {
         submission: Submission<IdentifierArtifact>,
         announcement: &Announcement<'_>,
     ) -> Result<GroupEvent, ClientError> {
+        let embed = signed_embed(announcement.slot, submission.artifact())?;
+        self.send_announcement(submission, announcement, announcement.group_name, vec![embed])
+            .await
+    }
+
+    /// Writes the attribute block, addresses the message, and sends it.
+    ///
+    /// `topic` is a separate argument because a registry proposal is filed under `registry` and
+    /// every other round under the group's own alias — the reference's own inconsistency, kept.
+    async fn send_announcement(
+        &self,
+        submission: Submission<IdentifierArtifact>,
+        announcement: &Announcement<'_>,
+        topic: &str,
+        embeds: Vec<ExchangeEmbed>,
+    ) -> Result<GroupEvent, ClientError> {
         let Announcement {
-            group_name,
+            group_name: _,
             local_member,
             route,
-            slot,
+            slot: _,
             signing,
             rotation,
             recipients,
             timestamp,
         } = announcement;
         let group = submission.artifact().event.identifier().clone();
-
-        let attachment = SignedMessageBuilder::new(submission.artifact().event.serialized())
-            .controller_signatures(indexed(&submission.artifact().signatures)?)
-            .build()
-            .map_err(|source| ClientError::Attachment {
-                source: Box::new(source),
-            })?
-            .attachments()
-            .to_vec();
-        let embed = ExchangeEmbed::new(*slot, submission.artifact().event.serialized())?.with_attachment(attachment)?;
 
         let mut payload = Sad::new();
         payload.insert(GROUP_LABEL, group.qb64()?).map_err(sad_error)?;
@@ -869,12 +1302,12 @@ impl<'client> Multisig<'client> {
         let addressee = recipients.first().ok_or(ClientError::LonelyGroup)?.clone();
         let draft = ExchangeDraft::new(*route, addressee, (*timestamp).clone())
             .payload(payload)
-            .embeds(vec![embed]);
+            .embeds(embeds);
 
         let announced = self
             .client
             .exchanges()
-            .send(local_member, group_name, &draft, recipients)
+            .send(local_member, topic, &draft, recipients)
             .await?;
 
         Ok(GroupEvent {
@@ -899,16 +1332,7 @@ impl<'client> Multisig<'client> {
         let submission = self.client.identifiers().create(group_name, creation).await?;
         let group = submission.artifact().event.identifier().clone();
 
-        let attachment = SignedMessageBuilder::new(submission.artifact().event.serialized())
-            .controller_signatures(indexed(&submission.artifact().signatures)?)
-            .build()
-            .map_err(|source| ClientError::Attachment {
-                source: Box::new(source),
-            })?
-            .attachments()
-            .to_vec();
-        let embed = ExchangeEmbed::new(INCEPTION_SLOT, submission.artifact().event.serialized())?
-            .with_attachment(attachment)?;
+        let embed = signed_embed(INCEPTION_SLOT, submission.artifact())?;
 
         let mut payload = Sad::new();
         payload.insert(GROUP_LABEL, group.qb64()?).map_err(sad_error)?;
@@ -1003,6 +1427,132 @@ struct Proposed<'a> {
     rotation: &'a [IdentifierPrefix],
     recipients: &'a [IdentifierPrefix],
     timestamp: Timestamp,
+}
+
+/// The route a group registry inception is proposed on.
+pub const REGISTRY_ROUTE: &str = "/multisig/vcp";
+
+/// The embed slot a group registry proposal carries its registry inception in.
+pub const REGISTRY_SLOT: &str = "vcp";
+
+/// The route a group credential issuance is proposed on.
+pub const ISSUANCE_ROUTE: &str = "/multisig/iss";
+
+/// The embed slot a group issuance proposal carries the credential in.
+///
+/// Not `iss`, which the route is named for: an issuance embed carries three messages and the
+/// credential's slot is what Roadmap 4.1's union is discriminated by.
+pub const ISSUANCE_SLOT: &str = "acdc";
+
+/// The embed slot a group issuance proposal carries the transaction event in.
+pub const TRANSACTION_SLOT: &str = "iss";
+
+/// The route a group credential revocation is proposed on.
+pub const REVOCATION_ROUTE: &str = "/multisig/rev";
+
+/// The embed slot a group revocation proposal carries the revocation in.
+///
+/// **The reference sends its revocation under [`TRANSACTION_SLOT`] instead**, so its own
+/// `assertMultisigRev` would find no `rev` at all; see `PORTING.md` §9.
+pub const REVOCATION_SLOT: &str = "rev";
+
+/// The embed slot every transaction-event proposal carries its anchoring key event in.
+pub const ANCHOR_SLOT: &str = "anc";
+
+/// The submission and embeds a registry proposal announces.
+///
+/// The registry inception travels **unsigned** — what authorizes it is the signature on the key
+/// event that anchors it, which is the second embed and the one an operation completes on.
+fn registry_announcement(
+    created: CreatedRegistry,
+) -> Result<(Submission<IdentifierArtifact>, Vec<ExchangeEmbed>), ClientError> {
+    let response = created.response_body().to_vec();
+    let inception = ExchangeEmbed::new(REGISTRY_SLOT, created.inception.serialized())?;
+    let anchor = IdentifierArtifact {
+        event: created.anchor,
+        signatures: created.signatures,
+    };
+    let embeds = vec![inception, signed_embed(ANCHOR_SLOT, &anchor)?];
+    Ok((Submission::from_parts(anchor, response), embeds))
+}
+
+/// The submission and embeds an issuance proposal announces: three messages, one signature.
+fn issuance_announcement(
+    issued: IssuedCredential,
+) -> Result<(Submission<IdentifierArtifact>, Vec<ExchangeEmbed>), ClientError> {
+    let response = issued.response_body().to_vec();
+    let artifacts = issued.artifacts;
+    let embeds = vec![
+        ExchangeEmbed::new(ISSUANCE_SLOT, artifacts.credential.serialized())?,
+        ExchangeEmbed::new(TRANSACTION_SLOT, artifacts.issuance.serialized())?,
+        signed_embed(ANCHOR_SLOT, &artifacts.anchor)?,
+    ];
+    Ok((Submission::from_parts(artifacts.anchor, response), embeds))
+}
+
+/// The submission and embeds a revocation proposal announces.
+fn revocation_announcement(
+    revoked: RevokedCredential,
+) -> Result<(Submission<IdentifierArtifact>, Vec<ExchangeEmbed>), ClientError> {
+    let response = revoked.response_body().to_vec();
+    let artifacts = revoked.artifacts;
+    let embeds = vec![
+        // The slot the route names. The reference sends this under `iss`.
+        ExchangeEmbed::new(REVOCATION_SLOT, artifacts.revocation.serialized())?,
+        signed_embed(ANCHOR_SLOT, &artifacts.anchor)?,
+    ];
+    Ok((Submission::from_parts(artifacts.anchor, response), embeds))
+}
+
+/// The members a group's own record names.
+///
+/// A transaction proposal writes only `{ gid }`, so the members are read from the record rather
+/// than from the message — which is also where the reference gets them, via `identifiers().members`
+/// in the revocation half and via its caller's arguments everywhere else.
+fn group_members(record: &AcceptedHab) -> Result<Vec<IdentifierPrefix>, ClientError> {
+    let KeyManagerState::Group(group) = &record.common.key_manager else {
+        return Err(ClientError::NotAGroupIdentifier {
+            identifier: record.common.prefix.clone(),
+        });
+    };
+    group
+        .keys
+        .iter()
+        .map(|key| Ok(IdentifierPrefix::from_qb64(key)?))
+        .collect()
+}
+
+/// How a proposed registry is witnessed, read from the inception it proposes.
+fn backing_of(inception: &RegistryInceptionRecord) -> RegistryBacking {
+    if inception.backers.is_empty() {
+        RegistryBacking::None
+    } else {
+        RegistryBacking::Backers {
+            // Carried as text, because Roadmap 4.7 recorded that the reference validates none of
+            // them: its own vector commits the string `'a backer'`.
+            backers: inception.backers.clone(),
+            // Written in hexadecimal, as every threshold on the wire is.
+            threshold: u32::from_str_radix(&inception.backer_threshold, 16).unwrap_or(0),
+        }
+    }
+}
+
+/// One embed slot carrying an event with the signatures that authorize it.
+///
+/// Every announcement this module sends transposes a signed event this way; the multi-event rounds
+/// — a registry inception and its anchor, a credential and its issuance and its anchor — carry
+/// several, and the unsigned ones travel with no attachment because the anchor's signature is what
+/// authorizes them.
+fn signed_embed(slot: &str, artifact: &IdentifierArtifact) -> Result<ExchangeEmbed, ClientError> {
+    let attachment = SignedMessageBuilder::new(artifact.event.serialized())
+        .controller_signatures(indexed(&artifact.signatures)?)
+        .build()
+        .map_err(|source| ClientError::Attachment {
+            source: Box::new(source),
+        })?
+        .attachments()
+        .to_vec();
+    Ok(ExchangeEmbed::new(slot, artifact.event.serialized())?.with_attachment(attachment)?)
 }
 
 /// What [`Multisig::announce`] needs beyond the submission itself.
@@ -1256,6 +1806,14 @@ mod tests {
     /// One inception event, used where a test needs an embed that is not an interaction.
     const INCEPTION_EVENT: &str = r#"{"v":"KERI10JSON000_","t":"icp","d":"EICP","i":"EGRP","s":"0","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":"0","b":[],"c":[],"a":[]}"#;
 
+    /// One registry inception, exactly as an embed carries it.
+    fn registry_inception(backers: &str, threshold: &str) -> Result<RegistryInceptionRecord, Box<dyn Error>> {
+        let document = format!(
+            r#"{{"v":"KERI10JSON000_","t":"vcp","d":"EVCP","i":"EVCP","ii":"EGRP","s":"0","c":[],"bt":"{threshold}","b":{backers},"n":"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s"}}"#
+        );
+        Ok(serde_json::from_str(&document)?)
+    }
+
     /// One interaction event anchoring `anchors`, exactly as an embed carries it.
     fn interaction(anchors: &str) -> Result<KeyEvent, Box<dyn Error>> {
         let document = format!(
@@ -1362,6 +1920,80 @@ mod tests {
         assert!(refused, "an inception was read for seals");
         let no_digest = matches!(digest_of(&inception), Err(ClientError::NotAnInteractionProposal { .. }));
         assert!(no_digest, "an inception answered for an interaction's digest");
+        Ok(())
+    }
+
+    #[test]
+    fn the_transaction_routes_and_slots_are_the_references_own() {
+        assert_eq!(REGISTRY_ROUTE, "/multisig/vcp");
+        assert_eq!(REGISTRY_SLOT, "vcp");
+        assert_eq!(ISSUANCE_ROUTE, "/multisig/iss");
+        assert_eq!(REVOCATION_ROUTE, "/multisig/rev");
+        assert_eq!(REVOCATION_SLOT, "rev");
+        assert_eq!(ANCHOR_SLOT, "anc");
+        // And each is the route Roadmap 8.1's table names.
+        assert_eq!(MultisigRoute::RegistryInception.as_str(), REGISTRY_ROUTE);
+        assert_eq!(MultisigRoute::Issuance.as_str(), ISSUANCE_ROUTE);
+        assert_eq!(MultisigRoute::Revocation.as_str(), REVOCATION_ROUTE);
+    }
+
+    /// An issuance is the one round whose route and embed slot are *not* the same word.
+    #[test]
+    fn an_issuance_is_named_for_its_transaction_and_embedded_by_its_credential() {
+        // The route ends in `iss` and the embed's discriminating slot is `acdc`, because Roadmap
+        // 4.1's union is told apart by field names and an issuance carries three messages.
+        assert_eq!(ISSUANCE_ROUTE.rsplit('/').next(), Some(TRANSACTION_SLOT));
+        assert_eq!(ISSUANCE_SLOT, "acdc");
+        assert_ne!(ISSUANCE_SLOT, TRANSACTION_SLOT);
+        // The other two rounds are named for what they embed.
+        assert_eq!(REGISTRY_ROUTE.rsplit('/').next(), Some(REGISTRY_SLOT));
+        assert_eq!(REVOCATION_ROUTE.rsplit('/').next(), Some(REVOCATION_SLOT));
+    }
+
+    /// The reference sends a revocation under the issuance slot; this port does not.
+    #[test]
+    fn a_revocation_travels_in_the_slot_its_route_names() {
+        assert_eq!(REVOCATION_SLOT, "rev");
+        assert_ne!(REVOCATION_SLOT, TRANSACTION_SLOT);
+        // `multisigRevoke` builds `{ iss: [rev, ''], anc: [...] }`, so a reader narrowing through
+        // the reference's own `assertMultisigRev` finds no `rev` at all.
+        assert_eq!(TRANSACTION_SLOT, "iss");
+    }
+
+    #[test]
+    fn a_registry_backing_is_read_from_what_was_proposed() -> Result<(), Box<dyn Error>> {
+        let unbacked = registry_inception("[]", "0")?;
+        assert!(matches!(backing_of(&unbacked), RegistryBacking::None));
+
+        let backed = registry_inception(r#"["BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha"]"#, "1")?;
+        let RegistryBacking::Backers { backers, threshold } = backing_of(&backed) else {
+            return Err("a backed registry read as unbacked".into());
+        };
+        assert_eq!(backers.len(), 1);
+        assert_eq!(threshold, 1);
+        Ok(())
+    }
+
+    #[test]
+    fn a_backer_threshold_is_read_in_hexadecimal() -> Result<(), Box<dyn Error>> {
+        // The same base every threshold on the wire is written in — Roadmap 8.3's finding, applied
+        // where it also applies.
+        let backed = registry_inception(r#"["BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha"]"#, "a")?;
+        let RegistryBacking::Backers { threshold, .. } = backing_of(&backed) else {
+            return Err("a backed registry read as unbacked".into());
+        };
+        assert_eq!(threshold, 10, "the backer threshold was read in base ten");
+        Ok(())
+    }
+
+    #[test]
+    fn a_group_names_its_members_in_its_own_record() -> Result<(), Box<dyn Error>> {
+        // A transaction proposal writes only `{ gid }`, so the members come from the record.
+        let refused = matches!(
+            group_members(&record(LOCAL)?),
+            Err(ClientError::NotAGroupIdentifier { .. })
+        );
+        assert!(refused, "a salty identifier answered as a group");
         Ok(())
     }
 

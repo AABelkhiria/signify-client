@@ -109,5 +109,9 @@ harness = false
 name = "delegated_multisig"
 harness = false
 
+[[bench]]
+name = "multisig_credentials"
+harness = false
+
 [lints]
 workspace = true

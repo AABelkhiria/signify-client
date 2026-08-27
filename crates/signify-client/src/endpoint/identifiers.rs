@@ -129,6 +129,15 @@ pub struct Submission<A> {
 }
 
 impl<A> Submission<A> {
+    /// Pairs an artifact with the agent's answer.
+    ///
+    /// Every family here builds one from a request it just made. Roadmap 8.7's transaction rounds
+    /// need one from an artifact another endpoint returned — a registry's anchoring key event, an
+    /// issuance's — so the pairing is available inside the crate.
+    pub(crate) const fn from_parts(artifact: A, response: Vec<u8>) -> Self {
+        Self { artifact, response }
+    }
+
     /// Returns what was submitted: the event or reply with its signatures.
     #[must_use]
     pub const fn artifact(&self) -> &A {

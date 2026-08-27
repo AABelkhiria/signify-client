@@ -376,6 +376,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_multisig_credentials"
+path = "fuzz_targets/client_multisig_credentials.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_oobis"
 path = "fuzz_targets/client_oobis.rs"
 test = false

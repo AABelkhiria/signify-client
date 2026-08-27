@@ -1,0 +1,1374 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-26",
+  "sources": [
+    "test-integration/utils/multisig-utils.ts",
+    "test-integration/multisig.test.ts",
+    "test-integration/multisig-vlei-issuance.test.ts",
+    "src/keri/app/credentialing.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "note": "Two of the three units live in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. The third, `multisigRevoke`, is written inline in a test body and is driven through the reference's own `revoke` and `send` in the same order. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "create_registry_multisig": "export async function createRegistryMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, registryName: string, nonce: string, isInitiator: boolean = false ) { if (!isInitiator) await waitAndMarkNotification(client, '/multisig/vcp'); const vcpResult = await client.registries().create({ name: multisigAID.name, registryName: registryName, nonce: nonce, }); const op = await vcpResult.op(); const serder = vcpResult.regser; const anc = vcpResult.serder; const sigs = vcpResult.sigs; const sigers = sigs.map((sig) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(anc, sigers)); const atc = ims.substring(anc.size); const regbeds = { vcp: [serder, ''], anc: [anc, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, 'registry', aid, '/multisig/vcp', { gid: multisigAID.prefix }, regbeds, recp ); return op; }",
+    "issue_credential_multisig": "export async function issueCredentialMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAIDName: string, kargsIss: CredentialData, isInitiator: boolean = false ) { if (!isInitiator) await waitAndMarkNotification(client, '/multisig/iss'); const credResult = await client .credentials() .issue(multisigAIDName, kargsIss); const op = credResult.op; const multisigAID = await client.identifiers().get(multisigAIDName); const keeper = client.manager!.get(multisigAID); const sigs = await keeper.sign(signify.b(credResult.anc.raw)); const sigers = sigs.map((sig: string) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(credResult.anc, sigers)); const atc = ims.substring(credResult.anc.size); const embeds = { acdc: [credResult.acdc, ''], iss: [credResult.iss, ''], anc: [credResult.anc, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/iss', { gid: multisigAID.prefix }, embeds, recp ); return op; }",
+    "multisig_revoke": "async function multisigRevoke( client: SignifyClient, memberName: string, groupName: string, rev: Serder, anc: Serder ) { const leaderHab = await client.identifiers().get(memberName); const groupHab = await client.identifiers().get(groupName); const members = await client.identifiers().members(groupName); const keeper = client.manager!.get(groupHab); const sigs = await keeper.sign(b(anc.raw)); const sigers = sigs.map((sig: string) => new Siger({ qb64: sig })); const ims = d(messagize(anc, sigers)); const atc = ims.substring(anc.size); const embeds = { iss: [rev, ''], anc: [anc, atc], }; const recipients = members.signing .map((m: { aid: string }) => m.aid) .filter((aid: string) => aid !== leaderHab.prefix); await client .exchanges() .send( memberName, 'multisig', leaderHab, '/multisig/rev', { gid: groupHab.prefix }, embeds, recipients ); }",
+    "notification_waits": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "addEndRoleMultisig",
+        "route": "/multisig/rpy",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "admitMultisig",
+        "route": "/exn/ipex/grant",
+        "binds": "grantMsgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createAIDMultisig",
+        "route": "/multisig/icp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "createRegistryMultisig",
+        "route": "/multisig/vcp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "delegateMultisig",
+        "route": "/multisig/ixn",
+        "binds": "msgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "grantMultisig",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "issueCredentialMultisig",
+        "route": "/multisig/iss",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/icp",
+        "binds": "msgSaid",
+        "discarded": false
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/icp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rpy",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rpy",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/ixn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/ixn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rot",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rot",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/vcp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/vcp",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/iss",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/iss",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/exn",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/grant",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/exn/ipex/admit",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rev",
+        "binds": null,
+        "discarded": true
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>",
+        "route": "/multisig/rev",
+        "binds": null,
+        "discarded": true
+      }
+    ],
+    "proposal_reads": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "acceptMultisigIncept"
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "enclosing": "delegateMultisig"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "enclosing": "<top level>"
+      }
+    ],
+    "send_calls": [
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/icp",
+        "topic": "<computed>",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/rpy",
+        "topic": "<computed>",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/exn",
+        "topic": "multisig",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/icp",
+        "topic": "multisig",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/vcp",
+        "topic": "registry",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/ixn",
+        "topic": "<computed>",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/exn",
+        "topic": "multisig",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/iss",
+        "topic": "multisig",
+        "embed_slots": [
+          "acdc",
+          "iss",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/utils/multisig-utils.ts",
+        "route": "/multisig/icp",
+        "topic": "<computed>",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/icp",
+        "topic": "multisig",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/icp",
+        "topic": "multisig",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/icp",
+        "topic": "multisig",
+        "embed_slots": [
+          "icp"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/rpy",
+        "topic": "multisig",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/rpy",
+        "topic": "multisig",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/rpy",
+        "topic": "multisig",
+        "embed_slots": [
+          "rpy"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/ixn",
+        "topic": "multisig",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/ixn",
+        "topic": "multisig",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/ixn",
+        "topic": "multisig",
+        "embed_slots": [
+          "ixn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/rot",
+        "topic": "multisig",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/ixn",
+        "topic": "multisig",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/ixn",
+        "topic": "multisig",
+        "embed_slots": [
+          "rot"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/vcp",
+        "topic": "registry",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/vcp",
+        "topic": "registry",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/vcp",
+        "topic": "multisig",
+        "embed_slots": [
+          "vcp",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/exn",
+        "topic": "multisig",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/exn",
+        "topic": "multisig",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/exn",
+        "topic": "multisig",
+        "embed_slots": [
+          "exn"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/iss",
+        "topic": "multisig",
+        "embed_slots": [
+          "acdc",
+          "iss",
+          "anc"
+        ]
+      },
+      {
+        "file": "test-integration/multisig.test.ts",
+        "route": "/multisig/rev",
+        "topic": "multisig",
+        "embed_slots": [
+          "iss",
+          "anc"
+        ]
+      }
+    ],
+    "issue_credential_result": [
+      {
+        "name": "acdc",
+        "type": "Serder"
+      },
+      {
+        "name": "anc",
+        "type": "Serder"
+      },
+      {
+        "name": "iss",
+        "type": "Serder"
+      },
+      {
+        "name": "op",
+        "type": "CredentialOperation"
+      }
+    ],
+    "revoke_credential_result": [
+      {
+        "name": "anc",
+        "type": "Serder"
+      },
+      {
+        "name": "rev",
+        "type": "Serder"
+      },
+      {
+        "name": "op",
+        "type": "GroupOperation | DelegationOperation | WitnessOperation | DoneOperation"
+      }
+    ],
+    "registry_uses": {
+      "needle": "createRegistryMultisig(",
+      "total": 9,
+      "files": [
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 8
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "issuance_uses": {
+      "needle": "issueCredentialMultisig(",
+      "total": 9,
+      "files": [
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 8
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "scanned_files": 117,
+    "notes": {
+      "discarding": "`await waitAndMarkNotification(client, route);` as a statement — the SAID is never bound",
+      "slots": "an issuance embeds `{acdc, iss, anc}` and a revocation embeds `{iss, anc}`, so the two share a slot name"
+    }
+  },
+  "key_states": {
+    "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "p": "",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "identifier_record": {
+    "name": "member1",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "group_record": {
+    "name": "multisig",
+    "prefix": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "transferable": true,
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00",
+    "group": {
+      "mhab": {
+        "name": "member1",
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "salty": {
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "tier": "low",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789abcdefghijk"
+        },
+        "transferable": true,
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-08-21T22:30:46.473545+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+          ],
+          "nt": "1",
+          "n": [
+            "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "windexes": [],
+        "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+      },
+      "keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "ndigs": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ]
+    },
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "s": "0",
+      "p": "",
+      "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "2",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "2",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "2",
+      "b": [
+        "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
+        "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
+        "BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX"
+      ],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "calls": [
+    {
+      "name": "incept_the_group",
+      "note": "the group that will own the registry, from Roadmap 8.3's own helper",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EDOi3yDvRfy_2iTpX9dd4nU--cgEXVBVNwjYTGMxev2m\"}},\"sigs\":[\"AAA9LNCQ4cdQ3eXCT-QPCo2FcoZG7kTKTLfHVaRgLatYkmceD8y8rKP-IOgwrcj6-UgONMkzK0FfKppFN1rb9RsA\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "propose_the_registry",
+      "note": "the first member creates the registry and tells the other, on `/multisig/vcp` under the `registry` topic",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/registries",
+          "method": "POST",
+          "body": "{\"name\":\"vLEI Registry\",\"vcp\":{\"v\":\"KERI10JSON000113_\",\"t\":\"vcp\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"ii\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDrIBkbKgviojBPnb0yo6KZ98L-gPp7w56eOgZbfvOtA\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"0\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\"}]},\"sigs\":[\"BAApYHgQT2hTMyW2gk0PZzG_SUkgdSiAvnqMcBeQOmnH_9DD2UqhdB2ciNPyaLWZwcxpmGMTl9caE_Z_KsHAj5kP\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"registry\",\"exn\":{\"v\":\"KERI10JSON000409_\",\"t\":\"exn\",\"d\":\"EDXL-U1M8BUmol3bXAXPhL0B3BXZ9tuzmSANQiLUikdW\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"vcp\":{\"v\":\"KERI10JSON000113_\",\"t\":\"vcp\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"ii\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDrIBkbKgviojBPnb0yo6KZ98L-gPp7w56eOgZbfvOtA\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"0\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\"}]},\"d\":\"EOnyYHGdMl_hWhFhHtaBRuH8vkvdM4msYYGAqtMBdZ11\"}},\"sigs\":[\"AABLJPxEPEhotfPeLyFsNCYayLwUODZ0kJrr4hFIbNHWGWJDnZXOSehBddbpzIC1TO-yLg5nNoXwqaQJlqA-zgUO\"],\"atc\":\"-LAD5AACAA-e-vcp-LAa5AACAA-e-anc-AABBAApYHgQT2hTMyW2gk0PZzG_SUkgdSiAvnqMcBeQOmnH_9DD2UqhdB2ciNPyaLWZwcxpmGMTl9caE_Z_KsHAj5kP\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_the_registry",
+      "note": "the second member waits for a notification, discards it, and creates a registry from its own arguments",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/registries",
+          "method": "POST",
+          "body": "{\"name\":\"vLEI Registry\",\"vcp\":{\"v\":\"KERI10JSON000113_\",\"t\":\"vcp\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"ii\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDrIBkbKgviojBPnb0yo6KZ98L-gPp7w56eOgZbfvOtA\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"0\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\"}]},\"sigs\":[\"BAApYHgQT2hTMyW2gk0PZzG_SUkgdSiAvnqMcBeQOmnH_9DD2UqhdB2ciNPyaLWZwcxpmGMTl9caE_Z_KsHAj5kP\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"registry\",\"exn\":{\"v\":\"KERI10JSON000409_\",\"t\":\"exn\",\"d\":\"EDXL-U1M8BUmol3bXAXPhL0B3BXZ9tuzmSANQiLUikdW\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"vcp\":{\"v\":\"KERI10JSON000113_\",\"t\":\"vcp\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"ii\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EDrIBkbKgviojBPnb0yo6KZ98L-gPp7w56eOgZbfvOtA\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"0\",\"d\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\"}]},\"d\":\"EOnyYHGdMl_hWhFhHtaBRuH8vkvdM4msYYGAqtMBdZ11\"}},\"sigs\":[\"AABLJPxEPEhotfPeLyFsNCYayLwUODZ0kJrr4hFIbNHWGWJDnZXOSehBddbpzIC1TO-yLg5nNoXwqaQJlqA-zgUO\"],\"atc\":\"-LAD5AACAA-e-vcp-LAa5AACAA-e-anc-AABBAApYHgQT2hTMyW2gk0PZzG_SUkgdSiAvnqMcBeQOmnH_9DD2UqhdB2ciNPyaLWZwcxpmGMTl9caE_Z_KsHAj5kP\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_the_registry_with_a_different_nonce",
+      "note": "the same call with another nonce: it succeeds, and derives a different registry",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/registries",
+          "method": "POST",
+          "body": "{\"name\":\"vLEI Registry\",\"vcp\":{\"v\":\"KERI10JSON000112_\",\"t\":\"vcp\",\"d\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\",\"i\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\",\"ii\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EB3ZBKPtK6A53uVd61RZmeakeccHg_BO8-aEZoPKaS87\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\",\"s\":\"0\",\"d\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\"}]},\"sigs\":[\"BADchMV9ov51dK_kCzHDjcdDOIGsY66RD93TRP-BYp3xqrWr99yr5DPq4m3J70gwaVrTHAfNMfKljvPpgmSaBBAN\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"registry\",\"exn\":{\"v\":\"KERI10JSON000408_\",\"t\":\"exn\",\"d\":\"EKLG64UY-C_jiy9NzE_z0i7JUchKEIuuWQ2CgPBM4wCZ\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/vcp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"vcp\":{\"v\":\"KERI10JSON000112_\",\"t\":\"vcp\",\"d\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\",\"i\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\",\"ii\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"c\":[\"NB\"],\"bt\":\"0\",\"b\":[],\"n\":\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EB3ZBKPtK6A53uVd61RZmeakeccHg_BO8-aEZoPKaS87\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\",\"s\":\"0\",\"d\":\"EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR\"}]},\"d\":\"EGjaPGeu06jDyr5GU6WovtlvU8y9LwZX1pTglUtgMvph\"}},\"sigs\":[\"AADYKJbVn9K-RIGdJkzd52YEErg7_PMCEHveWzkZ_X86JEKlIw6e9y65wu4SB5Sbt-MFToLA5bZSvDPBJhBV0wUJ\"],\"atc\":\"-LAD5AACAA-e-vcp-LAa5AACAA-e-anc-AABBADchMV9ov51dK_kCzHDjcdDOIGsY66RD93TRP-BYp3xqrWr99yr5DPq4m3J70gwaVrTHAfNMfKljvPpgmSaBBAN\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "propose_the_issuance",
+      "note": "the first member issues the credential and tells the other, on `/multisig/iss` under the `multisig` topic",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/credentials",
+          "method": "POST",
+          "body": "{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EKIz0SiAsP6zoHN20T0MIVmGS-5qBqyjZOWaM9-YSybZ\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\",\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EC4dX-PzzpGJkPUC8sUhOW4-mw_xx9uGMMKeCD95oqZh\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\"}]},\"sigs\":[\"BACtlI9rgkKm4CkMlB_O4R8zI_8MvBcRJ_lTOVhUczucRUY5Dkq-4MoswvJC0mcdgA-GWJTSZtZGfRHHA9BUUm0H\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON000582_\",\"t\":\"exn\",\"d\":\"EMYbzoR8tLP5re39vJMiXQEbVnSiVWXr1RAOEuH7wGgb\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/iss\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EKIz0SiAsP6zoHN20T0MIVmGS-5qBqyjZOWaM9-YSybZ\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\",\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EC4dX-PzzpGJkPUC8sUhOW4-mw_xx9uGMMKeCD95oqZh\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\"}]},\"d\":\"EM7VOME9s--4I5GysmEaIIH5OgNn97jGyjn0em-mY1eV\"}},\"sigs\":[\"AAAfCeSL34hRw_BbDmKjpRYV6gmwP40SEaUA6q53mfbTlvUismm0nVpqeavQ4I_V1mrOXBFswNxMC-OIUPCh-94M\"],\"atc\":\"-LAD4AACA-e-acdc-LAD5AACAA-e-iss-LAa5AACAA-e-anc-AABBACtlI9rgkKm4CkMlB_O4R8zI_8MvBcRJ_lTOVhUczucRUY5Dkq-4MoswvJC0mcdgA-GWJTSZtZGfRHHA9BUUm0H\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_the_issuance",
+      "note": "the second member waits, discards the notification, and issues from its own credential data",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/credentials",
+          "method": "POST",
+          "body": "{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EKIz0SiAsP6zoHN20T0MIVmGS-5qBqyjZOWaM9-YSybZ\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\",\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EC4dX-PzzpGJkPUC8sUhOW4-mw_xx9uGMMKeCD95oqZh\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\"}]},\"sigs\":[\"BACtlI9rgkKm4CkMlB_O4R8zI_8MvBcRJ_lTOVhUczucRUY5Dkq-4MoswvJC0mcdgA-GWJTSZtZGfRHHA9BUUm0H\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON000582_\",\"t\":\"exn\",\"d\":\"EMYbzoR8tLP5re39vJMiXQEbVnSiVWXr1RAOEuH7wGgb\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/iss\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EKIz0SiAsP6zoHN20T0MIVmGS-5qBqyjZOWaM9-YSybZ\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"5493001KJTIIGC8Y1R17\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\",\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EC4dX-PzzpGJkPUC8sUhOW4-mw_xx9uGMMKeCD95oqZh\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"0\",\"d\":\"EMhEmWA3zH4wh_j15VvzpSvF9awgkF7-K4uWqHea0H39\"}]},\"d\":\"EM7VOME9s--4I5GysmEaIIH5OgNn97jGyjn0em-mY1eV\"}},\"sigs\":[\"AAAfCeSL34hRw_BbDmKjpRYV6gmwP40SEaUA6q53mfbTlvUismm0nVpqeavQ4I_V1mrOXBFswNxMC-OIUPCh-94M\"],\"atc\":\"-LAD4AACA-e-acdc-LAD5AACAA-e-iss-LAa5AACAA-e-anc-AABBACtlI9rgkKm4CkMlB_O4R8zI_8MvBcRJ_lTOVhUczucRUY5Dkq-4MoswvJC0mcdgA-GWJTSZtZGfRHHA9BUUm0H\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "join_the_issuance_with_different_attributes",
+      "note": "the same call with another LEI: it succeeds, and issues a different credential",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/credentials",
+          "method": "POST",
+          "body": "{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EGtn-cyxA80PRN4r1pg7fyyDm-rt9_CUnxPs3FpZsTtF\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"254900OPPU84GM83MG36\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EKmXYwJBboYdb2sd6q82C_Yugzk5Fzy9El5VCNVnFPAO\",\"i\":\"EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMrEFAeYy8OBuD5Ejk5wNnTMRqvqaNA8yDwy_6zIdjmV\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM\",\"s\":\"0\",\"d\":\"EKmXYwJBboYdb2sd6q82C_Yugzk5Fzy9El5VCNVnFPAO\"}]},\"sigs\":[\"BACehSCvUvInf-qtsfbKTwcObTbFeRF6eMXKhbJAiU22EhdmBpj20sYAAsQCwW5BIW3HELrBRdNrlwo1KV6U8hsG\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON000582_\",\"t\":\"exn\",\"d\":\"ECR3HR4B83Gx1pISt9Vql4WnToVtSEIw399CGkacI6fv\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/iss\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"acdc\":{\"v\":\"ACDC10JSON000197_\",\"d\":\"EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"s\":\"EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao\",\"a\":{\"d\":\"EGtn-cyxA80PRN4r1pg7fyyDm-rt9_CUnxPs3FpZsTtF\",\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"LEI\":\"254900OPPU84GM83MG36\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"}},\"iss\":{\"v\":\"KERI10JSON0000ed_\",\"t\":\"iss\",\"d\":\"EKmXYwJBboYdb2sd6q82C_Yugzk5Fzy9El5VCNVnFPAO\",\"i\":\"EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM\",\"s\":\"0\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EMrEFAeYy8OBuD5Ejk5wNnTMRqvqaNA8yDwy_6zIdjmV\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM\",\"s\":\"0\",\"d\":\"EKmXYwJBboYdb2sd6q82C_Yugzk5Fzy9El5VCNVnFPAO\"}]},\"d\":\"EBy_l0zP9pzlhukhq-opBjviosg1LCn40PVcqyR9wq26\"}},\"sigs\":[\"AADIYbTDrn960dra35_d957dY9Quwu8PJqxYPLt9a3BcZCKU1mHgyLp3DoqqHL3XyLjoHUlvzIiLW4yiKT445DoD\"],\"atc\":\"-LAD4AACA-e-acdc-LAD5AACAA-e-iss-LAa5AACAA-e-anc-AABBACehSCvUvInf-qtsfbKTwcObTbFeRF6eMXKhbJAiU22EhdmBpj20sYAAsQCwW5BIW3HELrBRdNrlwo1KV6U8hsG\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "name": "registry.EGRP",
+        "metadata": {
+          "pre": "EGRP",
+          "sn": 1
+        },
+        "done": false
+      },
+      "error": null
+    },
+    {
+      "name": "propose_the_revocation",
+      "note": "the revocation round, driven as `multisigRevoke` writes it: the `rev` event sent in the `iss` slot",
+      "requests": [
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/credentials/ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/credentials/ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg",
+          "method": "DELETE",
+          "body": "{\"rev\":{\"v\":\"KERI10JSON000120_\",\"t\":\"rev\",\"d\":\"EOkqGC-y0_q9ZJ5r1zxey_xSG6BM5I0a8pceewkFoOqq\",\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"1\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"p\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ELFBUaUIoQt3YBY7GZuGRz0M1D0JIEitCNpvm3G-c63T\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"1\",\"d\":\"EOkqGC-y0_q9ZJ5r1zxey_xSG6BM5I0a8pceewkFoOqq\"}]},\"sigs\":[\"BAD43MZcI_Dunv75HZbrmmAfq5GBhaB04UOkIaRTxXFTUlY3G8EdLIydyoYk0_p08kGztJtkW2G3YO0qA4JTT_4P\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON000416_\",\"t\":\"exn\",\"d\":\"EKk3FG5vv5_RnabF87eIeo4pUXd0_Jl1e0wqSYECSNXp\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rev\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"iss\":{\"v\":\"KERI10JSON000120_\",\"t\":\"rev\",\"d\":\"EOkqGC-y0_q9ZJ5r1zxey_xSG6BM5I0a8pceewkFoOqq\",\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"1\",\"ri\":\"EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX\",\"p\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\"},\"anc\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"ELFBUaUIoQt3YBY7GZuGRz0M1D0JIEitCNpvm3G-c63T\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"1\",\"p\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"a\":[{\"i\":\"ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg\",\"s\":\"1\",\"d\":\"EOkqGC-y0_q9ZJ5r1zxey_xSG6BM5I0a8pceewkFoOqq\"}]},\"d\":\"EIUOE7hRDTYFHdaSzAcy32SRTSEbS7xxZB5piVaqohAj\"}},\"sigs\":[\"AADIPozOe7Xtkub-yl09p81zDtS8zcol85zC9LqZQMMMpAVJjtRHSRWMNzDNrAGl5VatzDRcA3Zci1zjEBLGni4L\"],\"atc\":\"-LAD5AACAA-e-iss-LAa5AACAA-e-anc-AABBAD43MZcI_Dunv75HZbrmmAfq5GBhaB04UOkIaRTxXFTUlY3G8EdLIydyoYk0_p08kGztJtkW2G3YO0qA4JTT_4P\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "result": {
+        "revoked": "EOkqGC-y0_q9ZJ5r1zxey_xSG6BM5I0a8pceewkFoOqq",
+        "ilk": "rev"
+      },
+      "error": null
+    }
+  ],
+  "pinned_confirmations": {
+    "group": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "registry": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+    "nonce": "AHSNDV3ABI6U8OIgKaj3aky91ZpNL54I5_7-qwtC6q2s",
+    "schema": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
+    "credential": "ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg",
+    "registry_paths": [
+      "GET /identifiers/multisig",
+      "POST /identifiers/multisig/registries",
+      "POST /identifiers/member1/exchanges"
+    ],
+    "issuance_paths": [
+      "GET /identifiers/multisig",
+      "POST /identifiers/multisig/credentials",
+      "GET /identifiers/multisig",
+      "POST /identifiers/member1/exchanges"
+    ],
+    "registry_route": "/multisig/vcp",
+    "registry_topic": "registry",
+    "issuance_route": "/multisig/iss",
+    "issuance_topic": "multisig",
+    "note": "a registry proposal embeds `{vcp, anc}` and an issuance embeds `{acdc, iss, anc}`; only the anchor carries an attachment, because its signature is what authorizes the rest."
+  },
+  "reference_quirks": {
+    "a_joining_member_never_reads_the_proposal": {
+      "declaration": "`if (!isInitiator) await waitAndMarkNotification(client, route);`",
+      "waits": [
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "enclosing": "createRegistryMultisig",
+          "route": "/multisig/vcp",
+          "binds": null,
+          "discarded": true
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "enclosing": "issueCredentialMultisig",
+          "route": "/multisig/iss",
+          "binds": null,
+          "discarded": true
+        }
+      ],
+      "group_requests_made": false,
+      "proposal_reads_in_these_helpers": [],
+      "note": "both helpers wait for a bell and discard the SAID it carries. No `getRequest` is ever made — driven here across six calls, none of which fetches a group request — so a joining member builds from its own arguments and nothing compares the result with what was proposed.",
+      "rust_decision": "the proposal is read and the value that decides the identifier is taken from it: `accept_registry` uses the nonce out of the proposed inception and `accept_issuance` compares the credential SAID it derived with the one it was shown. A mismatch is a typed error."
+    },
+    "a_different_nonce_is_a_different_registry": {
+      "declaration": "`createRegistryMultisig(..., nonce, ...)` — the nonce is the caller's, on both halves",
+      "proposed_registry": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+      "joined_registry": "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX",
+      "divergent_registry": "EGV9pC7S7dtB0YyM7ID-mPGYekBdGgg8OcrThE8V-kaR",
+      "agree": true,
+      "divergent_agrees": false,
+      "error": null,
+      "note": "a registry identifier is a digest over its inception and the nonce is inside it. Two members handed the same nonce derive the same registry; handed different ones they derive different registries and neither call fails. The group then holds two registries and agrees on none.",
+      "rust_decision": "the nonce is required on the proposing half — the endpoint beneath draws one from the operating system when it is absent, which for a group means every member deriving a different registry — and read from the proposal on the joining half."
+    },
+    "different_attributes_are_a_different_credential": {
+      "declaration": "`issueCredentialMultisig(..., kargsIss, ...)` — the credential data is the caller's, on both halves",
+      "proposed_credential": "ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg",
+      "joined_credential": "ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg",
+      "divergent_credential": "EMj1VkYU931unstYzq0kiNYZvGQYSwCrvSNmn-T0BHIM",
+      "agree": true,
+      "divergent_agrees": false,
+      "error": null,
+      "note": "the same shape as the registry: every field of a credential is inside its SAID, so two members handed different attributes issue different credentials with no error on either side.",
+      "rust_decision": "the credential SAID this member derives is compared with the one the proposal carries."
+    },
+    "a_revocation_travels_in_the_issuance_slot": {
+      "declaration": "`const embeds = { iss: [rev, ''], anc: [anc, atc] };`",
+      "misfiled_sends": [
+        {
+          "file": "test-integration/multisig.test.ts",
+          "route": "/multisig/rev",
+          "topic": "multisig",
+          "embed_slots": [
+            "iss",
+            "anc"
+          ]
+        }
+      ],
+      "announced_route": "/multisig/rev",
+      "announced_slots": [
+        "iss",
+        "anc"
+      ],
+      "embedded_ilk": "rev",
+      "note": "the route says revocation and the embed carries the revocation event under the issuance label. A reader narrowing through the reference's own `assertMultisigRev` — which declares `e: { rev, d? }` — finds no `rev` at all. Roadmap 8.4's route-and-embed scan turned this up and left it here.",
+      "rust_decision": "the revocation travels in `rev`, which is the slot Roadmap 8.1's table names for this route and the one Roadmap 4.1's schema declares. The reference's own pairing does not classify here."
+    },
+    "the_issuance_result_drops_its_signatures": {
+      "declaration": [
+        {
+          "name": "acdc",
+          "type": "Serder"
+        },
+        {
+          "name": "anc",
+          "type": "Serder"
+        },
+        {
+          "name": "iss",
+          "type": "Serder"
+        },
+        {
+          "name": "op",
+          "type": "CredentialOperation"
+        }
+      ],
+      "revoke_declaration": [
+        {
+          "name": "anc",
+          "type": "Serder"
+        },
+        {
+          "name": "rev",
+          "type": "Serder"
+        },
+        {
+          "name": "op",
+          "type": "GroupOperation | DelegationOperation | WitnessOperation | DoneOperation"
+        }
+      ],
+      "note": "`issue` computes the anchor's signatures and posts them, then returns `{ acdc, anc, iss, op }` without them — so `issueCredentialMultisig` fetches the group identifier again, rebuilds its keeper, and signs the same bytes a second time just to build the attachment. `revoke` returns `{ anc, rev, op }` and has the same gap.",
+      "rust_decision": "Roadmap 6.11's `IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event with its signatures — so the attachment is built from what the endpoint already returned and nothing is signed twice."
+    },
+    "one_round_is_filed_under_a_different_topic": {
+      "declaration": [
+        {
+          "route": "/multisig/icp",
+          "topic": "<computed>"
+        },
+        {
+          "route": "/multisig/rpy",
+          "topic": "<computed>"
+        },
+        {
+          "route": "/multisig/exn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/icp",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/vcp",
+          "topic": "registry"
+        },
+        {
+          "route": "/multisig/ixn",
+          "topic": "<computed>"
+        },
+        {
+          "route": "/multisig/exn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/iss",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/icp",
+          "topic": "<computed>"
+        },
+        {
+          "route": "/multisig/icp",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/icp",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/icp",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/rpy",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/rpy",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/rpy",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/ixn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/ixn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/ixn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/rot",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/ixn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/ixn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/vcp",
+          "topic": "registry"
+        },
+        {
+          "route": "/multisig/vcp",
+          "topic": "registry"
+        },
+        {
+          "route": "/multisig/vcp",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/exn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/exn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/exn",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/iss",
+          "topic": "multisig"
+        },
+        {
+          "route": "/multisig/rev",
+          "topic": "multisig"
+        }
+      ],
+      "vcp_topics": [
+        "registry",
+        "registry",
+        "registry",
+        "multisig"
+      ],
+      "note": "a registry proposal is sent under the topic `registry` where every other multisig round uses `multisig` — and the pinned tree is not even consistent with itself: of its three `/multisig/vcp` sends, two use `registry` and one uses `multisig`. A member filtering notifications by topic therefore sees registry proposals in two places.",
+      "rust_decision": "the majority form is reproduced — Roadmap 7.7's own `REGISTRY_TOPIC` for this one route — because it is what `createRegistryMultisig`, the ported unit, sends. The disagreement is recorded rather than resolved, since nothing in the pinned tree settles which is intended."
+    }
+  }
+}

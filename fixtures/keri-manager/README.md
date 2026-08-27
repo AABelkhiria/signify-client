@@ -25,8 +25,12 @@ vary between runs and are handled explicitly:
 - **A sealed box draws a fresh ephemeral key each call**, so the salt ciphertext is never the same
   twice. The fixture records its code, its length, and — the stronger statement — the salt it
   *opens to*, obtained by handing it back to the reference's own decrypter.
-- **`PubLot.dt` is `new Date().toString()`**. Every digit is masked, exactly as Roadmap 3.6 did for
-  the reply timestamp, so the shape and length stay pinned while the value does not vary.
+- **`PubLot.dt` is `new Date().toString()`** — a locale string, not an ISO-8601 timestamp. It is
+  masked so the shape stays pinned while the value does not vary: digits become `#` and letters
+  become `@`, and the parenthesised timezone name is dropped. Letters are masked because the
+  weekday and month names change with the day, and the timezone name is dropped because it changes
+  with the machine and with daylight saving. Masking only the digits — as this fixture originally
+  did, following Roadmap 3.6's reply timestamp — left it stale the day after it was written.
 
 Random keys cannot be pinned at all, so `randy_creator_shape` records the structure of a randy key
 set — count, code, length, transferability, distinctness, and the absence of paths — rather than
