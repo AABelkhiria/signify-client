@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "secondary_reference": {
+    "upstream": "https://github.com/WebOfTrust/keripy.git",
+    "commit": "4ce4cc79e06653f77342be1bf604086b89b1f090"
+  },
+  "generated_on": "2026-08-27",
+  "sources": [
+    "src/keri/app/clienting.ts",
+    "src/keri/app/controller.ts",
+    "test/app/clienting.test.ts",
+    "keripy: src/keri/app/keeping.py"
+  ],
+  "provenance": {
+    "passcode": "0123456789abcdefghijk",
+    "second_passcode": "abcdefghijk0123456789",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "note": "The client is driven against a recording agent with its clock and the agent's key pinned. Sealed boxes draw a fresh ephemeral key per call, so ciphertexts cannot be compared byte for byte; this fixture records **what each sealed value opens to and under which passcode**, which is the property the finding is about. `PUBLIC TEST MATERIAL`: both passcodes are the pinned tests' own."
+  },
+  "declarations": {
+    "client_rotate": "async rotate(nbran: string, aids: string[]): Promise<Response> { const data = this.controller.rotate(nbran, aids); return await fetch(this.url + '/agent/' + this.controller.pre, { method: 'PUT', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json', }, }); }",
+    "controller_rotate": "rotate(bran: string, aids: Array<any>) { const nbran = MtrDex.Salt_128 + 'A' + bran.substring(0, 21); // qb64 salt for seed const nsalter = new Salter({ qb64: nbran, tier: this.tier }); const nsigner = this.salter.signer(undefined, false); const creator = new SaltyCreator( this.salter.qb64, this.tier, this.stem ); const signer = creator .create( undefined, 1, MtrDex.Ed25519_Seed, true, 0, this.ridx + 1, 0, false ) .signers.pop(); const ncreator = new SaltyCreator(nsalter.qb64, this.tier, this.stem); this.signer = ncreator .create( undefined, 1, MtrDex.Ed25519_Seed, true, 0, this.ridx, 0, false ) .signers.pop(); this.nsigner = ncreator .create( undefined, 1, MtrDex.Ed25519_Seed, true, 0, this.ridx + 1, 0, false ) .signers.pop(); this.keys = [this.signer.verfer.qb64, signer?.verfer.qb64]; this.ndigs = [new Diger({}, this.nsigner.verfer.qb64b).qb64]; const rot = rotate({ pre: this.pre, keys: this.keys, dig: this.serder.sad['d'], isith: ['1', '0'], nsith: '1', ndigs: this.ndigs, }); const sigs = [ signer?.sign(b(rot.raw), 1, false, 0).qb64, this.signer.sign(rot.raw, 0).qb64, ]; const encrypter = new Encrypter({}, b(nsigner.verfer.qb64)); const decrypter = new Decrypter({}, nsigner.qb64b); const sxlt = encrypter.encrypt(b(this.bran)).qb64; const keys: Record<any, any> = {}; for (const aid of aids) { const pre: string = aid['prefix'] as string; if ('salty' in aid) { const salty: any = aid['salty']; const cipher = new Cipher({ qb64: salty['sxlt'] }); const dnxt = decrypter.decrypt(null, cipher).qb64; // Now we have the AID salt, use it to verify against the current public keys const acreator = new SaltyCreator( dnxt, salty['tier'], salty['stem'] ); const signers = acreator.create( salty['icodes'], undefined, MtrDex.Ed25519_Seed, salty['transferable'], salty['pidx'], 0, salty['kidx'], false ); const _signers = []; for (const signer of signers.signers) { _signers.push(signer.verfer.qb64); } const pubs = aid['state']['k']; if (pubs.join(',') != _signers.join(',')) { throw new Error('Invalid Salty AID'); } const asxlt = encrypter.encrypt(b(dnxt)).qb64; keys[pre] = { sxlt: asxlt, }; } else if ('randy' in aid) { const randy = aid['randy']; const prxs = randy['prxs']; const nxts = randy['nxts']; const nprxs = []; const signers = []; for (const prx of prxs) { const cipher = new Cipher({ qb64: prx }); const dsigner = decrypter.decrypt(null, cipher, true); signers.push(dsigner); nprxs.push(encrypter.encrypt(b(dsigner.qb64)).qb64); } const pubs = aid['state']['k']; const _signers = []; for (const signer of signers) { _signers.push(signer.verfer.qb64); } if (pubs.join(',') != _signers.join(',')) { throw new Error( `unable to rotate, validation of encrypted public keys ${pubs} failed` ); } const nnxts = []; for (const nxt of nxts) { nnxts.push(this.recrypt(nxt, decrypter, encrypter)); } keys[pre] = { prxs: nprxs, nxts: nnxts, }; } else { throw new Error('invalid aid type '); } } const data = { rot: rot.sad, sigs: sigs, sxlt: sxlt, keys: keys, }; return data; }",
+    "nbran_declaration": "const nbran = MtrDex.Salt_128 + 'A' + bran.substring(0, 21);",
+    "nsalter_declaration": "const nsalter = new Salter({ qb64: nbran, tier: this.tier });",
+    "nsigner_declaration": "const nsigner = this.salter.signer(undefined, false);",
+    "sealed_salt_declaration": "const sxlt = encrypter.encrypt(b(this.bran)).qb64;",
+    "cipher_construction": [
+      {
+        "kind": "Encrypter",
+        "argument": "b(nsigner.verfer.qb64"
+      },
+      {
+        "kind": "Decrypter",
+        "argument": "nsigner.qb64b"
+      }
+    ],
+    "unit_test_calls": [
+      {
+        "text": "client.rotate('abcdefghijk0123456789', [])",
+        "identifiers": "[]",
+        "identifier_count": 0
+      }
+    ],
+    "keripy": {
+      "commit": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+      "file": "src/keri/app/keeping.py",
+      "symbol": "Manager.updateAeid",
+      "encrypter_from_new_key": "self.encrypter = core.Encrypter(verkey=aeid)",
+      "verifies_new_seed": true,
+      "docstring_claim": "aeid may be different not empty which reencrypts",
+      "cipher_lines": [
+        "self.encrypter = core.Encrypter(verkey=aeid)  # derive encrypter from aeid",
+        "# self.salt = self.encrypter.encrypt(ser=salt).qb64 if self.encrypter else salt",
+        "salter = self.decrypter.decrypt(qb64=data.salt)",
+        "data.salt = (self.encrypter.encrypt(prim=salter).qb64"
+      ]
+    },
+    "notes": {
+      "finding": "`nsigner` derives from `this.salter` — the old salt — while `nbran` and `nsalter` beside it are the new passcode's. It feeds both the decrypter (right) and the encrypter (wrong).",
+      "coverage": "the one pinned call passes an empty identifier list, so the re-encryption loop never runs"
+    }
+  },
+  "request": {
+    "path": "/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "method": "PUT",
+    "signed": false,
+    "body_fields": [
+      "rot",
+      "sigs",
+      "sxlt",
+      "keys"
+    ],
+    "key_entries": [
+      "DIuj1EKPmRoRVBrjJtlRiED4yYarZrBO0B2KvmSOAhJw",
+      "DOpKbGPinFIKvvVQexMuxfmVR3auvr57kkIe6mkURtIs"
+    ],
+    "salty_entry_fields": [
+      "sxlt"
+    ],
+    "randy_entry_fields": [
+      "prxs",
+      "nxts"
+    ],
+    "rotation": {
+      "v": "KERI10JSON000195_",
+      "t": "rot",
+      "d": "ELjIbIdqca5hDX5AkROuwv0I9cew8HYR7KPZqfK5Bi5q",
+      "i": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "s": "1",
+      "p": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8",
+      "kt": [
+        "1",
+        "0"
+      ],
+      "k": [
+        "DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v",
+        "DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs"
+      ],
+      "nt": "1",
+      "n": [
+        "EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7"
+      ],
+      "bt": "0",
+      "br": [],
+      "ba": [],
+      "a": []
+    },
+    "signature_count": 2
+  },
+  "identifiers": {
+    "salty": {
+      "prefix": "DIuj1EKPmRoRVBrjJtlRiED4yYarZrBO0B2KvmSOAhJw",
+      "salt": "0ABmZWRjYmE5ODc2NTQzMjEw",
+      "state_keys": [
+        "DIuj1EKPmRoRVBrjJtlRiED4yYarZrBO0B2KvmSOAhJw"
+      ]
+    },
+    "randy": {
+      "prefix": "DOpKbGPinFIKvvVQexMuxfmVR3auvr57kkIe6mkURtIs",
+      "seeds": [
+        "AAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH",
+        "AAsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsL"
+      ],
+      "next_seed": "AA0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0N",
+      "state_keys": [
+        "DOpKbGPinFIKvvVQexMuxfmVR3auvr57kkIe6mkURtIs",
+        "DGa-fjMsekUzMr2dCn99sFX1xe8aBq2mbZizn7aBDEc6"
+      ]
+    }
+  },
+  "sealing": {
+    "controller_salt": {
+      "opens_under_old": "0AA0123456789abcdefghijk",
+      "opens_under_new": null
+    },
+    "salty_identifier": {
+      "opens_under_old": "0ABmZWRjYmE5ODc2NTQzMjEw",
+      "opens_under_new": null
+    },
+    "randy_identifier": {
+      "opens_under_old": "AAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH",
+      "opens_under_new": null
+    }
+  },
+  "reference_quirks": {
+    "the_payload_is_sealed_to_the_passcode_being_left_behind": {
+      "declaration": "const nsigner = this.salter.signer(undefined, false);",
+      "beside_it": [
+        "const nbran = MtrDex.Salt_128 + 'A' + bran.substring(0, 21);",
+        "const nsalter = new Salter({ qb64: nbran, tier: this.tier });"
+      ],
+      "cipher_construction": [
+        {
+          "kind": "Encrypter",
+          "argument": "b(nsigner.verfer.qb64"
+        },
+        {
+          "kind": "Decrypter",
+          "argument": "nsigner.qb64b"
+        }
+      ],
+      "sealing": {
+        "controller_salt": {
+          "opens_under_old": "0AA0123456789abcdefghijk",
+          "opens_under_new": null
+        },
+        "salty_identifier": {
+          "opens_under_old": "0ABmZWRjYmE5ODc2NTQzMjEw",
+          "opens_under_new": null
+        },
+        "randy_identifier": {
+          "opens_under_old": "AAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH",
+          "opens_under_new": null
+        }
+      },
+      "old_salt": "0AA0123456789abcdefghijk",
+      "new_salt": "0AAabcdefghijk0123456789",
+      "note": "`nsigner` derives from `this.salter`, the old salt, where `nbran` and `nsalter` beside it are the new passcode's. It feeds the decrypter, which is right, and the encrypter, which is not. Driven: the controller salt and both identifiers' key material open under the old passcode and under the new one not at all — so a client that rotated and reconnected could not read its own identifiers, and whoever holds the old passcode still can. Rotating the signing keys does not rotate the encryption.",
+      "keripy": {
+        "commit": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+        "file": "src/keri/app/keeping.py",
+        "symbol": "Manager.updateAeid",
+        "encrypter_from_new_key": "self.encrypter = core.Encrypter(verkey=aeid)",
+        "verifies_new_seed": true,
+        "docstring_claim": "aeid may be different not empty which reencrypts",
+        "cipher_lines": [
+          "self.encrypter = core.Encrypter(verkey=aeid)  # derive encrypter from aeid",
+          "# self.salt = self.encrypter.encrypt(ser=salt).qb64 if self.encrypter else salt",
+          "salter = self.decrypter.decrypt(qb64=data.salt)",
+          "data.salt = (self.encrypter.encrypt(prim=salter).qb64"
+        ]
+      },
+      "rust_decision": "this port follows keripy: the encrypter derives from the new salt, `sxlt` carries the new salt, and the controller's stored salt moves with its keys — which the fix requires, since material sealed to the new passcode cannot be opened by the old one a second time. ADR `0033`."
+    },
+    "the_sealed_salt_is_the_old_one": {
+      "declaration": "const sxlt = encrypter.encrypt(b(this.bran)).qb64;",
+      "opens_to": "0AA0123456789abcdefghijk",
+      "is_the_old_salt": true,
+      "note": "`encrypter.encrypt(b(this.bran))` seals `this.bran`, which the rotation never updates — so the payload records the passcode being replaced rather than the one replacing it.",
+      "rust_decision": "`sealed_salt` carries the **new** salt under the new passcode's key, so the payload records the passcode now in force rather than the one it replaced, and the controller's stored salt moves with its keys."
+    },
+    "a_second_rotation_derives_from_the_original_salt": {
+      "first_old_key": "DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs",
+      "second_old_key": "DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs",
+      "identical": true,
+      "bran_moved": false,
+      "note": "`rotate` moves the signers, keys, and digests and leaves `bran`, `salter`, `ridx`, and `serder` behind, so the controller's salt and its keys disagree from the first rotation on, and every later rotation commits to the original passcode's key again.",
+      "rust_decision": "the salt moves with the keys, so a second rotation reveals the key the first one pre-committed to — which is what the chain requires and what the sealing fix depends on."
+    },
+    "nothing_upstream_exercises_the_re_encryption": {
+      "unit_test_calls": [
+        {
+          "text": "client.rotate('abcdefghijk0123456789', [])",
+          "identifiers": "[]",
+          "identifier_count": 0
+        }
+      ],
+      "identifier_count": 0,
+      "empty_payload_keys": [],
+      "note": "the one pinned call is `client.rotate('abcdefghijk0123456789', [])`. With an empty list the loop, both its branches, the key-state check, and every re-seal are skipped, and the recorded payload's `keys` map is empty. Four assertions cover the rotation event and nothing else.",
+      "rust_decision": "both branches, the key-state check, and the re-sealing are driven here and property-tested."
+    },
+    "the_rotation_travels_unsigned": {
+      "signed": false,
+      "path": "/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "method": "PUT",
+      "note": "`rotate` calls the global `fetch` directly rather than the client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature — the same bypass Roadmap 6.4 recorded for the delegation approval and both passcode calls.",
+      "rust_decision": "reproduced, because a signed request is not what KERIA expects here; the method says so."
+    }
+  }
+}

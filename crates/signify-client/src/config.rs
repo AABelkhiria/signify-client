@@ -160,6 +160,16 @@ impl ClientConfig {
         &self.passcode
     }
 
+    /// Replaces the passcode, for a client that has rotated to a new one.
+    ///
+    /// Every other setting is kept, so a rotated client speaks to the same agent with the same
+    /// tier and derivation cost.
+    #[must_use]
+    pub fn with_passcode(mut self, passcode: Passcode) -> Self {
+        self.passcode = passcode;
+        self
+    }
+
     /// Returns the security tier.
     #[must_use]
     pub const fn tier(&self) -> SecurityTier {

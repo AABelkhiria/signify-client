@@ -117,5 +117,9 @@ harness = false
 name = "ipex_presentation"
 harness = false
 
+[[bench]]
+name = "passcode_rotation"
+harness = false
+
 [lints]
 workspace = true

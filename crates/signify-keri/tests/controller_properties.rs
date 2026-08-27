@@ -205,22 +205,46 @@ proptest! {
             prop_assert!(verifier.verify(signature.raw(), rotation.rotation.raw()).is_ok());
         }
 
-        // The sealed salt opens under the PRIOR key to the OLD salt — the reference's own
-        // arrangement — and the new signer takes over local signing.
-        let decrypter = Decrypter::from_signer(&prior_signer);
-        let opened = decrypter
+        // The sealed salt opens under the NEW key to the NEW salt, as keripy does — so rotating
+        // the passcode rotates the encryption. The reference seals the old salt under the old key,
+        // producing a payload the new passcode cannot open at all.
+        let new_salt = controller
+            .salt()
+            .expose_qb64()
+            .map_err(|error| TestCaseError::fail(error.to_string()))?
+            .as_str()
+            .to_owned();
+        prop_assert_ne!(&new_salt, &old_salt, "the controller's salt did not move");
+
+        let new_signer = controller
+            .salt()
+            .derive_signer_with_profile(
+                "",
+                KeyTransferability::NonTransferable,
+                DerivationCost::Ephemeral.profile(SecurityTier::Low),
+            )
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let opened = Decrypter::from_signer(&new_signer)
             .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(
             opened.expose_qb64().map(|qb64| qb64.as_str().to_owned()).ok(),
-            Some(old_salt)
+            Some(new_salt)
+        );
+
+        // And the passcode being left behind no longer opens it.
+        prop_assert!(
+            Decrypter::from_signer(&prior_signer)
+                .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
+                .is_err(),
+            "the old passcode still opens the rotated payload"
         );
         prop_assert_eq!(controller.current_keys().len(), 2);
         prop_assert_eq!(controller.current_sequence_number(), 0);
     }
 
-    /// Sealed material round-trips through a rotation: whatever the prior key sealed, the prior
-    /// key still opens after re-encryption, unchanged.
+    /// Sealed material round-trips through a rotation: whatever the prior key sealed, the **new**
+    /// key opens afterwards, unchanged — and the prior key no longer does.
     #[test]
     fn re_encryption_preserves_what_it_seals(first in ALPHABET, second in ALPHABET, seed in any::<[u8; 32]>()) {
         prop_assume!(first != second);
@@ -281,10 +305,27 @@ proptest! {
         let Some(resealed) = signing_keys.first() else {
             return Err(TestCaseError::fail("no key was re-sealed"));
         };
-        let reopened = decrypter
+        // The new passcode opens what the old one sealed, and the material is unchanged.
+        let new_signer = controller
+            .salt()
+            .derive_signer_with_profile(
+                "",
+                KeyTransferability::NonTransferable,
+                DerivationCost::Ephemeral.profile(SecurityTier::Low),
+            )
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let reopened = Decrypter::from_signer(&new_signer)
             .decrypt_seed(resealed, KeyTransferability::Transferable)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(reopened.verifier().qb64().ok(), Some(public));
+
+        // And the old one does not, which is what makes this a rotation rather than a copy.
+        prop_assert!(
+            decrypter
+                .decrypt_seed(resealed, KeyTransferability::Transferable)
+                .is_err(),
+            "a re-sealed key still opens under the old passcode"
+        );
     }
 
     /// An agent's parsed coordinates always agree with the state it was built from.

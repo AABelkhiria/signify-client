@@ -390,6 +390,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_passcode_rotation"
+path = "fuzz_targets/client_passcode_rotation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_oobis"
 path = "fuzz_targets/client_oobis.rs"
 test = false

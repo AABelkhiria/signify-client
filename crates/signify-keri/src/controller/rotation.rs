@@ -1,20 +1,34 @@
 //! Passcode rotation: the artifact set that moves a controller to a new passcode.
 //!
-//! # Security note: everything is sealed to the *prior* passcode's encryption key
+//! # The seal follows the new passcode, as keripy does
 //!
-//! The reference derives its encrypter from the **old** salter (`this.salter.signer(...)`), so the
-//! controller salt and every re-encrypted identifier key are sealed to the encryption key the old
-//! passcode derives — and the sealed salt is the **old** salt, not the new one. Rotating the
-//! signing keys therefore does not rotate the encryption: whoever holds the old passcode can still
-//! open everything this payload stores. That is reproduced here exactly, because diverging would
-//! change what KERIA stores and 8.9 owns the workflow-level decision; the field names and
-//! documentation say it out loud so no caller mistakes it for a completed re-encryption. See
-//! `PORTING.md` §9 and §10.
+//! Rotating a passcode has to move two things: the signing keys, and the encryption that protects
+//! the stored key material. keripy's `Manager.updateAeid` moves both — it builds its encrypter from
+//! the **new** key, opens each secret with the old decrypter, and seals it again with the new one,
+//! having first checked that the new seed belongs to the new key.
+//!
+//! **The reference moves only the first.** `Controller.rotate` derives one signer from
+//! `this.salter` — the *old* salt — and uses it for the decrypter (correct) and the encrypter
+//! (which therefore never rotates); the salt it seals is the old one too, and the controller's own
+//! salt is left behind while its keys move. Driven, the payload that rotation produces **cannot be
+//! opened by the new passcode at all**, so a client that rotated and reconnected could not read its
+//! own identifiers — and the old passcode still opens everything. Nothing upstream exercises it:
+//! the one test that calls `rotate` passes an empty identifier list, so the whole re-encryption
+//! path is dead in its suite.
+//!
+//! This module follows keripy. The encrypter derives from the new salt, `sealed_salt` carries the
+//! **new** salt, and the controller's stored salt moves with its keys — which the fix requires,
+//! since material sealed to the new passcode cannot be opened by the old one a second time round.
+//! Everything else is the reference's byte for byte: the always-`s="1"` event, the `["1","0"]`
+//! weighted threshold, the signature order and placements, and the payload's field names. See
+//! ADR `0033`, which supersedes ADR `0016`'s decision to reproduce this, and `PORTING.md` §9.
 
 use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use signify_crypto::digest::{Digest, DigestAlgorithm};
+use signify_crypto::salt::Salt;
 use signify_crypto::signature::IndexedSignature;
 use signify_crypto::signer::SignaturePlacement;
+use signify_crypto::signer::Signer;
 use signify_crypto::verifier::KeyTransferability;
 use signify_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 
@@ -33,8 +47,8 @@ pub enum ReEncryptedKeyState {
     /// A salty identifier: its decrypted salt was verified against the recorded signing keys and
     /// sealed again.
     Salty {
-        /// The re-sealed salt; the wire's `sxlt`. Sealed to the *prior* passcode's encryption
-        /// key, as the module documentation explains.
+        /// The re-sealed salt; the wire's `sxlt`. Sealed to the **new** passcode's encryption
+        /// key, so only the new passcode opens it.
         sealed_salt: Ciphertext,
     },
     /// A randy identifier: every private key was decrypted, the signing keys verified against the
@@ -57,11 +71,34 @@ pub struct PasscodeRotation {
     /// The two indexed signatures, in the reference's order: the old committed-to key signing at
     /// position one with prior position zero, then the new key signing at position zero.
     pub signatures: Vec<IndexedSignature>,
-    /// The controller's **old** salt, sealed to the **prior** passcode's encryption key; the
-    /// wire's `sxlt`. See the module documentation.
+    /// The controller's **new** salt, sealed to the **new** passcode's encryption key; the wire's
+    /// `sxlt`. The reference seals the old salt under the old key. See the module documentation.
     pub sealed_salt: Ciphertext,
     /// Each identifier's re-sealed key material, in input order; the wire's `keys` map.
     pub re_encrypted: Vec<(String, ReEncryptedKeyState)>,
+}
+
+/// A passcode rotation that has been computed but not yet adopted.
+///
+/// Holds the artifacts to send and the secrets the controller moves to when they are accepted.
+/// Produced by [`Controller::plan_passcode_rotation`] and consumed by
+/// [`Controller::apply_passcode_rotation`]; dropping it instead leaves the controller untouched.
+#[derive(Debug)]
+pub struct PlannedPasscodeRotation {
+    artifacts: PasscodeRotation,
+    salt: Salt,
+    signer: Signer,
+    next_signer: Signer,
+    keys: Vec<String>,
+    next_digests: Vec<String>,
+}
+
+impl PlannedPasscodeRotation {
+    /// Borrows the artifacts this rotation would send.
+    #[must_use]
+    pub const fn artifacts(&self) -> &PasscodeRotation {
+        &self.artifacts
+    }
 }
 
 impl Controller {
@@ -69,14 +106,15 @@ impl Controller {
     /// `rotate`.
     ///
     /// The new signing key derives from the new passcode at this controller's rotation index, the
-    /// old committed-to key co-signs with weight zero, and every supplied identifier's key
-    /// material is decrypted, verified against its recorded key state, and sealed again — all to
-    /// the *prior* passcode's encryption key, as the module documentation explains.
+    /// old committed-to key co-signs with weight zero, and every supplied identifier's key material
+    /// is opened with the **old** passcode's key and sealed again with the **new** one — as
+    /// keripy's `updateAeid` does, and as the module documentation explains the reference does not.
     ///
-    /// On success the controller's signer, next signer, keys, and next digests move to the new
-    /// passcode's derivations. The current event, rotation index, and stored salt deliberately do
-    /// **not** move, because the reference leaves them untouched; a second rotation therefore
-    /// derives its "old" key from the original passcode again, which `PORTING.md` §9 records.
+    /// On success the controller's signer, next signer, keys, next digests, **and stored salt**
+    /// move to the new passcode. Moving the salt is what the sealing fix requires: material sealed
+    /// to the new passcode cannot be opened by the old one, so a controller that kept its old salt
+    /// could rotate exactly once. The current event and rotation index still do not move, because
+    /// the reference leaves them untouched and nothing here depends on their moving.
     ///
     /// # Errors
     ///
@@ -90,14 +128,32 @@ impl Controller {
         new_passcode: &str,
         identifiers: &[AcceptedHab],
     ) -> Result<PasscodeRotation, ControllerError> {
-        // The prior passcode's encryption key pair: the decrypter must open material sealed under
-        // the old passcode, and the reference derives its encrypter from the same signer.
+        let planned = self.plan_passcode_rotation(new_passcode, identifiers)?;
+        Ok(self.apply_passcode_rotation(planned))
+    }
+
+    /// Computes a passcode rotation **without moving this controller to it**.
+    ///
+    /// The artifacts are ready to send; the controller only advances when the result is handed to
+    /// [`Self::apply_passcode_rotation`]. That split exists because the agent has to accept the
+    /// rotation before the client may act as though it happened: a controller that advanced on a
+    /// request that failed would sign with a key the agent has never seen, and its stored material
+    /// would be sealed to a passcode the agent never recorded.
+    ///
+    /// # Errors
+    ///
+    /// The failures [`Self::rotate_passcode`] returns.
+    pub fn plan_passcode_rotation(
+        &self,
+        new_passcode: &str,
+        identifiers: &[AcceptedHab],
+    ) -> Result<PlannedPasscodeRotation, ControllerError> {
+        // The prior passcode's encryption key pair opens what is already stored.
         let prior_encryption = self.salt.derive_signer_with_profile(
             "",
             KeyTransferability::NonTransferable,
             self.cost.profile(self.tier),
         )?;
-        let encrypter = Encrypter::from_verification_key(prior_encryption.verifier())?;
         let decrypter = Decrypter::from_signer(&prior_encryption);
 
         // The key the old chain committed to, derived from the *stored* salt — which never moves,
@@ -115,6 +171,17 @@ impl Controller {
 
         // The new passcode's chain, at the same indices.
         let new_salt = salt_from_passcode(new_passcode, self.tier)?;
+
+        // And the new passcode's encryption key seals what is stored next, so the rotation moves
+        // the encryption as well as the signing keys. The reference re-uses `prior_encryption`
+        // here; keripy builds its encrypter from the new key, and so does this.
+        let new_encryption = new_salt.derive_signer_with_profile(
+            "",
+            KeyTransferability::NonTransferable,
+            self.cost.profile(self.tier),
+        )?;
+        let encrypter = Encrypter::from_verification_key(new_encryption.verifier())?;
+
         let (new_signer, new_next_signer) = {
             let creator = SaltyKeyCreator::new(&new_salt, stem);
             (
@@ -145,7 +212,7 @@ impl Controller {
             old_committed.sign_indexed(rotation.raw(), SignaturePlacement::both_lists_with_prior(1, 0))?,
             new_signer.sign_indexed(rotation.raw(), SignaturePlacement::both_lists(0))?,
         ];
-        let sealed_salt = encrypter.encrypt_salt(&self.salt)?;
+        let sealed_salt = encrypter.encrypt_salt(&new_salt)?;
 
         let mut re_encrypted = Vec::with_capacity(identifiers.len());
         for identifier in identifiers {
@@ -163,18 +230,41 @@ impl Controller {
             re_encrypted.push((prefix, state));
         }
 
-        // The reference replaces the signers, keys, and digests, and nothing else.
-        self.signer = new_signer;
-        self.next_signer = new_next_signer;
-        self.keys = keys;
-        self.next_digests = vec![next_digest.qb64()?];
-
-        Ok(PasscodeRotation {
-            rotation,
-            signatures,
-            sealed_salt,
-            re_encrypted,
+        Ok(PlannedPasscodeRotation {
+            artifacts: PasscodeRotation {
+                rotation,
+                signatures,
+                sealed_salt,
+                re_encrypted,
+            },
+            salt: new_salt,
+            signer: new_signer,
+            next_signer: new_next_signer,
+            keys,
+            next_digests: vec![next_digest.qb64()?],
         })
+    }
+
+    /// Moves this controller onto a planned rotation and returns the artifacts to send.
+    ///
+    /// The reference replaces the signers, keys, and digests and leaves its salt behind, so its
+    /// controller's salt and its keys disagree from there on. Here they move together, which the
+    /// sealing fix requires.
+    pub fn apply_passcode_rotation(&mut self, planned: PlannedPasscodeRotation) -> PasscodeRotation {
+        let PlannedPasscodeRotation {
+            artifacts,
+            salt,
+            signer,
+            next_signer,
+            keys,
+            next_digests,
+        } = planned;
+        self.salt = salt;
+        self.signer = signer;
+        self.next_signer = next_signer;
+        self.keys = keys;
+        self.next_digests = next_digests;
+        artifacts
     }
 
     /// Verifies and re-seals one salty identifier's salt.
@@ -430,18 +520,29 @@ mod tests {
     }
 
     #[test]
-    fn everything_is_sealed_to_the_prior_passcode_key() -> Result<(), Box<dyn Error>> {
+    fn everything_is_sealed_to_the_new_passcode_key() -> Result<(), Box<dyn Error>> {
         let mut controller = ephemeral()?;
         let (_, prior_decrypter) = prior_encryption(&controller)?;
         let old_salt_qb64 = controller.salt().expose_qb64()?.as_str().to_owned();
 
         let rotation = controller.rotate_passcode(NEW_PASSCODE, &[])?;
 
-        // The sealed salt is the OLD salt, and the OLD passcode's key still opens it: rotating
-        // the signing keys did not rotate the encryption. This is the reference's arrangement,
-        // recorded in `PORTING.md` §9.
-        let opened = prior_decrypter.decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)?;
-        assert_eq!(opened.expose_qb64()?.as_str(), old_salt_qb64);
+        // The sealed salt is the NEW salt under the NEW passcode's key, as keripy's `updateAeid`
+        // does: rotating the signing keys rotates the encryption with them.
+        let new_salt_qb64 = controller.salt().expose_qb64()?.as_str().to_owned();
+        assert_ne!(new_salt_qb64, old_salt_qb64, "the controller's salt did not move");
+        let (_, new_decrypter) = prior_encryption(&controller)?;
+        let opened = new_decrypter.decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)?;
+        assert_eq!(opened.expose_qb64()?.as_str(), new_salt_qb64);
+
+        // And the passcode being left behind opens nothing. The reference seals the old salt under
+        // this same key, producing a payload the new passcode cannot open at all.
+        assert!(
+            prior_decrypter
+                .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
+                .is_err(),
+            "the old passcode still opens the rotated payload"
+        );
         Ok(())
     }
 
@@ -486,9 +587,14 @@ mod tests {
             return Err("the salty record was not re-encrypted".into());
         };
         assert_eq!(prefix, &record.common.prefix);
-        // The re-sealed salt opens — with the PRIOR key — to the identifier's own salt.
-        let opened = decrypter.decrypt_salt(sealed_salt, SecurityTier::Low)?;
+        // The re-sealed salt is the identifier's own, unchanged — under the NEW passcode's key.
+        let (_, new_decrypter) = prior_encryption(&controller)?;
+        let opened = new_decrypter.decrypt_salt(sealed_salt, SecurityTier::Low)?;
         assert_eq!(opened.expose_qb64()?.as_str(), "0ABmZWRjYmE5ODc2NTQzMjEw");
+        assert!(
+            decrypter.decrypt_salt(sealed_salt, SecurityTier::Low).is_err(),
+            "the identifier's salt still opens under the old passcode"
+        );
         Ok(())
     }
 
@@ -511,10 +617,18 @@ mod tests {
         };
         assert_eq!(signing_keys.len(), 2);
         assert_eq!(next_keys.len(), 1);
-        // Each re-sealed key opens to the same public key it was stored under.
+        // Each re-sealed key opens to the same public key it was stored under — under the NEW
+        // passcode's key, and no longer under the old one.
+        let (_, new_decrypter) = prior_encryption(&controller)?;
         for (sealed, expected) in signing_keys.iter().zip(&public) {
-            let signer = decrypter.decrypt_seed(sealed, KeyTransferability::Transferable)?;
+            let signer = new_decrypter.decrypt_seed(sealed, KeyTransferability::Transferable)?;
             assert_eq!(signer.verifier().qb64()?, *expected);
+            assert!(
+                decrypter
+                    .decrypt_seed(sealed, KeyTransferability::Transferable)
+                    .is_err(),
+                "a private key still opens under the old passcode"
+            );
         }
         Ok(())
     }

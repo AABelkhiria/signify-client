@@ -44,13 +44,13 @@ use signify_http::signature::authentication::{RequestSigner, ResponseVerifier};
 use signify_http::signature::input::{RequestTarget, SIGNIFY_RESOURCE_HEADER_NAME};
 use signify_http::signature::transport::{Freshness, ResponseAuthenticator, SigningTransport};
 use signify_http::transport::{Method, Request, RequestUrl, Response, StatusCode, Transport};
-use signify_keri::controller::{Agent, Controller, ControllerOptions};
+use signify_keri::controller::{Agent, Controller, ControllerOptions, PasscodeRotation, ReEncryptedKeyState};
 use signify_keri::manager::{KeeperFactory, salt_from_passcode};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
-use signify_types::api::KeyState;
+use signify_types::api::{AcceptedHab, KeyState};
 
-use crate::config::ClientConfig;
+use crate::config::{ClientConfig, Passcode};
 use crate::endpoint::challenges::Challenges;
 use crate::endpoint::config::Config;
 use crate::endpoint::contacts::Contacts;
@@ -716,6 +716,67 @@ impl ConnectedClient {
         Ok(response)
     }
 
+    /// Rotates this client to a new passcode; the reference's `SignifyClient.rotate`.
+    ///
+    /// `identifiers` are the managed identifiers whose stored key material moves with the
+    /// passcode. Each one's material is opened with the old passcode's key, checked against the
+    /// key state the agent reports for it, and sealed again under the **new** passcode's key —
+    /// which the reference does not do, and which is the whole point of rotating. See
+    /// [`signify_keri::controller::rotation`] and ADR `0033`.
+    ///
+    /// **Nothing moves locally until the agent accepts.** The rotation is computed first, sent
+    /// second, and adopted third: if the request fails, this client is exactly as it was and the
+    /// caller may retry. The reference advances its controller before it sends, so a failed
+    /// rotation there leaves a client signing with a key the agent has never seen.
+    ///
+    /// An identifier left out of `identifiers` keeps material sealed to the old passcode, which
+    /// the new one cannot open. The list is the caller's — the agent is the only party that knows
+    /// the whole set, and the reference passes whatever its caller passes — so this method cannot
+    /// check it; pass every managed identifier.
+    ///
+    /// **Unsigned**, as upstream: the reference bypasses its own signed path here and calls the
+    /// global `fetch` directly, so the `PUT` carries no HTTP signature. Reproduced, because a
+    /// signed request is not what KERIA expects at this endpoint.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::Controller`] when an identifier's stored keys do not match its
+    /// reported key state or its key manager is one this cannot re-seal,
+    /// [`ClientError::InvalidPasscodeLength`] for a passcode that is not twenty-one characters,
+    /// [`ClientError::Status`] for a non-success answer, and layered request and transport
+    /// failures. On every one of them this client is unchanged.
+    pub async fn rotate_passcode(
+        &mut self,
+        new_passcode: &Passcode,
+        identifiers: &[AcceptedHab],
+    ) -> Result<Response, ClientError> {
+        let planned = self
+            .controller
+            .plan_passcode_rotation(new_passcode.expose(), identifiers)?;
+
+        let body = rotation_body(planned.artifacts())?;
+        let path = ResourcePath::builder()
+            .segment(AGENT_SEGMENT)
+            .segment(&self.controller.prefix().qb64().map_err(prefix_error)?)
+            .build()?;
+        let request = Request::builder(Method::Put, self.config.admin_url().join(&path)?)
+            .header(content_type()?, json_value()?)
+            .body(body)
+            .build()?;
+
+        let response = self.unsigned.execute(request).await?;
+        require_success(&response)?;
+
+        // Accepted. Now the client's own secrets move: the controller onto its new chain, and the
+        // keeper factory and configuration onto the new passcode — without which this client would
+        // go on trying to open its identifiers with a key that no longer seals them.
+        let keepers = KeeperFactory::new(salt_from_passcode(new_passcode.expose(), self.config.tier())?);
+        self.controller.apply_passcode_rotation(planned);
+        self.keepers = keepers;
+        self.config = self.config.clone().with_passcode(new_passcode.clone());
+        Ok(response)
+    }
+
     /// Stores a superseded passcode with the agent.
     ///
     /// **Unsigned**, as upstream: the passcode travels over a request carrying no HTTP signature.
@@ -876,3 +937,56 @@ const _: Option<StatusCode> = None;
 const _: &str = SIGNIFY_RESOURCE_HEADER_NAME;
 /// Keeps the base URL type reachable from this module's documentation.
 const _: Option<BaseUrl> = None;
+
+/// Writes the rotation payload the agent expects: the reference's `{rot, sigs, sxlt, keys}`.
+fn rotation_body(rotation: &PasscodeRotation) -> Result<Vec<u8>, ClientError> {
+    let mut body = Sad::new();
+    body.insert("rot", SadValue::Map(rotation.rotation.sad().clone()))
+        .map_err(sad_error)?;
+    body.insert(
+        "sigs",
+        SadValue::Array(
+            rotation
+                .signatures
+                .iter()
+                .map(|signature| Ok(SadValue::Text(signature.qb64()?)))
+                .collect::<Result<Vec<_>, ClientError>>()?,
+        ),
+    )
+    .map_err(sad_error)?;
+    body.insert("sxlt", SadValue::text(rotation.sealed_salt.qb64()?))
+        .map_err(sad_error)?;
+
+    let mut keys = Sad::new();
+    for (prefix, state) in &rotation.re_encrypted {
+        let mut entry = Sad::new();
+        match state {
+            ReEncryptedKeyState::Salty { sealed_salt } => {
+                entry
+                    .insert("sxlt", SadValue::text(sealed_salt.qb64()?))
+                    .map_err(sad_error)?;
+            }
+            ReEncryptedKeyState::Randy {
+                signing_keys,
+                next_keys,
+            } => {
+                entry.insert("prxs", sealed_array(signing_keys)?).map_err(sad_error)?;
+                entry.insert("nxts", sealed_array(next_keys)?).map_err(sad_error)?;
+            }
+        }
+        keys.insert(prefix.clone(), SadValue::Map(entry)).map_err(sad_error)?;
+    }
+    body.insert("keys", SadValue::Map(keys)).map_err(sad_error)?;
+
+    body.to_json_bytes().map_err(sad_error)
+}
+
+/// Renders a list of sealed values as the wire's array of qualified ciphertexts.
+fn sealed_array(sealed: &[signify_crypto::cipher::Ciphertext]) -> Result<SadValue, ClientError> {
+    Ok(SadValue::Array(
+        sealed
+            .iter()
+            .map(|value| Ok(SadValue::Text(value.qb64()?)))
+            .collect::<Result<Vec<_>, ClientError>>()?,
+    ))
+}

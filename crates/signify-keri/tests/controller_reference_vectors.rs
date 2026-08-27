@@ -10,6 +10,7 @@ use std::error::Error;
 
 use serde::Deserialize;
 use signify_crypto::cipher::{Decrypter, Encrypter};
+use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_crypto::salt::{Salt, SecurityTier};
 use signify_crypto::signer::Signer;
 use signify_crypto::verifier::KeyTransferability;
@@ -229,6 +230,14 @@ fn prior_encryption(fixture: &Fixture) -> Result<(Encrypter, Decrypter), Box<dyn
         Encrypter::from_verification_key(signer.verifier())?,
         Decrypter::from_signer(&signer),
     ))
+}
+
+/// The new passcode's encryption key pair — what this port seals to, and keripy does.
+fn new_encryption(fixture: &Fixture) -> Result<Decrypter, Box<dyn Error>> {
+    let bran = format!("0AA{}", &fixture.provenance.second_passcode[..21]);
+    let salt = Salt::from_qb64(&bran, SecurityTier::Low)?;
+    let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
+    Ok(Decrypter::from_signer(&signer))
 }
 
 /// Builds the salty identifier record, sealing the recorded salt to the prior key ourselves.
@@ -524,18 +533,33 @@ fn the_passcode_rotation_matches() -> Result<(), Box<dyn Error>> {
         .collect::<Result<Vec<_>, _>>()?;
     assert_eq!(signatures, fixture.rotation.signatures);
 
-    // Every sealed output opens — under the PRIOR key — to what the reference's opened to.
-    let opened = decrypter.decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)?;
-    assert_eq!(opened.expose_qb64()?.as_str(), fixture.rotation.sxlt_opens_to);
-    assert!(!fixture.rotation.sxlt_opens_under_new_passcode);
-    let new_bran = format!("0AA{}", &fixture.provenance.second_passcode[..21]);
-    let new_signer =
-        Salt::from_qb64(&new_bran, SecurityTier::Low)?.derive_signer("", KeyTransferability::NonTransferable)?;
-    let new_decrypter = Decrypter::from_signer(&new_signer);
+    // The seal is where this port leaves the reference. What the reference produced is recorded:
+    // its sealed salt opens to the OLD salt, and not under the new passcode at all.
+    assert_eq!(
+        fixture.rotation.sxlt_opens_to,
+        format!("0AA{}", &fixture.provenance.passcode[..21])
+    );
     assert!(
-        new_decrypter
+        !fixture.rotation.sxlt_opens_under_new_passcode,
+        "the reference's payload now opens under the new passcode; the divergence is stale"
+    );
+
+    // Here it carries the NEW salt under the NEW passcode's key, as keripy's `updateAeid` does —
+    // so rotating the passcode rotates the encryption, and the client can still read its own
+    // material afterwards.
+    let new_decrypter = new_encryption(&fixture)?;
+    let opened = new_decrypter.decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)?;
+    assert_eq!(
+        opened.expose_qb64()?.as_str(),
+        format!("0AA{}", &fixture.provenance.second_passcode[..21])
+    );
+
+    // And the old passcode no longer opens it, which is the whole point of rotating.
+    assert!(
+        decrypter
             .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
-            .is_err()
+            .is_err(),
+        "the old passcode still opens the rotated payload"
     );
 
     assert_eq!(rotation.re_encrypted.len(), 2);
@@ -543,8 +567,13 @@ fn the_passcode_rotation_matches() -> Result<(), Box<dyn Error>> {
         match state {
             ReEncryptedKeyState::Salty { sealed_salt } => {
                 assert_eq!(prefix, &fixture.rotation.salty_aid.prefix);
-                let opened = decrypter.decrypt_salt(sealed_salt, SecurityTier::Low)?;
+                // The same plaintext the reference re-sealed — only the key it is sealed to moves.
+                let opened = new_decrypter.decrypt_salt(sealed_salt, SecurityTier::Low)?;
                 assert_eq!(opened.expose_qb64()?.as_str(), fixture.rotation.resealed_salty_opens_to);
+                assert!(
+                    decrypter.decrypt_salt(sealed_salt, SecurityTier::Low).is_err(),
+                    "an identifier's salt still opens under the old passcode"
+                );
             }
             ReEncryptedKeyState::Randy {
                 signing_keys,
@@ -560,8 +589,16 @@ fn the_passcode_rotation_matches() -> Result<(), Box<dyn Error>> {
                     fixture.rotation.randy_aid.seed_qb64s
                 );
                 for (sealed, expected) in signing_keys.iter().zip(&fixture.rotation.randy_aid.state_keys) {
-                    let signer = decrypter.decrypt_seed(sealed, KeyTransferability::Transferable)?;
+                    let signer = new_decrypter.decrypt_seed(sealed, KeyTransferability::Transferable)?;
                     assert_eq!(signer.verifier().qb64()?, *expected);
+                }
+                for sealed in signing_keys {
+                    assert!(
+                        decrypter
+                            .decrypt_seed(sealed, KeyTransferability::Transferable)
+                            .is_err(),
+                        "a private key still opens under the old passcode"
+                    );
                 }
             }
         }
@@ -661,7 +698,8 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
         quirks.rotation_always_claims_sequence_one.rotation_prior
     );
 
-    // A second rotation still derives its "old" key from the original salt.
+    // A second rotation upstream still derives its "old" key from the original salt, because the
+    // reference never moves the controller's salt: the recorded key is identical both times.
     assert!(quirks.second_rotation_derives_from_the_original_salt.old_key_identical);
     assert!(!quirks.second_rotation_derives_from_the_original_salt.note.is_empty());
     assert!(
@@ -670,6 +708,11 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
             .rust_decision
             .is_empty()
     );
+
+    // Here the salt moves with the keys, so the second rotation commits to the *first new*
+    // passcode's key rather than the original's. That is required by the sealing fix rather than
+    // chosen beside it: material sealed to the new passcode cannot be opened by the old one, so a
+    // controller that kept its original salt could rotate exactly once.
     let mut controller = Controller::new(&fixture.provenance.passcode, SecurityTier::Low)?;
     let first = controller.rotate_passcode(&fixture.provenance.second_passcode, &[])?;
     let second = controller.rotate_passcode("zyxwvutsrq9876543210k", &[])?;
@@ -679,6 +722,28 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
             _ => None,
         })
     };
-    assert_eq!(old_key(&first.rotation), old_key(&second.rotation));
+    assert_ne!(
+        old_key(&first.rotation),
+        old_key(&second.rotation),
+        "the second rotation still derives from the original salt"
+    );
+
+    // And the chain is continuous in the way KERI requires: the key the second rotation reveals as
+    // its old key is the one the first rotation pre-committed to in its own `n` digest. Upstream
+    // this does not hold, because the salt the second rotation derives from is not the salt the
+    // first one committed against.
+    let Some(SadValue::Text(revealed)) = old_key(&second.rotation) else {
+        return Err("the second rotation names no old key".into());
+    };
+    let committed = first.rotation.sad().get("n").and_then(|digests| match digests {
+        SadValue::Array(digests) => digests.first().cloned(),
+        _ => None,
+    });
+    let digest = Digest::derive(DigestAlgorithm::Blake3_256, revealed.as_bytes()).qb64()?;
+    assert_eq!(
+        committed,
+        Some(SadValue::text(digest)),
+        "the second rotation does not reveal what the first committed to"
+    );
     Ok(())
 }

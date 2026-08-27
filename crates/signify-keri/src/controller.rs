@@ -14,4 +14,4 @@ pub mod rotation;
 pub use agent::Agent;
 pub use client::{CONTROLLER_STEM, Controller, ControllerOptions};
 pub use error::ControllerError;
-pub use rotation::{PasscodeRotation, ReEncryptedKeyState};
+pub use rotation::{PasscodeRotation, PlannedPasscodeRotation, ReEncryptedKeyState};
