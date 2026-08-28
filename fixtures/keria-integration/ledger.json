@@ -32,14 +32,16 @@
       "needs_witnesses": true,
       "needs_vlei": false,
       "rust_evidence": [
-        "crates/signify-keria-systest/tests/wave1_content_range.rs",
+        "crates/signify-keria-systest/tests/wave4_client_setup.rs",
+        "crates/signify-keria-systest/tests/client_setup_vectors.rs",
+        "fixtures/keria-integration/observations/client_setup.json",
         "crates/signify-keria-systest/tests/wave0_deployment.rs",
         "crates/signify-keria-systest/tests/deployment_vectors.rs",
         "fixtures/keria-integration/environment.json"
       ],
-      "status": "partly_observed",
-      "outcome": "One client is booted and connected against a live agent, with a fresh passcode per run. **Still to do:** the two-client half — the upstream scenario also cross-resolves two agents' OOBIs as contacts, and no wave does that yet.",
-      "reason": "not_yet_recorded",
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 by wave 4, whole. The pinned passcode derives the pinned controller prefix EB3UGWwIMq7ppzcQ697ImQIuXlBG5jzh-baSx-YG3-tY against a live agent — the reference passes 24 characters and silently derives from the first 21, so the recording carries both spellings and the truncation is explicit. The witnessed identifier's agent and witness OOBIs match the upstream case's local-branch literals exactly, and two further clients cross-resolve each other's agent OOBIs, each resolution answering with the other's prefix. Two findings: the deployment serves six introduction URLs where upstream's `validate config` deep-equals exactly three, so the reference's own assertion would refuse the deployment its suite targets; and the first witnessed record broke the port's decoder — `windexes` arrives as JSON numbers where the reference's schema declares strings — now widened to `WitnessIndex` and pinned in §10.",
+      "reason": "settled",
       "note": "Boot and connect one client and two, derive a controller prefix from a pinned passcode, and cross-resolve agent OOBIs as contacts."
     },
     {
@@ -100,10 +102,14 @@
       "clients": 1,
       "needs_witnesses": false,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave3_salty_lifecycle.rs",
+        "crates/signify-keria-systest/tests/salty_lifecycle_vectors.rs",
+        "fixtures/keria-integration/observations/salty_lifecycle.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 against the local preset, whole: three creations, the listing ladder with both paged windows, the rotation, the interaction, the key state, the three-event log, the rename, and the operations postcondition. Sixteen of the eighteen pinned qb64 values reproduce exactly — both prefixes, all four keys, all four next-key digests, both thresholds, and the rotation SAID — with the port's exact bytes accepted verbatim by the agent. The two that do not are one decision seen twice: the upstream interaction anchors the bare string [icp.pre], which the port's Vec<Sad> anchors cannot spell (Roadmap 4.6), so the recording anchors a seal of the same inception and the interaction SAID and the state digest repeating it differ by design, with both values recorded.",
+      "reason": "settled",
       "note": "The richest golden vectors in the suite: eighteen pinned qb64 values from fixed passcodes, plus paging and rename. Needs KERIA alone."
     },
     {
@@ -143,10 +149,17 @@
       "clients": 1,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave3_salty_lifecycle.rs",
+        "crates/signify-keria-systest/tests/salty_lifecycle_vectors.rs",
+        "fixtures/keria-integration/observations/salty_lifecycle.json",
+        "crates/signify-keria-systest/tests/wave4_client_setup.rs",
+        "crates/signify-keria-systest/tests/client_setup_vectors.rs",
+        "fixtures/keria-integration/observations/client_setup.json"
+      ],
+      "status": "observed",
+      "outcome": "Both halves recorded 2026-08-28. Wave 3 recorded the salty.test.ts half: four pinned identifier inceptions (one single-key, one three-key at threshold two) derived by the port and accepted byte-for-byte by a live agent. Wave 4 recorded the test-setup-single-client.test.ts half: the pinned client passcode deriving the pinned controller prefix, and witnessed inceptions with the environment's whole triple at threshold three, receipted by the running witnesses.",
+      "reason": "settled",
       "note": "A pinned passcode deriving a pinned controller prefix, which is the one place a live run can confirm the port's derivation against a real agent's."
     },
     {

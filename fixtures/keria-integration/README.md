@@ -111,6 +111,8 @@ it turns "it passed on the machine that ran it" into something diffable.
 | `observations/sequence_base.json` | Three spellings of one sequence number, which resolved, and the asking client's whole transcript | `sequence_base_vectors.rs` (4) |
 | `observations/live_query_answer.json` | The one complete query answer the deployment resolved, written out of the transcript by the scenario itself so the two cannot drift | `key_state_reference_vectors.rs` |
 | `observations/exchange_answer.json` | One exchange posted to each of the two submission paths, with both decoders run over both answers | `exchange_answer_vectors.rs` (3) |
+| `observations/salty_lifecycle.json` | The whole of `salty.test.ts` driven against a live agent: three creations from the upstream case's own pinned passcodes, the listing ladder, a rotation, an interaction, the key state, the log, the rename, and the full transcript | `salty_lifecycle_vectors.rs` (6) |
+| `observations/client_setup.json` | Both client-setup files driven whole: the pinned passcode's controller prefix, a witnessed identifier's agent and witness OOBIs, the agent's six introduction URLs, and two clients cross-resolving each other's OOBIs — with all three transcripts | `client_setup_vectors.rs` (6) |
 
 Three findings are worth reading the files for. Asked for a page past the end of a collection, KERIA
 answers **`aids 100-0/4`** — a start greater than its end, which RFC 9110 forbids — so a parser that
@@ -122,10 +124,20 @@ itself about its own two endpoints, and only a deployment could say which half w
 
 ## Status
 
-Every *scenario* row is still `unobserved`. That is the point of this stage: "how much of 9.2
-remains" is a number a test prints rather than a judgement. Nothing here claims evidence that does
-not exist — the audit requires every path a row names to be on disk, and forbids a row from naming
-evidence while claiming to be unanswered.
+Three scenario rows are `observed`: **Salty identifier lifecycle** (wave 3, sixteen of eighteen
+pinned qb64 values reproduced exactly, the two divergent ones pinned from both sides), **Client
+setup, single/multiple clients** and **Single-signature inception** (wave 4, the pinned
+controller prefix reproduced, witnessed inceptions receipted by the running triple, and both
+cross-resolutions answering with the other's prefix). The other seventeen remain `unobserved`.
+"How much of 9.2 remains" stays a number a test prints rather than a judgement. Nothing here
+claims evidence that does not exist — the audit requires every path a row names to be on disk,
+and forbids a row from naming evidence while claiming to be unanswered.
+
+Wave 4 also found two things worth reading `client_setup.json` for: the deployment serves **six**
+introduction URLs where the upstream `validate config` case deep-equals exactly three for this
+preset, so the reference's own assertion would refuse the deployment its suite targets; and a
+witnessed record spells `windexes` in JSON **numbers** where the reference's generated schema
+declares strings — the defect that widened `HabCommon.witness_indexes` to `WitnessIndex`.
 
 Of the five open questions, three are now `observed` and `settled`: the `Content-Range` discipline, the
 sequence-number base, and the exchange answer's two declared types. A question that is answered must carry the reason `settled`, and one that

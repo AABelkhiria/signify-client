@@ -99,6 +99,7 @@ pub use exchange::{
 };
 pub use identifier::{
     AcceptedHab, ExternState, GroupState, Hab, HabCommon, KeyManagerState, KeyTier, PendingHab, RandyState, SaltyState,
+    WitnessIndex,
 };
 pub use key_state::{AgentResourceResult, Controller, EstablishmentState, KeyState};
 pub use message::{

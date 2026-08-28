@@ -62,6 +62,22 @@ pub fn recording() -> bool {
     std::env::var(RECORD_VARIABLE).is_ok_and(|value| value == "1")
 }
 
+/// Says on stderr what a scenario is doing, stamped with seconds since the first call.
+///
+/// A live scenario spends most of its time waiting on operations, and the harness captures test
+/// output, so a run looks hung unless invoked with `--nocapture`. The elapsed stamp is what makes
+/// the lines useful: it shows which wait is the slow one.
+#[expect(
+    clippy::print_stderr,
+    reason = "progress reporting for opt-in live runs in a test-only crate; \
+              AGENTS.md §2.2 restricts printing in public libraries, which this is not"
+)]
+pub fn progress(message: &str) {
+    static STARTED: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+    let elapsed = STARTED.get_or_init(std::time::Instant::now).elapsed();
+    eprintln!("[{:>7.1}s] {message}", elapsed.as_secs_f64());
+}
+
 #[cfg(feature = "live")]
 mod live {
     //! The half that needs a TLS stack, and so a feature.
@@ -107,7 +123,8 @@ mod live {
         let transport = Arc::clone(recorder) as Arc<dyn Transport>;
         let client = SignifyClient::new(config, transport, Arc::new(TokioClock))?;
         client.boot().await?;
-        Ok(client.connect().await?)
+        let connected = client.connect().await?;
+        Ok(connected)
     }
 
     /// Creates a single-signature identifier and authorises the agent to speak for it.
@@ -137,16 +154,21 @@ mod live {
             next_count: 1,
             cost: DerivationCost::Production,
         });
+        crate::progress(&format!("{alias}: creating an identifier"));
         let created = client.identifiers().create(alias, &request).await?;
         client.poller().wait(created.operation()?).await?;
         let prefix = created.artifact().event.identifier().clone();
 
+        crate::progress(&format!(
+            "{alias}: incepted as {prefix}, authorising the agent end role"
+        ));
         let agent = client.agent().prefix().clone();
         let authorised = client
             .identifiers()
             .add_end_role(alias, &Role::Agent, Some(&agent), crate::now()?)
             .await?;
         client.poller().wait(authorised.operation()?).await?;
+        crate::progress(&format!("{alias}: agent end role authorised"));
         Ok(prefix)
     }
 
@@ -161,17 +183,21 @@ mod live {
     ///
     /// Returns an error when the identifier publishes no OOBI, and whatever resolving it returns.
     pub async fn introduce(from: &ConnectedClient, alias: &str, to: &ConnectedClient) -> Result<(), Box<dyn Error>> {
+        crate::progress(&format!("introducing {alias} to the other client"));
         let published = from.oobis().get(alias, &Role::Agent).await?;
         let url = published
             .oobis
             .first()
             .ok_or_else(|| format!("{alias} published no OOBI, so it cannot be introduced"))?;
+        crate::progress(&format!("{alias}: URL {url}"));
         let resolution = OobiResolution {
             url: RequestUrl::new(url.clone())?,
             alias: Some(alias.to_owned()),
         };
+        crate::progress(&format!("resolving {alias}'s OOBI on the other client"));
         let resolved = to.oobis().resolve(&resolution).await?;
         to.poller().wait(resolved).await?;
+        crate::progress(&format!("{alias} introduced"));
         Ok(())
     }
 

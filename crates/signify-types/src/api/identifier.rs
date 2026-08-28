@@ -164,6 +164,24 @@ impl KeyManagerState {
     }
 }
 
+/// A witness index as an agent writes it.
+///
+/// The reference's generated schema declares `windexes` a `string[]`, and a live KERIA 1.0.1
+/// writes JSON numbers — `"windexes": [0, 1, 2]` — found by Roadmap 9.2c's wave 4, the first time
+/// a *witnessed* identifier's record ever reached this decoder from a real agent; every checked-in
+/// fixture carries the empty list, where the two spellings cannot disagree. The reference never
+/// notices, because it casts the record instead of decoding it. Both spellings are accepted here
+/// and neither is rewritten into the other, exactly as
+/// [`EchoedSequence`](crate::api::EchoedSequence) keeps a sequence number's spelling.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum WitnessIndex {
+    /// A JSON number, which is what a live KERIA writes.
+    Number(u64),
+    /// A JSON string, which is what the reference's generated schema declares.
+    Text(String),
+}
+
 /// Everything an identifier record carries whether or not its inception is complete.
 #[derive(Clone, Debug, PartialEq)]
 pub struct HabCommon {
@@ -175,8 +193,9 @@ pub struct HabCommon {
     pub inception_stamp: String,
     /// Whether the identifier can rotate.
     pub transferable: Option<bool>,
-    /// Indexes of the witnesses this client is responsible for, wire label `windexes`.
-    pub witness_indexes: Option<Vec<String>>,
+    /// Indexes of the witnesses this client is responsible for, wire label `windexes`, each kept
+    /// in the spelling it arrived as.
+    pub witness_indexes: Option<Vec<WitnessIndex>>,
     /// Which key manager holds the keys.
     pub key_manager: KeyManagerState,
 }
@@ -274,7 +293,7 @@ struct HabRepr {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     transferable: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    windexes: Option<Vec<String>>,
+    windexes: Option<Vec<WitnessIndex>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     salty: Option<SaltyState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -447,6 +466,49 @@ mod tests {
         );
         assert_eq!(serde_json::to_string(&accepted)?, source);
         Ok(())
+    }
+
+    #[test]
+    fn witness_indexes_keep_the_spelling_they_arrived_as() -> Result<(), Box<dyn Error>> {
+        // A live KERIA 1.0.1 writes numbers, the reference's generated schema declares strings,
+        // and every checked-in fixture carries the empty list where the two cannot disagree —
+        // found by Roadmap 9.2c's wave 4, the first witnessed record to reach this decoder from a
+        // real agent. Both decode, and each re-encodes as it arrived.
+        let numeric = PENDING_SOURCE.replace(r#""windexes":[]"#, r#""windexes":[0,1,2]"#);
+        let hab: Hab = serde_json::from_str(&numeric)?;
+        assert_eq!(
+            hab.common().witness_indexes,
+            Some(vec![
+                WitnessIndex::Number(0),
+                WitnessIndex::Number(1),
+                WitnessIndex::Number(2)
+            ])
+        );
+        assert_eq!(serde_json::to_string(&hab)?, numeric);
+
+        let textual = PENDING_SOURCE.replace(r#""windexes":[]"#, r#""windexes":["0","1"]"#);
+        let hab: Hab = serde_json::from_str(&textual)?;
+        assert_eq!(
+            hab.common().witness_indexes,
+            Some(vec![
+                WitnessIndex::Text("0".to_owned()),
+                WitnessIndex::Text("1".to_owned())
+            ])
+        );
+        assert_eq!(serde_json::to_string(&hab)?, textual);
+        Ok(())
+    }
+
+    #[test]
+    fn a_witness_index_that_is_neither_spelling_is_refused() {
+        // A negative, a fraction, and a structure are none of the things either source declares.
+        for value in ["-1", "1.5", "{}", "[[]]", "true"] {
+            let source = PENDING_SOURCE.replace(r#""windexes":[]"#, &format!(r#""windexes":[{value}]"#));
+            assert!(
+                serde_json::from_str::<Hab>(&source).is_err(),
+                "windexes [{value}] decoded"
+            );
+        }
     }
 
     #[test]

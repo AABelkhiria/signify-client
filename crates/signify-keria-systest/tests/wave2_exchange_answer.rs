@@ -1,5 +1,3 @@
-#![cfg(feature = "live")]
-
 //! Wave 2 — which shape does an agent answer an exchange submission with?
 //!
 //! `PORTING.md` §10 carries this as an open question owed to Roadmap 9.2, and Roadmap 7.7 refused
@@ -21,8 +19,12 @@
 //!
 //! ```text
 //! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave2_exchange_answer -- --ignored --test-threads=1
+//!     --features live --test wave2_exchange_answer -- --ignored --test-threads=1 --nocapture
 //! ```
+
+// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
+// undocumented empty crate trips `missing_docs`.
+#![cfg(feature = "live")]
 
 use std::error::Error;
 
@@ -30,7 +32,7 @@ use serde::Serialize;
 use signify_client::presentation::DisclosureRequest;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
-use signify_keria_systest::{Environment, connect, introduce, ready_identifier, record, recorder};
+use signify_keria_systest::{Environment, connect, introduce, progress, ready_identifier, record, recorder};
 use signify_types::api::{ExchangeOperation, ExchangeRecord};
 
 /// The vLEI QVI schema's SAID, used here only as a well-formed identifier to ask about.
@@ -148,14 +150,16 @@ async fn which_shape_an_agent_answers_an_exchange_submission_with() -> Result<()
 
     // Two clients, because an exchange is addressed to somebody. The sender must know the
     // recipient's prefix, and the agent must know how to reach it, which is what the OOBI is for.
-    let sender_recorder = recorder("exchange_answer")?;
+    let sender_recorder = recorder("sender")?;
+    progress("connecting the sender client");
     let sender = connect(
         &environment,
         signify_client::random::random_passcode()?.expose(),
         &sender_recorder,
     )
     .await?;
-    let recipient_recorder = recorder("exchange_answer_recipient")?;
+    let recipient_recorder = recorder("recipient")?;
+    progress("connecting the recipient client");
     let recipient = connect(
         &environment,
         signify_client::random::random_passcode()?.expose(),
@@ -166,6 +170,7 @@ async fn which_shape_an_agent_answers_an_exchange_submission_with() -> Result<()
     let _sender_prefix = ready_identifier(&sender, "sender").await?;
     let recipient_prefix = ready_identifier(&recipient, "recipient").await?;
     introduce(&recipient, "recipient", &sender).await?;
+    introduce(&sender, "sender", &recipient).await?;
 
     let mut submissions = Vec::new();
 
@@ -175,6 +180,7 @@ async fn which_shape_an_agent_answers_an_exchange_submission_with() -> Result<()
         recipient_prefix.clone(),
         signify_keria_systest::now()?,
     );
+    progress("posting to /identifiers/{name}/exchanges");
     submissions.push(
         match sender
             .exchanges()
@@ -196,6 +202,7 @@ async fn which_shape_an_agent_answers_an_exchange_submission_with() -> Result<()
         message: "which shape does this answer with?".to_owned(),
         timestamp: signify_keria_systest::now()?,
     };
+    progress("posting to /identifiers/{name}/ipex/apply");
     submissions.push(match sender.presentation().request("sender", &request).await {
         Ok(submitted) => classify(
             "/identifiers/{name}/ipex/{route}",
@@ -214,6 +221,10 @@ async fn which_shape_an_agent_answers_an_exchange_submission_with() -> Result<()
     };
 
     assert_eq!(captured.submissions.len(), 2);
-    record("observations/exchange_answer.json", &captured)?;
+    if record("observations/exchange_answer.json", &captured)? {
+        progress("recorded observations/exchange_answer.json");
+    } else {
+        progress("not a recording run, nothing written");
+    }
     Ok(())
 }

@@ -1,5 +1,3 @@
-#![cfg(feature = "live")]
-
 //! Wave 1 — what `Content-Range` does a real KERIA actually send?
 //!
 //! `PORTING.md` §10 carries this as an open question owed to Roadmap 9.2. Roadmap 5.3's
@@ -21,6 +19,10 @@
 //! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
 //!     --features live --test wave1_content_range -- --ignored --test-threads=1
 //! ```
+
+// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
+// undocumented empty crate trips `missing_docs`.
+#![cfg(feature = "live")]
 
 use std::error::Error;
 

@@ -1,5 +1,3 @@
-#![cfg(feature = "live")]
-
 //! Wave 1 — which base does a KERIA agent read a query's sequence number in?
 //!
 //! `PORTING.md` §10 carries this as an open question owed to Roadmap 9.2, and Roadmap 6.7 refused
@@ -24,6 +22,10 @@
 //! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
 //!     --features live --test wave1_sequence_base -- --ignored --test-threads=1
 //! ```
+
+// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
+// undocumented empty crate trips `missing_docs`.
+#![cfg(feature = "live")]
 
 use std::error::Error;
 
