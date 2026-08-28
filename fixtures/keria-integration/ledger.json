@@ -132,10 +132,14 @@
       "clients": 1,
       "needs_witnesses": false,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave6_randy_lifecycle.rs",
+        "crates/signify-keria-systest/tests/randy_lifecycle_vectors.rs",
+        "fixtures/keria-integration/observations/randy_lifecycle.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 by wave 6, whole. A fresh-entropy identifier incepts, interacts, and rotates against a live agent, the log growing 2 then 3 with every operation waited out and deleted. The decisive check is the key commitment, recomputed hermetically from the recorded events: BLAKE3-256 over the rotation's revealed signing key equals the digest the inception committed to, so a randy rotation rotates to exactly the committed key — and each derived event appears verbatim inside a successful POST body, so the agent accepted the port's own bytes. The interaction anchors a seal of the inception where upstream anchors the bare string [icp.pre], the same Vec<Sad> narrowing wave 3 records.",
+      "reason": "settled",
       "note": "Randy inception, interaction, and rotation, with key-event log lengths. Structural only — a randy key is fresh entropy, so nothing can be pinned."
     },
     {

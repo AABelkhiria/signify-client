@@ -114,6 +114,7 @@ it turns "it passed on the machine that ran it" into something diffable.
 | `observations/salty_lifecycle.json` | The whole of `salty.test.ts` driven against a live agent: three creations from the upstream case's own pinned passcodes, the listing ladder, a rotation, an interaction, the key state, the log, the rename, and the full transcript | `salty_lifecycle_vectors.rs` (6) |
 | `observations/client_setup.json` | Both client-setup files driven whole: the pinned passcode's controller prefix, a witnessed identifier's agent and witness OOBIs, the agent's six introduction URLs, and two clients cross-resolving each other's OOBIs — with all three transcripts | `client_setup_vectors.rs` (6) |
 | `observations/endpoint_smoke.json` | End-role authorisation end to end: zero agent roles before the grant, the exact triple after it, a self-controlled mailbox, and the OOBI the agent derives from the location scheme | `endpoint_smoke_vectors.rs` (5) |
+| `observations/randy_lifecycle.json` | A fresh-entropy identifier's inception, interaction, and rotation, with the key commitment — BLAKE3-256 over the revealed key equals the committed digest — recomputable from the recorded events | `randy_lifecycle_vectors.rs` (5) |
 
 Three findings are worth reading the files for. Asked for a page past the end of a collection, KERIA
 answers **`aids 100-0/4`** — a start greater than its end, which RFC 9110 forbids — so a parser that
@@ -129,9 +130,10 @@ Four scenario rows are `observed`: **Salty identifier lifecycle** (wave 3, sixte
 pinned qb64 values reproduced exactly, the two divergent ones pinned from both sides), **Client
 setup, single/multiple clients** and **Single-signature inception** (wave 4, the pinned
 controller prefix reproduced, witnessed inceptions receipted by the running triple, and both
-cross-resolutions answering with the other's prefix), and **Endpoint smoke coverage** (wave 5,
-the end-role triples and the self-controlled mailbox's derived OOBI). The other sixteen remain
-`unobserved`.
+cross-resolutions answering with the other's prefix), **Endpoint smoke coverage** (wave 5,
+the end-role triples and the self-controlled mailbox's derived OOBI), and **Randy identifier
+lifecycle** (wave 6, the key commitment recomputed from the recorded events). The other fifteen
+remain `unobserved`.
 "How much of 9.2 remains" stays a number a test prints rather than a judgement. Nothing here
 claims evidence that does not exist — the audit requires every path a row names to be on disk,
 and forbids a row from naming evidence while claiming to be unanswered.
