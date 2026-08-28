@@ -116,6 +116,7 @@ it turns "it passed on the machine that ran it" into something diffable.
 | `observations/endpoint_smoke.json` | End-role authorisation end to end: zero agent roles before the grant, the exact triple after it, a self-controlled mailbox, and the OOBI the agent derives from the location scheme | `endpoint_smoke_vectors.rs` (5) |
 | `observations/randy_lifecycle.json` | A fresh-entropy identifier's inception, interaction, and rotation, with the key commitment — BLAKE3-256 over the revealed key equals the committed digest — recomputable from the recorded events | `randy_lifecycle_vectors.rs` (5) |
 | `observations/witness_behavior.json` | Four receipted establishment events: incept with one witness, rotate, cut, add back — the witness ladder, and `bt` changing JSON type with its value inside one log | `witness_behavior_vectors.rs` (4) |
+| `observations/singlesig_rot.json`, `observations/singlesig_ixn.json` | The twin local/remote divergences: an event advances the owner's key state, the observer stays one behind until the hexadecimal `keyStates().query` refresh; the interaction reproduces upstream's `[{}]` anchor exactly | `singlesig_events_vectors.rs` (2) |
 
 Three findings are worth reading the files for. Asked for a page past the end of a collection, KERIA
 answers **`aids 100-0/4`** — a start greater than its end, which RFC 9110 forbids — so a parser that
@@ -133,9 +134,11 @@ setup, single/multiple clients** and **Single-signature inception** (wave 4, the
 controller prefix reproduced, witnessed inceptions receipted by the running triple, and both
 cross-resolutions answering with the other's prefix), **Endpoint smoke coverage** (wave 5,
 the end-role triples and the self-controlled mailbox's derived OOBI), **Randy identifier
-lifecycle** (wave 6, the key commitment recomputed from the recorded events), and **Witness
-behavior** (wave 7, four receipted establishments walking a witness in, out, and back in). The
-other fourteen remain `unobserved`.
+lifecycle** (wave 6, the key commitment recomputed from the recorded events), **Witness
+behavior** (wave 7, four receipted establishments walking a witness in, out, and back in), and
+the twins **Single-signature rotation** and **Single-signature interaction** (wave 8, the
+local/remote key-state divergence closed by the hexadecimal refresh). The other twelve remain
+`unobserved`.
 "How much of 9.2 remains" stays a number a test prints rather than a judgement. Nothing here
 claims evidence that does not exist — the audit requires every path a row names to be on disk,
 and forbids a row from naming evidence while claiming to be unanswered.

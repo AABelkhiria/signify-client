@@ -188,10 +188,14 @@
       "clients": 2,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave8_singlesig_events.rs",
+        "crates/signify-keria-systest/tests/singlesig_events_vectors.rs",
+        "fixtures/keria-integration/observations/singlesig_rot.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 by wave 8. A witnessed identifier rotates; the owner's key state moves at once — sequence incremented, both key fields changed — while the observing client's stays one sequence behind until it refreshes with keyStates().query at the new sequence, spelled in hexadecimal (wave 1's answer), after which the remote state carries exactly the new signing key and commitment. The query's exact sequence text is proven sent from the observer's transcript, the rotation's SAID re-verifies over the derived bytes, and both clients end with zero operations listed.",
+      "reason": "settled",
       "note": "Rotation, and the local-versus-remote key-state divergence a second client sees until it refreshes."
     },
     {
@@ -208,10 +212,14 @@
       "clients": 2,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave8_singlesig_events.rs",
+        "crates/signify-keria-systest/tests/singlesig_events_vectors.rs",
+        "fixtures/keria-integration/observations/singlesig_ixn.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 by wave 8, as the rotation's twin: the interaction increments the sequence while changing no keys, the observer is one behind until the hexadecimal refresh, and — unlike the bare-string anchors of waves 3 and 6 — upstream's own anchor here is the empty object, which a Sad can spell, so the event reproduces upstream exactly with \"a\": [{}].",
+      "reason": "settled",
       "note": "An interaction event and the same divergence, one sequence number behind."
     },
     {
