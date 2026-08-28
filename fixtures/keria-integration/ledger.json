@@ -84,10 +84,14 @@
       "clients": 1,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave7_witness_behavior.rs",
+        "crates/signify-keria-systest/tests/witness_behavior_vectors.rs",
+        "fixtures/keria-integration/observations/witness_behavior.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 by wave 7, whole. The witness's controller OOBI resolves, then four establishment events run at sequences zero to three — incept with Wan at threshold one, rotate keeping it, cut it, add it back — each completing only once the named witness set receipted it, with the key state's witness list evolving [Wan], [Wan], [], [Wan] and the threshold 1, 1, 0, 1 exactly as the upstream case asserts. One finding pinned live: bt changes JSON type with its value inside this single log — text \"1\" on the inception, bare number 1 on the non-zero rotations, text \"0\" at zero — which is Roadmap 8.4's discovery reproduced deliberately by this port (Roadmap 3.5), and a real KERIA accepts all four spellings interleaved. Every event's bytes appear verbatim in a successful POST, and every SAID re-verifies hermetically.",
+      "reason": "settled",
       "note": "Incept with one witness, rotate, cut the witness, and add it back — the only scenario that exercises a witness receipt end to end."
     },
     {
