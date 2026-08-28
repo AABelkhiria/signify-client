@@ -411,6 +411,66 @@
         "D"
       ],
       "note": "temp overrides the tier, so this equals stem_inception"
+    },
+    {
+      "name": "colliding_path_low_rotation",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 1,
+        "kidx": 16,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "red110"
+      ],
+      "private_keys": [
+        "APOSJLgodE0C6Hb2ZYNv6QFoxmWOtvxtdigjstKAAuK2"
+      ],
+      "public_keys": [
+        "DHLaXjRODGoCITC1jxa2BIVhcvDUGzF7PoPMfamB-B7_"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "rotation 1, key 16: the path is red + '1' + '10'"
+    },
+    {
+      "name": "colliding_path_high_rotation",
+      "input": {
+        "stem": "red",
+        "count": 1,
+        "transferable": true,
+        "pidx": 0,
+        "ridx": 17,
+        "kidx": 0,
+        "temp": true
+      },
+      "creator": {
+        "salt": "0AAwMTIzNDU2Nzg5YWJjZGVm",
+        "stem": "red",
+        "tier": "low"
+      },
+      "paths": [
+        "red110"
+      ],
+      "private_keys": [
+        "APOSJLgodE0C6Hb2ZYNv6QFoxmWOtvxtdigjstKAAuK2"
+      ],
+      "public_keys": [
+        "DHLaXjRODGoCITC1jxa2BIVhcvDUGzF7PoPMfamB-B7_"
+      ],
+      "public_key_codes": [
+        "D"
+      ],
+      "note": "rotation 17, key 0: the path is red + '11' + '0' — the same string, and the same key"
     }
   ],
   "randy_creator_shape": {
@@ -992,6 +1052,25 @@
       "tier": "",
       "note": "a randy creator implements the salt, stem, and tier accessors by returning empty strings, and casts one of them to Tier",
       "rust_decision": "the randy creator has no such accessors; a randy identifier records no salt and no tier"
+    },
+    "distinct_positions_collide_onto_one_path": {
+      "declaration": "const path = this.stem == '' ? pidx.toString(16) : this.stem + ridx.toString(16) + (kidx + idx).toString(16);",
+      "low": {
+        "ridx": 1,
+        "kidx": 16,
+        "path": "red110",
+        "public_key": "DHLaXjRODGoCITC1jxa2BIVhcvDUGzF7PoPMfamB-B7_"
+      },
+      "high": {
+        "ridx": 17,
+        "kidx": 0,
+        "path": "red110",
+        "public_key": "DHLaXjRODGoCITC1jxa2BIVhcvDUGzF7PoPMfamB-B7_"
+      },
+      "paths_identical": true,
+      "keys_identical": true,
+      "note": "the path concatenates two variable-length hexadecimal numbers with no delimiter between them, so distinct positions can spell the same string. Driven through the reference's own `SaltyCreator`: rotation 1 at key 16 writes 'red' + '1' + '10' and rotation 17 at key 0 writes 'red' + '11' + '0', both 'red110', and both derive the same private key. It is a second way pre-rotation can commit to a key already in use, beside the empty-stem branch this fixture already pins.",
+      "rust_decision": "reproduced exactly, because diverging would derive a different identifier from identical inputs — a delimiter here would change every salty key in existence. `signify-keri`'s `distinct_positions_can_collide_onto_one_path` pins it against the reference's own public key, and Roadmap 4.2's record states the consequence rather than hiding it."
     }
   }
 }

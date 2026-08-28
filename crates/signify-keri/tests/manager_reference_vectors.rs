@@ -12,8 +12,8 @@ use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use signify_crypto::signer::{SignaturePlacement, Signer};
 use signify_crypto::verifier::KeyTransferability;
 use signify_keri::manager::{
-    InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError, RotationKey, RotationRequest,
-    SaltyKeyCreator, SignatureForm, Stem,
+    DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError, RotationKey,
+    RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
 };
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
@@ -271,6 +271,27 @@ struct Quirks {
     update_aeid_is_unreachable: NoteQuirk,
     two_signing_entry_points: TwoEntryPointsQuirk,
     creator_reports_empty_strings: RandyShape,
+    distinct_positions_collide_onto_one_path: CollisionQuirk,
+}
+
+/// Two positions that spell one derivation path, and the key they both derive.
+#[derive(Debug, Deserialize)]
+struct CollisionQuirk {
+    declaration: String,
+    low: CollisionPosition,
+    high: CollisionPosition,
+    paths_identical: bool,
+    keys_identical: bool,
+    note: String,
+    rust_decision: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CollisionPosition {
+    ridx: u32,
+    kidx: u32,
+    path: String,
+    public_key: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -390,7 +411,7 @@ fn the_fixture_records_the_pinned_baseline() -> Result<(), Box<dyn Error>> {
 #[test]
 fn every_salty_creator_case_derives_the_same_keys_and_paths() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    assert_eq!(fixture.salty_creator_cases.len(), 13);
+    assert_eq!(fixture.salty_creator_cases.len(), 15);
 
     for case in &fixture.salty_creator_cases {
         let case_tier = tier(&case.creator.tier).ok_or_else(|| format!("{}: unknown tier", case.name))?;
@@ -999,5 +1020,56 @@ fn the_reference_defects_are_recorded_with_their_own_output() -> Result<(), Box<
 
     // A randy creator answers the salt, stem, and tier accessors with empty strings.
     assert_eq!(quirks.creator_reports_empty_strings.tier, "");
+    Ok(())
+}
+
+#[test]
+fn distinct_positions_collide_onto_one_path() -> Result<(), Box<dyn Error>> {
+    let fixture = fixture()?;
+    let quirk = &fixture.reference_quirks.distinct_positions_collide_onto_one_path;
+
+    // The reference's own declaration, and what it produces at the two positions.
+    assert!(
+        quirk
+            .declaration
+            .contains("ridx.toString(16) + (kidx + idx).toString(16)")
+    );
+    assert!(quirk.paths_identical, "the derivation path no longer collides");
+    assert!(quirk.keys_identical, "the colliding positions no longer share a key");
+    assert_eq!(quirk.low.path, quirk.high.path);
+    assert_eq!(quirk.low.public_key, quirk.high.public_key);
+    assert_ne!((quirk.low.ridx, quirk.low.kidx), (quirk.high.ridx, quirk.high.kidx));
+    assert!(quirk.note.len() > 120 && quirk.rust_decision.len() > 80);
+
+    // Reproduced here: the same two positions derive the same path, and the reference's own key.
+    let salt = Salt::from_qb64(&fixture.provenance.salt_qb64, SecurityTier::Low)?;
+    let stem = Stem::new("red")?;
+    let derive = |position: &CollisionPosition| -> Result<(String, String), Box<dyn Error>> {
+        let indices = KeyIndices::new(0, position.ridx, position.kidx);
+        let path = DerivationPath::new(&stem, indices)?.as_str().to_owned();
+        let creator = SaltyKeyCreator::new(&salt, stem.clone());
+        let created = creator.create(
+            1,
+            KeyTransferability::Transferable,
+            indices,
+            DerivationCost::Ephemeral.profile(SecurityTier::Low),
+        )?;
+        let key = created.public_keys()?.first().cloned().ok_or("no key was derived")?;
+        Ok((path, key))
+    };
+
+    let (low_path, low_key) = derive(&quirk.low)?;
+    let (high_path, high_key) = derive(&quirk.high)?;
+    assert_eq!(low_path, quirk.low.path);
+    assert_eq!(high_path, quirk.high.path);
+    assert_eq!(low_path, high_path, "this port's paths no longer collide");
+    assert_eq!(
+        low_key, high_key,
+        "this port's colliding positions derive different keys"
+    );
+
+    // Diverging here would derive a different identifier from identical inputs — a delimiter would
+    // change every salty key in existence — so the collision is reproduced rather than fixed.
+    assert_eq!(low_key, quirk.low.public_key);
     Ok(())
 }

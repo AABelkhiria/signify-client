@@ -1,0 +1,2181 @@
+{
+  "schema_version": 1,
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "authored_on": "2026-08-27",
+  "note": "Authored, not generated: 'this Rust evidence answers that upstream case' is a judgement. `crates/signify-client/tests/upstream_unit_audit.rs` requires every inventory case to appear here exactly once, every named path to exist, and every `n_a` to carry a reason.",
+  "entries": [
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Group identifiers",
+      "title": "Can Rotate group",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Group identifiers",
+      "title": "Creates group interaction signatures as current-only without looking up proposed next digests",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Group identifiers",
+      "title": "Group icp permits local member as signer only, not rotator, with proposed next digests excluding local signer",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Group identifiers",
+      "title": "Passes rotated=true when signing identifier rotation events",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Group identifiers",
+      "title": "Should use the previous sign threshold as the default next threshold",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Group identifiers",
+      "title": "Uses prior group next digests for replacement rotation ondex",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Typings test",
+      "title": "CreateIdentiferArgs",
+      "status": "n_a",
+      "roadmap": [
+        "4.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/src/identifier.rs"
+      ],
+      "note": "A TypeScript type test with no assertions: it declares values of the argument type and compiles. Rust has no equivalent test to write \u2014 `CreateIdentifierRequest` either compiles at every call site or the crate does not build. The misspelling `CreateIdentiferArgs` is corrected in the Rust name, which \u00a75.7 records."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding \u203a Typings test",
+      "title": "RotateIdentifierArgs",
+      "status": "n_a",
+      "roadmap": [
+        "4.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/src/identifier.rs"
+      ],
+      "note": "As above, for `RotateIdentifierRequest`: a zero-assertion TypeScript type test, asserting only that a literal is assignable to the argument type. Rust has no equivalent test to write \u2014 the type either compiles at every call site or the crate does not build."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can add end role",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can authorise location/endpoint for an endpoint identifier",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can authorise location/endpoint for own identifier as default",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create interact event",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create interact event when sequence number > 10",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create non-transferable salty identifiers",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create salty AID with multiple signatures",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create salty identifiers",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can get identifiers with special characters in the name",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can get members",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can list identifiers",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can rename identifier",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can rotate salty identifier",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can rotate salty identifier with sn > 10",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Get requires key state unless accepted is false",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Randy identifiers",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Should throw error if fetch call fails when adding end role",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Should throw error if fetch call fails when creating identifier",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Update requires key state unless accepted is false",
+      "status": "covered",
+      "roadmap": [
+        "4.6",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "group": "SignifyClient",
+      "title": "includes HTTP status info in error message",
+      "status": "covered",
+      "roadmap": [
+        "6.4"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/lifecycle_reference_vectors.rs",
+        "crates/signify-client/tests/lifecycle_properties.rs",
+        "fixtures/client-lifecycle/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "group": "SignifyClient",
+      "title": "Signed fetch",
+      "status": "covered",
+      "roadmap": [
+        "5.5",
+        "6.4",
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/lifecycle_reference_vectors.rs",
+        "crates/signify-http/tests/auth_reference_vectors.rs",
+        "fixtures/http-auth/v1.json"
+      ],
+      "note": "Twenty-eight assertions over the signed pipeline and `createSignedRequest`, composed after final request construction in the order ADR `0023` requires."
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "group": "SignifyClient",
+      "title": "SignifyClient initialization",
+      "status": "covered",
+      "roadmap": [
+        "6.4",
+        "8.9"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/lifecycle_reference_vectors.rs",
+        "crates/signify-client/tests/config_reference_vectors.rs",
+        "crates/signify-client/tests/passcode_rotation_reference_vectors.rs",
+        "fixtures/client-lifecycle/v1.json",
+        "fixtures/client-passcode-rotation/v1.json"
+      ],
+      "note": "Forty-one assertions spanning construction, boot, connect, both passcode calls, the delegation approval, and `rotate` \u2014 whose one call passes an empty identifier list, which Roadmap 8.9 drove and recorded."
+    },
+    {
+      "file": "test/app/contacting.test.ts",
+      "group": "Contacting",
+      "title": "Challenges",
+      "status": "covered",
+      "roadmap": [
+        "7.3",
+        "7.4"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/contacts_reference_vectors.rs",
+        "crates/signify-client/tests/challenges_reference_vectors.rs",
+        "fixtures/client-contacts/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/contacting.test.ts",
+      "group": "Contacting",
+      "title": "Contacts",
+      "status": "covered",
+      "roadmap": [
+        "7.3",
+        "7.4"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/contacts_reference_vectors.rs",
+        "crates/signify-client/tests/challenges_reference_vectors.rs",
+        "fixtures/client-contacts/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/controller.test.ts",
+      "group": "Controller",
+      "title": "manage account AID signing and agent verification",
+      "status": "covered",
+      "roadmap": [
+        "4.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/controller_reference_vectors.rs",
+        "crates/signify-keri/tests/controller_properties.rs",
+        "fixtures/keri-controller/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/controller.test.ts",
+      "group": "Controller",
+      "title": "should generate unique controller AIDs per passcode",
+      "status": "covered",
+      "roadmap": [
+        "4.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/controller_reference_vectors.rs",
+        "crates/signify-keri/tests/controller_properties.rs",
+        "fixtures/keri-controller/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Agent configuration",
+      "status": "covered",
+      "roadmap": [
+        "6.8"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/config_reference_vectors.rs",
+        "fixtures/client-config/v1.json"
+      ],
+      "note": "The agent's own configuration resource, which Roadmap 6.8 named `agent_config` because 6.4 had already taken `config` for the client's own settings."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Endroles with role filter",
+      "status": "covered",
+      "roadmap": [
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "End-role listing with a role filter, whose path and query this port reproduces byte for byte through Roadmap 5.3's validated resource path."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Endroles without role filter",
+      "status": "covered",
+      "roadmap": [
+        "6.6"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/identifiers_reference_vectors.rs",
+        "fixtures/client-identifiers/v1.json"
+      ],
+      "note": "End-role listing without a filter \u2014 a different address rather than an omitted parameter, which the recorded requests pin."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Events and states",
+      "status": "covered",
+      "roadmap": [
+        "6.7"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/key_state_reference_vectors.rs",
+        "fixtures/client-key-state/v1.json"
+      ],
+      "note": "Key events and key states: eleven assertions over both listings and the query that refreshes a state, all byte-exact against the recorded requests."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "OOBIs",
+      "status": "covered",
+      "roadmap": [
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-oobis/v1.json"
+      ],
+      "note": "OOBI resolution and listing: nine assertions over resolve, the aliased form, and the get, each byte-exact against its recorded request and answer."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Random nonce",
+      "status": "covered",
+      "roadmap": [
+        "6.8"
+      ],
+      "evidence": [
+        "crates/signify-client/src/random.rs",
+        "crates/signify-client/tests/lifecycle_properties.rs"
+      ],
+      "note": "`random_nonce`. The upstream case asserts only that the result is forty-four characters; the Rust property test asserts the code and the decoded length too."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Random passcode",
+      "status": "covered",
+      "roadmap": [
+        "6.8"
+      ],
+      "evidence": [
+        "crates/signify-client/src/random.rs",
+        "crates/signify-client/tests/lifecycle_properties.rs"
+      ],
+      "note": "`random_passcode`, which returns the redacted `Passcode` type rather than a bare string, so a generated passcode cannot be logged by accident."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations \u203a wait",
+      "title": "does not wait for operation that is already \"done\"",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations \u203a wait",
+      "title": "returns when child operation is also done",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations \u203a wait",
+      "title": "returns when operation is done after first call",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations \u203a wait",
+      "title": "returns when operation is done after second call",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations \u203a wait",
+      "title": "throw if aborted",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can delete operation by name",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can get operation by name",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can list operations",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can list operations by type",
+      "status": "covered",
+      "roadmap": [
+        "6.5",
+        "6.7",
+        "6.8",
+        "7.1"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/operations_reference_vectors.rs",
+        "crates/signify-client/tests/oobis_reference_vectors.rs",
+        "fixtures/client-operations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Credentialing",
+      "title": "Credentials",
+      "status": "covered",
+      "roadmap": [
+        "6.11"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/credentials_reference_vectors.rs",
+        "fixtures/client-credentials/v1.json"
+      ],
+      "note": "Thirty-seven assertions over the credential endpoint family: list, get, the CESR form, state, delete, issue, and revoke, all driven through the reference's own mocks."
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Ipex",
+      "title": "IPEX - apply-admit flow initiated by disclosee",
+      "status": "covered",
+      "roadmap": [
+        "6.3",
+        "6.12",
+        "8.8"
+      ],
+      "evidence": [
+        "crates/signify-acdc/tests/ipex_reference_vectors.rs",
+        "crates/signify-client/tests/ipex_reference_vectors.rs",
+        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs",
+        "fixtures/acdc-ipex/v1.json"
+      ],
+      "note": "The message builders (6.3), their submission (6.12), and the conversation around them (8.8)."
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Ipex",
+      "title": "IPEX - discloser can create an offer without apply",
+      "status": "covered",
+      "roadmap": [
+        "6.3",
+        "6.12",
+        "8.8"
+      ],
+      "evidence": [
+        "crates/signify-acdc/tests/ipex_reference_vectors.rs",
+        "crates/signify-client/tests/ipex_reference_vectors.rs",
+        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs",
+        "fixtures/acdc-ipex/v1.json"
+      ],
+      "note": "The message builders (6.3), their submission (6.12), and the conversation around them (8.8)."
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Ipex",
+      "title": "IPEX - grant-admit flow initiated by discloser",
+      "status": "covered",
+      "roadmap": [
+        "6.3",
+        "6.12",
+        "8.8"
+      ],
+      "evidence": [
+        "crates/signify-acdc/tests/ipex_reference_vectors.rs",
+        "crates/signify-client/tests/ipex_reference_vectors.rs",
+        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs",
+        "fixtures/acdc-ipex/v1.json"
+      ],
+      "note": "The message builders (6.3), their submission (6.12), and the conversation around them (8.8)."
+    },
+    {
+      "file": "test/app/delegating.test.ts",
+      "group": "delegate",
+      "title": "approve delegation",
+      "status": "covered",
+      "roadmap": [
+        "8.5"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/delegations_reference_vectors.rs",
+        "crates/signify-client/tests/delegations_properties.rs",
+        "fixtures/client-delegations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/escrowing.test.ts",
+      "group": "SignifyClient",
+      "title": "Escrows",
+      "status": "covered",
+      "roadmap": [
+        "7.6"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/escrows_reference_vectors.rs",
+        "crates/signify-client/tests/escrows_properties.rs",
+        "fixtures/client-escrows/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "group": "exchange",
+      "title": "Get exchange",
+      "status": "covered",
+      "roadmap": [
+        "3.8",
+        "7.7"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/exchanges_reference_vectors.rs",
+        "crates/signify-keri/tests/exchange_reference_vectors.rs",
+        "fixtures/client-exchanges/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "group": "exchange",
+      "title": "SendFromEvents",
+      "status": "covered",
+      "roadmap": [
+        "3.8",
+        "7.7"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/exchanges_reference_vectors.rs",
+        "crates/signify-keri/tests/exchange_reference_vectors.rs",
+        "fixtures/client-exchanges/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "group": "exchange",
+      "title": "should create an exchange message with no transposed attachments",
+      "status": "covered",
+      "roadmap": [
+        "3.8",
+        "7.7"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/exchanges_reference_vectors.rs",
+        "crates/signify-keri/tests/exchange_reference_vectors.rs",
+        "fixtures/client-exchanges/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/grouping.test.ts",
+      "group": "Grouping",
+      "title": "Groups",
+      "status": "covered",
+      "roadmap": [
+        "8.2"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/groups_reference_vectors.rs",
+        "crates/signify-client/tests/groups_properties.rs",
+        "fixtures/client-groups/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/habery.test.ts",
+      "group": "Habery",
+      "title": "should manage AID creation and rotation",
+      "status": "covered",
+      "roadmap": [
+        "4.4"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/habery_reference_vectors.rs",
+        "crates/signify-keri/tests/habery_properties.rs",
+        "fixtures/keri-habery/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/habery.test.ts",
+      "group": "Habery",
+      "title": "should use passcode as salt",
+      "status": "covered",
+      "roadmap": [
+        "4.4"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/habery_reference_vectors.rs",
+        "crates/signify-keri/tests/habery_properties.rs",
+        "fixtures/keri-habery/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/notifying.test.ts",
+      "group": "SignifyClient",
+      "title": "Notifications",
+      "status": "covered",
+      "roadmap": [
+        "7.5"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/notifications_reference_vectors.rs",
+        "crates/signify-client/tests/notifications_properties.rs",
+        "fixtures/client-notifications/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/registry.test.ts",
+      "group": "registry",
+      "title": "should create a registry",
+      "status": "covered",
+      "roadmap": [
+        "6.9"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/registries_reference_vectors.rs",
+        "crates/signify-client/tests/registries_properties.rs",
+        "fixtures/client-registries/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/app/registry.test.ts",
+      "group": "registry",
+      "title": "should fail on estanblishmnet only for now",
+      "status": "covered",
+      "roadmap": [
+        "6.9"
+      ],
+      "evidence": [
+        "crates/signify-client/tests/registries_reference_vectors.rs",
+        "crates/signify-client/tests/registries_properties.rs",
+        "fixtures/client-registries/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/authing.test.ts",
+      "group": "Authenticater.sign",
+      "title": "Create signed headers for a request",
+      "status": "covered",
+      "roadmap": [
+        "3.10"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/authing_reference_vectors.rs",
+        "crates/signify-http/tests/authing_properties.rs",
+        "fixtures/http-authing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/authing.test.ts",
+      "group": "Authenticater.verify",
+      "title": "verify signature on Response",
+      "status": "covered",
+      "roadmap": [
+        "3.10"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/authing_reference_vectors.rs",
+        "crates/signify-http/tests/authing_properties.rs",
+        "fixtures/http-authing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "group": "",
+      "title": "decode",
+      "status": "covered",
+      "roadmap": [
+        "1.2"
+      ],
+      "evidence": [
+        "crates/signify-cesr/src/base64.rs",
+        "crates/signify-cesr/tests/reference_vectors.rs",
+        "fixtures/cesr-foundations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "group": "",
+      "title": "encode",
+      "status": "covered",
+      "roadmap": [
+        "1.2"
+      ],
+      "evidence": [
+        "crates/signify-cesr/src/base64.rs",
+        "crates/signify-cesr/tests/reference_vectors.rs",
+        "fixtures/cesr-foundations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "group": "",
+      "title": "Test encode / decode compare with built in node Buffer",
+      "status": "covered",
+      "roadmap": [
+        "1.2"
+      ],
+      "evidence": [
+        "crates/signify-cesr/src/base64.rs",
+        "crates/signify-cesr/tests/reference_vectors.rs",
+        "fixtures/cesr-foundations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/bexter.test.ts",
+      "group": "Bexter",
+      "title": "should bext-ify stuff (and back again)",
+      "status": "covered",
+      "roadmap": [
+        "1.8"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/bexter_reference_vectors.rs",
+        "crates/signify-cesr/tests/bexter_properties.rs",
+        "fixtures/cesr-bexter/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/coring.test.ts",
+      "group": "int to b64 and back",
+      "title": "should encode and decode stuff",
+      "status": "covered",
+      "roadmap": [
+        "1.2"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/reference_vectors.rs",
+        "crates/signify-cesr/tests/number_reference_vectors.rs",
+        "fixtures/cesr-foundations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/coring.test.ts",
+      "group": "int to bytes and back",
+      "title": "should encode and decode stuff",
+      "status": "covered",
+      "roadmap": [
+        "1.2"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/reference_vectors.rs",
+        "crates/signify-cesr/tests/number_reference_vectors.rs",
+        "fixtures/cesr-foundations/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/counter.test.ts",
+      "group": "int to b64 and back",
+      "title": "should encode and decode stuff",
+      "status": "covered",
+      "roadmap": [
+        "1.5"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/counter_reference_vectors.rs",
+        "crates/signify-cesr/tests/counter_properties.rs",
+        "fixtures/cesr-counter/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/decrypter.test.ts",
+      "group": "Decrypter",
+      "title": "should decrypt stuff",
+      "status": "covered",
+      "roadmap": [
+        "2.9"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/decrypter_reference_vectors.rs",
+        "crates/signify-crypto/tests/decrypter_properties.rs",
+        "fixtures/crypto-decrypter/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/diger.test.ts",
+      "group": "Diger",
+      "title": "should generate digests",
+      "status": "covered",
+      "roadmap": [
+        "2.1"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/digest_reference_vectors.rs",
+        "crates/signify-crypto/tests/digest_properties.rs",
+        "fixtures/crypto-digest/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/encrypter.test.ts",
+      "group": "Encrypter",
+      "title": "should encrypt stuff",
+      "status": "covered",
+      "roadmap": [
+        "2.8"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/encrypter_reference_vectors.rs",
+        "fixtures/crypto-encrypter/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function \u203a rotate",
+      "title": "should create rotation event with hex sequence number",
+      "status": "covered",
+      "roadmap": [
+        "3.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/eventing_reference_vectors.rs",
+        "crates/signify-keri/tests/eventing_properties.rs",
+        "fixtures/keri-eventing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function \u203a rotate",
+      "title": "should include witness additions",
+      "status": "covered",
+      "roadmap": [
+        "3.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/eventing_reference_vectors.rs",
+        "crates/signify-keri/tests/eventing_properties.rs",
+        "fixtures/keri-eventing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function \u203a rotate",
+      "title": "should throw if witness additions have duplicates",
+      "status": "covered",
+      "roadmap": [
+        "3.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/eventing_reference_vectors.rs",
+        "crates/signify-keri/tests/eventing_properties.rs",
+        "fixtures/keri-eventing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function \u203a rotate",
+      "title": "should throw if witness cuts have duplicates",
+      "status": "covered",
+      "roadmap": [
+        "3.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/eventing_reference_vectors.rs",
+        "crates/signify-keri/tests/eventing_properties.rs",
+        "fixtures/keri-eventing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function",
+      "title": "incept should create inception events",
+      "status": "covered",
+      "roadmap": [
+        "3.5"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/eventing_reference_vectors.rs",
+        "crates/signify-keri/tests/eventing_properties.rs",
+        "fixtures/keri-eventing/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/httping.test.ts",
+      "group": "desiginput",
+      "title": "create valid Signature-Input header with signature",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/httping.test.ts",
+      "group": "siginput",
+      "title": "create valid Signature-Input header with signature",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/indexer.test.ts",
+      "group": "Indexer",
+      "title": "should encode and decode dual indexed signatures",
+      "status": "covered",
+      "roadmap": [
+        "1.6"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/indexer_reference_vectors.rs",
+        "crates/signify-cesr/tests/indexer_properties.rs",
+        "fixtures/cesr-indexer/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "allows RandyIdentifierManager to create current-only indexed signatures with ondices=[undefined]",
+      "status": "covered",
+      "roadmap": [
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/keeper_reference_vectors.rs",
+        "crates/signify-keri/tests/keeper_properties.rs",
+        "fixtures/keri-keeping/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "allows SaltyIdentifierManager to create current-only indexed signatures with ondices=[undefined]",
+      "status": "covered",
+      "roadmap": [
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/keeper_reference_vectors.rs",
+        "crates/signify-keri/tests/keeper_properties.rs",
+        "fixtures/keri-keeping/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "uses rotated=false to keep group signatures current-only",
+      "status": "covered",
+      "roadmap": [
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/keeper_reference_vectors.rs",
+        "crates/signify-keri/tests/keeper_properties.rs",
+        "fixtures/keri-keeping/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "uses rotated=true to derive group rotation ondex",
+      "status": "covered",
+      "roadmap": [
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/keeper_reference_vectors.rs",
+        "crates/signify-keri/tests/keeper_properties.rs",
+        "fixtures/keri-keeping/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Creator",
+      "title": "should create Randy or Salty creator",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager \u203a External Module ",
+      "title": "Should support creating external keeper module",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager \u203a External Module ",
+      "title": "Should support getting external keeper module",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager \u203a External Module ",
+      "title": "Should throw if external keeper module is not addede",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager \u203a External Module ",
+      "title": "Should throw when trying to get external keeper that is not registered",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "should manage key pairs for identifiers",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "Should support creating and getting randy keeper",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "should support only Salty/Encrypted, Salty/Unencrypted and Randy/Encrypted",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "Should throw if algo is not supported",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "RandyCreator",
+      "title": "should create sets of random signers",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "SaltyCreator",
+      "title": "should create sets of salty signers",
+      "status": "covered",
+      "roadmap": [
+        "4.2",
+        "4.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/manager_reference_vectors.rs",
+        "crates/signify-keri/tests/manager_properties.rs",
+        "fixtures/keri-manager/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/matter.test.ts",
+      "group": "Sizage",
+      "title": "should hold size values in 4 properties",
+      "status": "covered",
+      "roadmap": [
+        "1.3"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/matter_reference_vectors.rs",
+        "crates/signify-cesr/tests/code_reference_vectors.rs",
+        "fixtures/cesr-matter/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/number.test.ts",
+      "group": "CesrNumber",
+      "title": "should create CesrNumber from various inputs",
+      "status": "covered",
+      "roadmap": [
+        "1.9"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/number_reference_vectors.rs",
+        "crates/signify-cesr/tests/number_properties.rs",
+        "fixtures/cesr-number/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/pather.test.ts",
+      "group": "Pather",
+      "title": "should path-ify stuff (and back again)",
+      "status": "covered",
+      "roadmap": [
+        "1.7"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/path_reference_vectors.rs",
+        "crates/signify-cesr/tests/path_properties.rs",
+        "fixtures/cesr-path/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/prefixer.test.ts",
+      "group": "Prefixer",
+      "title": "should create autonomic identifier prefix using derivation as determined by code from ked",
+      "status": "covered",
+      "roadmap": [
+        "3.4"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/prefix_reference_vectors.rs",
+        "crates/signify-keri/tests/prefix_properties.rs",
+        "fixtures/keri-prefix/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/saider.test.ts",
+      "group": "Saider",
+      "title": "should create Saidified dicts",
+      "status": "covered",
+      "roadmap": [
+        "3.3"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/said_reference_vectors.rs",
+        "crates/signify-keri/tests/said_properties.rs",
+        "fixtures/keri-said/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/salter.test.ts",
+      "group": "Salter.signer",
+      "title": "should return a signer",
+      "status": "covered",
+      "roadmap": [
+        "2.6"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/salt_reference_vectors.rs",
+        "crates/signify-crypto/tests/salt_properties.rs",
+        "fixtures/crypto-salt/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/salter.test.ts",
+      "group": "Salter",
+      "title": "should generate salts",
+      "status": "covered",
+      "roadmap": [
+        "2.6"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/salt_reference_vectors.rs",
+        "crates/signify-crypto/tests/salt_properties.rs",
+        "fixtures/crypto-salt/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/seqner.test.ts",
+      "group": "Seqner",
+      "title": "should generate Seqner number class",
+      "status": "covered",
+      "roadmap": [
+        "1.4"
+      ],
+      "evidence": [
+        "crates/signify-cesr/tests/sequence_reference_vectors.rs",
+        "crates/signify-cesr/tests/sequence_properties.rs",
+        "fixtures/cesr-sequence/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "group": "deversify",
+      "title": "should parse a KERI event version string",
+      "status": "covered",
+      "roadmap": [
+        "3.1"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/version_reference_vectors.rs",
+        "fixtures/keri-version/v1.json"
+      ],
+      "note": "The version string is its own module here rather than a free function, so a malformed one is a typed failure at the boundary instead of a silent parse."
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "group": "Serder",
+      "title": "should create KERI events from dicts",
+      "status": "covered",
+      "roadmap": [
+        "3.2"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/serder_reference_vectors.rs",
+        "crates/signify-keri/tests/serder_properties.rs",
+        "fixtures/keri-serder/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "group": "Serder",
+      "title": "should interpret Serder sequence number correctly from event data",
+      "status": "covered",
+      "roadmap": [
+        "3.2"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/serder_reference_vectors.rs",
+        "crates/signify-keri/tests/serder_properties.rs",
+        "fixtures/keri-serder/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/signer.test.ts",
+      "group": "Signer",
+      "title": "should sign things",
+      "status": "covered",
+      "roadmap": [
+        "2.3"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/signer_reference_vectors.rs",
+        "crates/signify-crypto/tests/signer_properties.rs",
+        "fixtures/crypto-signer/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/tholder.test.ts",
+      "group": "THolder",
+      "title": "should hold thresholds",
+      "status": "covered",
+      "roadmap": [
+        "1.10"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/threshold_reference_vectors.rs",
+        "crates/signify-keri/tests/threshold_properties.rs",
+        "fixtures/keri-threshold/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/utils.test.ts",
+      "group": "<computed>",
+      "title": "serializes acdc data",
+      "status": "covered",
+      "roadmap": [
+        "6.2"
+      ],
+      "evidence": [
+        "crates/signify-acdc/tests/issuance_reference_vectors.rs",
+        "crates/signify-acdc/tests/issuance_properties.rs",
+        "fixtures/acdc-issuance/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/utils.test.ts",
+      "group": "<computed>",
+      "title": "serializes iss data",
+      "status": "covered",
+      "roadmap": [
+        "6.2"
+      ],
+      "evidence": [
+        "crates/signify-acdc/tests/issuance_reference_vectors.rs",
+        "crates/signify-acdc/tests/issuance_properties.rs",
+        "fixtures/acdc-issuance/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should allow optional toad and backers",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should allow optional toad and no backers",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should create registry inception events ",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail on NB config with backers",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail with duplicate backers",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail with invalid toad config for backers",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail with invalid toad for no backers",
+      "status": "covered",
+      "roadmap": [
+        "3.6"
+      ],
+      "evidence": [
+        "crates/signify-keri/tests/registry_reference_vectors.rs",
+        "crates/signify-keri/tests/registry_properties.rs",
+        "fixtures/keri-registry/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer \u203a Ed25519",
+      "title": "should create verfer",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer \u203a Ed25519",
+      "title": "should create verfer from qb64",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer \u203a Ed25519",
+      "title": "should verify signature",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer \u203a secp256r1",
+      "title": "should create verfer",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer \u203a secp256r1",
+      "title": "should parse qb64",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer \u203a secp256r1",
+      "title": "should verify secp256r1",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer",
+      "title": "should not verify secp256k1",
+      "status": "covered",
+      "roadmap": [
+        "2.2"
+      ],
+      "evidence": [
+        "crates/signify-crypto/tests/verifier_reference_vectors.rs",
+        "crates/signify-crypto/tests/verifier_properties.rs",
+        "fixtures/crypto-verifier/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "Combined headers",
+      "title": "Should create header",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "Combined headers",
+      "title": "Should parse hader",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed CESR signatures",
+      "title": "Should create headers",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed CESR signatures",
+      "title": "Should parse headers",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed signatures",
+      "title": "Can create signature header",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed signatures",
+      "title": "Can parse signature header",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When named signatures",
+      "title": "Can create signature header",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When named signatures",
+      "title": "Can parse signature header",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When non-indexed signatures",
+      "title": "Should create headers",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When non-indexed signatures",
+      "title": "Should parse headers",
+      "status": "covered",
+      "roadmap": [
+        "3.9"
+      ],
+      "evidence": [
+        "crates/signify-http/tests/ending_reference_vectors.rs",
+        "crates/signify-http/tests/ending_properties.rs",
+        "fixtures/http-ending/v1.json"
+      ],
+      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
+    }
+  ],
+  "findings": [
+    {
+      "name": "a_quarter_of_the_suite_imports_the_entry_point",
+      "module": "src/index.ts",
+      "importing_files": 11,
+      "porting_status": "TODO",
+      "owner": "9.5",
+      "note": "Eleven of the forty upstream test files import from `src/index.ts` rather than from the module under test \u2014 `Signer` and `Matter` in one file, `Serder` and `versify` in another. Every symbol they reach is individually ported and VERIFIED; what is not is the entry point itself, whose \u00a74.1 row is TODO because the curated re-export surface belongs to Roadmap 9.5. So the audit finds full behavioural coverage and one structural gap: this port has no equivalent of the single public surface a third of the suite imports through.",
+      "consequence": "Phase 9's exit gate requires every in-scope row VERIFIED, so 9.5 must close this row before release. Nothing behavioural is missing; a caller of this port reaches the same symbols through their own crates."
+    },
+    {
+      "name": "one_application_module_is_still_split",
+      "module": "src/keri/app/clienting.ts",
+      "importing_files": 10,
+      "porting_status": "IN_PROGRESS",
+      "owner": "9.5",
+      "note": "Ten of the forty test files reach `clienting.ts`, because it is where the client itself lives. Every capability behind it is VERIFIED \u2014 Roadmap 8.9 closed the last one, passcode rotation \u2014 but the row stays below VERIFIED because the curated endpoint-accessor surface is Roadmap 9.5's. It is the same gap as the entry point, seen from the other side: the behaviour is ported and the public shape is not yet settled.",
+      "consequence": "Also Roadmap 9.5's to close, and for the same reason. No unit case is left unanswered by it: every capability behind the row is VERIFIED with its own fixture and tests, and only the shape of the accessors this crate exposes is still open."
+    }
+  ]
+}

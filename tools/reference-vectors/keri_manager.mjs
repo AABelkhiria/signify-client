@@ -174,7 +174,42 @@ const saltyCases = [
     note: "the only code the reference supports, which is why Rust takes a count",
   }),
   saltyCase("high_tier_stem", { tier: Tier.high, stem: "red", temp: true, note: "temp overrides the tier, so this equals stem_inception" }),
+  // The two positions that spell one path. `path = stem + ridx.toString(16) + (kidx + idx).toString(16)`
+  // concatenates two variable-length hexadecimal numbers with nothing between them, so rotation 1
+  // at key 16 writes "1" + "10" and rotation 17 at key 0 writes "11" + "0" — both "110".
+  saltyCase("colliding_path_low_rotation", {
+    stem: "red",
+    ridx: 1,
+    kidx: 16,
+    temp: true,
+    note: "rotation 1, key 16: the path is red + '1' + '10'",
+  }),
+  saltyCase("colliding_path_high_rotation", {
+    stem: "red",
+    ridx: 17,
+    kidx: 0,
+    temp: true,
+    note: "rotation 17, key 0: the path is red + '11' + '0' — the same string, and the same key",
+  }),
 ];
+
+/** The two cases above, and proof from the reference itself that they derive one key. */
+const collision = (() => {
+  const low = saltyCases.find((entry) => entry.name === "colliding_path_low_rotation");
+  const high = saltyCases.find((entry) => entry.name === "colliding_path_high_rotation");
+  if (low === undefined || high === undefined) {
+    throw new Error("the colliding creator cases are missing");
+  }
+  return {
+    low: { ridx: low.input.ridx, kidx: low.input.kidx, path: low.paths[0], public_key: low.public_keys[0] },
+    high: { ridx: high.input.ridx, kidx: high.input.kidx, path: high.paths[0], public_key: high.public_keys[0] },
+    paths_identical: low.paths[0] === high.paths[0],
+    keys_identical: low.private_keys[0] === high.private_keys[0],
+  };
+})();
+if (!collision.paths_identical || !collision.keys_identical) {
+  throw new Error("the derivation path no longer collides; the finding is stale");
+}
 
 // A randy creator produces fresh entropy every call, so only its shape is recorded.
 const randyCreator = new RandyCreator();
@@ -427,6 +462,12 @@ const quirks = {
     ...randyShape,
     note: "a randy creator implements the salt, stem, and tier accessors by returning empty strings, and casts one of them to Tier",
     rust_decision: "the randy creator has no such accessors; a randy identifier records no salt and no tier",
+  },
+  distinct_positions_collide_onto_one_path: {
+    declaration: "const path = this.stem == '' ? pidx.toString(16) : this.stem + ridx.toString(16) + (kidx + idx).toString(16);",
+    ...collision,
+    note: "the path concatenates two variable-length hexadecimal numbers with no delimiter between them, so distinct positions can spell the same string. Driven through the reference's own `SaltyCreator`: rotation 1 at key 16 writes 'red' + '1' + '10' and rotation 17 at key 0 writes 'red' + '11' + '0', both 'red110', and both derive the same private key. It is a second way pre-rotation can commit to a key already in use, beside the empty-stem branch this fixture already pins.",
+    rust_decision: "reproduced exactly, because diverging would derive a different identifier from identical inputs — a delimiter here would change every salty key in existence. `signify-keri`'s `distinct_positions_can_collide_onto_one_path` pins it against the reference's own public key, and Roadmap 4.2's record states the consequence rather than hiding it.",
   },
 };
 

@@ -1,0 +1,3009 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-27",
+  "note": "Every unit case the pinned checkout declares. `ledger.json` beside this file answers each one with Rust evidence or a documented `N/A`; `crates/signify-client/tests/upstream_unit_audit.rs` requires the two to agree exactly.",
+  "totals": {
+    "files": 40,
+    "cases": 139,
+    "assertions": 1327,
+    "skipped": 0
+  },
+  "files": [
+    {
+      "file": "test/app/aiding.test.ts",
+      "cases": 27,
+      "assertions": 116,
+      "imports": [
+        {
+          "module": "src/keri/app/aiding.ts",
+          "names": [
+            "CreateIdentiferArgs",
+            "RotateIdentifierArgs"
+          ]
+        },
+        {
+          "module": "src/keri/core/manager.ts",
+          "names": [
+            "Algos"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Controller",
+            "Diger",
+            "HabState",
+            "Identifier",
+            "IdentifierDeps",
+            "IdentifierManagerFactory",
+            "KeyState",
+            "PendingHabState",
+            "randomPasscode",
+            "Siger",
+            "Tier",
+            "Verfer"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "cases": 3,
+      "assertions": 71,
+      "imports": [
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/app/aiding.ts",
+          "names": [
+            "Identifier"
+          ]
+        },
+        {
+          "module": "src/keri/app/coring.ts",
+          "names": [
+            "Operations",
+            "KeyEvents",
+            "KeyStates",
+            "Oobis"
+          ]
+        },
+        {
+          "module": "src/keri/app/contacting.ts",
+          "names": [
+            "Contacts",
+            "Challenges"
+          ]
+        },
+        {
+          "module": "src/keri/app/credentialing.ts",
+          "names": [
+            "Credentials",
+            "Schemas",
+            "Registries"
+          ]
+        },
+        {
+          "module": "src/keri/app/escrowing.ts",
+          "names": [
+            "Escrows"
+          ]
+        },
+        {
+          "module": "src/keri/app/exchanging.ts",
+          "names": [
+            "Exchanges"
+          ]
+        },
+        {
+          "module": "src/keri/app/grouping.ts",
+          "names": [
+            "Groups"
+          ]
+        },
+        {
+          "module": "src/keri/app/notifying.ts",
+          "names": [
+            "Notifications"
+          ]
+        },
+        {
+          "module": "src/keri/core/httping.ts",
+          "names": [
+            "HEADER_SIG_INPUT",
+            "HEADER_SIG_TIME"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/contacting.test.ts",
+      "cases": 2,
+      "assertions": 28,
+      "imports": [
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/controller.test.ts",
+      "cases": 2,
+      "assertions": 5,
+      "imports": [
+        {
+          "module": "src/keri/app/controller.ts",
+          "names": [
+            "Controller"
+          ]
+        },
+        {
+          "module": "src/keri/core/manager.ts",
+          "names": [
+            "openManager"
+          ]
+        },
+        {
+          "module": "src/keri/core/signer.ts",
+          "names": [
+            "Signer"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Tier",
+            "randomPasscode"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "cases": 16,
+      "assertions": 42,
+      "imports": [
+        {
+          "module": "src/keri/app/coring.ts",
+          "names": [
+            "randomPasscode",
+            "randomNonce",
+            "Operations",
+            "OperationsDeps",
+            "Operation"
+          ]
+        },
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/core/keyState.ts",
+          "names": [
+            "KelOperation",
+            "RegistryOperation"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "cases": 4,
+      "assertions": 75,
+      "imports": [
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "d",
+            "Protocols",
+            "Ilks",
+            "interact",
+            "Saider",
+            "Serder",
+            "serializeACDCAttachment",
+            "serializeIssExnAttachment",
+            "Serials",
+            "versify"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/delegating.test.ts",
+      "cases": 1,
+      "assertions": 3,
+      "imports": [
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/escrowing.test.ts",
+      "cases": 1,
+      "assertions": 2,
+      "imports": [
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "cases": 3,
+      "assertions": 11,
+      "imports": [
+        {
+          "module": "src/index.ts",
+          "names": [
+            "b",
+            "d",
+            "Diger",
+            "exchange",
+            "Ilks",
+            "MtrDex",
+            "Salter",
+            "Serder",
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/grouping.test.ts",
+      "cases": 1,
+      "assertions": 6,
+      "imports": [
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/app/exchanging.ts",
+          "names": [
+            "Exn"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/habery.test.ts",
+      "cases": 2,
+      "assertions": 6,
+      "imports": [
+        {
+          "module": "src/keri/app/habery.ts",
+          "names": [
+            "Habery"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/notifying.test.ts",
+      "cases": 1,
+      "assertions": 7,
+      "imports": [
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/app/registry.test.ts",
+      "cases": 2,
+      "assertions": 3,
+      "imports": [
+        {
+          "module": "src/keri/app/clienting.ts",
+          "names": [
+            "SignifyClient"
+          ]
+        },
+        {
+          "module": "src/keri/app/credentialing.ts",
+          "names": [
+            "Registries"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Identifier",
+            "IdentifierManagerFactory",
+            "SaltyIdentifierManager"
+          ]
+        },
+        {
+          "module": "src/keri/core/keyState.ts",
+          "names": [
+            "HabState",
+            "KeyState"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/authing.test.ts",
+      "cases": 2,
+      "assertions": 6,
+      "imports": [
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b"
+          ]
+        },
+        {
+          "module": "src/keri/core/authing.ts",
+          "names": [
+            "Authenticater"
+          ]
+        },
+        {
+          "module": "src/keri/core/utils.ts",
+          "names": [
+            "* as utilApi"
+          ]
+        },
+        {
+          "module": "src/keri/core/verfer.ts",
+          "names": [
+            "Verfer"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "cases": 3,
+      "assertions": 14,
+      "imports": [
+        {
+          "module": "src/keri/core/base64.ts",
+          "names": [
+            "decodeBase64Url",
+            "encodeBase64Url"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/bexter.test.ts",
+      "cases": 1,
+      "assertions": 64,
+      "imports": [
+        {
+          "module": "src/keri/core/bexter.ts",
+          "names": [
+            "Bexter"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "b",
+            "MtrDex"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/coring.test.ts",
+      "cases": 2,
+      "assertions": 37,
+      "imports": [
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b",
+            "d",
+            "b64ToInt",
+            "intToB64",
+            "intToB64b"
+          ]
+        },
+        {
+          "module": "src/keri/core/utils.ts",
+          "names": [
+            "bytesToInt",
+            "intToBytes"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/counter.test.ts",
+      "cases": 1,
+      "assertions": 70,
+      "imports": [
+        {
+          "module": "src/keri/core/counter.ts",
+          "names": [
+            "Counter",
+            "CtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b",
+            "b64ToInt",
+            "intToB64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/decrypter.test.ts",
+      "cases": 1,
+      "assertions": 38,
+      "imports": [
+        {
+          "module": "src/keri/core/signer.ts",
+          "names": [
+            "Signer"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "Matter",
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter"
+          ]
+        },
+        {
+          "module": "src/keri/core/decrypter.ts",
+          "names": [
+            "Decrypter"
+          ]
+        },
+        {
+          "module": "src/keri/core/encrypter.ts",
+          "names": [
+            "Encrypter"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/diger.test.ts",
+      "cases": 1,
+      "assertions": 11,
+      "imports": [
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "Matter"
+          ]
+        },
+        {
+          "module": "src/keri/core/diger.ts",
+          "names": [
+            "Diger"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "concat"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/encrypter.test.ts",
+      "cases": 1,
+      "assertions": 14,
+      "imports": [
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "Matter"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/signer.ts",
+          "names": [
+            "Signer"
+          ]
+        },
+        {
+          "module": "src/keri/core/encrypter.ts",
+          "names": [
+            "Encrypter"
+          ]
+        },
+        {
+          "module": "src/keri/core/verfer.ts",
+          "names": [
+            "Verfer"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "d"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "cases": 5,
+      "assertions": 50,
+      "imports": [
+        {
+          "module": "src/keri/core/signer.ts",
+          "names": [
+            "Signer"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/eventing.ts",
+          "names": [
+            "incept",
+            "messagize",
+            "rotate"
+          ]
+        },
+        {
+          "module": "src/keri/core/saider.ts",
+          "names": [
+            "Saider"
+          ]
+        },
+        {
+          "module": "src/keri/core/diger.ts",
+          "names": [
+            "Diger"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b",
+            "d",
+            "Ilks"
+          ]
+        },
+        {
+          "module": "src/keri/core/siger.ts",
+          "names": [
+            "Siger"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/httping.test.ts",
+      "cases": 2,
+      "assertions": 12,
+      "imports": [
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b"
+          ]
+        },
+        {
+          "module": "src/keri/core/httping.ts",
+          "names": [
+            "siginput",
+            "desiginput",
+            "SiginputArgs"
+          ]
+        },
+        {
+          "module": "src/keri/core/utils.ts",
+          "names": [
+            "* as utilApi"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/indexer.test.ts",
+      "cases": 1,
+      "assertions": 143,
+      "imports": [
+        {
+          "module": "src/keri/core/indexer.ts",
+          "names": [
+            "IdrDex",
+            "Indexer"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b",
+            "intToB64"
+          ]
+        },
+        {
+          "module": "src/keri/core/base64.ts",
+          "names": [
+            "decodeBase64Url",
+            "encodeBase64Url"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "cases": 4,
+      "assertions": 6,
+      "imports": [
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Diger",
+            "GroupIdentifierManager",
+            "MtrDex",
+            "RandyIdentifierManager",
+            "Salter",
+            "SaltyIdentifierManager",
+            "Siger",
+            "Tier",
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "cases": 11,
+      "assertions": 241,
+      "imports": [
+        {
+          "module": "src/keri/core/manager.ts",
+          "names": [
+            "Algos",
+            "Creatory",
+            "Manager",
+            "RandyCreator",
+            "riKey",
+            "SaltyCreator"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter",
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/core/signer.ts",
+          "names": [
+            "Signer"
+          ]
+        },
+        {
+          "module": "src/keri/core/encrypter.ts",
+          "names": [
+            "Encrypter"
+          ]
+        },
+        {
+          "module": "src/keri/core/decrypter.ts",
+          "names": [
+            "Decrypter"
+          ]
+        },
+        {
+          "module": "src/keri/core/cipher.ts",
+          "names": [
+            "Cipher"
+          ]
+        },
+        {
+          "module": "src/keri/core/verfer.ts",
+          "names": [
+            "Verfer"
+          ]
+        },
+        {
+          "module": "src/keri/core/diger.ts",
+          "names": [
+            "Diger"
+          ]
+        },
+        {
+          "module": "src/keri/core/siger.ts",
+          "names": [
+            "Siger"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b"
+          ]
+        },
+        {
+          "module": "src/keri/core/cigar.ts",
+          "names": [
+            "Cigar"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "IdentifierManager",
+            "IdentifierManagerParams",
+            "IdentifierManagerFactory",
+            "Prefixer",
+            "RandyIdentifierManager"
+          ]
+        },
+        {
+          "module": "src/keri/core/keyState.ts",
+          "names": [
+            "RandyKeyState",
+            "KeyState",
+            "HabState"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/matter.test.ts",
+      "cases": 1,
+      "assertions": 4,
+      "imports": [
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "Sizage"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/number.test.ts",
+      "cases": 1,
+      "assertions": 12,
+      "imports": [
+        {
+          "module": "src/keri/core/number.ts",
+          "names": [
+            "CesrNumber"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/pather.test.ts",
+      "cases": 1,
+      "assertions": 18,
+      "imports": [
+        {
+          "module": "src/keri/core/pather.ts",
+          "names": [
+            "Pather"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/prefixer.test.ts",
+      "cases": 1,
+      "assertions": 3,
+      "imports": [
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "Protocols",
+            "Ilks",
+            "Serials",
+            "versify",
+            "Vrsn_1_0"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/prefixer.ts",
+          "names": [
+            "Prefixer"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/saider.test.ts",
+      "cases": 1,
+      "assertions": 3,
+      "imports": [
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "Protocols",
+            "Serials",
+            "versify",
+            "Vrsn_1_0"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/saider.ts",
+          "names": [
+            "Saider"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/salter.test.ts",
+      "cases": 2,
+      "assertions": 8,
+      "imports": [
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/seqner.test.ts",
+      "cases": 1,
+      "assertions": 19,
+      "imports": [
+        {
+          "module": "src/keri/core/seqner.ts",
+          "names": [
+            "Seqner"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "cases": 3,
+      "assertions": 13,
+      "imports": [
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "deversify",
+            "Ilks",
+            "Serials",
+            "Version"
+          ]
+        },
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter",
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/diger.ts",
+          "names": [
+            "Diger"
+          ]
+        },
+        {
+          "module": "src/keri/core/serder.ts",
+          "names": [
+            "Serder"
+          ]
+        },
+        {
+          "module": "src/keri/core/prefixer.ts",
+          "names": [
+            "Prefixer"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/signer.test.ts",
+      "cases": 1,
+      "assertions": 7,
+      "imports": [
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Signer"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Matter",
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/index.ts",
+          "names": [
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/tholder.test.ts",
+      "cases": 1,
+      "assertions": 71,
+      "imports": [
+        {
+          "module": "src/keri/core/tholder.ts",
+          "names": [
+            "Tholder"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/utils.test.ts",
+      "cases": 2,
+      "assertions": 2,
+      "imports": [
+        {
+          "module": "src/index.ts",
+          "names": [
+            "Protocols",
+            "Saider",
+            "Serder",
+            "Serials",
+            "d",
+            "versify"
+          ]
+        },
+        {
+          "module": "src/keri/core/utils.ts",
+          "names": [
+            "serializeACDCAttachment",
+            "serializeIssExnAttachment"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "cases": 7,
+      "assertions": 17,
+      "imports": [
+        {
+          "module": "src/keri/core/vdring.ts",
+          "names": [
+            "vdr"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "cases": 7,
+      "assertions": 11,
+      "imports": [
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/core/verfer.ts",
+          "names": [
+            "Verfer"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "cases": 10,
+      "assertions": 58,
+      "imports": [
+        {
+          "module": "src/keri/core/salter.ts",
+          "names": [
+            "Salter",
+            "Tier"
+          ]
+        },
+        {
+          "module": "src/keri/core/core.ts",
+          "names": [
+            "b"
+          ]
+        },
+        {
+          "module": "src/keri/core/matter.ts",
+          "names": [
+            "MtrDex"
+          ]
+        },
+        {
+          "module": "src/keri/end/ending.ts",
+          "names": [
+            "designature",
+            "Signage",
+            "signature"
+          ]
+        },
+        {
+          "module": "src/keri/core/siger.ts",
+          "names": [
+            "Siger"
+          ]
+        },
+        {
+          "module": "src/keri/core/cigar.ts",
+          "names": [
+            "Cigar"
+          ]
+        },
+        {
+          "module": "src/keri/core/signer.ts",
+          "names": [
+            "Signer"
+          ]
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "module": "src/index.ts",
+      "files": 13
+    },
+    {
+      "module": "src/keri/app/aiding.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/app/clienting.ts",
+      "files": 10
+    },
+    {
+      "module": "src/keri/app/contacting.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/app/controller.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/app/coring.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/app/credentialing.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/app/escrowing.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/app/exchanging.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/app/grouping.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/app/habery.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/app/notifying.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/authing.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/base64.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/core/bexter.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/cigar.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/core/cipher.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/core.ts",
+      "files": 15
+    },
+    {
+      "module": "src/keri/core/counter.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/decrypter.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/core/diger.ts",
+      "files": 4
+    },
+    {
+      "module": "src/keri/core/encrypter.ts",
+      "files": 3
+    },
+    {
+      "module": "src/keri/core/eventing.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/httping.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/core/indexer.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/keyState.ts",
+      "files": 3
+    },
+    {
+      "module": "src/keri/core/manager.ts",
+      "files": 3
+    },
+    {
+      "module": "src/keri/core/matter.ts",
+      "files": 15
+    },
+    {
+      "module": "src/keri/core/number.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/pather.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/prefixer.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/core/saider.ts",
+      "files": 2
+    },
+    {
+      "module": "src/keri/core/salter.ts",
+      "files": 16
+    },
+    {
+      "module": "src/keri/core/seqner.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/serder.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/siger.ts",
+      "files": 3
+    },
+    {
+      "module": "src/keri/core/signer.ts",
+      "files": 6
+    },
+    {
+      "module": "src/keri/core/tholder.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/utils.ts",
+      "files": 4
+    },
+    {
+      "module": "src/keri/core/vdring.ts",
+      "files": 1
+    },
+    {
+      "module": "src/keri/core/verfer.ts",
+      "files": 4
+    },
+    {
+      "module": "src/keri/end/ending.ts",
+      "files": 1
+    }
+  ],
+  "cases": [
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Group identifiers",
+      "title": "Can Rotate group",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 44
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Group identifiers",
+      "title": "Creates group interaction signatures as current-only without looking up proposed next digests",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 38
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Group identifiers",
+      "title": "Group icp permits local member as signer only, not rotator, with proposed next digests excluding local signer",
+      "assertions": 3,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 37
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Group identifiers",
+      "title": "Passes rotated=true when signing identifier rotation events",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 26
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Group identifiers",
+      "title": "Should use the previous sign threshold as the default next threshold",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 31
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Group identifiers",
+      "title": "Uses prior group next digests for replacement rotation ondex",
+      "assertions": 4,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 49
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Typings test",
+      "title": "CreateIdentiferArgs",
+      "assertions": 0,
+      "helpers": [],
+      "skipped": false,
+      "lines": 17
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding › Typings test",
+      "title": "RotateIdentifierArgs",
+      "assertions": 0,
+      "helpers": [],
+      "skipped": false,
+      "lines": 14
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can add end role",
+      "assertions": 5,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 16
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can authorise location/endpoint for an endpoint identifier",
+      "assertions": 6,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 23
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can authorise location/endpoint for own identifier as default",
+      "assertions": 5,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 19
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create interact event",
+      "assertions": 4,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 33
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create interact event when sequence number > 10",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 32
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create non-transferable salty identifiers",
+      "assertions": 12,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 37
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create salty AID with multiple signatures",
+      "assertions": 13,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 53
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can create salty identifiers",
+      "assertions": 13,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 37
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can get identifiers with special characters in the name",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can get members",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 7
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can list identifiers",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 7
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can rename identifier",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 10
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can rotate salty identifier",
+      "assertions": 12,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 37
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Can rotate salty identifier with sn > 10",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 23
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Get requires key state unless accepted is false",
+      "assertions": 5,
+      "helpers": [
+        "assert.equal",
+        "assert.isUndefined",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 20
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Randy identifiers",
+      "assertions": 6,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 14
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Should throw error if fetch call fails when adding end role",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 7
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Should throw error if fetch call fails when creating identifier",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 9
+    },
+    {
+      "file": "test/app/aiding.test.ts",
+      "group": "Aiding",
+      "title": "Update requires key state unless accepted is false",
+      "assertions": 5,
+      "helpers": [
+        "assert.equal",
+        "assert.isUndefined",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "group": "SignifyClient",
+      "title": "includes HTTP status info in error message",
+      "assertions": 2,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "group": "SignifyClient",
+      "title": "Signed fetch",
+      "assertions": 28,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal",
+        "assert.fail",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 157
+    },
+    {
+      "file": "test/app/clienting.test.ts",
+      "group": "SignifyClient",
+      "title": "SignifyClient initialization",
+      "assertions": 41,
+      "helpers": [
+        "assert",
+        "assert.deepEqual",
+        "assert.equal",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 93
+    },
+    {
+      "file": "test/app/contacting.test.ts",
+      "group": "Contacting",
+      "title": "Challenges",
+      "assertions": 15,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 79
+    },
+    {
+      "file": "test/app/contacting.test.ts",
+      "group": "Contacting",
+      "title": "Contacts",
+      "assertions": 13,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 67
+    },
+    {
+      "file": "test/app/controller.test.ts",
+      "group": "Controller",
+      "title": "manage account AID signing and agent verification",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 37
+    },
+    {
+      "file": "test/app/controller.test.ts",
+      "group": "Controller",
+      "title": "should generate unique controller AIDs per passcode",
+      "assertions": 1,
+      "helpers": [
+        "assert.notEqual"
+      ],
+      "skipped": false,
+      "lines": 10
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Agent configuration",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 16
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Endroles with role filter",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 17
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Endroles without role filter",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 17
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Events and states",
+      "assertions": 11,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 59
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "OOBIs",
+      "assertions": 9,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 31
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Random nonce",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 5
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Coring",
+      "title": "Random passcode",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 5
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations › wait",
+      "title": "does not wait for operation that is already \"done\"",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations › wait",
+      "title": "returns when child operation is also done",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 60
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations › wait",
+      "title": "returns when operation is done after first call",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 12
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations › wait",
+      "title": "returns when operation is done after second call",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 18
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations › wait",
+      "title": "throw if aborted",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can delete operation by name",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can get operation by name",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can list operations",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/app/coring.test.ts",
+      "group": "Operations",
+      "title": "Can list operations by type",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Credentialing",
+      "title": "Credentials",
+      "assertions": 37,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 113
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Ipex",
+      "title": "IPEX - apply-admit flow initiated by disclosee",
+      "assertions": 23,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 304
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Ipex",
+      "title": "IPEX - discloser can create an offer without apply",
+      "assertions": 4,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 67
+    },
+    {
+      "file": "test/app/credentialing.test.ts",
+      "group": "Ipex",
+      "title": "IPEX - grant-admit flow initiated by discloser",
+      "assertions": 11,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 164
+    },
+    {
+      "file": "test/app/delegating.test.ts",
+      "group": "delegate",
+      "title": "approve delegation",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 47
+    },
+    {
+      "file": "test/app/escrowing.test.ts",
+      "group": "SignifyClient",
+      "title": "Escrows",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 20
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "group": "exchange",
+      "title": "Get exchange",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 15
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "group": "exchange",
+      "title": "SendFromEvents",
+      "assertions": 3,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 66
+    },
+    {
+      "file": "test/app/exchanging.test.ts",
+      "group": "exchange",
+      "title": "should create an exchange message with no transposed attachments",
+      "assertions": 6,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 150
+    },
+    {
+      "file": "test/app/grouping.test.ts",
+      "group": "Grouping",
+      "title": "Groups",
+      "assertions": 6,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 52
+    },
+    {
+      "file": "test/app/habery.test.ts",
+      "group": "Habery",
+      "title": "should manage AID creation and rotation",
+      "assertions": 3,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 23
+    },
+    {
+      "file": "test/app/habery.test.ts",
+      "group": "Habery",
+      "title": "should use passcode as salt",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/app/notifying.test.ts",
+      "group": "SignifyClient",
+      "title": "Notifications",
+      "assertions": 7,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 28
+    },
+    {
+      "file": "test/app/registry.test.ts",
+      "group": "registry",
+      "title": "should create a registry",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 57
+    },
+    {
+      "file": "test/app/registry.test.ts",
+      "group": "registry",
+      "title": "should fail on estanblishmnet only for now",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 34
+    },
+    {
+      "file": "test/core/authing.test.ts",
+      "group": "Authenticater.sign",
+      "title": "Create signed headers for a request",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 42
+    },
+    {
+      "file": "test/core/authing.test.ts",
+      "group": "Authenticater.verify",
+      "title": "verify signature on Response",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal",
+        "assert.notEqual"
+      ],
+      "skipped": false,
+      "lines": 42
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "group": "",
+      "title": "decode",
+      "assertions": 6,
+      "helpers": [
+        "assert.deepEqual"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "group": "",
+      "title": "encode",
+      "assertions": 6,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/core/base64.test.ts",
+      "group": "",
+      "title": "Test encode / decode compare with built in node Buffer",
+      "assertions": 2,
+      "helpers": [
+        "assert.deepEqual"
+      ],
+      "skipped": false,
+      "lines": 10
+    },
+    {
+      "file": "test/core/bexter.test.ts",
+      "group": "Bexter",
+      "title": "should bext-ify stuff (and back again)",
+      "assertions": 64,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.notEqual",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 108
+    },
+    {
+      "file": "test/core/coring.test.ts",
+      "group": "int to b64 and back",
+      "title": "should encode and decode stuff",
+      "assertions": 31,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 83
+    },
+    {
+      "file": "test/core/coring.test.ts",
+      "group": "int to bytes and back",
+      "title": "should encode and decode stuff",
+      "assertions": 6,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 22
+    },
+    {
+      "file": "test/core/counter.test.ts",
+      "group": "int to b64 and back",
+      "title": "should encode and decode stuff",
+      "assertions": 70,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 149
+    },
+    {
+      "file": "test/core/decrypter.test.ts",
+      "group": "Decrypter",
+      "title": "should decrypt stuff",
+      "assertions": 38,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 158
+    },
+    {
+      "file": "test/core/diger.test.ts",
+      "group": "Diger",
+      "title": "should generate digests",
+      "assertions": 11,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 39
+    },
+    {
+      "file": "test/core/encrypter.test.ts",
+      "group": "Encrypter",
+      "title": "should encrypt stuff",
+      "assertions": 14,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 90
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function › rotate",
+      "title": "should create rotation event with hex sequence number",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 18
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function › rotate",
+      "title": "should include witness additions",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 14
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function › rotate",
+      "title": "should throw if witness additions have duplicates",
+      "assertions": 1,
+      "helpers": [
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function › rotate",
+      "title": "should throw if witness cuts have duplicates",
+      "assertions": 1,
+      "helpers": [
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/core/eventing.test.ts",
+      "group": "key event function",
+      "title": "incept should create inception events",
+      "assertions": 42,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 179
+    },
+    {
+      "file": "test/core/httping.test.ts",
+      "group": "desiginput",
+      "title": "create valid Signature-Input header with signature",
+      "assertions": 8,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/core/httping.test.ts",
+      "group": "siginput",
+      "title": "create valid Signature-Input header with signature",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 47
+    },
+    {
+      "file": "test/core/indexer.test.ts",
+      "group": "Indexer",
+      "title": "should encode and decode dual indexed signatures",
+      "assertions": 143,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.notDeepEqual",
+        "assert.notEqual",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 372
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "allows RandyIdentifierManager to create current-only indexed signatures with ondices=[undefined]",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 29
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "allows SaltyIdentifierManager to create current-only indexed signatures with ondices=[undefined]",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 26
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "uses rotated=false to keep group signatures current-only",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 30
+    },
+    {
+      "file": "test/core/keeping.test.ts",
+      "group": "IdentifierManager signing",
+      "title": "uses rotated=true to derive group rotation ondex",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 29
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Creator",
+      "title": "should create Randy or Salty creator",
+      "assertions": 5,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 18
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager › External Module ",
+      "title": "Should support creating external keeper module",
+      "assertions": 2,
+      "helpers": [
+        "assert",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 17
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager › External Module ",
+      "title": "Should support getting external keeper module",
+      "assertions": 2,
+      "helpers": [
+        "assert",
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 27
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager › External Module ",
+      "title": "Should throw if external keeper module is not addede",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 14
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager › External Module ",
+      "title": "Should throw when trying to get external keeper that is not registered",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "should manage key pairs for identifiers",
+      "assertions": 141,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.notEqual",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 437
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "Should support creating and getting randy keeper",
+      "assertions": 2,
+      "helpers": [
+        "assert"
+      ],
+      "skipped": false,
+      "lines": 27
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "should support only Salty/Encrypted, Salty/Unencrypted and Randy/Encrypted",
+      "assertions": 44,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 121
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "Manager",
+      "title": "Should throw if algo is not supported",
+      "assertions": 2,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 23
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "RandyCreator",
+      "title": "should create sets of random signers",
+      "assertions": 12,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 34
+    },
+    {
+      "file": "test/core/manager.test.ts",
+      "group": "SaltyCreator",
+      "title": "should create sets of salty signers",
+      "assertions": 29,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 70
+    },
+    {
+      "file": "test/core/matter.test.ts",
+      "group": "Sizage",
+      "title": "should hold size values in 4 properties",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 7
+    },
+    {
+      "file": "test/core/number.test.ts",
+      "group": "CesrNumber",
+      "title": "should create CesrNumber from various inputs",
+      "assertions": 12,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 25
+    },
+    {
+      "file": "test/core/pather.test.ts",
+      "group": "Pather",
+      "title": "should path-ify stuff (and back again)",
+      "assertions": 18,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 47
+    },
+    {
+      "file": "test/core/prefixer.test.ts",
+      "group": "Prefixer",
+      "title": "should create autonomic identifier prefix using derivation as determined by code from ked",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 46
+    },
+    {
+      "file": "test/core/saider.test.ts",
+      "group": "Saider",
+      "title": "should create Saidified dicts",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 28
+    },
+    {
+      "file": "test/core/salter.test.ts",
+      "group": "Salter.signer",
+      "title": "should return a signer",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal",
+        "assert.notEqual"
+      ],
+      "skipped": false,
+      "lines": 9
+    },
+    {
+      "file": "test/core/salter.test.ts",
+      "group": "Salter",
+      "title": "should generate salts",
+      "assertions": 6,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.notEqual"
+      ],
+      "skipped": false,
+      "lines": 29
+    },
+    {
+      "file": "test/core/seqner.test.ts",
+      "group": "Seqner",
+      "title": "should generate Seqner number class",
+      "assertions": 19,
+      "helpers": [
+        "assert.equal",
+        "assert.notStrictEqual"
+      ],
+      "skipped": false,
+      "lines": 42
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "group": "deversify",
+      "title": "should parse a KERI event version string",
+      "assertions": 3,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 6
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "group": "Serder",
+      "title": "should create KERI events from dicts",
+      "assertions": 7,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 77
+    },
+    {
+      "file": "test/core/serder.test.ts",
+      "group": "Serder",
+      "title": "should interpret Serder sequence number correctly from event data",
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 25
+    },
+    {
+      "file": "test/core/signer.test.ts",
+      "group": "Signer",
+      "title": "should sign things",
+      "assertions": 7,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 20
+    },
+    {
+      "file": "test/core/tholder.test.ts",
+      "group": "THolder",
+      "title": "should hold thresholds",
+      "assertions": 71,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.deepStrictEqual",
+        "assert.equal",
+        "assert.notEqual",
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 162
+    },
+    {
+      "file": "test/core/utils.test.ts",
+      "group": "<computed>",
+      "title": "serializes acdc data",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 17
+    },
+    {
+      "file": "test/core/utils.test.ts",
+      "group": "<computed>",
+      "title": "serializes iss data",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should allow optional toad and backers",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 29
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should allow optional toad and no backers",
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 18
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should create registry inception events ",
+      "assertions": 5,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 24
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail on NB config with backers",
+      "assertions": 1,
+      "helpers": [
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail with duplicate backers",
+      "assertions": 1,
+      "helpers": [
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail with invalid toad config for backers",
+      "assertions": 1,
+      "helpers": [
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/core/vdring.test.ts",
+      "group": "vdr",
+      "title": "should fail with invalid toad for no backers",
+      "assertions": 1,
+      "helpers": [
+        "assert.throws"
+      ],
+      "skipped": false,
+      "lines": 10
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer › Ed25519",
+      "title": "should create verfer",
+      "assertions": 2,
+      "helpers": [
+        "assert.deepStrictEqual"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer › Ed25519",
+      "title": "should create verfer from qb64",
+      "assertions": 1,
+      "helpers": [
+        "assert.deepStrictEqual"
+      ],
+      "skipped": false,
+      "lines": 14
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer › Ed25519",
+      "title": "should verify signature",
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer › secp256r1",
+      "title": "should create verfer",
+      "assertions": 3,
+      "helpers": [
+        "assert.deepStrictEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 13
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer › secp256r1",
+      "title": "should parse qb64",
+      "assertions": 1,
+      "helpers": [
+        "assert.deepStrictEqual"
+      ],
+      "skipped": false,
+      "lines": 14
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer › secp256r1",
+      "title": "should verify secp256r1",
+      "assertions": 2,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 23
+    },
+    {
+      "file": "test/core/verfer.test.ts",
+      "group": "Verfer",
+      "title": "should not verify secp256k1",
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "skipped": false,
+      "lines": 11
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "Combined headers",
+      "title": "Should create header",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 10
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "Combined headers",
+      "title": "Should parse hader",
+      "assertions": 18,
+      "helpers": [
+        "assert",
+        "assert.equal",
+        "assert.notEqual"
+      ],
+      "skipped": false,
+      "lines": 32
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed CESR signatures",
+      "title": "Should create headers",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 6
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed CESR signatures",
+      "title": "Should parse headers",
+      "assertions": 10,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 19
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed signatures",
+      "title": "Can create signature header",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 6
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When indexed signatures",
+      "title": "Can parse signature header",
+      "assertions": 6,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 15
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When named signatures",
+      "title": "Can create signature header",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 6
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When named signatures",
+      "title": "Can parse signature header",
+      "assertions": 6,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 15
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When non-indexed signatures",
+      "title": "Should create headers",
+      "assertions": 2,
+      "helpers": [
+        "assert.equal"
+      ],
+      "skipped": false,
+      "lines": 6
+    },
+    {
+      "file": "test/end/ending.test.ts",
+      "group": "When non-indexed signatures",
+      "title": "Should parse headers",
+      "assertions": 8,
+      "helpers": [
+        "assert",
+        "assert.equal",
+        "assert.notEqual"
+      ],
+      "skipped": false,
+      "lines": 16
+    }
+  ]
+}
