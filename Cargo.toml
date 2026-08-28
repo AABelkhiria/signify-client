@@ -8,6 +8,8 @@ members = [
     "crates/signify-crypto",
     "crates/signify-http",
     "crates/signify-keri",
+    "crates/signify-keria-systest",
+    "crates/signify-testkit",
     "crates/signify-types",
 ]
 

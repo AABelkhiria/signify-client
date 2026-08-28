@@ -35,7 +35,13 @@
 //! `Promise<ExchangeOperation>` for the same shape of POST to the same agent. Both are unchecked
 //! `res.json()` casts, so at most one is right and the pinned tree settles nothing — its only unit
 //! case ignores the answer. [`SentExchange`] therefore keeps the body and offers a decoder for each
-//! shape rather than imposing one; `PORTING.md` §10 raises the question for Roadmap 9.2.
+//! shape rather than imposing one; `PORTING.md` §10 raised the question for Roadmap 9.2.
+//!
+//! **Roadmap 9.2c answered it against a deployment: both paths answer with an operation.** So
+//! `sendFromEvents`'s `Promise<Exn>` is the wrong one, and [`SentExchange::operation`] is the
+//! decoder a real agent justifies. Keeping both is now shown to be necessary rather than merely
+//! cautious — a single declared return type would have been wrong for one of the two endpoints, and
+//! which one is not something the reference's own tree could have told anybody.
 //!
 //! # The route table and the classifiers
 //!
@@ -243,6 +249,10 @@ impl SignedExchange {
 /// it: `sendFromEvents` says `Exn` and `Ipex.submitGrant` says `ExchangeOperation`, for the same
 /// shape of POST to the same agent, both unchecked casts. Neither reading is imposed here; a caller
 /// decodes the one they expect and a wrong-shaped answer is refused rather than cast.
+///
+/// Roadmap 9.2c asked a live KERIA, which answers **both** paths with an operation — so
+/// [`Self::operation`] is the decoder to reach for, and [`Self::exchange`] is kept for the shape the
+/// reference declares rather than for one that has been seen.
 #[derive(Clone, Debug)]
 pub struct SentExchange {
     response: Vec<u8>,
@@ -278,7 +288,12 @@ impl SentExchange {
 
     /// Reads the answer as an exchange message.
     ///
-    /// This is what `sendFromEvents` itself declares.
+    /// This is what `sendFromEvents` itself declares — and Roadmap 9.2c found that the declaration
+    /// is **wrong**. A live KERIA 1.0.1 answers both this path and `/ipex/{route}` with an
+    /// operation, so [`Self::operation`] is the decoder a deployment justifies and this one has
+    /// never been observed to succeed against a real agent. It is kept rather than removed: the
+    /// reference declares it, the two shapes are disjoint so it cannot silently accept an
+    /// operation, and one deployment is evidence about that deployment. See `PORTING.md` §10.
     ///
     /// # Errors
     ///

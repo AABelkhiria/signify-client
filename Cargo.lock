@@ -1273,6 +1273,7 @@ dependencies = [
  "signify-crypto",
  "signify-http",
  "signify-keri",
+ "signify-testkit",
  "signify-types",
  "tokio",
 ]
@@ -1326,6 +1327,28 @@ dependencies = [
  "signify-cesr",
  "signify-crypto",
  "signify-types",
+]
+
+[[package]]
+name = "signify-keria-systest"
+version = "0.0.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "signify-client",
+ "signify-crypto",
+ "signify-http",
+ "signify-keri",
+ "signify-types",
+ "tokio",
+]
+
+[[package]]
+name = "signify-testkit"
+version = "0.0.0"
+dependencies = [
+ "signify-crypto",
+ "signify-http",
 ]
 
 [[package]]

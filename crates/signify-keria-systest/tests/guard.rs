@@ -1,0 +1,122 @@
+//! The one test in this crate that is **not** ignored.
+//!
+//! Every other test here talks to a live KERIA, and `AGENTS.md` §16 forbids live network services
+//! in default tests outright. The mechanism that keeps them out is `#[ignore]` — a cargo feature
+//! would not, because `cargo test --workspace --all-features` turns every feature on.
+//!
+//! `#[ignore]` is a thing a person has to remember, and this crate is where someone will one day
+//! add a scenario in a hurry. So the rule is checked rather than remembered: this test reads the
+//! crate's own test sources and fails if any test function is missing its attribute.
+
+use std::error::Error;
+use std::fs;
+use std::path::Path;
+
+/// Returns every live scenario file — those named `wave*.rs` — with its source.
+fn scenario_sources() -> Result<Vec<(String, String)>, Box<dyn Error>> {
+    let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
+    let mut sources = Vec::new();
+    for entry in fs::read_dir(&directory)? {
+        let path = entry?.path();
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default()
+            .to_owned();
+        // `wave*.rs` files talk to a deployment; everything else in this directory reads a
+        // checked-in recording and belongs in the default suite. The convention is enforced here
+        // rather than assumed, and named in the crate documentation.
+        let is_rust = path
+            .extension()
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("rs"));
+        if !name.starts_with("wave") || !is_rust {
+            continue;
+        }
+        sources.push((name, fs::read_to_string(&path)?));
+    }
+    sources.sort();
+    Ok(sources)
+}
+
+#[test]
+fn every_live_test_is_ignored_by_default() -> Result<(), Box<dyn Error>> {
+    let mut unguarded = Vec::new();
+
+    for (name, source) in scenario_sources()? {
+        let lines: Vec<&str> = source.lines().collect();
+        for (index, line) in lines.iter().enumerate() {
+            let trimmed = line.trim();
+            if !(trimmed.starts_with("fn ") || trimmed.starts_with("async fn ")) {
+                continue;
+            }
+            // Walk back over the attributes attached to this function.
+            let mut attributes = Vec::new();
+            let mut cursor = index;
+            while cursor > 0 {
+                cursor -= 1;
+                let above = lines.get(cursor).map(|line| line.trim()).unwrap_or_default();
+                if above.starts_with("#[") || above.starts_with("//") || above.is_empty() {
+                    if above.starts_with("#[") {
+                        attributes.push(above);
+                    }
+                    if above.is_empty() && !attributes.is_empty() {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            let is_test = attributes
+                .iter()
+                .any(|attribute| attribute.contains("#[test]") || attribute.contains("test]"));
+            if !is_test {
+                continue;
+            }
+            let ignored = attributes.iter().any(|attribute| attribute.contains("#[ignore"));
+            if !ignored {
+                unguarded.push(format!("{name}:{} — {trimmed}", index + 1));
+            }
+        }
+    }
+
+    assert!(
+        unguarded.is_empty(),
+        "these tests talk to a live KERIA and would run in the default suite: {unguarded:#?}"
+    );
+    Ok(())
+}
+
+#[test]
+fn the_live_scenarios_are_named_so_the_guard_can_find_them() -> Result<(), Box<dyn Error>> {
+    // The guard above trusts a naming convention, so the convention has to be real: there must be
+    // live scenarios for it to be guarding, and they must be where it looks.
+    let live = scenario_sources()?;
+    assert!(
+        !live.is_empty(),
+        "no `wave*.rs` scenarios exist, so the guard checks nothing"
+    );
+    for (name, source) in &live {
+        assert!(
+            source.contains("#[ignore"),
+            "{name} is a live scenario file with no ignored test in it"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn the_crate_documents_how_to_run_its_tests() -> Result<(), Box<dyn Error>> {
+    // A convention nobody can find is not a convention. The invocation belongs where a reader
+    // looking at the crate will meet it.
+    let lib = fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs"))?;
+    assert!(lib.contains("--ignored"), "the crate does not say how to run its tests");
+    assert!(
+        lib.contains("--test-threads=1"),
+        "the crate does not say that recording runs must be serial"
+    );
+    assert!(
+        lib.contains("SIGNIFY_KERIA_PRESET"),
+        "the crate does not name the variable that selects a deployment"
+    );
+    Ok(())
+}

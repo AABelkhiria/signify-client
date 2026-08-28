@@ -1,0 +1,2907 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-08-28",
+  "note": "Every scenario the pinned checkout's integration suite declares, decomposed by API call because four of its files are a single case each. `ledger.json` beside this file answers each scenario; `crates/signify-client/tests/keria_integration_audit.rs` requires the two to agree.",
+  "totals": {
+    "files": 22,
+    "support_files": 6,
+    "cases": 35,
+    "lines": 7070,
+    "assertions": 419,
+    "api_calls": 502,
+    "defects": 21
+  },
+  "runner": {
+    "file": "vitest.integration.ts",
+    "file_parallelism": false,
+    "bail": "1",
+    "test_timeout_ms": "60000",
+    "note": "`fileParallelism: false` with `bail: 1` — the first failure aborts the suite, and nothing is designed to run in parallel against one agent."
+  },
+  "files": [
+    {
+      "file": "test-integration/challenge.test.ts",
+      "cases": 1,
+      "lines": 100,
+      "assertions": 7,
+      "api_calls": [
+        {
+          "family": "challenges",
+          "method": "generate",
+          "count": 2
+        },
+        {
+          "family": "challenges",
+          "method": "respond",
+          "count": 1
+        },
+        {
+          "family": "challenges",
+          "method": "responded",
+          "count": 1
+        },
+        {
+          "family": "challenges",
+          "method": "verify",
+          "count": 1
+        },
+        {
+          "family": "contacts",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 2
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "resolveOobi",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/credentials.test.ts",
+      "cases": 1,
+      "lines": 743,
+      "assertions": 68,
+      "api_calls": [
+        {
+          "family": "credentials",
+          "method": "delete",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "get",
+          "count": 10
+        },
+        {
+          "family": "credentials",
+          "method": "issue",
+          "count": 2
+        },
+        {
+          "family": "credentials",
+          "method": "list",
+          "count": 8
+        },
+        {
+          "family": "credentials",
+          "method": "revoke",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "state",
+          "count": 1
+        },
+        {
+          "family": "exchanges",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "ipex",
+          "method": "admit",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "agree",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "apply",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "grant",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "offer",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitAdmit",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "submitAgree",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitApply",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitGrant",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "submitOffer",
+          "count": 1
+        },
+        {
+          "family": "registries",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 3
+        },
+        {
+          "family": "registries",
+          "method": "rename",
+          "count": 1
+        },
+        {
+          "family": "schemas",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "schemas",
+          "method": "list",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertNoNotifications",
+        "assertNotifications",
+        "assertOperations",
+        "createAid",
+        "createTimestamp",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "markAndRemoveNotification",
+        "resolveEnvironment",
+        "resolveOobi",
+        "retry",
+        "step",
+        "waitAndMarkNotification",
+        "waitForNotifications",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 4,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": true,
+        "oobis": true
+      },
+      "shared_state": [
+        "issuerClient",
+        "holderClient",
+        "verifierClient",
+        "legalEntityClient",
+        "issuerAid",
+        "holderAid",
+        "verifierAid",
+        "legalEntityAid",
+        "applySaid",
+        "offerSaid",
+        "agreeSaid",
+        "qviGrantSaid",
+        "presentationGrantSaid",
+        "leGrantSaid",
+        "qviAdmitSaid",
+        "presentationAdmitSaid",
+        "leAdmitSaid"
+      ],
+      "defects": 1
+    },
+    {
+      "file": "test-integration/delegation-multisig.test.ts",
+      "cases": 1,
+      "lines": 346,
+      "assertions": 11,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 4
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 6
+        }
+      ],
+      "shared_helpers_used": [
+        "acceptMultisigIncept",
+        "addEndRoleMultisig",
+        "assertNoNotifications",
+        "assertNotifications",
+        "assertOperations",
+        "createAID",
+        "createTimestamp",
+        "delegateMultisig",
+        "getOrCreateClient",
+        "getOrCreateContact",
+        "markAndRemoveNotification",
+        "resolveOobi",
+        "startMultisigIncept",
+        "step",
+        "waitForNotifications",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 4,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/delegation.test.ts",
+      "cases": 1,
+      "lines": 93,
+      "assertions": 3,
+      "api_calls": [
+        {
+          "family": "delegations",
+          "method": "approve",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 2
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "resolveOobi",
+        "retry",
+        "step",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/endpoints.test.ts",
+      "cases": 2,
+      "lines": 69,
+      "assertions": 6,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "addLocScheme",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "getEndRoles",
+        "getOrCreateClient",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 1,
+        "witnesses": false,
+        "witnesses_named": false,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [
+        "client",
+        "cid"
+      ],
+      "defects": 1
+    },
+    {
+      "file": "test-integration/endroles-by-aid.test.ts",
+      "cases": 5,
+      "lines": 179,
+      "assertions": 13,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "notifications",
+          "method": "mark",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "endroles",
+          "count": 5
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 3
+        }
+      ],
+      "shared_helpers_used": [
+        "acceptMultisigIncept",
+        "addEndRoleMultisig",
+        "assertOperations",
+        "getOrCreateClient",
+        "getOrCreateIdentifier",
+        "resolveOobi",
+        "startMultisigIncept",
+        "waitForNotifications",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 3,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [
+        "client1",
+        "client2",
+        "aliceClient",
+        "aid1",
+        "aid2",
+        "groupAid",
+        "agentEids"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/externalModule.test.ts",
+      "cases": 1,
+      "lines": 29,
+      "assertions": 1,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClient",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 1,
+        "witnesses": false,
+        "witnesses_named": false,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/multisig-holder.test.ts",
+      "cases": 1,
+      "lines": 592,
+      "assertions": 5,
+      "api_calls": [
+        {
+          "family": "credentials",
+          "method": "issue",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "list",
+          "count": 3
+        },
+        {
+          "family": "exchanges",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 5
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 4
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 12
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "admit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "grant",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitAdmit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitGrant",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "oobis",
+          "method": "resolve",
+          "count": 10
+        },
+        {
+          "family": "registries",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 2
+        }
+      ],
+      "shared_helpers_used": [
+        "acceptMultisigIncept",
+        "assertNoNotifications",
+        "assertNotifications",
+        "assertOperations",
+        "createAID",
+        "createTimestamp",
+        "getOrCreateClient",
+        "getOrCreateIdentifier",
+        "resolveEnvironment",
+        "startMultisigIncept",
+        "waitAndMarkNotification",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 3,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": true,
+        "oobis": true
+      },
+      "shared_state": [
+        "atc"
+      ],
+      "defects": 4
+    },
+    {
+      "file": "test-integration/multisig-inception.test.ts",
+      "cases": 1,
+      "lines": 135,
+      "assertions": 9,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 1
+        },
+        {
+          "family": "notifications",
+          "method": "mark",
+          "count": 2
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 2
+        }
+      ],
+      "shared_helpers_used": [
+        "acceptMultisigIncept",
+        "getOrCreateClient",
+        "getOrCreateIdentifier",
+        "resolveOobi",
+        "startMultisigIncept",
+        "step",
+        "waitForNotifications",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 3
+    },
+    {
+      "file": "test-integration/multisig-join.test.ts",
+      "cases": 4,
+      "lines": 640,
+      "assertions": 25,
+      "api_calls": [
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 3
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 2
+        },
+        {
+          "family": "groups",
+          "method": "join",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 10
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 13
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 13
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 7
+        },
+        {
+          "family": "oobis",
+          "method": "resolve",
+          "count": 8
+        }
+      ],
+      "shared_helpers_used": [
+        "acceptMultisigIncept",
+        "createAID",
+        "getOrCreateClient",
+        "getOrCreateIdentifier",
+        "markNotification",
+        "startMultisigIncept",
+        "waitAndMarkNotification",
+        "waitForNotifications",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 7,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 4
+    },
+    {
+      "file": "test-integration/multisig-vlei-issuance.test.ts",
+      "cases": 1,
+      "lines": 1336,
+      "assertions": 70,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 16
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 3
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 25
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 16
+        }
+      ],
+      "shared_helpers_used": [
+        "addEndRoleMultisig",
+        "admitMultisig",
+        "admitSinglesig",
+        "assertNoNotifications",
+        "createAIDMultisig",
+        "createRegistryMultisig",
+        "createTimestamp",
+        "delegateMultisig",
+        "getIssuedCredential",
+        "getOrCreateAID",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getReceivedCredential",
+        "grantMultisig",
+        "issueCredentialMultisig",
+        "resolveEnvironment",
+        "resolveOobi",
+        "waitAndMarkNotification",
+        "waitForCredential",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 9,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": false,
+        "vlei": true,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 4
+    },
+    {
+      "file": "test-integration/multisig.test.ts",
+      "cases": 1,
+      "lines": 1343,
+      "assertions": 13,
+      "api_calls": [
+        {
+          "family": "challenges",
+          "method": "generate",
+          "count": 1
+        },
+        {
+          "family": "challenges",
+          "method": "respond",
+          "count": 2
+        },
+        {
+          "family": "challenges",
+          "method": "responded",
+          "count": 2
+        },
+        {
+          "family": "challenges",
+          "method": "verify",
+          "count": 2
+        },
+        {
+          "family": "credentials",
+          "method": "issue",
+          "count": 3
+        },
+        {
+          "family": "credentials",
+          "method": "list",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "revoke",
+          "count": 3
+        },
+        {
+          "family": "exchanges",
+          "method": "get",
+          "count": 1
+        },
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 20
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 16
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 16
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 6
+        },
+        {
+          "family": "ipex",
+          "method": "admit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "grant",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "submitAdmit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitGrant",
+          "count": 3
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 13
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "oobis",
+          "method": "resolve",
+          "count": 17
+        },
+        {
+          "family": "registries",
+          "method": "create",
+          "count": 3
+        }
+      ],
+      "shared_helpers_used": [
+        "assertNoNotifications",
+        "assertNotifications",
+        "assertOperations",
+        "createAID",
+        "getOrCreateClient",
+        "getOrCreateIdentifier",
+        "resolveEnvironment",
+        "waitAndMarkNotification",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 4,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": true,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 2
+    },
+    {
+      "file": "test-integration/randy.test.ts",
+      "cases": 1,
+      "lines": 65,
+      "assertions": 20,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClient",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 1,
+        "witnesses": false,
+        "witnesses_named": false,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/salty.test.ts",
+      "cases": 1,
+      "lines": 166,
+      "assertions": 59,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 6
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "update",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClient",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 1,
+        "witnesses": false,
+        "witnesses_named": false,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/singlesig-dip.test.ts",
+      "cases": 1,
+      "lines": 101,
+      "assertions": 4,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 6
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 2
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 3
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getOrCreateIdentifier",
+        "resolveEnvironment",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [
+        "client1",
+        "client2",
+        "name1_id",
+        "name1_oobi",
+        "contact1_id"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/singlesig-drt.test.ts",
+      "cases": 1,
+      "lines": 87,
+      "assertions": 4,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 2
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getOrCreateIdentifier",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [
+        "delegator",
+        "delegate",
+        "name1_id",
+        "name1_oobi",
+        "contact1_id"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/singlesig-ixn.test.ts",
+      "cases": 2,
+      "lines": 71,
+      "assertions": 9,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 1
+        },
+        {
+          "family": "keyStates",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getOrCreateIdentifier",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [
+        "client1",
+        "client2",
+        "name1_id",
+        "name1_oobi",
+        "contact1_id"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/singlesig-rot.test.ts",
+      "cases": 2,
+      "lines": 82,
+      "assertions": 15,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        },
+        {
+          "family": "keyStates",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getOrCreateIdentifier",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [
+        "client1",
+        "client2",
+        "name1_id",
+        "name1_oobi",
+        "contact1_id"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/singlesig-vlei-issuance.test.ts",
+      "cases": 1,
+      "lines": 694,
+      "assertions": 55,
+      "api_calls": [
+        {
+          "family": "ipex",
+          "method": "admit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "grant",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitAdmit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitGrant",
+          "count": 1
+        },
+        {
+          "family": "registries",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 2
+        }
+      ],
+      "shared_helpers_used": [
+        "assertNotifications",
+        "assertOperations",
+        "createAid",
+        "createTimestamp",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getOrIssueCredential",
+        "getReceivedCredential",
+        "markAndRemoveNotification",
+        "resolveEnvironment",
+        "resolveOobi",
+        "retry",
+        "waitAndMarkNotification",
+        "waitForNotifications",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 4,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": true,
+        "oobis": true
+      },
+      "shared_state": [
+        "registries",
+        "op",
+        "op"
+      ],
+      "defects": 1
+    },
+    {
+      "file": "test-integration/test-setup-clients.test.ts",
+      "cases": 2,
+      "lines": 39,
+      "assertions": 2,
+      "api_calls": [],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateContact",
+        "getOrCreateIdentifier"
+      ],
+      "infrastructure": {
+        "clients": 2,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": false
+      },
+      "shared_state": [
+        "client1",
+        "client2",
+        "name1_id",
+        "name1_oobi",
+        "name2_id",
+        "name2_oobi",
+        "contact1_id",
+        "contact2_id"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/test-setup-single-client.test.ts",
+      "cases": 3,
+      "lines": 103,
+      "assertions": 12,
+      "api_calls": [
+        {
+          "family": "config",
+          "method": "get",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 1
+        }
+      ],
+      "shared_helpers_used": [
+        "assertOperations",
+        "getOrCreateClients",
+        "getOrCreateIdentifier",
+        "resolveEnvironment"
+      ],
+      "infrastructure": {
+        "clients": 1,
+        "witnesses": true,
+        "witnesses_named": false,
+        "witnesses_inherited": true,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [
+        "client",
+        "name1_id",
+        "name1_oobi"
+      ],
+      "defects": 0
+    },
+    {
+      "file": "test-integration/witness.test.ts",
+      "cases": 1,
+      "lines": 57,
+      "assertions": 8,
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 3
+        }
+      ],
+      "shared_helpers_used": [
+        "getOrCreateClient",
+        "resolveEnvironment",
+        "resolveOobi",
+        "waitOperation"
+      ],
+      "infrastructure": {
+        "clients": 1,
+        "witnesses": true,
+        "witnesses_named": true,
+        "witnesses_inherited": false,
+        "vlei": false,
+        "oobis": true
+      },
+      "shared_state": [],
+      "defects": 1
+    }
+  ],
+  "families": [
+    {
+      "family": "challenges",
+      "calls": 12
+    },
+    {
+      "family": "config",
+      "calls": 1
+    },
+    {
+      "family": "contacts",
+      "calls": 2
+    },
+    {
+      "family": "credentials",
+      "calls": 34
+    },
+    {
+      "family": "delegations",
+      "calls": 1
+    },
+    {
+      "family": "exchanges",
+      "calls": 35
+    },
+    {
+      "family": "groups",
+      "calls": 21
+    },
+    {
+      "family": "identifiers",
+      "calls": 176
+    },
+    {
+      "family": "ipex",
+      "calls": 34
+    },
+    {
+      "family": "keyStates",
+      "calls": 51
+    },
+    {
+      "family": "notifications",
+      "calls": 3
+    },
+    {
+      "family": "oobis",
+      "calls": 98
+    },
+    {
+      "family": "registries",
+      "calls": 31
+    },
+    {
+      "family": "schemas",
+      "calls": 3
+    }
+  ],
+  "defect_counts": {
+    "local_reimplementation": 7,
+    "no_operation_teardown": 5,
+    "module_scope_timestamp": 1,
+    "bare_sleep": 2,
+    "commented_assertion": 2,
+    "wall_clock_identifier": 1,
+    "swallowing_catch": 3
+  },
+  "defects": [
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/credentials.test.ts",
+      "line": 40,
+      "text": "createTimestamp is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "no_operation_teardown",
+      "file": "test-integration/endpoints.test.ts",
+      "line": 1,
+      "text": "the file never calls assertOperations"
+    },
+    {
+      "kind": "module_scope_timestamp",
+      "file": "test-integration/multisig-holder.test.ts",
+      "line": 34,
+      "text": "const TIME = createTimestamp();"
+    },
+    {
+      "kind": "bare_sleep",
+      "file": "test-integration/multisig-holder.test.ts",
+      "line": 460,
+      "text": "await new Promise((resolve) => setTimeout(resolve, 1000));"
+    },
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/multisig-holder.test.ts",
+      "line": 471,
+      "text": "createAID is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/multisig-holder.test.ts",
+      "line": 535,
+      "text": "createTimestamp is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "commented_assertion",
+      "file": "test-integration/multisig-inception.test.ts",
+      "line": 131,
+      "text": "// assert.strictEqual(members.signing.length, 2);"
+    },
+    {
+      "kind": "commented_assertion",
+      "file": "test-integration/multisig-inception.test.ts",
+      "line": 132,
+      "text": "// assert.strictEqual(members.rotating.length, 2);"
+    },
+    {
+      "kind": "no_operation_teardown",
+      "file": "test-integration/multisig-inception.test.ts",
+      "line": 1,
+      "text": "the file never calls assertOperations"
+    },
+    {
+      "kind": "wall_clock_identifier",
+      "file": "test-integration/multisig-join.test.ts",
+      "line": 408,
+      "text": "const suffix = Date.now().toString(36);"
+    },
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/multisig-join.test.ts",
+      "line": 579,
+      "text": "createAID is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/multisig-join.test.ts",
+      "line": 587,
+      "text": "waitAndMarkNotification is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "no_operation_teardown",
+      "file": "test-integration/multisig-join.test.ts",
+      "line": 1,
+      "text": "the file never calls assertOperations"
+    },
+    {
+      "kind": "swallowing_catch",
+      "file": "test-integration/multisig-vlei-issuance.test.ts",
+      "line": 206,
+      "text": "} catch {"
+    },
+    {
+      "kind": "swallowing_catch",
+      "file": "test-integration/multisig-vlei-issuance.test.ts",
+      "line": 308,
+      "text": "} catch {"
+    },
+    {
+      "kind": "swallowing_catch",
+      "file": "test-integration/multisig-vlei-issuance.test.ts",
+      "line": 696,
+      "text": "} catch {"
+    },
+    {
+      "kind": "no_operation_teardown",
+      "file": "test-integration/multisig-vlei-issuance.test.ts",
+      "line": 1,
+      "text": "the file never calls assertOperations"
+    },
+    {
+      "kind": "bare_sleep",
+      "file": "test-integration/multisig.test.ts",
+      "line": 709,
+      "text": "await new Promise((resolve) => setTimeout(resolve, 5000));"
+    },
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/multisig.test.ts",
+      "line": 1258,
+      "text": "createAID is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "local_reimplementation",
+      "file": "test-integration/singlesig-vlei-issuance.test.ts",
+      "line": 119,
+      "text": "createTimestamp is exported by utils/ and redefined here"
+    },
+    {
+      "kind": "no_operation_teardown",
+      "file": "test-integration/witness.test.ts",
+      "line": 1,
+      "text": "the file never calls assertOperations"
+    }
+  ],
+  "cases": [
+    {
+      "file": "test-integration/challenge.test.ts",
+      "group": "",
+      "title": "challenge",
+      "line": 10,
+      "lines": 90,
+      "assertions": 7,
+      "helpers": [
+        "assert",
+        "assert.equal",
+        "assert.strictEqual"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "challenges",
+          "method": "generate",
+          "count": 2
+        },
+        {
+          "family": "challenges",
+          "method": "respond",
+          "count": 1
+        },
+        {
+          "family": "challenges",
+          "method": "responded",
+          "count": 1
+        },
+        {
+          "family": "challenges",
+          "method": "verify",
+          "count": 1
+        },
+        {
+          "family": "contacts",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/credentials.test.ts",
+      "group": "",
+      "title": "single signature credentials",
+      "line": 106,
+      "lines": 637,
+      "assertions": 68,
+      "helpers": [
+        "assert",
+        "assert.equal",
+        "assert.strictEqual",
+        "expect"
+      ],
+      "steps": [
+        "Resolve schema oobis",
+        "Create registry",
+        "issuer can get schemas",
+        "holder can list schemas",
+        "create QVI credential",
+        "issuer list credentials",
+        "issuer list credentials with filter",
+        "issuer get credential by id",
+        "issuer IPEX grant",
+        "holder can get the credential status before or without holding",
+        "holder IPEX admit",
+        "issuer IPEX grant response",
+        "holder has credential",
+        "verifier IPEX apply",
+        "holder IPEX apply receive and offer",
+        "verifier receive offer and agree",
+        "holder IPEX receive agree and grant/present",
+        "verifier receives IPEX grant",
+        "holder IPEX present response",
+        "holder create registry for LE credential",
+        "holder create LE (chained) credential",
+        "LE credential IPEX grant",
+        "Legal Entity IPEX admit",
+        "LE credential IPEX grant response",
+        "Legal Entity has chained credential",
+        "Issuer revoke QVI credential",
+        "Holder deletes LE credential"
+      ],
+      "api_calls": [
+        {
+          "family": "credentials",
+          "method": "delete",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "get",
+          "count": 10
+        },
+        {
+          "family": "credentials",
+          "method": "issue",
+          "count": 2
+        },
+        {
+          "family": "credentials",
+          "method": "list",
+          "count": 8
+        },
+        {
+          "family": "credentials",
+          "method": "revoke",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "state",
+          "count": 1
+        },
+        {
+          "family": "exchanges",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "ipex",
+          "method": "admit",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "agree",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "apply",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "grant",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "offer",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitAdmit",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "submitAgree",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitApply",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitGrant",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "submitOffer",
+          "count": 1
+        },
+        {
+          "family": "registries",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 3
+        },
+        {
+          "family": "registries",
+          "method": "rename",
+          "count": 1
+        },
+        {
+          "family": "schemas",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "schemas",
+          "method": "list",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/delegation-multisig.test.ts",
+      "group": "",
+      "title": "delegation-multisig",
+      "line": 31,
+      "lines": 315,
+      "assertions": 11,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "steps": [
+        "Creating single sig clients",
+        "Creating single sig aids",
+        "Getting OOBIs before resolving...",
+        "Resolving OOBIs",
+        "delegator anchors/approves delegation"
+      ],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 4
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "file": "test-integration/delegation.test.ts",
+      "group": "",
+      "title": "delegation",
+      "line": 12,
+      "lines": 81,
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [
+        "delegator approves delegation"
+      ],
+      "api_calls": [
+        {
+          "family": "delegations",
+          "method": "approve",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endpoints.test.ts",
+      "group": "endpoint authorisation",
+      "title": "can authorise agent role for KERIA",
+      "line": 20,
+      "lines": 19,
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endpoints.test.ts",
+      "group": "endpoint authorisation",
+      "title": "can authorise an endpoint we control",
+      "line": 40,
+      "lines": 28,
+      "assertions": 3,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "addLocScheme",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endroles-by-aid.test.ts",
+      "group": "endroles-by-aid",
+      "title": "alice queries /endroles/{aid}",
+      "line": 137,
+      "lines": 8,
+      "assertions": 4,
+      "helpers": [
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "oobis",
+          "method": "endroles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endroles-by-aid.test.ts",
+      "group": "endroles-by-aid",
+      "title": "alice queries /endroles/{aid}/agent",
+      "line": 146,
+      "lines": 10,
+      "assertions": 4,
+      "helpers": [
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "oobis",
+          "method": "endroles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endroles-by-aid.test.ts",
+      "group": "endroles-by-aid",
+      "title": "alice queries her own AID returns her agent eid",
+      "line": 171,
+      "lines": 7,
+      "assertions": 3,
+      "helpers": [
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "endroles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endroles-by-aid.test.ts",
+      "group": "endroles-by-aid",
+      "title": "alice queries non-existent role returns empty",
+      "line": 157,
+      "lines": 6,
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "oobis",
+          "method": "endroles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/endroles-by-aid.test.ts",
+      "group": "endroles-by-aid",
+      "title": "alice queries unknown AID returns empty",
+      "line": 164,
+      "lines": 6,
+      "assertions": 1,
+      "helpers": [
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "oobis",
+          "method": "endroles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/externalModule.test.ts",
+      "group": "",
+      "title": "bip39_shim",
+      "line": 10,
+      "lines": 19,
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-holder.test.ts",
+      "group": "",
+      "title": "multisig",
+      "line": 36,
+      "lines": 434,
+      "assertions": 5,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "credentials",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "exchanges",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 4
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 4
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 9
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 1
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "oobis",
+          "method": "resolve",
+          "count": 10
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-inception.test.ts",
+      "group": "",
+      "title": "multisig inception",
+      "line": 16,
+      "lines": 119,
+      "assertions": 9,
+      "helpers": [
+        "assert",
+        "assert.strictEqual"
+      ],
+      "steps": [
+        "Resolve oobis",
+        "Create multisig group",
+        "Test creating another group"
+      ],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 1
+        },
+        {
+          "family": "notifications",
+          "method": "mark",
+          "count": 2
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-join.test.ts",
+      "group": "multisig-join",
+      "title": "can replace a group member under a 3-of-3 threshold",
+      "line": 407,
+      "lines": 170,
+      "assertions": 6,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-join.test.ts",
+      "group": "multisig-join",
+      "title": "Rotate again to get aid3 to current signing keys and join",
+      "line": 284,
+      "lines": 122,
+      "assertions": 8,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 1
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 1
+        },
+        {
+          "family": "groups",
+          "method": "join",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 4
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-join.test.ts",
+      "group": "multisig-join",
+      "title": "should add member3 to multisig",
+      "line": 172,
+      "lines": 112,
+      "assertions": 7,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 3
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 6
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "oobis",
+          "method": "resolve",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-join.test.ts",
+      "group": "multisig-join",
+      "title": "should create multisig",
+      "line": 70,
+      "lines": 101,
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 1
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig-vlei-issuance.test.ts",
+      "group": "",
+      "title": "multisig-vlei-issuance",
+      "line": 84,
+      "lines": 1252,
+      "assertions": 70,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 16
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 3
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 25
+        },
+        {
+          "family": "registries",
+          "method": "list",
+          "count": 16
+        }
+      ]
+    },
+    {
+      "file": "test-integration/multisig.test.ts",
+      "group": "",
+      "title": "multisig",
+      "line": 40,
+      "lines": 1217,
+      "assertions": 13,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "challenges",
+          "method": "generate",
+          "count": 1
+        },
+        {
+          "family": "challenges",
+          "method": "respond",
+          "count": 2
+        },
+        {
+          "family": "challenges",
+          "method": "responded",
+          "count": 2
+        },
+        {
+          "family": "challenges",
+          "method": "verify",
+          "count": 2
+        },
+        {
+          "family": "credentials",
+          "method": "issue",
+          "count": 3
+        },
+        {
+          "family": "credentials",
+          "method": "list",
+          "count": 1
+        },
+        {
+          "family": "credentials",
+          "method": "revoke",
+          "count": 3
+        },
+        {
+          "family": "exchanges",
+          "method": "get",
+          "count": 1
+        },
+        {
+          "family": "exchanges",
+          "method": "send",
+          "count": 18
+        },
+        {
+          "family": "groups",
+          "method": "getRequest",
+          "count": 16
+        },
+        {
+          "family": "identifiers",
+          "method": "addEndRole",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 11
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "members",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 6
+        },
+        {
+          "family": "ipex",
+          "method": "admit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "grant",
+          "count": 3
+        },
+        {
+          "family": "ipex",
+          "method": "submitAdmit",
+          "count": 1
+        },
+        {
+          "family": "ipex",
+          "method": "submitGrant",
+          "count": 3
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 13
+        },
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 5
+        },
+        {
+          "family": "oobis",
+          "method": "resolve",
+          "count": 17
+        },
+        {
+          "family": "registries",
+          "method": "create",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "file": "test-integration/randy.test.ts",
+      "group": "",
+      "title": "randy",
+      "line": 9,
+      "lines": 56,
+      "assertions": 20,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal",
+        "assert.notEqual",
+        "assert.ok"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/salty.test.ts",
+      "group": "",
+      "title": "salty",
+      "line": 9,
+      "lines": 157,
+      "assertions": 59,
+      "helpers": [
+        "assert.deepEqual",
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 3
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "list",
+          "count": 6
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "update",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-dip.test.ts",
+      "group": "singlesig-dip",
+      "title": "delegate1a",
+      "line": 30,
+      "lines": 70,
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 6
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 2
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-drt.test.ts",
+      "group": "singlesig-drt",
+      "title": "delegate1a",
+      "line": 33,
+      "lines": 53,
+      "assertions": 4,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 2
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-ixn.test.ts",
+      "group": "singlesig-ixn",
+      "title": "ixn1",
+      "line": 41,
+      "lines": 29,
+      "assertions": 5,
+      "helpers": [
+        "assert.equal",
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "interact",
+          "count": 1
+        },
+        {
+          "family": "keyStates",
+          "method": "get",
+          "count": 3
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-ixn.test.ts",
+      "group": "singlesig-ixn",
+      "title": "step1",
+      "line": 29,
+      "lines": 12,
+      "assertions": 4,
+      "helpers": [
+        "assert.equal",
+        "assert.strictEqual"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "keyStates",
+          "method": "get",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-rot.test.ts",
+      "group": "singlesig-rot",
+      "title": "rot1",
+      "line": 41,
+      "lines": 40,
+      "assertions": 11,
+      "helpers": [
+        "assert.equal",
+        "assert.strictEqual",
+        "expect"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 1
+        },
+        {
+          "family": "keyStates",
+          "method": "get",
+          "count": 3
+        },
+        {
+          "family": "keyStates",
+          "method": "query",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-rot.test.ts",
+      "group": "singlesig-rot",
+      "title": "step1",
+      "line": 29,
+      "lines": 12,
+      "assertions": 4,
+      "helpers": [
+        "assert.equal",
+        "assert.strictEqual"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "keyStates",
+          "method": "get",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "file": "test-integration/singlesig-vlei-issuance.test.ts",
+      "group": "",
+      "title": "singlesig-vlei-issuance",
+      "line": 123,
+      "lines": 481,
+      "assertions": 55,
+      "helpers": [
+        "assert",
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": []
+    },
+    {
+      "file": "test-integration/test-setup-clients.test.ts",
+      "group": "test-setup-clients",
+      "title": "step1",
+      "line": 32,
+      "lines": 3,
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": []
+    },
+    {
+      "file": "test-integration/test-setup-clients.test.ts",
+      "group": "test-setup-clients",
+      "title": "step2",
+      "line": 35,
+      "lines": 3,
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": []
+    },
+    {
+      "file": "test-integration/test-setup-single-client.test.ts",
+      "group": "test-setup-single-client",
+      "title": "step1",
+      "line": 24,
+      "lines": 6,
+      "assertions": 1,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": []
+    },
+    {
+      "file": "test-integration/test-setup-single-client.test.ts",
+      "group": "test-setup-single-client",
+      "title": "step2",
+      "line": 31,
+      "lines": 43,
+      "assertions": 9,
+      "helpers": [
+        "assert.equal",
+        "assert.strictEqual"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "oobis",
+          "method": "get",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/test-setup-single-client.test.ts",
+      "group": "test-setup-single-client",
+      "title": "validate config",
+      "line": 75,
+      "lines": 27,
+      "assertions": 2,
+      "helpers": [
+        "assert.deepEqual"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "config",
+          "method": "get",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "file": "test-integration/witness.test.ts",
+      "group": "",
+      "title": "test witness",
+      "line": 13,
+      "lines": 44,
+      "assertions": 8,
+      "helpers": [
+        "assert.equal"
+      ],
+      "steps": [],
+      "api_calls": [
+        {
+          "family": "identifiers",
+          "method": "create",
+          "count": 1
+        },
+        {
+          "family": "identifiers",
+          "method": "get",
+          "count": 4
+        },
+        {
+          "family": "identifiers",
+          "method": "rotate",
+          "count": 3
+        }
+      ]
+    }
+  ]
+}

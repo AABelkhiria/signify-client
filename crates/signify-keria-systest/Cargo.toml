@@ -1,0 +1,29 @@
+[package]
+name = "signify-keria-systest"
+version = "0.0.0"
+description = "Opt-in system tests that record a live KERIA deployment's answers as fixtures"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+signify-client = { path = "../signify-client" }
+signify-crypto = { path = "../signify-crypto" }
+signify-keri = { path = "../signify-keri" }
+signify-types = { path = "../signify-types" }
+signify-http = { path = "../signify-http" }
+
+[features]
+# The production transport, and with it a TLS stack. Off by default so the workspace's ordinary
+# build graph does not carry hyper and rustls for a crate most builds never run.
+live = ["signify-http/http-client"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true

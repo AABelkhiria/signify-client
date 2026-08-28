@@ -632,6 +632,8 @@ const fn limit_of(reason: StopReason) -> PollingLimit {
 
 #[cfg(test)]
 mod tests {
+    use signify_types::api::EchoedSequence;
+
     use super::*;
     use signify_types::api::{Anchor, KelResponse, KeyState, OperationStatus};
     use std::error::Error;
@@ -756,7 +758,7 @@ mod tests {
         assert!(
             QueryMetadata {
                 pre: "E".to_owned(),
-                sn: 0,
+                sn: EchoedSequence::Number(0),
                 anchor: None
             }
             .dependency()

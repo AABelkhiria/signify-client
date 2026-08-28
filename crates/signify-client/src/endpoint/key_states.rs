@@ -16,6 +16,15 @@
 //!   that passes a computed value hands over a key state's `s` — a field the protocol writes in
 //!   *hexadecimal* — while the same file reads it back with a base-ten `parseInt`. So
 //!   [`QuerySequence`] makes the caller choose, and the choice is visible at the call site.
+//!
+//!   Roadmap 9.2 then asked a deployment. Against a log of eleven events, a live KERIA 1.0.1
+//!   resolved `a` and returned event ten, while `10` and `16` never resolved: **it reads the
+//!   sequence number in base sixteen.** A caller who spells event ten `"10"` asks that deployment
+//!   about event 16 and waits until the deadline. The evidence is recorded in
+//!   `fixtures/keria-integration/observations/sequence_base.json` and asserted by
+//!   `signify-keria-systest`'s `sequence_base_vectors`. It does not become a default here: one
+//!   deployment is evidence about that deployment, and ADR `0030` keeps the choice with the
+//!   caller — but it is now a choice made with an answer in hand rather than in the dark.
 //! - **The anchor has three shapes.** The pinned unit test passes a bare SAID string, every
 //!   integration caller passes a [`Seal`], and the schema types the *response* metadata's anchor as
 //!   an `Anchor`. Only the integration shape has ever reached a live KERIA, so that is the one this
@@ -53,6 +62,14 @@ pub const PREFIX_PARAMETER: &str = "pre";
 /// with falcon's base-ten `get_param_as_int`. [`Self::Hexadecimal`] is how a key state's own `s`
 /// field is written, which is the value the reference's `singlesig-ixn` integration test forwards
 /// here verbatim.
+///
+/// # What a deployment answered
+///
+/// A live KERIA 1.0.1, asked about event ten of an eleven-event log, resolved [`Self::Hexadecimal`]
+/// and left both decimal spellings running until the deadline — so that deployment reads base
+/// sixteen, and [`Self::Decimal`] above nine silently asks about a different event. Neither variant
+/// is removed and neither becomes a default: the observation is about one deployment, and keripy's
+/// own base-ten reader is still in the tree. See the module documentation.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum QuerySequence {
     /// Rendered in base ten.

@@ -6,10 +6,7 @@
 //! a connected client and compares the path, the method, and the body that actually go out.
 
 use std::error::Error;
-use std::future::Future;
-use std::pin::Pin;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
+use std::sync::Arc;
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -18,36 +15,18 @@ use signify_client::config::ClientConfig;
 use signify_client::endpoint::key_events::{EVENTS_SEGMENT, PREFIX_PARAMETER};
 use signify_client::endpoint::key_states::{KeyStateQuery, QUERIES_SEGMENT, QuerySequence, STATES_SEGMENT};
 use signify_client::error::ClientError;
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
-use signify_http::header::{HeaderName, HeaderValue, Headers};
-use signify_http::retry::{Clock, TestClock};
-use signify_http::signature::authentication::RequestSigner;
-use signify_http::signature::input::{RequestTarget, default_components};
-use signify_http::signature::timestamp::SignifyTimestamp;
-use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
+use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::{OperationOutcome, Seal};
+use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use signify_types::api::{EchoedSequence, OperationOutcome, QueryOperation, Seal};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-key-state/v1.json");
 
-const ADMIN: &str = "http://127.0.0.1:3901";
-const BOOT: &str = "http://127.0.0.1:3903";
-const PASSCODE: &str = "0123456789abcdefghijk";
-const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
 const PREFIX_ONE: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const PREFIX_TWO: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const ANCHOR_SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
-
-/// The agent seed Roadmap 6.4's fixture pinned.
-const AGENT_SEED: [u8; 32] = [
-    187, 140, 234, 145, 219, 254, 20, 194, 16, 18, 97, 194, 140, 192, 61, 145, 222, 110, 59, 160, 152, 2, 72, 122, 87,
-    143, 109, 39, 98, 153, 192, 148,
-];
-
-const FIXED_MILLIS: u64 = 1_700_000_000_123;
 
 // ---------------------------------------------------------------------------
 // Fixture model.
@@ -143,101 +122,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-// ---------------------------------------------------------------------------
-// A KERIA agent, answering exactly as the generator's mocked `fetch` did.
-// ---------------------------------------------------------------------------
-
-#[derive(Debug)]
-struct AgentTransport {
-    answers: Mutex<Vec<Vec<u8>>>,
-    recorded: Mutex<Vec<Request>>,
-}
-
-impl AgentTransport {
-    fn new(answers: &[&[u8]]) -> Arc<Self> {
-        Arc::new(Self {
-            answers: Mutex::new(answers.iter().rev().map(|body| body.to_vec()).collect()),
-            recorded: Mutex::new(Vec::new()),
-        })
-    }
-
-    fn requests(&self) -> Vec<Request> {
-        self.recorded.lock().map_or_else(|_| Vec::new(), |guard| guard.clone())
-    }
-
-    fn answer(&self, request: &Request) -> Result<Response, TransportError> {
-        let body = self
-            .answers
-            .lock()
-            .map_err(|_| TransportError::signing("the scripted answers are poisoned"))?
-            .pop()
-            .unwrap_or_else(|| b"{}".to_vec());
-        signed_response(request.method(), request.url().path(), body)
-            .map_err(|error| TransportError::signing(error.to_string()))
-    }
-}
-
-impl Transport for AgentTransport {
-    fn execute(&self, request: Request) -> TransportFuture<'_> {
-        let answer = {
-            if let Ok(mut guard) = self.recorded.lock() {
-                guard.push(request.clone());
-            }
-            self.answer(&request)
-        };
-        let future: Pin<Box<dyn Future<Output = Result<Response, TransportError>> + Send + '_>> =
-            Box::pin(async move { answer });
-        future
-    }
-}
-
-fn agent_signer() -> Result<Signer, Box<dyn Error>> {
-    Ok(Signer::from_seed(&AGENT_SEED, KeyTransferability::NonTransferable)?)
-}
-
-fn signed_response(method: Method, path: &str, body: Vec<u8>) -> Result<Response, Box<dyn Error>> {
-    let stamp = SignifyTimestamp::from_unix(Duration::from_millis(FIXED_MILLIS))?;
-    let mut headers = Headers::new();
-    headers.insert(HeaderName::new("signify-resource")?, HeaderValue::new(AGENT)?)?;
-    headers.insert(HeaderName::new("signify-timestamp")?, stamp.to_header_value()?)?;
-    let signer = RequestSigner::new(agent_signer()?);
-    let input = signer.signature_input(default_components()?, stamp.created())?;
-    let target = RequestTarget::new(method.as_str(), path)?;
-    signer.sign(&input, &target, &headers)?.apply(&mut headers)?;
-    Ok(Response::new(StatusCode::new(202)?, headers, body)?)
-}
-
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ))
-}
-
-fn block_on<F: Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn agent_verification_key() -> String {
-    agent_signer()
-        .and_then(|signer| Ok(signer.verifier().qb64()?))
-        .unwrap_or_default()
-}
-
-fn agent_state(controller: &str, inception: &str) -> String {
-    let agent = format!(
-        r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{key}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller}"}}"#,
-        key = agent_verification_key()
-    );
-    format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":0,"pidx":0}}"#)
-}
-
 fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
     let configuration = || {
         ClientConfig::new(ADMIN, PASSCODE)
@@ -263,16 +147,9 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
 
 /// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let recorded = transport.requests();
-    // Two requests are the lifecycle's: the state read and the delegation approval.
-    let request = recorded.get(2).ok_or("no endpoint request was sent")?;
-    let url = request.url().as_str();
-    let path = url.strip_prefix(ADMIN).unwrap_or(url).to_owned();
-    let body = request
-        .body()
-        .map(|bytes| String::from_utf8(bytes.to_vec()))
-        .transpose()?;
-    Ok((path, request.method().as_str().to_owned(), body))
+    let endpoint = transport.endpoint_requests()?;
+    let request = endpoint.first().ok_or("no endpoint request was sent")?;
+    Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
 fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
@@ -589,7 +466,29 @@ fn a_query_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Error
     assert!(matches!(operation.outcome, OperationOutcome::Pending));
     let metadata = operation.metadata.ok_or("the recorded operation carried no metadata")?;
     assert_eq!(metadata.pre, PREFIX_ONE);
-    assert_eq!(metadata.sn, 1);
+    // The reference's generated schema declares `QueryMetadata.sn` a `number`, which is the shape
+    // this recorded answer carries.
+    assert_eq!(metadata.sn, EchoedSequence::Number(1));
+    Ok(())
+}
+
+#[test]
+fn a_live_agent_echoes_the_sequence_number_back_as_the_string_it_was_sent() -> Result<(), Box<dyn Error>> {
+    // Recorded from a live KERIA 1.0.1 by `signify-keria-systest`'s `sequence_base` scenario:
+    // the agent copies the request's `sn` into the operation's metadata verbatim, so the JSON type
+    // is whatever the caller sent — a string, always, since that is all `query` can send. Typing
+    // this field as `u64` alone made every live query response undecodable, which is what the
+    // scenario found. See `fixtures/keria-integration/observations/sequence_base.json`.
+    let answer =
+        br#"{"name":"query.EEbP.a","metadata":{"pre":"EEbP","sn":"a"},"done":false,"error":null,"response":null}"#;
+    let operation: QueryOperation = serde_json::from_slice(answer)?;
+    let metadata = operation.metadata.ok_or("the recorded answer carried no metadata")?;
+    assert_eq!(metadata.sn, EchoedSequence::Text("a".to_owned()));
+
+    // Both spellings read back as the text they arrived as, and neither is rewritten into the
+    // other: the base of an echoed string is the caller's choice, not something this type recovers.
+    assert_eq!(metadata.sn.to_text(), "a");
+    assert_eq!(EchoedSequence::Number(10).to_text(), "10");
     Ok(())
 }
 
@@ -630,5 +529,27 @@ fn a_prefix_carrying_query_delimiters_is_not_a_prefix() -> Result<(), Box<dyn Er
     let recorded = request_of(&fixture, "events_get_prefix_needing_encoding")?;
     assert_eq!(recorded.path, "/events?pre=E&pre=EOTHER#x");
     assert!(IdentifierPrefix::from_qb64("E&pre=EOTHER#x").is_err());
+    Ok(())
+}
+
+#[test]
+fn the_recorded_live_query_answer_decodes_whole() -> Result<(), Box<dyn Error>> {
+    // The complete body a live KERIA 1.0.1 returned for a resolved query, decoded through the same
+    // type the client uses. The scenario that recorded it could not decode it at all before
+    // `QueryMetadata.sn` was widened, so this pins the whole document rather than just the field
+    // that was wrong.
+    const LIVE: &str = include_str!("../../../fixtures/keria-integration/observations/live_query_answer.json");
+    let operation: QueryOperation = serde_json::from_str(LIVE)?;
+    let metadata = operation.metadata.ok_or("the live answer carried no metadata")?;
+    assert_eq!(metadata.sn, EchoedSequence::Text("a".to_owned()));
+    let OperationOutcome::Completed(state) = operation.outcome else {
+        return Err("the recorded live answer is not a completed operation".into());
+    };
+
+    // KERIA writes a key state's own sequence number in hexadecimal: this is event ten of eleven.
+    assert_eq!(state.sequence_number, "a");
+    assert_eq!(state.first_seen, "a");
+    assert_eq!(state.establishment_kind, "ixn");
+    assert_eq!(state.signing_keys.len(), 1);
     Ok(())
 }

@@ -1,0 +1,49 @@
+{
+  "keria": {
+    "kind": "spec_digest",
+    "preset": "local",
+    "admin_url": "http://127.0.0.1:3901",
+    "spec_version": "1.0.1",
+    "spec_openapi": "3.1.0",
+    "spec_digest": "ELbcyX_BXB3HPLbeqeAglwIpBaLBkbX_cBkrB_TvdZyP",
+    "spec_bytes": 72450,
+    "spec_line_of_version": 2239,
+    "spec_sections": [
+      "paths",
+      "info"
+    ],
+    "spec_required_arrays": 127,
+    "spec_defines_components": false
+  },
+  "witnesses": [
+    {
+      "url": "http://localhost:5642",
+      "expected_prefix": "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
+      "observed": true
+    },
+    {
+      "url": "http://localhost:5643",
+      "expected_prefix": "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
+      "observed": true
+    },
+    {
+      "url": "http://localhost:5644",
+      "expected_prefix": "BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX",
+      "observed": true
+    }
+  ],
+  "schema_source": {
+    "url": "http://localhost:7723",
+    "reachable": false,
+    "note": "Five of the twenty-two upstream scenarios need this server. When it is absent those five stay unobserved with the reason `vlei_unavailable`."
+  },
+  "environment_variables": [
+    [
+      "SIGNIFY_KERIA_PRESET",
+      "local"
+    ]
+  ],
+  "startup_command": "started outside this repository; a local KERIA has no compose file to hash",
+  "timeout_policy": "the production transport's default deadline covers each exchange; no scenario sleeps, and every wait polls a condition",
+  "note": "A `local` run cannot close PORTING.md §10's `Target KERIA integration version` row: that row asks for an image digest, and a KERIA on the host has no image. What this records is the strongest identity available — the document the agent serves about itself — which also answers §10:9799's residual, whose text claims that document `carries no version`."
+}

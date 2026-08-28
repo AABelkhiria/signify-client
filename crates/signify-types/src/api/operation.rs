@@ -281,13 +281,49 @@ pub struct OobiMetadata {
     pub oobi: String,
 }
 
+/// A sequence number as an agent echoed it back.
+///
+/// A query's metadata is not the agent's own description of what it is doing: KERIA copies the
+/// request's `sn` into it verbatim, so the spelling that comes back is the *caller's*. That makes
+/// the field's JSON type whatever the caller sent, and the two sources disagree about what that
+/// is — the reference's generated schema declares `QueryMetadata.sn` a `number`, while its own
+/// `query(pre, sn?: string, …)` can only ever send a string, and a live KERIA 1.0.1 returns the
+/// string it was given (`"metadata": {"pre": "EEbP…", "sn": "a"}`).
+///
+/// Typing this as `u64` alone made every live query response undecodable. Both spellings are
+/// accepted, and neither is rewritten into the other, so what an agent sent can be read back
+/// exactly as it was written.
+///
+/// No numeric accessor is offered for [`Self::Text`]: the base of an echoed string is the
+/// caller's choice, not something this type can recover. See
+/// [`QuerySequence`](../../../signify_client/endpoint/key_states/enum.QuerySequence.html).
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum EchoedSequence {
+    /// A JSON string, which is what a live KERIA returns.
+    Text(String),
+    /// A JSON number, which is what the reference's generated schema declares.
+    Number(u64),
+}
+
+impl EchoedSequence {
+    /// Returns the sequence number exactly as it was written on the wire.
+    #[must_use]
+    pub fn to_text(&self) -> String {
+        match self {
+            Self::Text(text) => text.clone(),
+            Self::Number(value) => value.to_string(),
+        }
+    }
+}
+
 /// Metadata of an operation querying another identifier's key state.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct QueryMetadata {
     /// Identifier prefix being queried.
     pub pre: String,
-    /// Sequence number being waited for.
-    pub sn: u64,
+    /// Sequence number being waited for, as the agent echoed it back.
+    pub sn: EchoedSequence,
     /// Event the query is waiting to see anchored.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub anchor: Option<Anchor>,

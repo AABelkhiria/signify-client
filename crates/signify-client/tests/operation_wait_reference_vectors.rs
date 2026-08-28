@@ -12,8 +12,7 @@
 use core::time::Duration;
 use std::error::Error;
 use std::future::Future;
-use std::pin::Pin;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::SystemTime;
 
 use serde::Deserialize;
@@ -22,36 +21,19 @@ use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
 use signify_client::error::ClientError;
 use signify_client::operation::{DEFAULT_DEADLINE, PollPolicy, Poller, PollingLimit};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
-use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, FixedJitter, Jitter, TestClock};
-use signify_http::signature::authentication::RequestSigner;
-use signify_http::signature::input::{RequestTarget, default_components};
-use signify_http::signature::timestamp::SignifyTimestamp;
-use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
+use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
+use signify_testkit::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 use signify_types::api::{KelMetadata, KelResponse, Operation, OperationOutcome, RegistryMetadata};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-operation-wait/v1.json");
 
-const ADMIN: &str = "http://127.0.0.1:3901";
-const BOOT: &str = "http://127.0.0.1:3903";
-const PASSCODE: &str = "0123456789abcdefghijk";
-const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
-
 /// The names the generator drives the reference with.
 const NAME: &str = "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0";
 const DEPENDENCY: &str = "witness.EABC.0";
 const REGISTRY: &str = "registry.EREG";
-
-const AGENT_SEED: [u8; 32] = [
-    187, 140, 234, 145, 219, 254, 20, 194, 16, 18, 97, 194, 140, 192, 61, 145, 222, 110, 59, 160, 152, 2, 72, 122, 87,
-    143, 109, 39, 98, 153, 192, 148,
-];
-
-const FIXED_MILLIS: u64 = 1_700_000_000_123;
 
 // ---------------------------------------------------------------------------
 // Fixture model.
@@ -165,117 +147,7 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-// ---------------------------------------------------------------------------
-// A KERIA agent answering a queue of operation states.
-// ---------------------------------------------------------------------------
-
-#[derive(Debug)]
-struct AgentTransport {
-    answers: Mutex<Vec<Vec<u8>>>,
-    recorded: Mutex<Vec<Request>>,
-}
-
-impl AgentTransport {
-    fn new(answers: &[&[u8]]) -> Arc<Self> {
-        Arc::new(Self {
-            answers: Mutex::new(answers.iter().rev().map(|body| body.to_vec()).collect()),
-            recorded: Mutex::new(Vec::new()),
-        })
-    }
-
-    fn requests(&self) -> Vec<Request> {
-        self.recorded.lock().map_or_else(|_| Vec::new(), |guard| guard.clone())
-    }
-
-    /// Every endpoint request after the lifecycle's two, as `(method, path)`.
-    fn endpoint_calls(&self) -> Vec<(String, String)> {
-        self.requests()
-            .iter()
-            .skip(2)
-            .map(|request| {
-                let url = request.url().as_str();
-                (
-                    request.method().as_str().to_owned(),
-                    url.strip_prefix(ADMIN).unwrap_or(url).to_owned(),
-                )
-            })
-            .collect()
-    }
-
-    /// Pops the next answer, repeating the last one once the queue is down to it.
-    fn answer(&self, request: &Request) -> Result<Response, TransportError> {
-        let body = {
-            let mut queue = self
-                .answers
-                .lock()
-                .map_err(|_| TransportError::signing("the scripted answers are poisoned"))?;
-            if queue.len() > 1 {
-                queue.pop().unwrap_or_default()
-            } else {
-                queue.last().cloned().unwrap_or_else(|| b"{}".to_vec())
-            }
-        };
-        signed_response(request.method(), request.url().path(), body)
-            .map_err(|error| TransportError::signing(error.to_string()))
-    }
-}
-
-impl Transport for AgentTransport {
-    fn execute(&self, request: Request) -> TransportFuture<'_> {
-        let answer = {
-            if let Ok(mut guard) = self.recorded.lock() {
-                guard.push(request.clone());
-            }
-            self.answer(&request)
-        };
-        let future: Pin<Box<dyn Future<Output = Result<Response, TransportError>> + Send + '_>> =
-            Box::pin(async move { answer });
-        future
-    }
-}
-
-fn agent_signer() -> Result<Signer, Box<dyn Error>> {
-    Ok(Signer::from_seed(&AGENT_SEED, KeyTransferability::NonTransferable)?)
-}
-
-fn signed_response(method: Method, path: &str, body: Vec<u8>) -> Result<Response, Box<dyn Error>> {
-    let stamp = SignifyTimestamp::from_unix(Duration::from_millis(FIXED_MILLIS))?;
-    let mut headers = Headers::new();
-    headers.insert(HeaderName::new("signify-resource")?, HeaderValue::new(AGENT)?)?;
-    headers.insert(HeaderName::new("signify-timestamp")?, stamp.to_header_value()?)?;
-    let signer = RequestSigner::new(agent_signer()?);
-    let input = signer.signature_input(default_components()?, stamp.created())?;
-    let target = RequestTarget::new(method.as_str(), path)?;
-    signer.sign(&input, &target, &headers)?.apply(&mut headers)?;
-    Ok(Response::new(StatusCode::new(202)?, headers, body)?)
-}
-
-fn block_on<F: Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn agent_verification_key() -> String {
-    agent_signer()
-        .and_then(|signer| Ok(signer.verifier().qb64()?))
-        .unwrap_or_default()
-}
-
-fn agent_state(controller: &str, inception: &str) -> String {
-    let agent = format!(
-        r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{key}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller}"}}"#,
-        key = agent_verification_key()
-    );
-    format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":0,"pidx":0}}"#)
-}
-
-/// A connected client, the transport recording its requests, and the clock recording its sleeps.
+/// A connected client, its scripted agent, and its clock.
 type Harness = (ConnectedClient, Arc<AgentTransport>, Arc<TestClock>);
 
 /// A connected client whose clock is a [`TestClock`], so every sleep is instant and recorded.
@@ -300,6 +172,7 @@ fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
     let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
     answers.extend_from_slice(bodies);
     let transport = AgentTransport::new(&answers);
+    transport.repeating_last();
 
     let client = SignifyClient::new(
         configuration()?,
@@ -1051,6 +924,7 @@ fn dropping_the_future_stops_the_poll_at_once() -> Result<(), Box<dyn Error>> {
     let state = agent_state(&prefix, &inception);
     let pending_body = pending(NAME);
     let transport = AgentTransport::new(&[state.as_bytes(), b"{}", pending_body.as_bytes()]);
+    transport.repeating_last();
     let client = SignifyClient::new(
         configuration()?,
         Arc::clone(&transport) as Arc<dyn Transport>,

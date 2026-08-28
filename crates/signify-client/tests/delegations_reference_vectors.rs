@@ -12,10 +12,7 @@
 //! then driven to show it cannot be spelled.
 
 use std::error::Error;
-use std::future::Future;
-use std::pin::Pin;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
+use std::sync::Arc;
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -28,36 +25,20 @@ use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT}
 use signify_client::error::ClientError;
 use signify_crypto::cipher::Encrypter;
 use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
 use signify_crypto::verifier::KeyTransferability;
-use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::ResourcePath;
-use signify_http::retry::{Clock, TestClock};
-use signify_http::signature::authentication::RequestSigner;
-use signify_http::signature::input::{RequestTarget, default_components};
-use signify_http::signature::timestamp::SignifyTimestamp;
-use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
+use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
+use signify_testkit::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-delegations/v1.json");
 
-const ADMIN: &str = "http://127.0.0.1:3901";
-const BOOT: &str = "http://127.0.0.1:3903";
-const PASSCODE: &str = "0123456789abcdefghijk";
-const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
 const DELEGATOR: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const DELEGATE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
-const FIXED_MILLIS: u64 = 1_700_000_000_123;
-
-/// The agent seed Roadmap 6.4's fixture pinned.
-const AGENT_SEED: [u8; 32] = [
-    0x5b, 0x0b, 0x8f, 0x2e, 0x24, 0x9f, 0x9c, 0x1e, 0x87, 0x00, 0x1e, 0x1d, 0x9e, 0x3c, 0x2b, 0x60, 0x40, 0x1c, 0x2f,
-    0x1a, 0x2c, 0x6b, 0x1f, 0x5a, 0x33, 0x08, 0x7d, 0x4c, 0x11, 0x9a, 0x0e, 0x50,
-];
 
 // ---------------------------------------------------------------------------
 // Fixture model.
@@ -550,101 +531,6 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Driving this port against the same inputs.
-// ---------------------------------------------------------------------------
-
-#[derive(Debug)]
-struct AgentTransport {
-    answers: Mutex<Vec<Vec<u8>>>,
-    recorded: Mutex<Vec<Request>>,
-}
-
-impl AgentTransport {
-    fn new(answers: &[&[u8]]) -> Arc<Self> {
-        Arc::new(Self {
-            answers: Mutex::new(answers.iter().rev().map(|body| body.to_vec()).collect()),
-            recorded: Mutex::new(Vec::new()),
-        })
-    }
-
-    fn requests(&self) -> Vec<Request> {
-        self.recorded.lock().map_or_else(|_| Vec::new(), |guard| guard.clone())
-    }
-
-    fn answer(&self, request: &Request) -> Result<Response, TransportError> {
-        let body = self
-            .answers
-            .lock()
-            .map_err(|_| TransportError::signing("the scripted answers are poisoned"))?
-            .pop()
-            .unwrap_or_else(|| b"{}".to_vec());
-        signed_response(request.method(), request.url().path(), body)
-            .map_err(|error| TransportError::signing(error.to_string()))
-    }
-}
-
-impl Transport for AgentTransport {
-    fn execute(&self, request: Request) -> TransportFuture<'_> {
-        let answer = {
-            if let Ok(mut guard) = self.recorded.lock() {
-                guard.push(request.clone());
-            }
-            self.answer(&request)
-        };
-        let future: Pin<Box<dyn Future<Output = Result<Response, TransportError>> + Send + '_>> =
-            Box::pin(async move { answer });
-        future
-    }
-}
-
-fn agent_signer() -> Result<Signer, Box<dyn Error>> {
-    Ok(Signer::from_seed(&AGENT_SEED, KeyTransferability::NonTransferable)?)
-}
-
-fn signed_response(method: Method, path: &str, body: Vec<u8>) -> Result<Response, Box<dyn Error>> {
-    let stamp = SignifyTimestamp::from_unix(Duration::from_millis(FIXED_MILLIS))?;
-    let mut headers = Headers::new();
-    headers.insert(HeaderName::new("signify-resource")?, HeaderValue::new(AGENT)?)?;
-    headers.insert(HeaderName::new("signify-timestamp")?, stamp.to_header_value()?)?;
-    let signer = RequestSigner::new(agent_signer()?);
-    let input = signer.signature_input(default_components()?, stamp.created())?;
-    let target = RequestTarget::new(method.as_str(), path)?;
-    signer.sign(&input, &target, &headers)?.apply(&mut headers)?;
-    Ok(Response::new(StatusCode::new(200)?, headers, body)?)
-}
-
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ))
-}
-
-fn block_on<F: Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn agent_verification_key() -> String {
-    agent_signer()
-        .and_then(|signer| Ok(signer.verifier().qb64()?))
-        .unwrap_or_default()
-}
-
-fn agent_state(controller: &str, inception: &str) -> String {
-    let agent = format!(
-        r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{key}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller}"}}"#,
-        key = agent_verification_key()
-    );
-    format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":0,"pidx":0}}"#)
-}
-
 fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
     let configuration = || {
         ClientConfig::new(ADMIN, PASSCODE)
@@ -673,20 +559,11 @@ type SentRequest = (String, String, Option<String>);
 
 /// The path, method, and body of every request past the two the connection itself makes.
 fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
-    transport
-        .requests()
+    Ok(transport
+        .endpoint_requests()?
         .into_iter()
-        .skip(2)
-        .map(|request| {
-            let url = request.url().as_str().to_owned();
-            let path = url.strip_prefix(ADMIN).unwrap_or(&url).to_owned();
-            let body = request
-                .body()
-                .map(|bytes| String::from_utf8(bytes.to_vec()))
-                .transpose()?;
-            Ok((path, request.method().as_str().to_owned(), body))
-        })
-        .collect()
+        .map(|request| (request.resource(), request.method().to_owned(), request.body_text()))
+        .collect())
 }
 
 /// The sealing key this client's controller salt derives, so a recorded record can be re-sealed.

@@ -1,0 +1,50 @@
+{
+  "scenario": "content_range",
+  "preset": "local",
+  "note": "Read from the transport's own transcript rather than the port's parsed view: a value `ContentRange::parse` refuses never reaches a parsed view, and that refusal is the finding this scenario exists to look for.",
+  "unrepresentable": [
+    "A range whose start exceeds its end cannot be sent from this port at all: `ItemRange::new` refuses it, so the malformed request RFC 9110 forbids is unrepresentable rather than merely unsent."
+  ],
+  "captures": [
+    {
+      "case": "identifiers, empty collection",
+      "resource": "/identifiers",
+      "request_range": "aids=0-24",
+      "status": 206,
+      "content_range": "aids 0-0/1",
+      "records": 0
+    },
+    {
+      "case": "identifiers, partial page",
+      "resource": "/identifiers",
+      "request_range": "aids=0-1",
+      "status": 206,
+      "content_range": "aids 0-1/4",
+      "records": 2
+    },
+    {
+      "case": "identifiers, complete page",
+      "resource": "/identifiers",
+      "request_range": "aids=0-24",
+      "status": 206,
+      "content_range": "aids 0-2/4",
+      "records": 3
+    },
+    {
+      "case": "identifiers, past the end",
+      "resource": "/identifiers",
+      "request_range": "aids=100-199",
+      "status": 206,
+      "content_range": "aids 100-0/4",
+      "records": 0
+    },
+    {
+      "case": "notifications, empty collection",
+      "resource": "/notifications",
+      "request_range": "notes=0-24",
+      "status": 200,
+      "content_range": "notes 0-0/0",
+      "records": 0
+    }
+  ]
+}

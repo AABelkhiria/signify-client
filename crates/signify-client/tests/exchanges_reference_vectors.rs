@@ -15,10 +15,7 @@
 //! caller says so explicitly.
 
 use std::error::Error;
-use std::future::Future;
-use std::pin::Pin;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
+use std::sync::Arc;
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -29,41 +26,24 @@ use signify_client::endpoint::exchanges::{ExchangeDraft, MULTISIG_TOPIC, REGISTR
 use signify_client::error::ClientError;
 use signify_crypto::cipher::Encrypter;
 use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
 use signify_crypto::verifier::KeyTransferability;
-use signify_http::header::{HeaderName, HeaderValue, Headers};
-use signify_http::retry::{Clock, TestClock};
-use signify_http::signature::authentication::RequestSigner;
-use signify_http::signature::input::{RequestTarget, default_components};
-use signify_http::signature::timestamp::SignifyTimestamp;
-use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
+use signify_http::transport::Transport;
 use signify_keri::event::Timestamp;
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
+use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-exchanges/v1.json");
 
-const ADMIN: &str = "http://127.0.0.1:3901";
-const BOOT: &str = "http://127.0.0.1:3903";
-const PASSCODE: &str = "0123456789abcdefghijk";
-const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
 const ALIAS: &str = "aid1";
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND_RECIPIENT: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
-
-/// The agent seed Roadmap 6.4's fixture pinned.
-const AGENT_SEED: [u8; 32] = [
-    187, 140, 234, 145, 219, 254, 20, 194, 16, 18, 97, 194, 140, 192, 61, 145, 222, 110, 59, 160, 152, 2, 72, 122, 87,
-    143, 109, 39, 98, 153, 192, 148,
-];
-
-const FIXED_MILLIS: u64 = 1_700_000_000_123;
 
 // ---------------------------------------------------------------------------
 // Fixture model.
@@ -219,101 +199,6 @@ fn submission<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-// ---------------------------------------------------------------------------
-// A KERIA agent, answering exactly as the generator's mocked `fetch` did.
-// ---------------------------------------------------------------------------
-
-#[derive(Debug)]
-struct AgentTransport {
-    answers: Mutex<Vec<Vec<u8>>>,
-    recorded: Mutex<Vec<Request>>,
-}
-
-impl AgentTransport {
-    fn new(answers: &[&[u8]]) -> Arc<Self> {
-        Arc::new(Self {
-            answers: Mutex::new(answers.iter().rev().map(|body| body.to_vec()).collect()),
-            recorded: Mutex::new(Vec::new()),
-        })
-    }
-
-    fn requests(&self) -> Vec<Request> {
-        self.recorded.lock().map_or_else(|_| Vec::new(), |guard| guard.clone())
-    }
-
-    fn answer(&self, request: &Request) -> Result<Response, TransportError> {
-        let body = self
-            .answers
-            .lock()
-            .map_err(|_| TransportError::signing("the scripted answers are poisoned"))?
-            .pop()
-            .unwrap_or_else(|| b"{}".to_vec());
-        signed_response(request.method(), request.url().path(), body)
-            .map_err(|error| TransportError::signing(error.to_string()))
-    }
-}
-
-impl Transport for AgentTransport {
-    fn execute(&self, request: Request) -> TransportFuture<'_> {
-        let answer = {
-            if let Ok(mut guard) = self.recorded.lock() {
-                guard.push(request.clone());
-            }
-            self.answer(&request)
-        };
-        let future: Pin<Box<dyn Future<Output = Result<Response, TransportError>> + Send + '_>> =
-            Box::pin(async move { answer });
-        future
-    }
-}
-
-fn agent_signer() -> Result<Signer, Box<dyn Error>> {
-    Ok(Signer::from_seed(&AGENT_SEED, KeyTransferability::NonTransferable)?)
-}
-
-fn signed_response(method: Method, path: &str, body: Vec<u8>) -> Result<Response, Box<dyn Error>> {
-    let stamp = SignifyTimestamp::from_unix(Duration::from_millis(FIXED_MILLIS))?;
-    let mut headers = Headers::new();
-    headers.insert(HeaderName::new("signify-resource")?, HeaderValue::new(AGENT)?)?;
-    headers.insert(HeaderName::new("signify-timestamp")?, stamp.to_header_value()?)?;
-    let signer = RequestSigner::new(agent_signer()?);
-    let input = signer.signature_input(default_components()?, stamp.created())?;
-    let target = RequestTarget::new(method.as_str(), path)?;
-    signer.sign(&input, &target, &headers)?.apply(&mut headers)?;
-    Ok(Response::new(StatusCode::new(200)?, headers, body)?)
-}
-
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ))
-}
-
-fn block_on<F: Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn agent_verification_key() -> String {
-    agent_signer()
-        .and_then(|signer| Ok(signer.verifier().qb64()?))
-        .unwrap_or_default()
-}
-
-fn agent_state(controller: &str, inception: &str) -> String {
-    let agent = format!(
-        r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{key}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller}"}}"#,
-        key = agent_verification_key()
-    );
-    format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":0,"pidx":0}}"#)
-}
-
 fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
     let configuration = || {
         ClientConfig::new(ADMIN, PASSCODE)
@@ -342,16 +227,9 @@ type SentRequest = (String, String, Option<String>);
 
 /// Returns the path, method, and body of the endpoint request at `index`.
 fn sent(transport: &AgentTransport, index: usize) -> Result<SentRequest, Box<dyn Error>> {
-    let recorded = transport.requests();
-    // Two requests are the lifecycle's: the state read and the delegation approval.
-    let request = recorded.get(2 + index).ok_or("no endpoint request was sent")?;
-    let url = request.url().as_str();
-    let path = url.strip_prefix(ADMIN).unwrap_or(url).to_owned();
-    let body = request
-        .body()
-        .map(|bytes| String::from_utf8(bytes.to_vec()))
-        .transpose()?;
-    Ok((path, request.method().as_str().to_owned(), body))
+    let endpoint = transport.endpoint_requests()?;
+    let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
+    Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
 /// The sealing key this client's controller salt derives, so a recorded record can be re-sealed.
