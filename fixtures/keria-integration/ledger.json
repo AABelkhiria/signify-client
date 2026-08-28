@@ -59,10 +59,14 @@
       "clients": 1,
       "needs_witnesses": false,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave5_endpoint_smoke.rs",
+        "crates/signify-keria-systest/tests/endpoint_smoke_vectors.rs",
+        "fixtures/keria-integration/observations/endpoint_smoke.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-28 by wave 5, whole. An unwitnessed identifier starts with zero agent-role authorisations, gains exactly one on the grant ({cid, agent, agent prefix}), grants the mailbox role to itself ({cid, mailbox, cid}), and after the location scheme the agent derives the OOBI the upstream case pins — the authorised URL joined to /oobi/{cid}/mailbox/{cid}, the identifier appearing twice because the mailbox is self-controlled. One mapping documented: upstream's helper raw-fetches /identifiers/{alias}/endroles/{role} (the reference SDK exposes no such read), while the port reads the same authorisations by AID through /endroles/{aid}/{role}, and the transcript pins which address answered.",
+      "reason": "settled",
       "note": "Authorise the agent role and a self-controlled mailbox, then read back the location scheme the OOBI derives. Needs no witnesses."
     },
     {
