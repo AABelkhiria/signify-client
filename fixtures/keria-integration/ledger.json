@@ -435,10 +435,14 @@
       "clients": 2,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave11_challenge.rs",
+        "crates/signify-keria-systest/tests/challenge_vectors.rs",
+        "fixtures/keria-integration/observations/challenge.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-29 by wave 11, whole. Both generations answer BIP39's own arithmetic — twelve words at 128 bits, twenty-four at 256, through ChallengeStrength's closed set where upstream stringifies any number. Bob's response travels as an exchange message on /challenge/response, and the message Alice's verification answers with is the very one Bob sent, tied by SAID across two clients; after the acknowledgement, Bob's contact carries the twelve words authenticated and naming that SAID. One operational fact recorded: the respond submission's operation is born done — wave 2's finding — yet stays listed until deleted, and upstream's own case never waits its respond, which would leave its assertOperations one message behind.",
+      "reason": "settled",
       "note": "Two clients exchange challenge words, sign them back, verify, and mark the response accepted. **This row did not exist in §7**: the audit found `challenge.test.ts` claimed by no scenario row, so the table omitted a whole capability. Roadmap 9.2 adds it."
     },
     {

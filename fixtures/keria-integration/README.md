@@ -119,6 +119,7 @@ it turns "it passed on the machine that ran it" into something diffable.
 | `observations/singlesig_rot.json`, `observations/singlesig_ixn.json` | The twin local/remote divergences: an event advances the owner's key state, the observer stays one behind until the hexadecimal `keyStates().query` refresh; the interaction reproduces upstream's `[{}]` anchor exactly | `singlesig_events_vectors.rs` (2) |
 | `observations/delegation.json` | A delegated inception proven pending until the delegator anchors its seal, the approval at the delegation address, the query that completes it, and the `/agent/`-truncated OOBI that still resolves | `delegation_vectors.rs` (5) |
 | `observations/singlesig_dip.json`, `observations/singlesig_drt.json` | The delegated lifecycle: unwitnessed and witnessed delegated inceptions, a delegated rotation, both refresh modes, the anchor query's idempotence — and the echoed-seal metadata that widened `QueryMetadata` | `delegated_lifecycle_vectors.rs` (2) |
+| `observations/challenge.json` | The challenge round: BIP39 word counts at both strengths, the signed response as an exchange message, the verification answering with the very message sent, and the contact's authenticated challenge | `challenge_vectors.rs` (3) |
 
 Three findings are worth reading the files for. Asked for a page past the end of a collection, KERIA
 answers **`aids 100-0/4`** — a start greater than its end, which RFC 9110 forbids — so a parser that
@@ -140,9 +141,10 @@ lifecycle** (wave 6, the key commitment recomputed from the recorded events), **
 behavior** (wave 7, four receipted establishments walking a witness in, out, and back in), and
 the twins **Single-signature rotation** and **Single-signature interaction** (wave 8, the
 local/remote key-state divergence closed by the hexadecimal refresh), **Delegation** (wave 9,
-a delegated inception proven pending until its seal is anchored), and **Single-signature
+a delegated inception proven pending until its seal is anchored), **Single-signature
 delegated inception/rotation** (wave 10, both refresh modes and the delegated rotation, plus the
-echoed-seal defect that widened `QueryMetadata`). The other ten remain `unobserved`.
+echoed-seal defect that widened `QueryMetadata`), and **Challenge and response** (wave 11, the
+round tied across two clients by SAID). The other nine remain `unobserved`.
 "How much of 9.2 remains" stays a number a test prints rather than a judgement. Nothing here
 claims evidence that does not exist — the audit requires every path a row names to be on disk,
 and forbids a row from naming evidence while claiming to be unanswered.
