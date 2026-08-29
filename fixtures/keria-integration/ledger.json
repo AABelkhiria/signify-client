@@ -459,10 +459,14 @@
       "clients": 3,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave12_endroles_by_aid.rs",
+        "crates/signify-keria-systest/tests/endroles_by_aid_vectors.rs",
+        "fixtures/keria-integration/observations/endroles_by_aid.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-29 by wave 12, whole — and the first live drive of the port's multisig machinery: a two-member witnessed group incepted through propose_inception/accept_inception with both members deriving the same prefix, then the group end-role round expressed through public API alone (add_end_role on the group alias signing with the member's indexed key, the reply travelling as an rpy embed under the group's establishment seal on /multisig/rpy, one shared stamp so both members derive the same reply SAID — Roadmap 8.8's one-clock lesson applied). Alice, a third party, resolves the group's truncated OOBI and asks five questions: the group's roles name exactly both agents (all cid the group, all role agent), the agent filter answers the same set, a role nobody granted and a well-formed identifier nobody owns answer empty rather than erroring, and her own identifier answers exactly her agent. One wire fact recorded: the rpy relay must carry the {gid} payload — without it, no /multisig/rpy notification is ever raised, which is how the first run stalled.",
+      "reason": "settled",
       "note": "A third party reading the end roles of a group it is not a member of."
     },
     {
