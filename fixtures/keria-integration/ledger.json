@@ -288,9 +288,13 @@
       "clients": 7,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave13_multisig_inception.rs",
+        "crates/signify-keria-systest/tests/multisig_inception_vectors.rs",
+        "fixtures/keria-integration/observations/multisig_inception.json"
+      ],
+      "status": "partly_observed",
+      "outcome": "Wave 13 recorded multisig-inception.test.ts whole on 2026-08-29: two members incept a group witnessed at threshold two of the demo triple and a second group with no witnesses at all, both members deriving the same prefix each time, the members listing naming both in participant order for signing and rotation alike — including for the witnessless group, whose assertions upstream comments out against keria#189: this deployment answers them correctly, so the guard guards a defect that no longer reproduces here. **Still to do:** multisig-join.test.ts — adding a third member by rotation, the join through groups().join (whose new-member path needs the group keeper composed from key states, since accept_rotation requires the group alias the joiner does not yet hold), and the four-client member-replacement case under a 3-of-3 threshold.",
       "reason": "not_yet_recorded",
       "note": "Group inception with and without witnesses, then adding a third member by rotation and joining. Gives `sendRequest` and `join` their first consumers."
     },

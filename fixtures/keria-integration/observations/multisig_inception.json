@@ -1,0 +1,4449 @@
+{
+  "scenario": "multisig_inception",
+  "preset": "local",
+  "member1_prefix": "EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+  "member2_prefix": "EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q",
+  "rounds": [
+    {
+      "group_name": "multisig",
+      "witnessed": true,
+      "witness_threshold": 2,
+      "proposer_prefix": "EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "acceptor_prefix": "EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "signing_aids": [
+        "EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+        "EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q"
+      ],
+      "rotation_aids": [
+        "EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+        "EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q"
+      ],
+      "members_error": null
+    },
+    {
+      "group_name": "multisig2",
+      "witnessed": false,
+      "witness_threshold": 0,
+      "proposer_prefix": "EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D",
+      "acceptor_prefix": "EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D",
+      "signing_aids": [
+        "EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+        "EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q"
+      ],
+      "rotation_aids": [
+        "EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+        "EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q"
+      ],
+      "members_error": null
+    }
+  ],
+  "member1_operations_remaining": 0,
+  "member2_operations_remaining": 0,
+  "member1_transcript": [
+    {
+      "sequence": 0,
+      "method": "POST",
+      "resource": "/boot",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ]
+      ],
+      "request_body": "{\"icp\":{\"v\":\"KERI10JSON00012b_\",\"t\":\"icp\",\"d\":\"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\",\"i\":\"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\"],\"nt\":\"1\",\"n\":[\"EJqA3qi4e6HfMMa8GBqpKMFGeqLGgnRhxrpwu1ZwkHSZ\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sig\":\"AABAeKkafBOCOU0198KF_Qmh4a0i43Tb5QqKkMyjrLNudwL-c6kDxMmdeFUg8GLA3rC91OKuzkxvZhOo7mABppcJ\",\"stem\":\"signify:controller\",\"pidx\":1,\"tier\":\"low\"}",
+      "status": 202,
+      "response_headers": [
+        [
+          "content-length",
+          "510"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:23:51 GMT"
+        ]
+      ],
+      "response_body": "{\"vn\": [1, 0], \"i\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"s\": \"0\", \"p\": \"\", \"d\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"f\": \"0\", \"dt\": \"2026-08-29T13:23:51.491158+00:00\", \"et\": \"dip\", \"kt\": \"1\", \"k\": [\"DDjCz3fCo0TNCQoCIybTfKfaFTtkLxm1FibPoXmTQWrG\"], \"nt\": \"1\", \"n\": [\"EOHt_vm9ftIotNRKhmQkTZ4SUtHH3t-GsM5kh8ScLjZ_\"], \"bt\": \"0\", \"b\": [], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"br\": [], \"ba\": []}, \"di\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\"}",
+      "elapsed_ms": 229
+    },
+    {
+      "sequence": 1,
+      "method": "GET",
+      "resource": "/agent/EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo",
+      "request_headers": [],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "content-length",
+          "1357"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:23:51 GMT"
+        ]
+      ],
+      "response_body": "{\"agent\": {\"vn\": [1, 0], \"i\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"s\": \"0\", \"p\": \"\", \"d\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"f\": \"0\", \"dt\": \"2026-08-29T13:23:51.491158+00:00\", \"et\": \"dip\", \"kt\": \"1\", \"k\": [\"DDjCz3fCo0TNCQoCIybTfKfaFTtkLxm1FibPoXmTQWrG\"], \"nt\": \"1\", \"n\": [\"EOHt_vm9ftIotNRKhmQkTZ4SUtHH3t-GsM5kh8ScLjZ_\"], \"bt\": \"0\", \"b\": [], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"br\": [], \"ba\": []}, \"di\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\"}, \"controller\": {\"state\": {\"vn\": [1, 0], \"i\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\", \"s\": \"0\", \"p\": \"\", \"d\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\", \"f\": \"0\", \"dt\": \"2026-08-29T13:23:51.508151+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\"], \"nt\": \"1\", \"n\": [\"EJqA3qi4e6HfMMa8GBqpKMFGeqLGgnRhxrpwu1ZwkHSZ\"], \"bt\": \"0\", \"b\": [], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"ee\": {\"v\": \"KERI10JSON00012b_\", \"t\": \"icp\", \"d\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\", \"i\": \"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\", \"s\": \"0\", \"kt\": \"1\", \"k\": [\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\"], \"nt\": \"1\", \"n\": [\"EJqA3qi4e6HfMMa8GBqpKMFGeqLGgnRhxrpwu1ZwkHSZ\"], \"bt\": \"0\", \"b\": [], \"c\": [], \"a\": []}}, \"pidx\": 0}",
+      "elapsed_ms": 5
+    },
+    {
+      "sequence": 2,
+      "method": "PUT",
+      "resource": "/agent/EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo?type=ixn",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ]
+      ],
+      "request_body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHaCe3n-NBvkI8cmJa5aKmf12y3j6O4hPc7QpHihFwqB\",\"i\":\"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\",\"s\":\"1\",\"p\":\"EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo\",\"a\":[{\"i\":\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\",\"s\":\"0\",\"d\":\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"}]},\"sigs\":[\"AADOSfgA2oaU9f9uWyg1rK76Znpey7ZLghHta9QAXyDDrA5HZNTPcElVZitrgOV0M98s1OSCFg1za5duv0BIYOkH\"]}",
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:23:55 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 31
+    },
+    {
+      "sequence": 3,
+      "method": "POST",
+      "resource": "/identifiers",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:08.845000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009848;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBA5yo9l-xFNFmmI97QbdOjSIjCQ3icXFCZlyVQNaoM9LRKWqIPlTx6jGvv8b8adCIU-q5jvW-NfXylKohljLcD\""
+        ]
+      ],
+      "request_body": "{\"name\":\"member1\",\"icp\":{\"v\":\"KERI10JSON0001b7_\",\"t\":\"icp\",\"d\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"i\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"s\":\"0\",\"kt\":\"1\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"],\"nt\":\"1\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"],\"bt\":\"3\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"AABYAMZimMiXT-8pwVtf7Wkuboj8KszuSTP0bxLuIjkWuxfeKExgp24pMPbB9lNkYZk-oS9mtv-xnCB83pNK1_QJ\"],\"salty\":{\"sxlt\":\"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"dcode\":\"E\",\"transferable\":true}}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:08.871463+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009848;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDAMKlH2BsBycAkiUb-lcUSInOJDxIOG3ip5e9GecjJkbMdvtojgP4fBDHgLBs2K_j2BYGxDtjC9wRTZ3mBMpwF\""
+        ],
+        [
+          "content-length",
+          "190"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:08 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"metadata\": {\"pre\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 4,
+      "method": "GET",
+      "resource": "/operations/witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:08.872000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009848;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBmsLSokpxwqQr_dE_ueOaghxBumv-NL8gm1lfIKiRDyNh9nDLn9zmxtXanLbv_pY8IfbdTAzxhUTwhZV0-lTAH\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:08.892066+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009848;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBBuBG_uL-Bnju621bAgqAMy8ksUEfxHr8mSzVadFSRmO2RFrLA6BPEepYZaIEn49dUjQa58cmUwU6aa535E8UN\""
+        ],
+        [
+          "content-length",
+          "190"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:08 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"metadata\": {\"pre\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 19
+    },
+    {
+      "sequence": 5,
+      "method": "GET",
+      "resource": "/operations/witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:08.893000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009848;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAKFgLnL0mxBOTJO6hTRYMHlcIm-Nbgz9C2qdY7p-Ua-sALT1aSHK3KIPQb7TpjzMYWqaUxbH4JeSk00UXVtv4E\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:08.925915+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009848;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BD7Kn_RY7o7545EJnGKEPijdRtBJmO83NnVnzromQx8h75t8xwT5lxTHd7r4asow__o3dLCNLTE7-Y79c7lye4E\""
+        ],
+        [
+          "content-length",
+          "190"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:08 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"metadata\": {\"pre\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 32
+    },
+    {
+      "sequence": 6,
+      "method": "GET",
+      "resource": "/operations/witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:08.963000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009848;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDh-xxVmcGMz4Y7S9xFkfVrvOmi00fkw4ChA2qdEE81HjOLqr7pgQ-s6zeF0w8hJ7jMZOV4Ng0QSR5RTMXhhhcO\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:08.984579+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009848;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDuyahowuEQVfwONjy0HJwZIUFxRlnaWMMdMoDyAYic-cwMu1uKzzr7rQGuAhjbFtTRx0UNw-3GEFfwK7MD7FEN\""
+        ],
+        [
+          "content-length",
+          "190"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:08 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"metadata\": {\"pre\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 20
+    },
+    {
+      "sequence": 7,
+      "method": "GET",
+      "resource": "/operations/witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:09.062000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009849;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAs2L2xnbxVIkqYsokbEpirzTaRvrByDNrixPA6rw3MkdUJsYrBfaJlKzHDqX8aPVrCxRZCm1wBrY35nvH50YEN\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:09.074958+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009849;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BADDUphuBAMxI9XTfINO5MOIcr41sUNEKq4VK0Shl_11LdrTjpUlpvi9sx1eZIzhhIOM__GQMHd0gtvAzarbwEL\""
+        ],
+        [
+          "content-length",
+          "190"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:09 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"metadata\": {\"pre\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 12
+    },
+    {
+      "sequence": 8,
+      "method": "GET",
+      "resource": "/operations/witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:09.272000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009849;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDPu2YTetUtG7iXHRX6bIOCLp-vxHM-kOLaVMRl0wPz079S-VGaq_rE0Vrgt5OEEy0C-M90zWi0CVBa4TUx3tcD\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:09.297687+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009849;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBHty9bPScdWSJjXrXnjgyOG4017eeqYKS49wXBWgJf_Lv4pTjD2MLIo8ZF501uwvihBy3rUGm9EYVxXq687oEK\""
+        ],
+        [
+          "content-length",
+          "651"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:09 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"metadata\": {\"pre\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"sn\": 0}, \"done\": true, \"error\": null, \"response\": {\"v\": \"KERI10JSON0001b7_\", \"t\": \"icp\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"a\": []}}",
+      "elapsed_ms": 25
+    },
+    {
+      "sequence": 9,
+      "method": "DELETE",
+      "resource": "/operations/witness.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:09.299000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009849;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BB0Gb1E0F0btT4aY3GOm9OCxsO_sOCTAoqf9yR_atVEh_XWWhfi_Hz9k1EM0bXNBBPf4DzNeyGhZC_O2ysw8LIJ\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:09.333512+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009849;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BD11JmAO6eeC7xbg5cAh9KBF1YI6q2QWxM1iwnG34c2WlXK2hKhuSdXppVj93dYxjzsVN66wPpiOxmALpOXGroP\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:09 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 33
+    },
+    {
+      "sequence": 10,
+      "method": "GET",
+      "resource": "/identifiers/member1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:09.335000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009849;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBWWAOU6GXVBQQAsRcBLrnq1C-WYDfEQ81K10DnmtJDSTJ9AUMH7ZDnS67PkDlJPYGhqyv2_-Aa7w95zyCiE_4A\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:09.360895+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009849;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCWFQS0kVGGs5t-fymoSZvNhF9qz19oh7QfU50hR4QWZkoxYrtaZCnF_x_XjcxjJ1TtaOmVbB3cMFi-teF7eoEN\""
+        ],
+        [
+          "content-length",
+          "1058"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:09 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2], \"metadata\": null}",
+      "elapsed_ms": 25
+    },
+    {
+      "sequence": 11,
+      "method": "POST",
+      "resource": "/identifiers/member1/endroles",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:12.244000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009852;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCe_ra4BJqiPDbAyZxHV2kZR8gzkLUhy4-dNdhWN8DJIhu033_E863XDyYbhYslBU531O3jH91quEpUNqiK4c0M\""
+        ]
+      ],
+      "request_body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EAVKOt_ttatYCGL09B05fCJX3Pnqp2tDnMNk5yli3JFZ\",\"dt\":\"2026-08-29T13:24:09.335119+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"role\":\"agent\",\"eid\":\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"}},\"sigs\":[\"AAAjYkyExPN8b6lb53SLTCXQM_x7E29WwifiuTQIPIDvrGRSp_Hn1c5G5PYb06emxVloPh-CC4ILe0G0Lf3aTAsB\"]}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:12.270943+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009852;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBsVvenkH8vy7qv34wAXcl7JhkB0IhwxQCQD_WT8zQmHZaUsMGOyEmRG7gD8OHhiDvt7NM2vBgQZAGG9maqqJgF\""
+        ],
+        [
+          "content-length",
+          "588"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:12 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"endrole.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1.agent.EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"metadata\": {\"cid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"role\": \"agent\", \"eid\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"}, \"done\": true, \"error\": null, \"response\": {\"v\": \"KERI10JSON000111_\", \"t\": \"rpy\", \"d\": \"EAVKOt_ttatYCGL09B05fCJX3Pnqp2tDnMNk5yli3JFZ\", \"dt\": \"2026-08-29T13:24:09.335119+00:00\", \"r\": \"/end/role/add\", \"a\": {\"cid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"role\": \"agent\", \"eid\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"}}}",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 12,
+      "method": "GET",
+      "resource": "/operations/endrole.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1.agent.EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:12.271000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009852;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAIUB1jer-L0A2skLpkwOM5Q63gy7RFYIFWv9F1R5aI-Qdq8yJxo_3zhsDLLoJL5mV3YVRcxkHkVob-EIGOa2oI\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:12.298569+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009852;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBPyW7VVtlWzQQIzYB5IAmAr2ZtHrjevcb46540QmiU50N0PcMZJXb1ppFOOA4hD9bohShIQI1Nfi1KtVkGnFIF\""
+        ],
+        [
+          "content-length",
+          "588"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:12 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"endrole.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1.agent.EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\", \"metadata\": {\"cid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"role\": \"agent\", \"eid\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"}, \"done\": true, \"error\": null, \"response\": {\"v\": \"KERI10JSON000111_\", \"t\": \"rpy\", \"d\": \"EAVKOt_ttatYCGL09B05fCJX3Pnqp2tDnMNk5yli3JFZ\", \"dt\": \"2026-08-29T13:24:09.335119+00:00\", \"r\": \"/end/role/add\", \"a\": {\"cid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"role\": \"agent\", \"eid\": \"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"}}}",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 13,
+      "method": "DELETE",
+      "resource": "/operations/endrole.EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1.agent.EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:12.299000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009852;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAUukSPvTuXTyMC797a3C7_H0AgUKsBzY98rC-GOmHr-1rx5UxHIXGDYKRJcVeGqe4x_KJqfDlEz6PCDh4_oNAK\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:12.327731+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009852;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BC9gCiOt5RLQzQd3j8AkRZ1UbVCisj7QBKTUGlOwosWF3Ga0YgYqs8KO6RUMII0KoMRDoZuPCb93qXluRQQ9wsP\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:12 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 28
+    },
+    {
+      "sequence": 14,
+      "method": "POST",
+      "resource": "/oobis",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:21.459000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009861;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCdAnJvfiSrJjSW9uZXOaiXAsu6kxunEjKwOFEMRtt5nLUQ0LcEZH0BMRghIoZ8LA1s2AfBM7-s4pSkhuEgLlQN\""
+        ]
+      ],
+      "request_body": "{\"url\":\"http://127.0.0.1:3902/oobi/EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q/agent/EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\",\"oobialias\":\"member2\"}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:21.485186+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009861;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCe-HMvGTkmAj8ZWQ7y0M63TJEkwAL2PrXtebnwbaGy4Ij8WzuiTlckwKmEzhMzLpuO-tX5IiD2YgnYxy8QmE8I\""
+        ],
+        [
+          "content-length",
+          "237"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:21 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"oobi.0ABos3SLpkUVbcz0gPaZAxxS\", \"metadata\": {\"oobi\": \"http://127.0.0.1:3902/oobi/EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q/agent/EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\"}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 25
+    },
+    {
+      "sequence": 15,
+      "method": "GET",
+      "resource": "/operations/oobi.0ABos3SLpkUVbcz0gPaZAxxS",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:21.486000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009861;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCvP_DWmPB95U6W-rIcp-oRHu06eU2LroYO-dzW0ECibd_XZCXgILMnyOii3lBED9rb-q5tfYKh30NAxthCWWcJ\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:21.513766+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009861;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCk3AzhoNGvJ6Oiw05fTZm2OdqMMf2Guj6LuyDz0XMVPnN8rkoWC3VJy7VpZRX3j7fx4eBvJcgtzMLLuikQp0gK\""
+        ],
+        [
+          "content-length",
+          "237"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:21 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"oobi.0ABos3SLpkUVbcz0gPaZAxxS\", \"metadata\": {\"oobi\": \"http://127.0.0.1:3902/oobi/EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q/agent/EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\"}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 27
+    },
+    {
+      "sequence": 16,
+      "method": "GET",
+      "resource": "/operations/oobi.0ABos3SLpkUVbcz0gPaZAxxS",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:21.557000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009861;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAHyDkNEeU9yCwWlRDTbqZOqS0Z6rXOccqZOdz5rNVxIrqYKASKEkF7U04ByCCxvKoYHDNk33Q1WMbuhnkgaUsL\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:21.582865+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009861;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCVAeuYq0iZ-LJ9WDCJwph40lds-qS0M3AYnxAmKSnAqo7Ocfw9ITIt5cUkeGzHGhLPcgh-eksZRdM_IGy525IO\""
+        ],
+        [
+          "content-length",
+          "237"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:21 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"oobi.0ABos3SLpkUVbcz0gPaZAxxS\", \"metadata\": {\"oobi\": \"http://127.0.0.1:3902/oobi/EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q/agent/EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\"}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 25
+    },
+    {
+      "sequence": 17,
+      "method": "GET",
+      "resource": "/operations/oobi.0ABos3SLpkUVbcz0gPaZAxxS",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:21.683000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009861;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAEi6sM5mcyAL0JCHCaBCwcUIJ65wnWwdWYMQO-sjvIXr9heFj3Fww9qEJZT4X_RcGycnGbRWzOkDukStO-bG0A\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:21.705256+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009861;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAMz0IzD7bU8kDtu49SbIeJaYGTG8ChiYFKy1RutZkalf6YW30NCwjsWvHi4bSjh6eN1WCiT17s1R-KRoG2ymEH\""
+        ],
+        [
+          "content-length",
+          "840"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:21 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"oobi.0ABos3SLpkUVbcz0gPaZAxxS\", \"metadata\": {\"oobi\": \"http://127.0.0.1:3902/oobi/EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q/agent/EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\"}, \"done\": true, \"error\": null, \"response\": {\"vn\": [1, 0], \"i\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"s\": \"0\", \"p\": \"\", \"d\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:21.610462+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"1\", \"n\": [\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"br\": [], \"ba\": []}, \"di\": \"\"}}",
+      "elapsed_ms": 21
+    },
+    {
+      "sequence": 18,
+      "method": "DELETE",
+      "resource": "/operations/oobi.0ABos3SLpkUVbcz0gPaZAxxS",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:21.708000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009861;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCgN-jVjbSFfH8ZNS5DQiF_i9U4dB198VzbqNNS2kG-gzXVHrCCRWsNW4bXtAqWf1Lndw5Phjlk6IOgQHJGVmkC\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:21.741479+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009861;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BARUJNH--46kNeYYhNDb9P1Yt--4dDA3gJ-glBBoCpQ7qoOmnml3FyyT0c233l86C3vRlgmQTc3Ok3qfUXWZg8N\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:21 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 32
+    },
+    {
+      "sequence": 19,
+      "method": "GET",
+      "resource": "/identifiers/member1/oobis?role=agent",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:21.743000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009861;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCvu2NhVJSWzswFCaGlJdZN8yn_6uUtzqT4ZsZYs_qE4dMKdh3VvOxoB4yZ7zaEjXGL-b5Lwfg4bqMmhUHbRGQM\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:21.765261+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009861;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBo2UGpMofJokqiiI1JhEIO_MopbbFBceYtZi8FQXY-D7F8KajCztGOmNP6wdPq1_QutQNAobcp4A1oq_YXf6EB\""
+        ],
+        [
+          "content-length",
+          "154"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:21 GMT"
+        ]
+      ],
+      "response_body": "{\"role\": \"agent\", \"oobis\": [\"http://127.0.0.1:3902/oobi/EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1/agent/EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\"]}",
+      "elapsed_ms": 21
+    },
+    {
+      "sequence": 20,
+      "method": "GET",
+      "resource": "/identifiers/member1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:22.019000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009862;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBn5wUZTaLE1-ZzIcguuPcJS-adPTkHnGCzPW8vzhk2jRzooOKGmjif5QzTxjo2wlMlcJE5JrwvKCosoCZP4pIG\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:22.048346+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009862;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCfiyeng7P9B68Gk0zNb2QNSShydLc3IDjoWQC9fP3QUlqcBVV6X_saAjVJbwdRbeVn3dCvdjwljAhpEdudXz0A\""
+        ],
+        [
+          "content-length",
+          "1058"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:22 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2], \"metadata\": null}",
+      "elapsed_ms": 29
+    },
+    {
+      "sequence": 21,
+      "method": "GET",
+      "resource": "/states?pre=EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:22.051000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009862;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAARyL1atZosw__WA0mEfQjnbdNUOc-ZTWhBvtc_VAQmIXlxfOGNbDqyaJAv0ibuUuhBkk3wpXVZpoF2Gy-dR0N\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:22.083656+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009862;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBoYytr9T0kDagqIWHLEJ8o0JdcaQFB8G84NWuv6wFp7nVpYgf3OnXs_tuEQ8JYkpdgujVyihd09WkNM-MwYkEG\""
+        ],
+        [
+          "content-length",
+          "610"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:22 GMT"
+        ]
+      ],
+      "response_body": "[{\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}]",
+      "elapsed_ms": 31
+    },
+    {
+      "sequence": 22,
+      "method": "GET",
+      "resource": "/states?pre=EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:22.087000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009862;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCPYgJAN3nr9DpyeeslT72Z8KvTy9Gg4AzbSeLNgEbD0oXo4HKOBthXCFLXtKCqNYjOKQmxwKeAIhURVYNWTnkM\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:22.107622+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009862;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDI2DgzYOXeZDRGSw2doqSqoxDj5v5X7YbNNKgXf1vMp0kLCxzPHGm2lqFzaqIPeFMmXlcODdvtvwBYLSevZggF\""
+        ],
+        [
+          "content-length",
+          "610"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:22 GMT"
+        ]
+      ],
+      "response_body": "[{\"vn\": [1, 0], \"i\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"s\": \"0\", \"p\": \"\", \"d\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:21.610462+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"1\", \"n\": [\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"br\": [], \"ba\": []}, \"di\": \"\"}]",
+      "elapsed_ms": 20
+    },
+    {
+      "sequence": 23,
+      "method": "POST",
+      "resource": "/identifiers",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:24.943000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009864;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAI6VwM0QDQGUXWYYLLqGOkPq9UIUqmJDqahQRhfGr6MySA29R0fluMTESc3tPS0ZJv1CUGmZ6uyAnsyj-WZqMJ\""
+        ]
+      ],
+      "request_body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\",\"i\":\"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\",\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"],\"nt\":\"2\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\",\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BAAryUvwp0eBwG0d-VK6I_0UYh78TFt5Kz2tvIyKltX90W-VCaAHFlv1vkkOOWweAucxjcosaWuh_LebhrLWkf8G\"],\"smids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"],\"rmids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"icp_dt\":\"2026-08-29T13:24:08.866505+00:00\",\"state\":{\"vn\":[1,0],\"i\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"s\":\"0\",\"p\":\"\",\"d\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"f\":\"0\",\"dt\":\"2026-08-29T13:24:08.866505+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"],\"nt\":\"1\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"],\"bt\":\"3\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"transferable\":true,\"windexes\":[0,1,2],\"salty\":{\"tier\":\"low\",\"sxlt\":\"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true}},\"keys\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\",\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"],\"ndigs\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\",\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"]}}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:24.966132+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009864;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAV6L0hdVHahacqzhob7EycFR0BGb2GCT_LVzlP3mX5oaJo6H9kDEJCdA6l7x_qyHmwSDtQbdQW1jeyOv_n4EkP\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:24 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 23
+    },
+    {
+      "sequence": 24,
+      "method": "GET",
+      "resource": "/identifiers/member1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:24.967000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009864;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCYCjDe11Ai5kFLhwMG0LGhCg2clH6P2cRRDfuSt8fjsH8N4UAGT0CW2LRTXn-WON6VEPjioio6p6Jt__oKLfcH\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:24.987353+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009864;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBhq_Xo4jmRnJVoe36QQePMWG4buLW33cqoLjC_8QSIEB7cPpsF0yn5p54yZm6LlTkhEXKO3oVfZi4hntttoRcF\""
+        ],
+        [
+          "content-length",
+          "1058"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:24 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2], \"metadata\": null}",
+      "elapsed_ms": 19
+    },
+    {
+      "sequence": 25,
+      "method": "POST",
+      "resource": "/identifiers/member1/exchanges",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:27.854000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009867;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCtEJuGRrkXN14HzDQwVG1Nsr5Kdip3mng8Q8lM596V35-untIFZwLARGNR-04bGdyo-wVhsnGvo5rSdQKEqPwM\""
+        ]
+      ],
+      "request_body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\",\"i\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"rp\":\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\",\"p\":\"\",\"dt\":\"2026-08-29T13:24:22.019629+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\",\"gid\":\"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\",\"smids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"],\"rmids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\",\"i\":\"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\",\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"],\"nt\":\"2\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\",\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EM-xsFPSFOWp90DgAJuma_JaQIDvLcn2JRkGgnQb8SE8\"}},\"sigs\":[\"AACLTibkZUgcQuuECIHBN-qqY8xp_Xv5OSP-5gXhZA20-hZENDgWTMK2L6zxdR_zFJQ9BaaKs5gsFYiKscBjWQ8M\"],\"atc\":\"-LAa5AACAA-e-icp-AABBAAryUvwp0eBwG0d-VK6I_0UYh78TFt5Kz2tvIyKltX90W-VCaAHFlv1vkkOOWweAucxjcosaWuh_LebhrLWkf8G\",\"rec\":[\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"]}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:27.862778+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009867;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBrcZImFor-ak9Zt_0ELXYasyqm49C52beOxJ21uUGFm_yqcdNWWZMQN9FUksKleyFHwmXNofa6lPKXYLkGttIJ\""
+        ],
+        [
+          "content-length",
+          "234"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:27 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"exchange.EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\", \"metadata\": {\"said\": \"EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\"}, \"done\": true, \"error\": null, \"response\": {\"said\": \"EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\"}}",
+      "elapsed_ms": 8
+    },
+    {
+      "sequence": 26,
+      "method": "GET",
+      "resource": "/operations/exchange.EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:27.863000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009867;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAiiqQNLca0r1vFJLIsE70lBedTuvT5HvJY2BEcJg3Hm5q8BGxFCBSpSTR2auKrOp2M3rIPpT6jQ9tp-C6BYVkA\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:27.901395+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009867;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAkw1Zz3yXowB8BQhWhhDVuGbvDQy2_KPOXeh6YkbercN5BR012P_aa7KTPiF9JBio9Ie448tRT9U_T4e46U1cJ\""
+        ],
+        [
+          "content-length",
+          "234"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:27 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"exchange.EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\", \"metadata\": {\"said\": \"EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\"}, \"done\": true, \"error\": null, \"response\": {\"said\": \"EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U\"}}",
+      "elapsed_ms": 37
+    },
+    {
+      "sequence": 27,
+      "method": "DELETE",
+      "resource": "/operations/exchange.EP1uwCMNzLWE77Vl8IJ47gcmfgm_z5HKhc43sAK0o04U",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:27.902000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009867;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBnUSPmrUQJZoov62cHp3u_C_OJfvqxO3CsI8Q4gY60F9C15A1GQSs_gKt3EmZKSRgczMgPxORRUr4ewpBs01UL\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:27.920617+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009867;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDfzNigz1fWNOj_CxaAG9r90bSoBFKHYUSg97VyAw7So6blysPNp6b1fZtcZ0UP6PFeNAh-gf8AELOJJ19qFp4P\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:27 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 18
+    },
+    {
+      "sequence": 28,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:34.517000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009874;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCkIJfKCzr8u2ijCwQcF-UBC3XAHZCby1dIOLSTahHsHVB2Q7mszKOqXxmFQ_fo6jmVQ_naSl4pcNVvuM8Wm6YI\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:34.553690+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009874;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDp1D7A3ueNkrIcabSgLzSZjh12nHpUKtscO1c-lLPsKuV6HKe6vLnDmep0hbfvHkbzYhOtSThnfP0_UOlyYucE\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:34 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 36
+    },
+    {
+      "sequence": 29,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:34.554000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009874;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BC-bs99ozHcD0v4KxcegvwDTrQoR5yhsJ8BW5-T70k2PAOEFyuiV2MslnLVsoatB55ryROejbiusqhWsnwXCrYE\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:34.583881+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009874;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAbXjUDSamyPqYbbG0hQZqlhKd03YXcRRWmhashv03Snrb_4_iM09wwJDNTPWvvKqYkAMi5dq8LY8E-7RtluxkN\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:34 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 29
+    },
+    {
+      "sequence": 30,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:34.613000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009874;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBwUPHQ4N-jKT2BNFer7UQA850hu791yLxB2nobxrgDe7GfW4QiIR7P8LfCvVrW9hGIl9PtmXUTVGPmh-5_cSYH\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:34.639600+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009874;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BANhhgaIZMwbj5D8w5C1LFGDWpaBfEBqtV0f3Hv-vt6BEjLzbJk0Sg4BwniGtPlu6c1ajGqo4WRFnUIPjQcImkG\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:34 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 31,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:34.698000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009874;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCGkbSSYFKnMMGpUjgAons8odgdhwsUyaErZkWCsxDhJPkCBYX0TyWY6KbvveedB9WrAfSXFjj-0c8ueZKjPFIA\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:34.705400+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009874;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BA9vBzIg83jVPPShhkFlfPlZz5_tvZX4lQDNAB_NYmOg50Lol9iHSFI4l6CcufWWJYulXRIWoB774T20ejCko0D\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:34 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 7
+    },
+    {
+      "sequence": 32,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:34.808000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009874;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDw9bBO3POJPe9b02Z1Kp15t5tTvbCc7qWrohRkFTGztSBcpDskMGY1zUpOiEKX4ekK3DfRBMzFqpFa6lem9mMF\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:34.835566+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009874;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDTJO9Dr8ZC_KvhdQVXXpg8QN-3Iv1KAU5h9uF9uG_Cq1GEsSXXw1qM12-z4qjXf9dE8DP5gKt3bWxAwYIFf94N\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:34 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 27
+    },
+    {
+      "sequence": 33,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:35.168000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009875;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCk-bvtKzh7W5UzzHyvl4sokpaFuBy_KzWVpYvvVaxPFuE8zXPJugrmDujh2szB3U1Gn2bcgEK20UUzKPLLeCgM\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:35.176943+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009875;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBZUww_35n1KK_a416mr__T6k1Wr8J1KbgW3aqplH-rUN2SWz_e9dWVBvrFLV4AI_kZL1p7rnMCrm0hiPBtL9sD\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:35 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 8
+    },
+    {
+      "sequence": 34,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:35.852000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009875;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBsQ3y85Or9_PoEZ7WSWtFNNaakMlOkWrT3IrE8IsQw646m1P0AMZUHJhrZ2Eb-UN83_-JodqTFLOWYQF8MA8AA\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:35.862491+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009875;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAWj_527EEscm7UM6w3giCJmMWWcWtfc-j4l5IbYVmDvsRnfPj_9DeqPlItVMN7X59Yh6IeLJf81PbC69A5fm0H\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:35 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 9
+    },
+    {
+      "sequence": 35,
+      "method": "GET",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:36.985000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009876;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBFowAZen_Q7rPYpPmQSQnEUvAsBSLzuUaqoBGqPtfVI67WjV4yBozrYASWk-9qcLW76TfunQwa2PPoXdrZnsMK\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.023888+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAi3d5iUYK7iCAGpe-0rXv-0TpthuhDJ7-JPPCuKd4li0qTmSifvqQ2eruHFvE0oXLSfOzi5HEVPlvBLix03H0F\""
+        ],
+        [
+          "content-length",
+          "745"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"metadata\": {\"pre\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"sn\": 0}, \"done\": true, \"error\": null, \"response\": {\"v\": \"KERI10JSON000215_\", \"t\": \"icp\", \"d\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"i\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"s\": \"0\", \"kt\": \"2\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\", \"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"2\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\", \"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"2\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"a\": []}}",
+      "elapsed_ms": 38
+    },
+    {
+      "sequence": 36,
+      "method": "DELETE",
+      "resource": "/operations/group.EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:37.025000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009877;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBurES277sQhvCjuibKVzCwV5FsYABcT_pXJtVIibBLfUqgdxjOV9YB31Qh4dBcUdZBYKJPMVY0h_1jdeHQ-IwJ\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.051402+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBUBosR6zdd1oA8ZmJ1X4m8GmP5QD_kcX_lf4TAqcUz6_DtM223a6lnvEG_hDTpIP8tMJYGTEruUSZTIOEOW-AI\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 37,
+      "method": "GET",
+      "resource": "/identifiers/multisig",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:37.118000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009877;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BAjqRl60TMjs3MTYWRciMWpP8nSB_Q1T4R7zq0tWSRfmCKscoTK-PwYtl9AVGOrailuDEopcG0EnQdDUT5gonQE\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.140461+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCgvepsiLTgaeN1kULacH5ZzWPCqxz-LbTk4YqMaBQI20UtRof1dhAK1II54uUm3JJ60pkD89jJdLoR_rwL5xkA\""
+        ],
+        [
+          "content-length",
+          "2176"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"multisig\", \"prefix\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"group\": {\"mhab\": {\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2]}, \"keys\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\", \"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"ndigs\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\", \"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"]}, \"icp_dt\": \"2026-08-29T13:24:34.608293+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"s\": \"0\", \"p\": \"\", \"d\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:34.608293+00:00\", \"et\": \"icp\", \"kt\": \"2\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\", \"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"2\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\", \"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"2\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EF5xSKQMi99Ws39tMU3Q0ABmc2fYl6-XRHDfEXXIhnHJ\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2], \"metadata\": null}",
+      "elapsed_ms": 22
+    },
+    {
+      "sequence": 38,
+      "method": "GET",
+      "resource": "/identifiers/multisig/members",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:37.171000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009877;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCEZgZlG7hJc3dNt_8Po1BdVsiFLdFmyyVLtUSllU4QR4i5rLSCMM901WO7tyLYGXL9JuheaMrm6tBhq1JlryYF\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.209248+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDGFw6235n_kRApvbF9vpKwyE4yzxGResXaHo--m3wHHInUmZhv__XpeXHP8lgMV_1cf5iERSWTuZtfZOTUz9UI\""
+        ],
+        [
+          "content-length",
+          "2119"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "{\"signing\": [{\"aid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"ends\": {\"agent\": {\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}, {\"aid\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"ends\": {\"agent\": {\"EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}], \"rotation\": [{\"aid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"ends\": {\"agent\": {\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}, {\"aid\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"ends\": {\"agent\": {\"EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}]}",
+      "elapsed_ms": 37
+    },
+    {
+      "sequence": 39,
+      "method": "GET",
+      "resource": "/identifiers/member1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:37.210000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009877;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDVCP7xBtx67igUux6OgSy-7snkATVdgXJnhk5gLullWGiMPbjbTA-sE7m0lRFsvDD9uYPyScU7w9RDIJgV4AgA\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.237594+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BB448P3psad0uy5zaCnq8VE2Azty9wUxN1I-5tgPyWyiHUxB7A8MYqkK1NBCLsrg2hFzQiifmYHDesDA3bwgGUF\""
+        ],
+        [
+          "content-length",
+          "1058"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2], \"metadata\": null}",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 40,
+      "method": "GET",
+      "resource": "/states?pre=EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:37.239000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009877;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDnaxImgMcIlIxkR2eKFR3PtzouyX-GCVd-hyUD3YuIU98DKPCSkLQqs8qEw6MTEzaOIy2qlnl_F1Rd9oZY3OEE\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.266627+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDzwlrn5wgYSiugH5YddecD2YaZ8tGSmSlg1PwUKWxUEqyUwnf3luTyQ3HsZZTADcKWhsfDkGhu5QEQM_NVP10O\""
+        ],
+        [
+          "content-length",
+          "610"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "[{\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}]",
+      "elapsed_ms": 27
+    },
+    {
+      "sequence": 41,
+      "method": "GET",
+      "resource": "/states?pre=EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:37.268000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009877;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCDdVtGkiwh7iviPigUj9dbQ9HTrOyg3cAGBychBoiD-A822NN9HKY57ZbhMHm4_QB15VxdiiEtchFUe48Ap98D\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:37.298772+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009877;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDGQ8DRnnLJKyQKaigNzTcHNIvnpTqtjGhFDX7__qqmqXeyfcmwFYRj32-iPFWVYKLF98GBjkpXfaRtV_GTbOwF\""
+        ],
+        [
+          "content-length",
+          "610"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:37 GMT"
+        ]
+      ],
+      "response_body": "[{\"vn\": [1, 0], \"i\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"s\": \"0\", \"p\": \"\", \"d\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:21.610462+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"1\", \"n\": [\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"br\": [], \"ba\": []}, \"di\": \"\"}]",
+      "elapsed_ms": 29
+    },
+    {
+      "sequence": 42,
+      "method": "POST",
+      "resource": "/identifiers",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:40.132000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009880;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCGDhkkk0XYfxkz0PxeHSCXwJVk0dTNn8uTB8YwLu3yGe0XJQjo6otAztRKvVPBK5uZPS5dRa8F5l0lgxUQXBMN\""
+        ]
+      ],
+      "request_body": "{\"name\":\"multisig2\",\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\",\"i\":\"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\",\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"],\"nt\":\"2\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\",\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"sigs\":[\"BAD46R02JZXFQJs8f11nmbUxNyzDd31Z15jjhx9XDslHxLxl7MXAadY1U7fPKlbi9bpzv-py0Vz5Ti6ayPikGksA\"],\"smids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"],\"rmids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"icp_dt\":\"2026-08-29T13:24:08.866505+00:00\",\"state\":{\"vn\":[1,0],\"i\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"s\":\"0\",\"p\":\"\",\"d\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"f\":\"0\",\"dt\":\"2026-08-29T13:24:08.866505+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"],\"nt\":\"1\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"],\"bt\":\"3\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"transferable\":true,\"windexes\":[0,1,2],\"salty\":{\"tier\":\"low\",\"sxlt\":\"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true}},\"keys\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\",\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"],\"ndigs\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\",\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"]}}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:40.149414+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009880;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAoBFU3YDJFLpkfU8YgFWmYZgLxLCK--TQXtNb3j9N31rstN5z8zvJyeVWa4V05BMU1FL3X451yvK3sGBLsBDwI\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:40 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"metadata\": {\"pre\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 17
+    },
+    {
+      "sequence": 43,
+      "method": "GET",
+      "resource": "/identifiers/member1",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:40.150000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009880;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBFUNmuUcaKL86SvJhpYM-U5GzxPMlQoPemaMmss8H9erYhDJcFwd-Tvmqv5q4GUmB6yQv_Do-dxKSTwQ-RbcwC\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:40.177119+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009880;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDcAfqXYsJ_nBXBOv3WAV9uLX8OmDylIIREDOIJmfrQxnOtk-pXmRryfdWcQuvsQ21hjXov0hyQ6-g8TDKwXp4I\""
+        ],
+        [
+          "content-length",
+          "1058"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:40 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2], \"metadata\": null}",
+      "elapsed_ms": 26
+    },
+    {
+      "sequence": 44,
+      "method": "POST",
+      "resource": "/identifiers/member1/exchanges",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:43.004000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009883;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDE_C0oNpZm50zgx4-5qHJGkwWhxJKk7dmn_Sep6BRyrvLN2YfMg2n1tpGatruPPdeo2mTNb6G8qfd-1L3YK5wO\""
+        ]
+      ],
+      "request_body": "{\"tpc\":\"multisig2\",\"exn\":{\"v\":\"KERI10JSON00040e_\",\"t\":\"exn\",\"d\":\"EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\",\"i\":\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"rp\":\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\",\"p\":\"\",\"dt\":\"2026-08-29T13:24:37.210872+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\",\"gid\":\"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\",\"smids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"],\"rmids\":[\"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\",\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000189_\",\"t\":\"icp\",\"d\":\"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\",\"i\":\"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\",\"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"],\"nt\":\"2\",\"n\":[\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\",\"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"a\":[]},\"d\":\"EGhXRnBm3lNmfVrOQGO_pYsv7VqNQxAuiITDXNIxdIFC\"}},\"sigs\":[\"AABXxdmYEEa3uSBnQx60IiXdovnLJozYxHRZSB47XdJRL-iNGknPDwXUs6ZlXrXsefrAu2EvkbFfZ5QupLYDokIB\"],\"atc\":\"-LAa5AACAA-e-icp-AABBAD46R02JZXFQJs8f11nmbUxNyzDd31Z15jjhx9XDslHxLxl7MXAadY1U7fPKlbi9bpzv-py0Vz5Ti6ayPikGksA\",\"rec\":[\"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\"]}",
+      "status": 202,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:43.024292+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009883;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BByu-KIZcqttmyWvv9HYPl6s-RInVdPcnwXrUBvBVJa5oqWZDoEJ4Q8U45iZbfBX69oJsJGxbm6g2xNom1L1gUK\""
+        ],
+        [
+          "content-length",
+          "234"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:43 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"exchange.EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\", \"metadata\": {\"said\": \"EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\"}, \"done\": true, \"error\": null, \"response\": {\"said\": \"EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\"}}",
+      "elapsed_ms": 19
+    },
+    {
+      "sequence": 45,
+      "method": "GET",
+      "resource": "/operations/exchange.EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:43.024000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009883;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBtJx3xsUCL1GqaSZWaKWnm-x1qPfqO78J_AYsuYWnNswpm7QF-7ry3uAgRpEf20kQTih9czqWp7-XcAcOw7hEC\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:43.055935+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009883;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BB9THCmXWtZINIlFjn-hVsndngbQdYVg1ZlyzW_-cwEur_diEOptuqHjSdEnDcms6OZ9fEECZHxNttLUa6hHDML\""
+        ],
+        [
+          "content-length",
+          "234"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:43 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"exchange.EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\", \"metadata\": {\"said\": \"EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\"}, \"done\": true, \"error\": null, \"response\": {\"said\": \"EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M\"}}",
+      "elapsed_ms": 31
+    },
+    {
+      "sequence": 46,
+      "method": "DELETE",
+      "resource": "/operations/exchange.EIR6vUPB3QbVdFueEMTNJ6ZQf-YmJoPw8EM3LoRig85M",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:43.057000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009883;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCLAOu5sRRz0vVrR1kXez_hG-JzIKT08H7Nc2g8b_irHk2DsIW9GNIuotu4SKBXx-7UAak7tGUuYASBLf4EqMcP\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:43.074380+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009883;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BDQXZg9HwB_LP71K-LE1Xep8Lbbct3OpIm3-4PDCi3Qxc8yxOPUlRz54shNGk0BkMXCPS5lBGYU_RmLBo33M0EG\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:43 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 16
+    },
+    {
+      "sequence": 47,
+      "method": "GET",
+      "resource": "/operations/group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.669000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDO0SQ5WMOFVbOx8Xoh_aMioq2lHTdvdkxd_A3zvNWHlfLMrlnYO18Vax7KL-a9xPZAV10-qdKl2RCA6I0AcN0K\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:49.709676+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009889;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BAPYBiitnpo4rZ0BhQdiy3mSq3yJEuJ6wWr4_kkJbRnR4efedYrTR32UckXFUfwWQPVY480Cd0WMHFdGWdvNe4O\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:49 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"metadata\": {\"pre\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 40
+    },
+    {
+      "sequence": 48,
+      "method": "GET",
+      "resource": "/operations/group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.710000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDYiCmEwLI18Ar_fUEETVGzn5a9qwjXxOY2ItyiIYbKA4TGFz5QsWlGPTlceyEATgVmOIQOJn1f04tqIDd11kIC\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:49.743048+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009889;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCLDP0ffy_Dga1mqd2L5_0NaWdwZkuCx30B03kSLOZCcNKd3o3-0TSVxV_ZlLEFG3GChrlINe6vcE3a5Glo2PQO\""
+        ],
+        [
+          "content-length",
+          "188"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:49 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"metadata\": {\"pre\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"sn\": 0}, \"done\": false, \"error\": null, \"response\": null}",
+      "elapsed_ms": 32
+    },
+    {
+      "sequence": 49,
+      "method": "GET",
+      "resource": "/operations/group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.777000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BCvtz93KlZVnXVo6nJUk6PFsEg04UR0d-Z_ntdc0mLnBkRj6GJmUO8YJzDxXtavL8iB1PJ4354js0XmV3dkLSEJ\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:49.798415+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009889;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBRhub1kZvRvQvN0DslkkzwbX46tt7_s6etf768WTFpfRDVYdKcPd25EyZD9RP0PpKDnmoZNhBYEbYHd0h0mz4L\""
+        ],
+        [
+          "content-length",
+          "603"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:49 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"metadata\": {\"pre\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"sn\": 0}, \"done\": true, \"error\": null, \"response\": {\"v\": \"KERI10JSON000189_\", \"t\": \"icp\", \"d\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"i\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"s\": \"0\", \"kt\": \"2\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\", \"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"2\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\", \"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"0\", \"b\": [], \"c\": [], \"a\": []}}",
+      "elapsed_ms": 20
+    },
+    {
+      "sequence": 50,
+      "method": "DELETE",
+      "resource": "/operations/group.EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.799000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDLPr0pefMy1jgQyfNR02J2aQ-cMcum8FL2azVvrODen0Mt4I1Y8ER0K5z-d500e08AATSTIcbifOGH4VAcXLgK\""
+        ]
+      ],
+      "request_body": null,
+      "status": 204,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:49.824889+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009889;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBd3XEHhUNmZYxtF8YdDy9vaFljz5wbTJuNwIujbXXkBCCZV-ywzJ2WKH36BnJNbowEg6LhCCjnuMB8gxrWmr8P\""
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:49 GMT"
+        ]
+      ],
+      "response_body": "",
+      "elapsed_ms": 25
+    },
+    {
+      "sequence": 51,
+      "method": "GET",
+      "resource": "/identifiers/multisig2",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.896000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BACACfkjalEPvzbHoKqYEXmndxC4Pha-nhrt1xx6wKM8wRQOCfPcCa1ninGcboJECJ_Dc_4kdWt_QY1h4i96AIK\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:49.919764+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009889;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BBoSAEMPdYrtDHFJqt8rO1ehahGRsk1eQ2xD7OPvPs5I8agzya7YyMa1iXT8oRXyg_TWJ9eqMQcuexot2bL0VIP\""
+        ],
+        [
+          "content-length",
+          "2028"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:49 GMT"
+        ]
+      ],
+      "response_body": "{\"name\": \"multisig2\", \"prefix\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"group\": {\"mhab\": {\"name\": \"member1\", \"prefix\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"salty\": {\"sxlt\": \"1AAHc7njOyqWqY9nSWobxnxjXZCO4bUm2Q7ZL5OzB6fdGxAFfV24lXpw89u2Wb92ctyx29j7NhAaMcceGJ2U5YYIcEPCeyUn-Z0k\", \"pidx\": 0, \"kidx\": 0, \"stem\": \"signify:aid\", \"tier\": \"low\", \"dcode\": \"E\", \"icodes\": [\"A\"], \"ncodes\": [\"A\"], \"transferable\": true}, \"icp_dt\": \"2026-08-29T13:24:08.866505+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"s\": \"0\", \"p\": \"\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:08.866505+00:00\", \"et\": \"icp\", \"kt\": \"1\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\"], \"nt\": \"1\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\"], \"bt\": \"3\", \"b\": [\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\", \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\", \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [0, 1, 2]}, \"keys\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\", \"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"ndigs\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\", \"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"]}, \"icp_dt\": \"2026-08-29T13:24:49.760928+00:00\", \"transferable\": true, \"state\": {\"vn\": [1, 0], \"i\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"s\": \"0\", \"p\": \"\", \"d\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"f\": \"0\", \"dt\": \"2026-08-29T13:24:49.760928+00:00\", \"et\": \"icp\", \"kt\": \"2\", \"k\": [\"DGpmUwqM7Xphw6aqGrp6NNV-JOCzOHlpQLoT0ElweLDF\", \"DH-n_2Zb66fc47T2vR4EbfbNek6S3fqwXqvNWxLtxa5Q\"], \"nt\": \"2\", \"n\": [\"EHBl_2WNE34OELCKsWRJHl7OofP7xNsFvTuR0Z2Gicj3\", \"EPWk3OQ_y1Gcuka6HcuWezigYDMC7O-3LDVeyXZqSiRm\"], \"bt\": \"0\", \"b\": [], \"c\": [], \"ee\": {\"s\": \"0\", \"d\": \"EHBVe80kytXYFjoxAAb1FihDd8uXCGq-KPR4ugHxlw_D\", \"br\": [], \"ba\": []}, \"di\": \"\"}, \"windexes\": [], \"metadata\": null}",
+      "elapsed_ms": 22
+    },
+    {
+      "sequence": 52,
+      "method": "GET",
+      "resource": "/identifiers/multisig2/members",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.958000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BBfu8Ruqr6qMs5WpQgLPcrT4yShefqFrANJKHNwPdZyNAYI4fTlf9ILIxD8uGN7UA0P1IfOZ0_SHL8VM6t_S2YO\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:49.987717+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009889;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCdXJYfM0rgCBdFuia3wsqvhrd81PStBruAJbl75wfW6SEOEaL19CLCrEjJeHyxK_Xm7yhi3tiDiYiF82ifhoQM\""
+        ],
+        [
+          "content-length",
+          "2119"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:49 GMT"
+        ]
+      ],
+      "response_body": "{\"signing\": [{\"aid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"ends\": {\"agent\": {\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}, {\"aid\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"ends\": {\"agent\": {\"EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}], \"rotation\": [{\"aid\": \"EFzDUpP2lc_STo7l6lgsYqmtVkLh10srxn3Y6gKc56Y1\", \"ends\": {\"agent\": {\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}, {\"aid\": \"EECWcgaukgaxcGbADkTKg7znwUsuOCVgODjPcXE3E58Q\", \"ends\": {\"agent\": {\"EIaKlqnao4fl-yVO4As_nlard8Jt1aTw6DzVjy1zruEt\": {\"http\": \"http://127.0.0.1:3902/\"}}, \"witness\": {\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\": {\"http\": \"http://127.0.0.1:5642/\", \"tcp\": \"tcp://127.0.0.1:5632/\"}, \"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\": {\"http\": \"http://127.0.0.1:5643/\", \"tcp\": \"tcp://127.0.0.1:5633/\"}, \"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\": {\"http\": \"http://127.0.0.1:5644/\", \"tcp\": \"tcp://127.0.0.1:5634/\"}}}}]}",
+      "elapsed_ms": 28
+    },
+    {
+      "sequence": 53,
+      "method": "GET",
+      "resource": "/operations",
+      "request_headers": [
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "Signify-Resource",
+          "EJJCeJA3TicMc3WNiqgwokQXS08gGZQCZrS77mumJ0Lo"
+        ],
+        [
+          "Signify-Timestamp",
+          "2026-08-29T13:24:49.990000+00:00"
+        ],
+        [
+          "Signature-Input",
+          "signify=(\"@method\" \"@path\" \"signify-resource\" \"signify-timestamp\");created=1788009889;keyid=\"DCNyrxkZkPIaSUuqQhQqhIsoyghr-YhgGZ4GiViejkEc\";alg=\"ed25519\""
+        ],
+        [
+          "Signature",
+          "indexed=\"?0\";signify=\"0BDCuCP15Mbxss7aoiJ2IT7pTKyQGSPhEysXeN-YCmUHjXJ8dNTsY60yRgi82gZOaLERxFHTcPxaPUBr2yM4eSML\""
+        ]
+      ],
+      "request_body": null,
+      "status": 200,
+      "response_headers": [
+        [
+          "access-control-allow-origin",
+          "*"
+        ],
+        [
+          "access-control-allow-methods",
+          "*"
+        ],
+        [
+          "access-control-allow-headers",
+          "*"
+        ],
+        [
+          "access-control-expose-headers",
+          "*"
+        ],
+        [
+          "access-control-max-age",
+          "1728000"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "signify-resource",
+          "EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ"
+        ],
+        [
+          "signify-timestamp",
+          "2026-08-29T13:24:50.019891+00:00"
+        ],
+        [
+          "signature-input",
+          "signify=(\"signify-resource\" \"@method\" \"@path\" \"signify-timestamp\");created=1788009890;keyid=\"EH-hgLyolJBS0M1bSwkIbPUG0ntcRWDqzCiAQ5h59xoZ\";alg=\"ed25519\""
+        ],
+        [
+          "signature",
+          "indexed=\"?0\";signify=\"0BCi-6hCp9KGoV261_eAsv_k9kj2OkGseEtxBb-a4ZSH9Tc6TQbUyRXCjV_WuXd10nH4cl4OVRAf2mPcwFPQ3GAG\""
+        ],
+        [
+          "content-length",
+          "2"
+        ],
+        [
+          "server",
+          "Ioflo WSGI Server"
+        ],
+        [
+          "date",
+          "Sat, 29 Aug 2026 13:24:50 GMT"
+        ]
+      ],
+      "response_body": "[]",
+      "elapsed_ms": 29
+    }
+  ]
+}

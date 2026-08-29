@@ -224,6 +224,33 @@ async fn add_group_end_role(
     Ok(operation_name)
 }
 
+/// Connects the three clients the scenario needs, in transcript order.
+async fn three_clients(
+    environment: &Environment,
+    transcripts: &[std::sync::Arc<signify_keria_systest::Recorder>; 3],
+) -> Result<(ConnectedClient, ConnectedClient, ConnectedClient), Box<dyn Error>> {
+    progress("connecting the three clients");
+    let member1 = connect(
+        environment,
+        signify_client::random::random_passcode()?.expose(),
+        &transcripts[0],
+    )
+    .await?;
+    let member2 = connect(
+        environment,
+        signify_client::random::random_passcode()?.expose(),
+        &transcripts[1],
+    )
+    .await?;
+    let alice = connect(
+        environment,
+        signify_client::random::random_passcode()?.expose(),
+        &transcripts[2],
+    )
+    .await?;
+    Ok((member1, member2, alice))
+}
+
 /// Reads one role listing as flat triples.
 async fn roles(
     client: &ConnectedClient,
@@ -305,25 +332,7 @@ async fn incept_group(
 async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> {
     let environment = Environment::from_environment()?;
     let transcripts = [recorder("member1")?, recorder("member2")?, recorder("alice")?];
-    progress("connecting the three clients");
-    let member1 = connect(
-        &environment,
-        signify_client::random::random_passcode()?.expose(),
-        &transcripts[0],
-    )
-    .await?;
-    let member2 = connect(
-        &environment,
-        signify_client::random::random_passcode()?.expose(),
-        &transcripts[1],
-    )
-    .await?;
-    let alice = connect(
-        &environment,
-        signify_client::random::random_passcode()?.expose(),
-        &transcripts[2],
-    )
-    .await?;
+    let (member1, member2, alice) = Box::pin(three_clients(&environment, &transcripts)).await?;
 
     // Members and Alice, witnessed; the members cross-resolved so the proposal can travel.
     let aid1 = witnessed_identifier(&member1, "member1", &environment).await?;
