@@ -468,7 +468,7 @@ fn a_query_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Error
     assert_eq!(metadata.pre, PREFIX_ONE);
     // The reference's generated schema declares `QueryMetadata.sn` a `number`, which is the shape
     // this recorded answer carries.
-    assert_eq!(metadata.sn, EchoedSequence::Number(1));
+    assert_eq!(metadata.sn, Some(EchoedSequence::Number(1)));
     Ok(())
 }
 
@@ -483,11 +483,11 @@ fn a_live_agent_echoes_the_sequence_number_back_as_the_string_it_was_sent() -> R
         br#"{"name":"query.EEbP.a","metadata":{"pre":"EEbP","sn":"a"},"done":false,"error":null,"response":null}"#;
     let operation: QueryOperation = serde_json::from_slice(answer)?;
     let metadata = operation.metadata.ok_or("the recorded answer carried no metadata")?;
-    assert_eq!(metadata.sn, EchoedSequence::Text("a".to_owned()));
+    assert_eq!(metadata.sn, Some(EchoedSequence::Text("a".to_owned())));
 
     // Both spellings read back as the text they arrived as, and neither is rewritten into the
     // other: the base of an echoed string is the caller's choice, not something this type recovers.
-    assert_eq!(metadata.sn.to_text(), "a");
+    assert_eq!(metadata.sn.as_ref().map(EchoedSequence::to_text).as_deref(), Some("a"));
     assert_eq!(EchoedSequence::Number(10).to_text(), "10");
     Ok(())
 }
@@ -541,7 +541,7 @@ fn the_recorded_live_query_answer_decodes_whole() -> Result<(), Box<dyn Error>> 
     const LIVE: &str = include_str!("../../../fixtures/keria-integration/observations/live_query_answer.json");
     let operation: QueryOperation = serde_json::from_str(LIVE)?;
     let metadata = operation.metadata.ok_or("the live answer carried no metadata")?;
-    assert_eq!(metadata.sn, EchoedSequence::Text("a".to_owned()));
+    assert_eq!(metadata.sn, Some(EchoedSequence::Text("a".to_owned())));
     let OperationOutcome::Completed(state) = operation.outcome else {
         return Err("the recorded live answer is not a completed operation".into());
     };

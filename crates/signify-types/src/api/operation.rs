@@ -30,7 +30,7 @@ use serde_json::{Map, Value};
 
 use super::error::ApiError;
 use super::key_state::KeyState;
-use super::message::{AcdcRecord, Anchor, ExchangeRecord, KeyEvent, ReplyRecord};
+use super::message::{AcdcRecord, Anchor, ExchangeRecord, KeyEvent, ReplyRecord, Seal};
 
 /// Why a KERIA operation failed.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -317,16 +317,42 @@ impl EchoedSequence {
     }
 }
 
+/// An anchor as an agent echoed it back.
+///
+/// A key-state query's metadata is the caller's own request copied verbatim, exactly as
+/// [`EchoedSequence`] records for `sn`. A query **by anchor** sends the caller's seal — `{i, s,
+/// d}`, which is what `KeyStateQuery` builds and the reference's own `singlesig-dip` integration
+/// case passes — and a live KERIA 1.0.1 echoes that seal back unchanged, while the reference's
+/// generated schema and this crate's other operation families spell an anchor `{pre, sn, d}`.
+/// Typing the field as [`Anchor`] alone made every live anchor-query answer undecodable — found
+/// by Roadmap 9.2c's wave 10, the first anchor query ever driven against a deployment. Both
+/// shapes are accepted and neither is rewritten into the other; they are disjoint, since one
+/// requires `pre` and `sn` and the other requires `s`.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum EchoedAnchor {
+    /// The `{pre, sn, d}` shape the reference's schema declares.
+    Anchor(Anchor),
+    /// The caller's own `{i, s, d}` seal, echoed back verbatim.
+    Seal(Seal),
+}
+
 /// Metadata of an operation querying another identifier's key state.
+///
+/// The agent copies the request into this record verbatim, so exactly the fields the caller sent
+/// come back: a sequence query carries `sn` and no `anchor`, an anchor query carries `anchor` and
+/// **no `sn`** — which is why both are optional, found live by Roadmap 9.2c's wave 10 after the
+/// required `sn` refused the first anchor-query answer.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct QueryMetadata {
     /// Identifier prefix being queried.
     pub pre: String,
-    /// Sequence number being waited for, as the agent echoed it back.
-    pub sn: EchoedSequence,
-    /// Event the query is waiting to see anchored.
+    /// Sequence number being waited for, as the agent echoed it back; absent on an anchor query.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub anchor: Option<Anchor>,
+    pub sn: Option<EchoedSequence>,
+    /// Event the query is waiting to see anchored, as the agent echoed it back.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub anchor: Option<EchoedAnchor>,
 }
 
 /// Metadata of an operation authorizing an endpoint role.
@@ -602,6 +628,36 @@ mod tests {
         assert_eq!(typed.metadata.map(|metadata| metadata.pre), Some("EABC".to_owned()));
         // The wrong family is a typed failure rather than a silent misreading.
         assert!(untyped.into_typed::<OobiMetadata, KeyState>().is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn an_anchor_query_echoes_the_callers_seal_and_no_sequence() -> Result<(), Box<dyn Error>> {
+        // The exact shape a live KERIA 1.0.1 answered the first anchor query ever driven against
+        // a deployment — Roadmap 9.2c's wave 10. The metadata is the caller's request copied
+        // verbatim: the anchor is the caller's own `{i, s, d}` seal, not the schema's
+        // `{pre, sn, d}` shape, and there is no `sn` at all. Typing `anchor` as `Anchor` alone
+        // and `sn` as required made this body undecodable.
+        let answer = r#"{"name":"query.EHS5.EAUv","metadata":{"pre":"EHS5","anchor":{"i":"EAUv","s":"0","d":"EAUv"}},"done":false,"error":null,"response":null}"#;
+        let operation: QueryOperation = serde_json::from_str(answer)?;
+        let metadata = operation.metadata.ok_or("the anchor query carried no metadata")?;
+        assert_eq!(metadata.sn, None);
+        let Some(EchoedAnchor::Seal(seal)) = &metadata.anchor else {
+            return Err("the echoed seal decoded as something else".into());
+        };
+        assert_eq!(seal.identifier.as_deref(), Some("EAUv"));
+        assert_eq!(seal.sequence_number, "0");
+        assert_eq!(seal.digest, "EAUv");
+
+        // The schema's own shape still decodes, and the two are disjoint: one requires `pre` and
+        // `sn`, the other requires `s`.
+        let schema_shaped = r#"{"name":"query.EHS5","metadata":{"pre":"EHS5","sn":1,"anchor":{"pre":"EABC","sn":1,"d":"EAB"}},"done":false}"#;
+        let operation: QueryOperation = serde_json::from_str(schema_shaped)?;
+        let metadata = operation
+            .metadata
+            .ok_or("the schema-shaped query carried no metadata")?;
+        assert_eq!(metadata.sn, Some(EchoedSequence::Number(1)));
+        assert!(matches!(metadata.anchor, Some(EchoedAnchor::Anchor(_))));
         Ok(())
     }
 

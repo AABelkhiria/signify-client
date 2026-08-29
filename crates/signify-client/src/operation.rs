@@ -758,7 +758,7 @@ mod tests {
         assert!(
             QueryMetadata {
                 pre: "E".to_owned(),
-                sn: EchoedSequence::Number(0),
+                sn: Some(EchoedSequence::Number(0)),
                 anchor: None
             }
             .dependency()

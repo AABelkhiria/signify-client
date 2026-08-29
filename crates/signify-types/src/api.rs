@@ -111,8 +111,8 @@ pub use message::{
 pub use operation::{
     ChallengeMetadata, ChallengeOperation, ChallengeResponse, CredentialMetadata, CredentialOperation,
     CredentialResponse, DelegationMetadata, DelegationOperation, DelegatorMetadata, DelegatorOperation, DoneMetadata,
-    DoneOperation, EchoedSequence, EndRoleMetadata, EndRoleOperation, ExchangeMetadata, ExchangeOperation,
-    GroupMetadata, GroupOperation, KelMetadata, KelOperation, KelResponse, LocationSchemeMetadata,
+    DoneOperation, EchoedAnchor, EchoedSequence, EndRoleMetadata, EndRoleOperation, ExchangeMetadata,
+    ExchangeOperation, GroupMetadata, GroupOperation, KelMetadata, KelOperation, KelResponse, LocationSchemeMetadata,
     LocationSchemeOperation, LogPositionMetadata, OobiMetadata, OobiOperation, Operation, OperationOutcome,
     OperationStatus, QueryMetadata, QueryOperation, RegistryMetadata, RegistryOperation, RegistryResponse,
     SubmitMetadata, SubmitOperation, UntypedOperation, WitnessMetadata, WitnessOperation,

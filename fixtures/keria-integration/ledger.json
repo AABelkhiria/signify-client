@@ -237,10 +237,15 @@
       "clients": 2,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave10_delegated_lifecycle.rs",
+        "crates/signify-keria-systest/tests/delegated_lifecycle_vectors.rs",
+        "fixtures/keria-integration/observations/singlesig_dip.json",
+        "fixtures/keria-integration/observations/singlesig_drt.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-29 by wave 10, both files whole. Two delegated inceptions — one unwitnessed, one witnessed by the whole triple at threshold three — and a delegated rotation, every establishment pending under its delegation.{said} operation until the delegator anchored its seal with a plain interaction (byte-identical to wave 9's delegation-address approval but for the path, which is Roadmap 8.5's finding used in the other direction). The delegate's agent saw the first anchor through a sequence query and the second through an anchor query, whose idempotence the upstream case asserts and this recording repeats. The drt is itself a delegated event, completing as t=drt at s=1. The wave found the port's third live-only defect: the agent echoes an anchor query's seal back in the caller's own {i,s,d} shape with no sn at all, so QueryMetadata's required sn and Anchor-typed anchor refused the first anchor-query answer ever received — widened to Option<EchoedSequence> and EchoedAnchor, pinned in §10.",
+      "reason": "settled",
       "note": "A delegator anchoring a delegate's inception and then its rotation, with and without witnesses."
     },
     {
