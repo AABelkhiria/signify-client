@@ -257,10 +257,14 @@
       "clients": 2,
       "needs_witnesses": true,
       "needs_vlei": false,
-      "rust_evidence": [],
-      "status": "unobserved",
-      "outcome": null,
-      "reason": "not_yet_recorded",
+      "rust_evidence": [
+        "crates/signify-keria-systest/tests/wave9_delegation.rs",
+        "crates/signify-keria-systest/tests/delegation_vectors.rs",
+        "fixtures/keria-integration/observations/delegation.json"
+      ],
+      "status": "observed",
+      "outcome": "Recorded 2026-08-29 by wave 9, whole. A delegated inception's operation is proven pending before approval — the identifier does not exist until the delegator anchors a seal of it — then the approving interaction (built through InceptionSeal, whose fields cannot disagree, where upstream hand-assembles the anchor and reads the delegate's prefix out of an operation name) lands at the delegation address, the delegate's key-state query at sequence one lets its agent see the anchor, and the creation completes with the artifact's own prefix. The tail reproduces upstream's odd contact resolution: the delegate's agent OOBI truncated at /agent/ still resolves and answers the delegate's prefix. One operational fact recorded: a delegation approval spawns a witness operation inside its own metadata.depends, so the zero-operations postcondition requires the dependency walk upstream's deleteOperations performs.",
+      "reason": "settled",
       "note": "The single-signature approval round. Roadmap 8.5's record says this half needs two connected clients and a live agent."
     },
     {
