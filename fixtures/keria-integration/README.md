@@ -122,6 +122,7 @@ it turns "it passed on the machine that ran it" into something diffable.
 | `observations/challenge.json` | The challenge round: BIP39 word counts at both strengths, the signed response as an exchange message, the verification answering with the very message sent, and the contact's authenticated challenge | `challenge_vectors.rs` (3) |
 | `observations/endroles_by_aid.json` | A two-member multisig inception, the group end-role round over `/multisig/rpy`, and a third party's five `/endroles/{aid}` reads — the group's roles naming exactly both agents | `endroles_by_aid_vectors.rs` (5) |
 | `observations/multisig_inception.json` | Two groups incepted by two members — witnessed at threshold two and witnessless at zero — with the members listings, including the witnessless one upstream dare not assert against `keria#189` | `multisig_inception_vectors.rs` (4) |
+| `observations/multisig_join.json` | A third member entering a group in KERI's two steps: committed into rotation authority, then seated by a rotation he joins by rebuilding it and comparing SAIDs before `groups().join` | `multisig_join_vectors.rs` (3) |
 
 Three findings are worth reading the files for. Asked for a page past the end of a collection, KERIA
 answers **`aids 100-0/4`** — a start greater than its end, which RFC 9110 forbids — so a parser that
@@ -148,8 +149,9 @@ delegated inception/rotation** (wave 10, both refresh modes and the delegated ro
 echoed-seal defect that widened `QueryMetadata`), **Challenge and response** (wave 11, the
 round tied across two clients by SAID), and **End roles by AID** (wave 12, the first live drive
 of the port's multisig machinery, read back by a third party). **Multisig inception/join** is
-`partly_observed` — wave 13 recorded the inception file whole, including the witnessless members
-listing upstream dare not assert, and owes the join file. The other seven remain `unobserved`.
+`partly_observed` — wave 13 recorded the inception file whole and wave 14 the join spine, a third
+member rebuilding the rotation he was shown and comparing SAIDs before joining; only the
+four-client replacement case remains. The other seven remain `unobserved`.
 "How much of 9.2 remains" stays a number a test prints rather than a judgement. Nothing here
 claims evidence that does not exist — the audit requires every path a row names to be on disk,
 and forbids a row from naming evidence while claiming to be unanswered.
