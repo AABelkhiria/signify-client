@@ -9,9 +9,12 @@
 //! Every client here derives its controller at the ephemeral profile, because none of these
 //! properties is about key derivation.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::{ADMIN, AgentTransport, BOOT, LIFECYCLE_REQUESTS, PASSCODE, agent_state, block_on, clock};
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -25,7 +28,6 @@ use signify_http::transport::Transport;
 use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::manager::DerivationCost;
-use signify_testkit::{ADMIN, AgentTransport, BOOT, LIFECYCLE_REQUESTS, PASSCODE, agent_state, block_on, clock};
 use signify_types::api::Role;
 
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
@@ -86,7 +88,7 @@ fn endpoint_paths(transport: &AgentTransport) -> Vec<String> {
         .requests()
         .iter()
         .skip(LIFECYCLE_REQUESTS)
-        .map(signify_testkit::Recorded::resource)
+        .map(crate::support::Recorded::resource)
         .collect()
 }
 

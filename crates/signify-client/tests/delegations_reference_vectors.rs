@@ -11,9 +11,12 @@
 //! for byte, anchors `[null]` and signs it. That body is reproduced here exactly, and this port is
 //! then driven to show it cannot be spelled.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -32,7 +35,6 @@ use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
-use signify_testkit::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-delegations/v1.json");

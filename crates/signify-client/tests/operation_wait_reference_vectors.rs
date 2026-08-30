@@ -9,12 +9,15 @@
 //! count**. Every one of those counts is reproduced here, against the same counts driven out of the
 //! reference itself.
 
+mod support;
+
 use core::time::Duration;
 use std::error::Error;
 use std::future::Future;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -24,7 +27,6 @@ use signify_client::operation::{DEFAULT_DEADLINE, PollPolicy, Poller, PollingLim
 use signify_http::retry::{Clock, FixedJitter, Jitter, TestClock};
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
-use signify_testkit::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 use signify_types::api::{KelMetadata, KelResponse, Operation, OperationOutcome, RegistryMetadata};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";

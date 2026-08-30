@@ -14,6 +14,8 @@
 //! not await the message it sends; and the witness threshold is re-parsed out of a hexadecimal
 //! field with a base-ten `parseInt`, which for `"10"` silently derives a different group.
 
+mod support;
+
 use std::error::Error;
 
 use serde::Deserialize;
@@ -660,12 +662,12 @@ mod driven {
 
     use signify_crypto::verifier::KeyTransferability;
 
+    use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
     use signify_http::transport::Transport;
     use signify_keri::event::Timestamp;
     use signify_keri::manager::DerivationCost;
     use signify_keri::prefix::IdentifierPrefix;
     use signify_keri::threshold::SigningThreshold;
-    use signify_testkit::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";

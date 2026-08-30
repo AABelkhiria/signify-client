@@ -2,8 +2,10 @@
 //!
 //! Nineteen test files in `signify-client` each carried their own copy of the same scripted agent —
 //! roughly two thousand lines, byte-identical in the parts that mattered and quietly divergent in
-//! the parts that did not. This crate is that harness, once. `ARCHITECTURE.md` §11 provides for a
-//! small test-support package "only after duplication is real"; at nineteen copies it is.
+//! the parts that did not. This module is that harness, once. It began life as the
+//! `signify-testkit` workspace package (Roadmap 9.2a) and was folded into this crate's `tests/`
+//! directory on 2026-08-30, every one of its consumers having proven to live here;
+//! `ARCHITECTURE.md` §11 records both homes.
 //!
 //! # Why this exists rather than [`signify_http::transport::ScriptedTransport`]
 //!
@@ -15,12 +17,20 @@
 //! `ConnectedClient::with_freshness(Freshness::Ignore)` and a plain `ScriptedTransport` remain the
 //! lighter choice.
 //!
-//! # What this crate must never become
+//! # What this module must never become
 //!
 //! It holds no protocol logic. Everything here is a fixture, a constant, or plumbing; anything that
 //! decides what a correct KERI artifact looks like belongs in the crate under test, where it is
-//! subject to the real gates. `ARCHITECTURE.md` §11 says the same in one line: a test-support
-//! package "may not contain production protocol logic".
+//! subject to the real gates. `ARCHITECTURE.md` §11 says the same in one line: test support
+//! "may not contain production protocol logic".
+
+// Compiled once per test binary that declares `mod support;`, and not every binary uses every
+// helper — which is why this is `allow` rather than `expect`: whether each item is dead varies
+// per binary, so no single expectation could be fulfilled everywhere.
+#![allow(
+    dead_code,
+    reason = "compiled once per test binary; not every binary uses every helper"
+)]
 
 use std::error::Error;
 use std::future::Future;
@@ -38,21 +48,21 @@ use signify_http::signature::timestamp::SignifyTimestamp;
 use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
 
 /// Administrative URL every scripted client is configured against.
-pub const ADMIN: &str = "http://127.0.0.1:3901";
+pub(crate) const ADMIN: &str = "http://127.0.0.1:3901";
 
 /// Boot URL every scripted client is configured against.
-pub const BOOT: &str = "http://127.0.0.1:3903";
+pub(crate) const BOOT: &str = "http://127.0.0.1:3903";
 
 /// The twenty-one character passcode the pinned reference's own tests use.
 ///
 /// `PUBLIC TEST MATERIAL`: this is the reference's published test passcode, not a secret.
-pub const PASSCODE: &str = "0123456789abcdefghijk";
+pub(crate) const PASSCODE: &str = "0123456789abcdefghijk";
 
 /// Prefix of the agent every scripted answer claims to come from.
-pub const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
+pub(crate) const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
 
 /// The instant every scripted answer is stamped with, in milliseconds since the Unix epoch.
-pub const FIXED_MILLIS: u64 = 1_700_000_000_123;
+pub(crate) const FIXED_MILLIS: u64 = 1_700_000_000_123;
 
 /// How many requests connecting a client makes before any endpoint call.
 ///
@@ -60,7 +70,7 @@ pub const FIXED_MILLIS: u64 = 1_700_000_000_123;
 /// first two recorded requests are never the ones a test is asking about.
 /// [`AgentTransport::endpoint_requests`] skips exactly these — and checks that it skipped the right
 /// ones, so this constant cannot silently drift out of step with the client.
-pub const LIFECYCLE_REQUESTS: usize = 2;
+pub(crate) const LIFECYCLE_REQUESTS: usize = 2;
 
 /// The agent's signing seed, so a scripted answer verifies as that agent's.
 ///
@@ -77,12 +87,12 @@ const DEFAULT_STATUS: u16 = 202;
 
 /// One request as it left the client, in the shape a test wants to read it.
 ///
-/// The nineteen copies this crate replaces returned seven different tuples between them — a path
+/// The nineteen copies this module replaces returned seven different tuples between them — a path
 /// and a method here, a path and a body there, a fourth element bolted on somewhere else. A view
 /// with named accessors lets each caller read the two or three things it cares about, and lets a
 /// later caller want a fourth without disturbing anyone.
 #[derive(Clone, Debug)]
-pub struct Recorded {
+pub(crate) struct Recorded {
     request: Request,
 }
 
@@ -91,10 +101,10 @@ impl Recorded {
     ///
     /// The query is part of the address, and a test that asserts on `/challenges` when the client
     /// sent `/challenges?strength=128` is asserting about a request that was never made. The
-    /// nineteen copies this crate replaces got this right by stripping the base URL from the whole
+    /// nineteen copies this module replaces got this right by stripping the base URL from the whole
     /// address; dropping the query here reintroduced the bug, and their assertions caught it.
     #[must_use]
-    pub fn resource(&self) -> String {
+    pub(crate) fn resource(&self) -> String {
         let url = self.request.url();
         match url.query() {
             Some(query) => format!("{}?{query}", url.path()),
@@ -104,19 +114,19 @@ impl Recorded {
 
     /// Returns the path the request was sent to, without the host or the query.
     #[must_use]
-    pub fn path(&self) -> &str {
+    pub(crate) fn path(&self) -> &str {
         self.request.url().path()
     }
 
     /// Returns the request's method.
     #[must_use]
-    pub fn method(&self) -> &'static str {
+    pub(crate) fn method(&self) -> &'static str {
         self.request.method().as_str()
     }
 
     /// Returns the request's body as text, when it carried one that is UTF-8.
     #[must_use]
-    pub fn body_text(&self) -> Option<String> {
+    pub(crate) fn body_text(&self) -> Option<String> {
         self.request
             .body()
             .and_then(|bytes| core::str::from_utf8(bytes).ok())
@@ -125,19 +135,19 @@ impl Recorded {
 
     /// Returns the request's body bytes, when it carried one.
     #[must_use]
-    pub fn body(&self) -> Option<&[u8]> {
+    pub(crate) fn body(&self) -> Option<&[u8]> {
         self.request.body()
     }
 
     /// Returns one request header's value, when it was sent.
     #[must_use]
-    pub fn header(&self, name: &str) -> Option<&str> {
+    pub(crate) fn header(&self, name: &str) -> Option<&str> {
         self.request.headers().get(name)
     }
 
     /// Returns the underlying request, for the rare test that needs more than the accessors give.
     #[must_use]
-    pub const fn request(&self) -> &Request {
+    pub(crate) const fn request(&self) -> &Request {
         &self.request
     }
 }
@@ -148,7 +158,7 @@ impl Recorded {
 /// is answered `{}`, or — under [`Self::repeating_last`] — with the last answer again, which is
 /// what a test that polls an operation until it completes needs.
 #[derive(Debug)]
-pub struct AgentTransport {
+pub(crate) struct AgentTransport {
     answers: Mutex<Vec<Vec<u8>>>,
     recorded: Mutex<Vec<Request>>,
     status: Mutex<u16>,
@@ -159,7 +169,7 @@ pub struct AgentTransport {
 impl AgentTransport {
     /// Builds a transport that answers with `answers`, in order.
     #[must_use]
-    pub fn new(answers: &[&[u8]]) -> Arc<Self> {
+    pub(crate) fn new(answers: &[&[u8]]) -> Arc<Self> {
         Arc::new(Self {
             answers: Mutex::new(answers.iter().rev().map(|body| body.to_vec()).collect()),
             recorded: Mutex::new(Vec::new()),
@@ -173,7 +183,7 @@ impl AgentTransport {
     ///
     /// A listing endpoint reports its window in that header, and a test about paging needs to say
     /// what the agent claimed.
-    pub fn with_content_range(&self, range: &str) {
+    pub(crate) fn with_content_range(&self, range: &str) {
         if let Ok(mut guard) = self.content_range.lock() {
             *guard = Some(range.to_owned());
         }
@@ -183,7 +193,7 @@ impl AgentTransport {
     ///
     /// Use it to observe what a client does when the agent refuses — that a rotation is not
     /// adopted, that nothing is left half-applied.
-    pub fn with_status(&self, status: u16) {
+    pub(crate) fn with_status(&self, status: u16) {
         if let Ok(mut guard) = self.status.lock() {
             *guard = status;
         }
@@ -192,7 +202,7 @@ impl AgentTransport {
     /// Answers everything from here on with `400`.
     ///
     /// The common case of [`Self::with_status`], named for what a test is actually saying.
-    pub fn refuse(&self) {
+    pub(crate) fn refuse(&self) {
         self.with_status(400);
     }
 
@@ -201,7 +211,7 @@ impl AgentTransport {
     /// A caller that polls an operation until it finishes makes an unknown number of requests, so
     /// its last answer has to survive being read. Without this an exhausted script answers `{}`,
     /// which the caller reads as a malformed operation rather than as one still running.
-    pub fn repeating_last(&self) {
+    pub(crate) fn repeating_last(&self) {
         if let Ok(mut guard) = self.repeat_last.lock() {
             *guard = true;
         }
@@ -209,7 +219,7 @@ impl AgentTransport {
 
     /// Returns every request the client made, in order.
     #[must_use]
-    pub fn requests(&self) -> Vec<Recorded> {
+    pub(crate) fn requests(&self) -> Vec<Recorded> {
         self.recorded.lock().map_or_else(
             |_| Vec::new(),
             |guard| guard.iter().cloned().map(|request| Recorded { request }).collect(),
@@ -221,10 +231,10 @@ impl AgentTransport {
     /// # Errors
     ///
     /// Returns an error when the leading requests are not the two `ConnectedClient::connect` makes
-    /// against `/agent/`. Every copy this crate replaces skipped a hardcoded two without checking;
+    /// against `/agent/`. Every copy this module replaces skipped a hardcoded two without checking;
     /// had `connect` ever grown a third request, all nineteen would have gone on asserting about
     /// the wrong one.
-    pub fn endpoint_requests(&self) -> Result<Vec<Recorded>, Box<dyn Error>> {
+    pub(crate) fn endpoint_requests(&self) -> Result<Vec<Recorded>, Box<dyn Error>> {
         let all = self.requests();
         let lifecycle = all.get(..LIFECYCLE_REQUESTS).ok_or_else(|| {
             format!(
@@ -249,7 +259,7 @@ impl AgentTransport {
     /// The shape a test asserting on a *sequence* of calls wants — that a poller asked about the
     /// operation and then deleted it, in that order — without unpacking a whole request each time.
     #[must_use]
-    pub fn endpoint_calls(&self) -> Vec<(String, String)> {
+    pub(crate) fn endpoint_calls(&self) -> Vec<(String, String)> {
         self.requests()
             .into_iter()
             .skip(LIFECYCLE_REQUESTS)
@@ -299,14 +309,14 @@ impl Transport for AgentTransport {
 /// # Errors
 ///
 /// Returns an error when the pinned seed does not derive a signer, which would mean the crypto
-/// layer had changed underneath this crate.
-pub fn agent_signer() -> Result<Signer, Box<dyn Error>> {
+/// layer had changed underneath this module.
+pub(crate) fn agent_signer() -> Result<Signer, Box<dyn Error>> {
     Ok(Signer::from_seed(&AGENT_SEED, KeyTransferability::NonTransferable)?)
 }
 
 /// Returns the agent's verification key, or the empty string if it cannot be derived.
 #[must_use]
-pub fn agent_verification_key() -> String {
+pub(crate) fn agent_verification_key() -> String {
     agent_signer()
         .and_then(|signer| Ok(signer.verifier().qb64()?))
         .unwrap_or_default()
@@ -314,7 +324,7 @@ pub fn agent_verification_key() -> String {
 
 /// Returns the state document an agent reports for `controller`, whose inception is `inception`.
 #[must_use]
-pub fn agent_state(controller: &str, inception: &str) -> String {
+pub(crate) fn agent_state(controller: &str, inception: &str) -> String {
     let agent = format!(
         r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{key}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller}"}}"#,
         key = agent_verification_key()
@@ -327,7 +337,7 @@ pub fn agent_state(controller: &str, inception: &str) -> String {
 /// # Errors
 ///
 /// Returns an error when the headers, the signature, or the status cannot be built.
-pub fn signed_response(
+pub(crate) fn signed_response(
     method: Method,
     path: &str,
     body: Vec<u8>,
@@ -350,7 +360,7 @@ pub fn signed_response(
 
 /// Returns a clock pinned to [`FIXED_MILLIS`], so every stamp a test produces is reproducible.
 #[must_use]
-pub fn clock() -> Arc<dyn Clock> {
+pub(crate) fn clock() -> Arc<dyn Clock> {
     Arc::new(TestClock::with_wall_clock(
         SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
     ))
@@ -359,8 +369,8 @@ pub fn clock() -> Arc<dyn Clock> {
 /// Drives `future` to completion on the current thread.
 ///
 /// The client's futures never yield to a reactor — every await in a test resolves against this
-/// crate's own transport — so a full runtime would be machinery with nothing to do.
-pub fn block_on<F: Future>(future: F) -> F::Output {
+/// module's own transport — so a full runtime would be machinery with nothing to do.
+pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
     use core::task::{Context, Poll, Waker};
     let mut future = Box::pin(future);
     let mut context = Context::from_waker(Waker::noop());

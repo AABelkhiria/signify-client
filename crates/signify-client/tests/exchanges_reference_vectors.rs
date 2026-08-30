@@ -14,9 +14,12 @@
 //! the dead loop in `send`, and the alias that need not be the signer — are reproduced only when a
 //! caller says so explicitly.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -33,7 +36,6 @@ use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-exchanges/v1.json");

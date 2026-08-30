@@ -13,9 +13,12 @@
 //! reference's production Argon2 profile, so this file is deliberately slow; each sealed salt is
 //! masked as `<SXLT>` and compared by what it opens to.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
@@ -35,7 +38,6 @@ use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 use signify_types::api::Credential as CredentialRecord;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";

@@ -410,6 +410,56 @@ async fn rebuild_and_join(
     Ok((shown_said, rebuilt_said))
 }
 
+/// Creates member3 and cross-resolves every OOBI the join needs, including the group's
+/// `/agent/`-truncated one.
+async fn introduce_member3(
+    member1: &ConnectedClient,
+    member2: &ConnectedClient,
+    member3: &ConnectedClient,
+) -> Result<IdentifierPrefix, Box<dyn Error>> {
+    let aid3 = plain_identifier(member3, "member3").await?;
+    let oobi3 = agent_oobi(member3, "member3").await?;
+    resolve_url(member1, &oobi3, "member3").await?;
+    resolve_url(member2, &oobi3, "member3").await?;
+    resolve_url(member3, &agent_oobi(member1, "member1").await?, "member1").await?;
+    resolve_url(member3, &agent_oobi(member2, "member2").await?, "member2").await?;
+    let group_oobi = agent_oobi(member1, GROUP_NAME).await?;
+    let truncated = group_oobi
+        .split("/agent/")
+        .next()
+        .map(ToOwned::to_owned)
+        .ok_or("the group OOBI has no /agent/ segment")?;
+    resolve_url(member3, &truncated, GROUP_NAME).await?;
+    Ok(aid3)
+}
+
+/// Connects the three member clients, in transcript order.
+async fn three_clients(
+    environment: &Environment,
+    transcripts: &[std::sync::Arc<signify_keria_systest::Recorder>; 3],
+) -> Result<(ConnectedClient, ConnectedClient, ConnectedClient), Box<dyn Error>> {
+    progress("connecting the three clients");
+    let member1 = connect(
+        environment,
+        signify_client::random::random_passcode()?.expose(),
+        &transcripts[0],
+    )
+    .await?;
+    let member2 = connect(
+        environment,
+        signify_client::random::random_passcode()?.expose(),
+        &transcripts[1],
+    )
+    .await?;
+    let member3 = connect(
+        environment,
+        signify_client::random::random_passcode()?.expose(),
+        &transcripts[2],
+    )
+    .await?;
+    Ok((member1, member2, member3))
+}
+
 #[tokio::test]
 #[ignore = "requires a live KERIA; see the crate documentation for the invocation"]
 async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>> {
@@ -419,25 +469,7 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
         recorder("join_member2")?,
         recorder("join_member3")?,
     ];
-    progress("connecting the three clients");
-    let member1 = connect(
-        &environment,
-        signify_client::random::random_passcode()?.expose(),
-        &transcripts[0],
-    )
-    .await?;
-    let member2 = connect(
-        &environment,
-        signify_client::random::random_passcode()?.expose(),
-        &transcripts[1],
-    )
-    .await?;
-    let member3 = connect(
-        &environment,
-        signify_client::random::random_passcode()?.expose(),
-        &transcripts[2],
-    )
-    .await?;
+    let (member1, member2, member3) = Box::pin(three_clients(&environment, &transcripts)).await?;
 
     // The two-member group, and member3 introduced to everyone.
     let aid1 = plain_identifier(&member1, "member1").await?;
@@ -447,19 +479,7 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
     let group = incept_group(&member1, &member2, &aid1, &aid2).await?;
     progress(&format!("group incepted as {}", group.qb64()?));
 
-    let aid3 = plain_identifier(&member3, "member3").await?;
-    let oobi3 = agent_oobi(&member3, "member3").await?;
-    resolve_url(&member1, &oobi3, "member3").await?;
-    resolve_url(&member2, &oobi3, "member3").await?;
-    resolve_url(&member3, &agent_oobi(&member1, "member1").await?, "member1").await?;
-    resolve_url(&member3, &agent_oobi(&member2, "member2").await?, "member2").await?;
-    let group_oobi = agent_oobi(&member1, GROUP_NAME).await?;
-    let truncated = group_oobi
-        .split("/agent/")
-        .next()
-        .map(ToOwned::to_owned)
-        .ok_or("the group OOBI has no /agent/ segment")?;
-    resolve_url(&member3, &truncated, GROUP_NAME).await?;
+    let aid3 = Box::pin(introduce_member3(&member1, &member2, &member3)).await?;
 
     // First rotation: members 1 and 2 rotate their own keys; member3's digest joins `n`.
     rotate_own(&member1, "member1").await?;

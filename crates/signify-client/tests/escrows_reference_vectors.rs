@@ -11,9 +11,12 @@
 //! The answers are the other half. Four of the thirteen are shapes the reference accepts and hands
 //! to a caller as escrowed replies; each is proven refused here.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -25,7 +28,6 @@ use signify_keri::event::reply::ReplyBuilder;
 use signify_keri::event::timestamp::Timestamp;
 use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";

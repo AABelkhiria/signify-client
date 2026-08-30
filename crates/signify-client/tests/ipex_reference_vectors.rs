@@ -10,9 +10,12 @@
 //! The sender's keys derive at the reference's production Argon2 cost, so this file is deliberately
 //! slow. Everything else is deterministic: every message's timestamp is supplied.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
@@ -30,7 +33,6 @@ use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
-use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-ipex/v1.json");

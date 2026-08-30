@@ -18,6 +18,8 @@
 //!
 //! Nothing upstream exercises any of it: the one pinned call passes an **empty** identifier list.
 
+mod support;
+
 use std::error::Error;
 
 use serde::Deserialize;
@@ -467,9 +469,9 @@ mod driven {
     use signify_crypto::signer::Signer;
     use signify_crypto::verifier::KeyTransferability;
 
+    use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, agent_state, block_on, clock};
     use signify_http::transport::Transport;
     use signify_keri::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
-    use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, agent_state, block_on, clock};
     use signify_types::api::AcceptedHab;
 
     fn connected(passcode: &str, bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {

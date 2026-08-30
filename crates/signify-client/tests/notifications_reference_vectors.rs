@@ -5,12 +5,15 @@
 //! notification's identifier actually is**, which the reference documents wrongly and which the
 //! fixture establishes from `randomNonce` and from keripy rather than from any pinned literal.
 
+mod support;
+
 use core::time::Duration;
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -22,7 +25,6 @@ use signify_http::retry::{Clock, TestClock};
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
 use signify_keri::said::Said;
-use signify_testkit::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";

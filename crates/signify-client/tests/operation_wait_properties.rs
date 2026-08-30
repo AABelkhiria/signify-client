@@ -9,11 +9,14 @@
 //! The rest are about the schedule reproducing the reference's formula for every input, and about
 //! reading a dependency the same way whether the family is known or not.
 
+mod support;
+
 use core::time::Duration;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::{Instant, SystemTime};
 
+use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -23,7 +26,6 @@ use signify_client::operation::{Dependency, PollPolicy, PollableMetadata, Pollin
 use signify_http::retry::{Backoff, Clock, Jitter, RetryDecision, TestClock};
 use signify_http::transport::{Method, Transport};
 use signify_keri::manager::DerivationCost;
-use signify_testkit::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
 use signify_types::api::{DelegatorMetadata, Operation, RegistryMetadata};
 
 const NAME: &str = "witness.EABC.0";
