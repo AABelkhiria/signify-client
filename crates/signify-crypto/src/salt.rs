@@ -7,7 +7,7 @@
 
 use std::{error::Error, fmt};
 
-use argon2::{Algorithm, Argon2, Block, Params, Version};
+use argon2id_p1::{Algorithm, Argon2, Block, Params, Version};
 use signify_cesr::{
     CesrError,
     code::DerivationCode,
@@ -417,7 +417,7 @@ impl fmt::Debug for ParsedSalt {
 }
 
 #[derive(Debug)]
-struct Argon2Source(argon2::Error);
+struct Argon2Source(argon2id_p1::Error);
 
 impl fmt::Display for Argon2Source {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -427,7 +427,7 @@ impl fmt::Display for Argon2Source {
 
 impl Error for Argon2Source {}
 
-fn key_derivation_error(source: argon2::Error) -> CryptoError {
+fn key_derivation_error(source: argon2id_p1::Error) -> CryptoError {
     CryptoError::KeyDerivationFailed {
         algorithm: ARGON2ID_NAME,
         source: Box::new(Argon2Source(source)),
@@ -650,7 +650,7 @@ mod tests {
         assert!(matches!(allocation, CryptoError::KeyDerivationMemoryUnavailable { .. }));
         assert!(allocation.source().is_some());
 
-        let primitive = key_derivation_error(argon2::Error::OutputTooShort);
+        let primitive = key_derivation_error(argon2id_p1::Error::OutputTooShort);
         assert!(matches!(primitive, CryptoError::KeyDerivationFailed { .. }));
         assert!(primitive.source().is_some());
         Ok(())
