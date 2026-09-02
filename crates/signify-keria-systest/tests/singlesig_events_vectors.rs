@@ -1,12 +1,6 @@
 //! Hermetic assertions over the recorded single-signature rotation and interaction.
 //!
-//! Wave 8 drove the twin scenarios `singlesig-rot.test.ts` and `singlesig-ixn.test.ts` against a
-//! live deployment. Each advances a witnessed identifier's log by one event and observes the same
-//! divergence: the owner's key state moves at once, the observer's stays one sequence behind
-//! until it refreshes with `keyStates().query` at the new sequence — spelled in **hexadecimal**,
-//! wave 1's answer. This file re-checks both recordings from their own bytes.
-//!
-//! Not ignored: it reads checked-in recordings and never touches a network.
+//! The local/remote key-state divergence, closed by a refresh spelled in hexadecimal.
 
 use std::error::Error;
 use std::fs;
@@ -63,15 +57,11 @@ fn captured(name: &str) -> Result<Option<Captured>, Box<dyn Error>> {
     Ok(Some(serde_json::from_str(&fs::read_to_string(path)?)?))
 }
 
-/// The claims both twins share, checked from one recording.
 fn shared(captured: &Captured, kind: &str) -> Result<(), Box<dyn Error>> {
     assert!(!captured.preset.is_empty());
 
-    // The contact resolution answered the identifier's own prefix.
     assert_eq!(captured.contact_resolved, captured.prefix);
 
-    // Sequences: local and remote agree before; the event increments the local one; the remote
-    // stays where it was until the refresh catches it up.
     assert_eq!(captured.local_before.sequence, captured.remote_before_sequence);
     let before = u64::from_str_radix(&captured.local_before.sequence, 16)?;
     let after = u64::from_str_radix(&captured.local_after.sequence, 16)?;
@@ -79,8 +69,6 @@ fn shared(captured: &Captured, kind: &str) -> Result<(), Box<dyn Error>> {
     assert_eq!(captured.remote_stale_sequence, captured.local_before.sequence);
     assert_eq!(captured.refreshed.sequence, captured.local_after.sequence);
 
-    // The refresh was asked in hexadecimal — wave 1's answer — and the exact text reached the
-    // wire, proven from the observer's transcript rather than the flag.
     assert_eq!(captured.query_sequence_sent, format!("{after:x}"));
     assert!(
         captured.observer_transcript.iter().any(|observation| {
@@ -94,7 +82,6 @@ fn shared(captured: &Captured, kind: &str) -> Result<(), Box<dyn Error>> {
         "{kind}: the refresh query's sequence text was never sent"
     );
 
-    // The event verifies over its derived bytes, and the agent echoed the same document.
     let sad = Sad::from_json_bytes(captured.derived_event.as_bytes())?;
     Said::from_qb64(&captured.derived_said)?.verify(&sad, "d", SaidVerification::strict())?;
     let echoed: Value = serde_json::from_str(&captured.agent_event)?;
@@ -104,7 +91,6 @@ fn shared(captured: &Captured, kind: &str) -> Result<(), Box<dyn Error>> {
         "{kind}: the agent echoed a different event"
     );
 
-    // The upstream postcondition, on both clients.
     assert_eq!(captured.owner_operations_remaining, 0);
     assert_eq!(captured.observer_operations_remaining, 0);
     Ok(())
@@ -118,8 +104,6 @@ fn the_rotation_twin_moves_the_keys_and_the_refresh_carries_them() -> Result<(),
     assert_eq!(captured.scenario, "singlesig_rot");
     shared(&captured, "rot")?;
 
-    // The rotation moved both key fields, and the refreshed remote state carries exactly the new
-    // ones — which is the point of the refresh.
     assert_ne!(captured.local_after.signing_key, captured.local_before.signing_key);
     assert_ne!(captured.local_after.next_digest, captured.local_before.next_digest);
     assert_eq!(captured.refreshed.signing_key, captured.local_after.signing_key);
@@ -138,13 +122,10 @@ fn the_interaction_twin_keeps_the_keys_and_anchors_the_empty_object() -> Result<
     assert_eq!(captured.scenario, "singlesig_ixn");
     shared(&captured, "ixn")?;
 
-    // An interaction changes no keys.
     assert_eq!(captured.local_after.signing_key, captured.local_before.signing_key);
     assert_eq!(captured.local_after.next_digest, captured.local_before.next_digest);
     assert_eq!(captured.refreshed.signing_key, captured.local_after.signing_key);
 
-    // And its anchor is upstream's own `{}` — representable as a `Sad`, so unlike the bare-string
-    // anchors of the salty and randy waves this one reproduces upstream exactly: `"a": [{}]`.
     let event: Value = serde_json::from_str(&captured.derived_event)?;
     assert_eq!(event.get("t").and_then(Value::as_str), Some("ixn"));
     let anchors = event

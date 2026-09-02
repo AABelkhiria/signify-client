@@ -1,17 +1,6 @@
 //! Invariants of the IPEX presentation workflow.
 //!
-//! A disclosure conversation is a chain: every step but the first names the step it answers, and a
-//! reader walks back along those names. The invariants here are the two that make a chain a chain.
-//!
-//! **A step answers exactly the step it was given.** The SAID a reply chains to is read out of the
-//! message in hand, so it cannot be a SAID from somewhere else — and a step handed to the wrong
-//! answer is a typed refusal rather than a message its recipient cannot place. Upstream every
-//! submitter takes a bare string, and the waiter that produces it yields the empty string when a
-//! notification names nothing.
-//!
-//! **And what a step asks for survives being read.** An apply names a schema and any number of
-//! attribute values; the filter derived from it must carry the same schema and the same values,
-//! with the same JSON types, or it matches a different credential than the one that was asked for.
+//! A step answers exactly the step it was given, and what an apply asks for survives being read.
 
 use proptest::prelude::*;
 use signify_acdc::ipex::IpexRoute;
@@ -26,7 +15,6 @@ const PRIOR: &str = "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const CREDENTIAL: &str = "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd";
 
-/// The embed block each route carries.
 fn embeds(route: IpexRoute) -> String {
     match route {
         IpexRoute::Offer => format!(
@@ -39,7 +27,6 @@ fn embeds(route: IpexRoute) -> String {
     }
 }
 
-/// One IPEX step as the agent returns it.
 fn step(route: IpexRoute, prior: &str, attributes: &str) -> Result<ReceivedStep, TestCaseError> {
     let document = format!(
         r#"{{"exn":{{"v":"KERI10JSON000100_","t":"exn","d":"{SAID}","i":"{LOCAL}","rp":"{PEER}","p":"{prior}","dt":"2023-11-14T22:13:20.123000+00:00","r":"{route}","q":{{}},"a":{attributes},"e":{embeds}}},"pathed":{{}}}}"#,
@@ -51,7 +38,6 @@ fn step(route: IpexRoute, prior: &str, attributes: &str) -> Result<ReceivedStep,
     ReceivedStep::of("0AAnote", &resource).map_err(|error| TestCaseError::fail(error.to_string()))
 }
 
-/// A label a credential attribute can carry.
 fn label() -> impl Strategy<Value = String> {
     "[a-zA-Z][a-zA-Z0-9_]{0,12}".prop_filter("the message and schema labels are the request's own", |text| {
         text != "m" && text != "s" && text != "a"
@@ -59,7 +45,6 @@ fn label() -> impl Strategy<Value = String> {
 }
 
 proptest! {
-    /// Whatever an apply asks for, the filter derived from it asks for the same thing.
     #[test]
     fn a_request_survives_becoming_a_filter(
         attributes in prop::collection::hash_map(label(), "[a-zA-Z0-9 ]{0,20}", 0..6)
@@ -76,7 +61,6 @@ proptest! {
         let bytes = filter.to_json_bytes().map_err(|error| TestCaseError::fail(error.to_string()))?;
         let written = String::from_utf8(bytes).map_err(|error| TestCaseError::fail(error.to_string()))?;
 
-        // The schema always, and every attribute the apply named, under the agent's own labels.
         let schema_entry = format!(r#""{SCHEMA_FILTER}":"{SCHEMA}""#);
         prop_assert!(written.contains(&schema_entry), "{written}");
         for (name, value) in &attributes {
@@ -85,7 +69,6 @@ proptest! {
         }
     }
 
-    /// A step answers only its own kind, whichever kind it is.
     #[test]
     fn a_step_answers_only_its_own_kind(chosen in 0usize..5, wrong in 0usize..5) {
         let routes = IpexRoute::ALL;
@@ -100,7 +83,6 @@ proptest! {
         let received = step(*carried, "", &attributes)?;
         prop_assert_eq!(received.route(), *carried);
 
-        // Only an apply is a request for credentials; the other four are refused by name.
         let asked_for = requested_credentials(&received);
         if *carried == IpexRoute::Apply {
             prop_assert!(asked_for.is_ok());
@@ -111,7 +93,6 @@ proptest! {
         let _ = asked;
     }
 
-    /// A step names the message it answers, and reads back exactly what it was given.
     #[test]
     fn a_step_names_what_it_answers(answered in prop::bool::ANY) {
         let prior = if answered { PRIOR } else { "" };
@@ -125,13 +106,10 @@ proptest! {
                 .map_err(|error| TestCaseError::fail(error.to_string()))?;
             prop_assert_eq!(text, Some(PRIOR.to_owned()));
         } else {
-            // An empty `p` is "answers nothing", not a SAID that happens to be empty — which is
-            // exactly the value the reference's waiter produces and passes on as though it were one.
             prop_assert!(named.is_none());
         }
     }
 
-    /// Every step reads its own identity back unchanged.
     #[test]
     fn a_step_reads_its_own_identity(chosen in 0usize..5) {
         let Some(route) = IpexRoute::ALL.get(chosen) else {
@@ -158,7 +136,6 @@ proptest! {
         prop_assert_eq!(received.exchange().route.as_str(), route.as_str());
     }
 
-    /// An attribute keeps the JSON type it was asked with.
     #[test]
     fn an_attribute_keeps_its_type(number in 0i64..1_000_000, flag in prop::bool::ANY) {
         let block = format!(r#"{{"m":"","s":"{SCHEMA}","a":{{"count":{number},"exact":{flag}}}}}"#);
@@ -167,14 +144,12 @@ proptest! {
         let bytes = filter.to_json_bytes().map_err(|error| TestCaseError::fail(error.to_string()))?;
         let written = String::from_utf8(bytes).map_err(|error| TestCaseError::fail(error.to_string()))?;
 
-        // Not `"3"` for `3`: a filter that stringified its values would match nothing.
         let counted = format!(r#""{ATTRIBUTE_FILTER_PREFIX}count":{number}"#);
         let exact = format!(r#""{ATTRIBUTE_FILTER_PREFIX}exact":{flag}"#);
         prop_assert!(written.contains(&counted), "{written}");
         prop_assert!(written.contains(&exact), "{written}");
     }
 
-    /// A message on a route the table does not name is never a disclosure step.
     #[test]
     fn only_the_five_routes_are_steps(route in "/[a-z]{2,8}/[a-z]{2,8}") {
         prop_assume!(!IpexRoute::ALL.iter().any(|known| known.as_str() == route));
@@ -191,7 +166,6 @@ proptest! {
         prop_assert!(refused, "{route} classified as a disclosure step");
     }
 
-    /// An apply that names no schema asks for nothing, and is refused rather than matching everything.
     #[test]
     fn a_request_without_a_schema_is_refused(labels in prop::collection::vec(label(), 0..4)) {
         let attributes = labels

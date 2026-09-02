@@ -1,9 +1,6 @@
 //! Exact operations-endpoint vectors recorded from the pinned reference's own `Operations`.
 //!
-//! `Operations` takes an `OperationsDeps` — one `fetch` method — so the generator hands it a
-//! recorder, exactly as the pinned `coring.test.ts` does, and every request it makes is captured
-//! with its path, method, and body. This test rebuilds each one through a connected client and
-//! compares the path that actually goes out.
+//! Each call rebuilt through a connected client and compared against the path that actually goes out.
 
 use std::error::Error;
 use std::sync::Arc;
@@ -173,7 +170,6 @@ fn fixture() -> Result<Fixture, Box<dyn Error>> {
     Ok(serde_json::from_str(FIXTURE)?)
 }
 
-/// A minimal executor; every future on this path is ready on its first poll.
 fn block_on<F: core::future::Future>(future: F) -> F::Output {
     use core::task::{Context, Poll, Waker};
     let mut future = Box::pin(future);
@@ -197,11 +193,6 @@ fn response(body: &[u8]) -> Result<Response, Box<dyn Error>> {
     Ok(Response::new(StatusCode::new(200)?, headers, body.to_vec())?)
 }
 
-/// A connected client whose transport answers each scripted body in turn.
-///
-/// The scripted responses are unsigned, so a `fetch` fails at authentication — which is fine and
-/// deliberate: what this test compares is the request that went out, and Roadmap 6.4 already
-/// proved the authentication half against its own recorded traffic.
 fn connected(
     bodies: &[&[u8]],
 ) -> Result<(signify_client::client::ConnectedClient, Arc<ScriptedTransport>), Box<dyn Error>> {
@@ -227,7 +218,6 @@ fn connected(
     Ok((connected, transport))
 }
 
-/// Finds one recorded call by name.
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
     fixture
         .calls
@@ -236,7 +226,6 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-/// Returns the path of the request the client sent after connecting.
 fn sent_path(transport: &ScriptedTransport) -> Result<String, Box<dyn Error>> {
     let recorded = transport.recorded();
     let request = recorded.get(2).ok_or("no endpoint request was sent")?;
@@ -265,23 +254,19 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // `get` and `delete` address the same path and differ only by method.
     assert!(declarations.get_path.contains("/operations/"));
     assert_eq!(declarations.get_path, declarations.delete_path);
     assert!(declarations.get_path.contains(OPERATIONS_SEGMENT));
 
-    // `list` builds its query with `URLSearchParams` and always appends a question mark.
     assert!(declarations.list_path.contains("/operations?"));
     assert!(declarations.list_parameters.contains("URLSearchParams"));
     assert!(declarations.list_append.contains(TYPE_PARAMETER));
 
-    // The failure message's four parts, and the run-time narrowing this port replaces.
     assert!(declarations.throw_if_failed.contains("op.error.code"));
     assert!(declarations.throw_if_failed.contains("op.error.message"));
     assert!(declarations.throw_if_failed.contains("op.error.details"));
     assert!(declarations.has_depends.contains("'depends' in op.metadata"));
 
-    // The union Roadmap 4.1 replaced with one generic type.
     assert_eq!(declarations.operation_union.len(), 14);
     assert!(
         declarations
@@ -318,7 +303,6 @@ fn a_get_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
 fn a_list_addresses_the_recorded_path_apart_from_the_bare_question_mark() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
 
-    // Filtered: byte for byte the same, including the query encoding.
     let filtered = call(&fixture, "list_by_type")?;
     let recorded = filtered.request.as_ref().ok_or("no recorded request")?;
     let (client, transport) = connected(&[b"[]"])?;
@@ -326,7 +310,6 @@ fn a_list_addresses_the_recorded_path_apart_from_the_bare_question_mark() -> Res
     assert_eq!(sent_path(&transport)?, recorded.path);
     assert_eq!(recorded.path, "/operations?type=witness");
 
-    // A type needing encoding: `URLSearchParams` and Roadmap 5.3's encoder agree exactly.
     let encoded = call(&fixture, "list_by_type_needing_encoding")?;
     let recorded = encoded.request.as_ref().ok_or("no recorded request")?;
     let (client, transport) = connected(&[b"[]"])?;
@@ -334,7 +317,6 @@ fn a_list_addresses_the_recorded_path_apart_from_the_bare_question_mark() -> Res
     assert_eq!(sent_path(&transport)?, recorded.path);
     assert_eq!(recorded.path, "/operations?type=a+b%26c%3Dd");
 
-    // Unfiltered: the one place the two differ, and the fixture records why.
     let unfiltered = call(&fixture, "list_all")?;
     let recorded = unfiltered.request.as_ref().ok_or("no recorded request")?;
     assert_eq!(recorded.path, "/operations?");
@@ -356,7 +338,6 @@ fn a_delete_uses_the_same_path_with_a_different_method() -> Result<(), Box<dyn E
     let _ = block_on(client.operations().delete("operationName"));
     assert_eq!(sent_path(&transport)?, recorded.path);
 
-    // The reference returns `void`; so does this, since the status carries the outcome.
     assert!(expected.result.is_null());
     assert!(expected.error.is_none());
     Ok(())
@@ -366,14 +347,12 @@ fn a_delete_uses_the_same_path_with_a_different_method() -> Result<(), Box<dyn E
 fn a_recorded_operation_decodes_into_the_typed_model() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
 
-    // Pending: the outcome is `Pending` and asking for its response refuses.
     let pending: UntypedOperation = serde_json::from_value(call(&fixture, "get_pending")?.result.clone())?;
     assert!(!pending.outcome.is_done());
     let typed = pending.into_typed::<WitnessMetadata, KeyEvent>()?;
     assert_eq!(typed.metadata.as_ref().map(|metadata| metadata.sn), Some(0));
     assert!(matches!(completed(typed), Err(ClientError::OperationPending { .. })));
 
-    // Completed: the outcome carries the key event it was waiting for.
     let done: UntypedOperation = serde_json::from_value(call(&fixture, "get_completed")?.result.clone())?;
     assert!(done.outcome.is_done());
     let typed = done.into_typed::<WitnessMetadata, KeyEvent>()?;
@@ -403,15 +382,12 @@ fn a_failed_operation_carries_everything_the_reference_interpolates() -> Result<
             return Err("a failed operation was not reported as one".into());
         };
 
-        // Every part the reference interpolates into its one string is present, and separate.
         assert_eq!(reported, name);
         assert!(recorded.message.contains(&name));
         assert!(recorded.message.contains(&code.to_string()));
         assert!(recorded.message.contains(&message));
         assert_eq!(details.is_some(), expects_details);
         if let Some(details) = &details {
-            // The reference renders the same keys; only their order differs, because the map they
-            // decode into is ordered.
             for key in ["received", "expected"] {
                 assert!(details.contains(key), "{details} is missing {key}");
                 assert!(recorded.message.contains(key));
@@ -421,7 +397,6 @@ fn a_failed_operation_carries_everything_the_reference_interpolates() -> Result<
         }
     }
 
-    // An already-completed operation is returned unchanged upstream rather than re-fetched.
     assert!(fixture.failures.completed_returns_itself.identical);
     assert!(!fixture.failures.note.is_empty());
     Ok(())
@@ -437,7 +412,6 @@ fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>
         confirmations.published_paths,
         ["/operations/operationName", "/operations?", "/operations?type=witness"]
     );
-    // Every driven path is one the reference produced from its own methods.
     assert_eq!(confirmations.driven_paths.len(), fixture.calls.len());
     Ok(())
 }
@@ -484,8 +458,6 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
     let fixture = fixture()?;
     let quirks = &fixture.reference_quirks;
 
-    // 1. An unfiltered list addresses `/operations?` upstream and `/operations` here. The query is
-    //    stripped before signing either way, so the signed path is identical.
     let bare = &quirks.list_always_appends_a_question_mark;
     assert_eq!(bare.path.as_deref(), Some("/operations?"));
     assert!(
@@ -499,7 +471,6 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
     assert_eq!(path.query(), None);
     assert_eq!(path.path(), "/operations");
 
-    // 2. An operation name escapes the path upstream; here it cannot.
     let unencoded = &quirks.path_components_are_not_encoded;
     assert_eq!(unencoded.path.as_deref(), Some("/operations/a/b?c=d"));
     let encoded = ResourcePath::builder()
@@ -509,7 +480,6 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
     assert_eq!(encoded.as_str(), "/operations/a%2Fb%3Fc%3Dd");
     assert_eq!(encoded.query(), None, "an encoded name cannot introduce a query");
 
-    // 3. The type filter *is* encoded upstream, and the two encoders agree.
     let query = &quirks.query_values_are_not_encoded_by_the_path;
     assert_eq!(query.path.as_deref(), Some("/operations?type=a+b%26c%3Dd"));
     let filtered = ResourcePath::builder()
@@ -518,21 +488,17 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
         .build()?;
     assert_eq!(filtered.as_str(), "/operations?type=a+b%26c%3Dd");
 
-    // 4. The failure is one interpolated string upstream and four fields here.
     let failure = &quirks.failure_is_a_thrown_string;
     assert!(failure.with_details.starts_with("Operation '"));
     assert!(failure.with_details.contains("Details: "));
     assert!(!failure.without_details.contains("Details: "));
 
-    // 5. `delete` discards its response on both sides.
     let deleted = &quirks.delete_discards_its_response;
     assert_eq!(
         deleted.request.as_ref().map(|request| request.method.as_str()),
         Some("DELETE")
     );
 
-    // 6. The fourteen-way union is one generic type here, and `hasDepends` is the reference's own
-    //    example of narrowing it at run time.
     let union = &quirks.get_returns_the_untyped_union;
     assert_eq!(union.union.len(), 14);
     assert_eq!(union.scan.needle, "hasDepends");

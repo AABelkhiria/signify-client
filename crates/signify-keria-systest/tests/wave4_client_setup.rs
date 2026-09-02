@@ -1,27 +1,8 @@
 //! Wave 4 — client setup, single and multiple: the §7 row's remaining halves.
 //!
-//! Two upstream files share the **Client setup** row. `test-setup-single-client.test.ts` boots a
-//! client from a *pinned* passcode and asserts the pinned controller prefix — the one place a live
-//! run can confirm the port's controller derivation against a real agent's acceptance — then
-//! creates a witnessed identifier and asserts the exact agent and witness OOBI URLs and the
-//! agent's introduction configuration. `test-setup-clients.test.ts` boots two clients with random
-//! passcodes and cross-resolves their agent OOBIs as contacts, asserting each resolution answers
-//! with the other's prefix.
-//!
-//! Two upstream behaviours are made explicit rather than reproduced silently. The pinned passcode
-//! upstream passes is **24 characters**, and the reference slices the first 21 without saying so;
-//! the port's `Passcode` refuses a wrong length outright, so this scenario performs the truncation
-//! itself and records both spellings. And `getOrCreateClient` *connects first and boots only when
-//! that fails*, which is what lets a pinned client survive re-runs against a used deployment; the
-//! same order is used here.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave4_client_setup -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Drives both setup files: a pinned passcode, a witnessed identifier's OOBIs, and two clients meeting.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -38,76 +19,46 @@ use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::{Environment, Recorder, progress, record};
 use signify_types::api::Role;
 
-/// The passcode exactly as `test-setup-single-client.test.ts` writes it: 24 characters, of which
-/// the reference silently uses the first 21. A published test constant, not a secret.
 const PINNED_PASSCODE_UPSTREAM: &str = "0ADF2TpptgqcDE5IQUF1HeTp";
-/// The 21 characters the reference actually derives from, passed explicitly because the port
-/// refuses to truncate a passcode silently.
 const PINNED_PASSCODE: &str = "0ADF2TpptgqcDE5IQUF1H";
-/// The controller prefix upstream pins for that passcode.
 const PINNED_CONTROLLER_PREFIX: &str = "EB3UGWwIMq7ppzcQ697ImQIuXlBG5jzh-baSx-YG3-tY";
 
-/// The single-client half: pinned controller, witnessed identifier, OOBI shapes, configuration.
 #[derive(Debug, Serialize)]
 struct PinnedClient {
-    /// The passcode as upstream spells it, for provenance.
     passcode_upstream: &'static str,
-    /// The 21 characters this run actually used.
     passcode_used: &'static str,
-    /// The controller prefix the port derived from it.
     derived_controller_prefix: String,
-    /// The prefix upstream pins.
     pinned_controller_prefix: &'static str,
-    /// The agent's prefix, which the agent OOBI embeds.
     agent_prefix: String,
-    /// The witnessed identifier's prefix.
     identifier_prefix: String,
-    /// Whether this run created it, or found it from an earlier run of the same pinned client.
     identifier_created: bool,
-    /// The agent OOBI the identifier publishes.
     agent_oobi: String,
-    /// The witness OOBIs it publishes, in answer order.
     witness_oobis: Vec<String>,
-    /// The agent's introduction OOBIs from `GET /config`, absent kept apart from empty.
     introduction_urls: Option<Vec<String>>,
-    /// Operations left listed after the run; upstream asserts zero.
     operations_remaining: usize,
 }
 
-/// The two-client half: each resolves the other's agent OOBI and reads back a prefix.
 #[derive(Debug, Serialize)]
 struct CrossResolution {
-    /// Client A's identifier prefix.
     a_prefix: String,
-    /// Client B's identifier prefix.
     b_prefix: String,
-    /// The prefix A's resolution of B's OOBI answered with; upstream asserts it equals B's.
     a_resolved_b: String,
-    /// The prefix B's resolution of A's OOBI answered with.
     b_resolved_a: String,
-    /// Operations left listed on A after the run.
     a_operations_remaining: usize,
-    /// Operations left listed on B after the run.
     b_operations_remaining: usize,
 }
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
     pinned: PinnedClient,
     cross: CrossResolution,
-    /// The pinned client's transcript.
     pinned_transcript: Vec<signify_keria_systest::Observation>,
-    /// Client A's transcript.
     a_transcript: Vec<signify_keria_systest::Observation>,
-    /// Client B's transcript.
     b_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Builds a recording client and connects it, booting only when connecting fails — the
-/// reference's `getOrCreateClient` order, which is what lets a pinned client survive re-runs.
 async fn connect_or_boot(
     environment: &Environment,
     passcode: &str,
@@ -126,12 +77,10 @@ async fn connect_or_boot(
     Ok(client.connect().await?)
 }
 
-/// Builds a recorder over the production transport.
 fn recorder(scenario: &str) -> Result<Arc<Recorder>, Box<dyn Error>> {
     Ok(Recorder::new(scenario, Arc::new(HttpTransport::new()?)))
 }
 
-/// Waits one submission's operation out and deletes it, as the upstream helper does.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<(), Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -139,18 +88,11 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<(), Box
     Ok(())
 }
 
-/// Gets or creates one identifier witnessed by the environment's whole triple, with the agent
-/// end role — the reference's `getOrCreateIdentifier` with its `resolveEnvironment` defaults,
-/// including its `hasEndRole` check: an identifier found from an earlier run may exist *without*
-/// the role, when that run failed between the two steps.
 async fn witnessed_identifier(
     client: &ConnectedClient,
     alias: &str,
     environment: &Environment,
 ) -> Result<(String, bool), Box<dyn Error>> {
-    // Only an actual not-found means "create it". Any other failure — a record that does not
-    // decode, above all — must surface, not be papered over by a doomed second creation; this is
-    // exactly how wave 4 found `windexes` spelt as numbers.
     let (prefix, created) = match client.identifiers().get(alias).await {
         Ok(existing) => {
             progress(&format!("{alias}: found from an earlier run"));
@@ -173,9 +115,6 @@ async fn witnessed_identifier(
         Err(error) => return Err(error.into()),
     };
 
-    // The upstream helper checks `hasEndRole` rather than assuming; the cheapest equivalent
-    // observation is whether an agent OOBI is published, since an identifier without the role
-    // publishes none.
     let needs_role = created || client.oobis().get(alias, &Role::Agent).await?.oobis.is_empty();
     if needs_role {
         progress(&format!("{alias}: authorising the agent end role"));
@@ -189,8 +128,6 @@ async fn witnessed_identifier(
     Ok((prefix, created))
 }
 
-/// Resolves `alias`'s agent OOBI from `from` on `to`, returning the prefix the resolution
-/// answered with — the reference's `getOrCreateContact` read of `response.i`.
 async fn resolve_contact(
     from: &ConnectedClient,
     alias: &str,
@@ -215,7 +152,6 @@ async fn resolve_contact(
     Ok(state.identifier)
 }
 
-/// The single-client half, against the pinned passcode.
 async fn pinned_half(
     environment: &Environment,
 ) -> Result<(PinnedClient, Vec<signify_keria_systest::Observation>), Box<dyn Error>> {
@@ -253,7 +189,6 @@ async fn pinned_half(
     ))
 }
 
-/// The two-client half, with random passcodes.
 async fn cross_half(
     environment: &Environment,
 ) -> Result<
@@ -284,7 +219,6 @@ async fn cross_half(
     let (a_prefix, _) = witnessed_identifier(&a, "name1", environment).await?;
     let (b_prefix, _) = witnessed_identifier(&b, "name2", environment).await?;
 
-    // Upstream's naming: client2 resolves name1 as contact1, client1 resolves name2 as contact2.
     let b_resolved_a = resolve_contact(&a, "name1", &b, "contact1").await?;
     let a_resolved_b = resolve_contact(&b, "name2", &a, "contact2").await?;
 
@@ -305,7 +239,6 @@ async fn cross_half(
     ))
 }
 
-/// Compares one observed value with what the pinned scenario expects.
 fn check(mismatches: &mut Vec<String>, what: &str, observed: &str, expected: &str) {
     if observed != expected {
         mismatches.push(format!("{what}: observed {observed}, pinned {expected}"));
@@ -371,7 +304,6 @@ async fn client_setup_reproduces_the_pinned_controller_and_cross_resolves() -> R
         b_transcript,
     };
 
-    // Record before asserting, so a diverging run still leaves the evidence of how it diverged.
     if record("observations/client_setup.json", &captured)? {
         progress("recorded observations/client_setup.json");
     } else {

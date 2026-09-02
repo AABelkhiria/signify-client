@@ -1,12 +1,6 @@
 //! Hermetic assertions over the recorded delegated lifecycle.
 //!
-//! Wave 10 drove `singlesig-dip.test.ts` and `singlesig-drt.test.ts` — one §7 row — against a
-//! live deployment: two delegated inceptions (one witnessed by the whole triple), a delegated
-//! rotation, both refresh modes, and the anchor query's idempotence. Every establishment was
-//! **pending** under its `delegation.{said}` operation until the delegator anchored a seal of it
-//! with a plain interaction. This file re-checks both recordings from the events' own bytes.
-//!
-//! Not ignored: it reads checked-in recordings and never touches a network.
+//! Two delegated inceptions, a delegated rotation, both refresh modes, and the anchor query's idempotence.
 
 use std::error::Error;
 use std::fs;
@@ -63,7 +57,6 @@ fn captured(name: &str) -> Result<Option<Captured>, Box<dyn Error>> {
     Ok(Some(serde_json::from_str(&fs::read_to_string(path)?)?))
 }
 
-/// Reads one text field out of a JSON document, by label.
 fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
     document
         .get(label)
@@ -72,9 +65,7 @@ fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
         .ok_or_else(|| format!("the document carries no text field {label}").into())
 }
 
-/// The claims every delegated step shares, whichever recording it is in.
 fn check_step(step: &DelegatedStep, delegator: &str) -> Result<(), Box<dyn Error>> {
-    // Pending until anchored, and named by the convention upstream asserts.
     assert!(
         step.pending_before_approval,
         "{} completed without approval",
@@ -82,9 +73,6 @@ fn check_step(step: &DelegatedStep, delegator: &str) -> Result<(), Box<dyn Error
     );
     assert_eq!(step.operation_name, format!("delegation.{}", step.derived_said));
 
-    // The event's SAID (or prefix, for an inception) re-verifies over the derived bytes. Only a
-    // `dip` names its delegator in `di`; a `drt` carries no such field — the delegation is a
-    // property of the identifier it rotates, established at its inception.
     let event: Value = serde_json::from_str(&step.derived_event)?;
     let sad = Sad::from_json_bytes(step.derived_event.as_bytes())?;
     match text_field(&event, "t")?.as_str() {
@@ -100,7 +88,6 @@ fn check_step(step: &DelegatedStep, delegator: &str) -> Result<(), Box<dyn Error
         other => return Err(format!("unexpected event kind {other}").into()),
     }
 
-    // The approval is a plain interaction on the delegator anchoring exactly this event's seal.
     let approval: Value = serde_json::from_str(&step.approval_event)?;
     assert_eq!(text_field(&approval, "t")?, "ixn");
     assert_eq!(text_field(&approval, "i")?, delegator);
@@ -127,8 +114,6 @@ fn both_delegated_inceptions_pend_and_complete_under_their_refresh_modes() -> Re
     assert_eq!(captured.delegator_operations_remaining, 0);
     assert_eq!(captured.delegate_operations_remaining, 0);
 
-    // Two inceptions: the first unwitnessed and seen through a sequence query, the second
-    // witnessed by the whole triple and seen through an anchor query.
     let [first, second] = captured.steps.as_slice() else {
         return Err("the recording does not hold exactly two steps".into());
     };
@@ -142,8 +127,6 @@ fn both_delegated_inceptions_pend_and_complete_under_their_refresh_modes() -> Re
     let witnessed: Value = serde_json::from_str(&second.derived_event)?;
     assert_eq!(text_field(&witnessed, "bt")?, "3");
 
-    // The upstream case's last claim, and the anchor query itself proven sent: the request body
-    // carries the caller's seal and no sequence number.
     assert_eq!(captured.anchor_query_idempotent, Some(true));
     let anchor_queries = captured
         .delegate_transcript
@@ -173,8 +156,6 @@ fn a_delegated_rotation_pends_like_its_inception_did() -> Result<(), Box<dyn Err
     assert_eq!(captured.delegator_operations_remaining, 0);
     assert_eq!(captured.delegate_operations_remaining, 0);
 
-    // The inception, then the rotation of the same identifier — a `drt`, itself delegated,
-    // pending under `delegation.{rotation said}` until the delegator anchors the rotation's seal.
     let [inception, rotation] = captured.steps.as_slice() else {
         return Err("the recording does not hold exactly two steps".into());
     };
@@ -185,7 +166,6 @@ fn a_delegated_rotation_pends_like_its_inception_did() -> Result<(), Box<dyn Err
     assert_eq!(text_field(&event, "t")?, "drt");
     assert_eq!(text_field(&event, "s")?, "1");
 
-    // The completed operation echoed the rotation back: upstream's two final assertions.
     assert_eq!(captured.completed_kind.as_deref(), Some("drt"));
     assert_eq!(captured.completed_sequence.as_deref(), Some("1"));
     Ok(())

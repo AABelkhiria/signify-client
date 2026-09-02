@@ -1,19 +1,6 @@
 //! Exact vectors for the round where **both sides of a delegation are groups**.
 //!
-//! A delegatee group whose inception names a delegator, and a delegator group that approves it by
-//! each of its members anchoring the same seal and telling the others. Roadmap 8.6 is the
-//! composition of the three items before it — 8.3's group inception, 8.4's interaction
-//! announcement, and 8.5's approval address — and the first place a delegated inception is driven
-//! at all.
-//!
-//! The unit is `delegateMultisig`, which lives in the reference's integration utilities, so the
-//! generator transpiles that file in memory exactly as 8.3's does and drives the reference's own
-//! helper against a recording agent.
-//!
-//! The finding is about one index. The joining half reads `ixn.a[0]` where the plain interaction
-//! round reads `ixn.a` whole, so a delegator group anchoring two delegations has the second
-//! dropped — and the one check the reference performs anywhere in this tree fires *after* the
-//! approval is already posted, comparing the wrong shape.
+//! A delegatee group's inception and its delegator's approval, and the index that drops a second delegation.
 
 use std::error::Error;
 
@@ -32,10 +19,7 @@ const FIXTURE: &str = include_str!("../../../fixtures/client-delegated-multisig/
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -173,7 +157,6 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-/// The parsed body of the request `name` sent matching `predicate`.
 fn body(fixture: &Fixture, name: &str, ending: &str) -> Result<Value, Box<dyn Error>> {
     let request = call(fixture, name)?
         .requests
@@ -190,10 +173,7 @@ fn quirk<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Value, Box<dyn Erro
         .ok_or_else(|| format!("no recorded divergence {name}").into())
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and declarations.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and declarations ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -226,8 +206,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    // Six of the seven succeed; the one that fails is the finding — and the six that succeed all
-    // answered with something.
     assert_eq!(fixture.calls.iter().filter(|entry| entry.error.is_some()).count(), 1);
     for entry in &fixture.calls {
         assert_eq!(
@@ -238,7 +216,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
         );
     }
 
-    // Both sealed salts are recorded as what they open to.
     assert_eq!(
         fixture.identifier_record.pointer("/salty/sxlt").and_then(Value::as_str),
         Some("<SXLT>")
@@ -261,19 +238,14 @@ fn the_helper_is_the_one_the_scenario_calls() -> Result<(), Box<dyn Error>> {
     assert!(fixture.declarations.delegate_multisig.contains("exchanges()"));
     assert_eq!(fixture.declarations.scanned_files, 117);
 
-    // Its signature: six parameters, the last of them the flag that decides which half runs.
     let parameters = &fixture.declarations.signature.parameters;
     assert_eq!(parameters.len(), 6);
     let initiator = parameters.last().ok_or("no parameters")?;
     assert_eq!(initiator.name, "isInitiator");
     assert_eq!(initiator.declared, "boolean");
     assert_eq!(initiator.default.as_deref(), Some("false"));
-    // It declares no return type at all, where the endpoint it calls declares
-    // `Promise<EventResult>` — so what a caller gets back is whatever the last expression was.
     assert_eq!(fixture.declarations.signature.returns, "<inferred>");
 
-    // And the anchor it declares is **one seal**, not a list — while the code beneath it accepts a
-    // list, anchors it, and only then refuses. The declaration and the behaviour disagree.
     let anchor = parameters
         .iter()
         .find(|parameter| parameter.name == "anchor")
@@ -284,7 +256,6 @@ fn the_helper_is_the_one_the_scenario_calls() -> Result<(), Box<dyn Error>> {
         "the anchor is declared as a list after all"
     );
 
-    // And it is used only in the integration tree.
     let scan = &fixture.declarations.delegate_multisig_uses;
     assert_eq!(scan.needle, "delegateMultisig(");
     assert!(scan.total >= 1);
@@ -298,16 +269,12 @@ fn the_helper_is_the_one_the_scenario_calls() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The finding: one index.
-// ---------------------------------------------------------------------------
-
+// --- The finding: one index ---
 #[test]
 fn the_joining_member_takes_only_the_first_seal() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "the_joining_member_takes_only_the_first_seal")?;
 
-    // Two readings of one field, in one tree.
     let reads = recorded
         .get("reads")
         .and_then(Value::as_array)
@@ -323,14 +290,12 @@ fn the_joining_member_takes_only_the_first_seal() -> Result<(), Box<dyn Error>> 
         .collect();
     assert!(!indexed.is_empty(), "nothing indexes the seal list");
     assert!(!whole.is_empty(), "nothing reads the seal list whole");
-    // The indexing one is the delegation helper; the whole-list one is Roadmap 8.4's round.
     assert!(
         indexed
             .iter()
             .all(|read| read.get("file").and_then(Value::as_str) == Some("test-integration/utils/multisig-utils.ts"))
     );
 
-    // Driven: the initiator anchors two, the joining member anchors one.
     assert_eq!(
         recorded
             .get("initiator_anchored")
@@ -342,12 +307,10 @@ fn the_joining_member_takes_only_the_first_seal() -> Result<(), Box<dyn Error>> 
         recorded.get("joiner_anchored").and_then(Value::as_array).map(Vec::len),
         Some(1)
     );
-    // So the two members sign different events — with no error on either side.
     assert_eq!(recorded.get("events_agree").and_then(Value::as_bool), Some(false));
     assert_eq!(recorded.get("joiner_error"), Some(&Value::Null));
     assert_ne!(recorded.get("initiator_event"), recorded.get("joiner_event"));
 
-    // And the seal it kept is the first of the two, not an arbitrary one.
     let kept = recorded
         .pointer("/joiner_anchored/0")
         .ok_or("the joining member anchored nothing")?;
@@ -360,14 +323,12 @@ fn the_one_check_fires_after_the_approval_is_already_posted() -> Result<(), Box<
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "the_check_fires_after_the_approval_is_already_posted")?;
 
-    // The helper throws, so the caller gets an exception rather than an operation.
     assert!(
         recorded
             .get("error")
             .and_then(Value::as_str)
             .is_some_and(|error| !error.is_empty())
     );
-    // But the approval was written first, so the delegator's log holds both seals.
     assert_eq!(
         recorded.get("anchored_anyway").and_then(Value::as_array).map(Vec::len),
         Some(2)
@@ -383,10 +344,8 @@ fn the_one_check_fires_after_the_approval_is_already_posted() -> Result<(), Box<
             .any(|request| request.ends_with("/delegation")),
         "the approval was not posted"
     );
-    // And the peers are never told.
     assert_eq!(recorded.get("announced").and_then(Value::as_bool), Some(false));
 
-    // It is the only comparison of its kind in the tree, and it is in a test helper.
     let checks = quirk(&fixture, "the_reference_checks_its_own_work_exactly_once")?;
     let assertions = checks
         .get("declaration")
@@ -403,10 +362,7 @@ fn the_one_check_fires_after_the_approval_is_already_posted() -> Result<(), Box<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The round itself.
-// ---------------------------------------------------------------------------
-
+// --- The round itself ---
 #[test]
 fn a_delegated_group_inception_is_a_dip_naming_its_delegator() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -418,7 +374,6 @@ fn a_delegated_group_inception_is_a_dip_naming_its_delegator() -> Result<(), Box
         Some(fixture.pinned_confirmations.delegator_group.as_str())
     );
 
-    // The scenario incepts one of each with the same helper, differing only in `delpre`.
     let inceptions = &fixture.declarations.inception_arguments;
     assert!(inceptions.iter().any(|call| call.delegated));
     assert!(inceptions.iter().any(|call| !call.delegated));
@@ -427,7 +382,6 @@ fn a_delegated_group_inception_is_a_dip_naming_its_delegator() -> Result<(), Box
     }
     assert!(fixture.declarations.delegated_inception_uses.total >= 1);
 
-    // The delegated group's event says so, and its identifier is the one the seal names.
     let created = body(&fixture, "incept_the_delegatee_group", "/identifiers")?;
     assert_eq!(created.pointer("/icp/t").and_then(Value::as_str), Some("dip"));
     assert_eq!(
@@ -444,8 +398,6 @@ fn a_delegated_group_inception_is_a_dip_naming_its_delegator() -> Result<(), Box
 #[test]
 fn a_delegated_group_proposal_still_classifies_as_an_inception() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Roadmap 8.1's inception embed accepts both ilks, so the proposal a delegated group sends is
-    // read as an inception like any other. This is the first item to drive one.
     let announced = body(&fixture, "incept_the_delegatee_group", "/exchanges")?;
     let exn = announced.get("exn").ok_or("no exn")?.clone();
     assert_eq!(
@@ -472,7 +424,6 @@ fn a_delegated_group_proposal_still_classifies_as_an_inception() -> Result<(), B
 fn an_approval_is_an_interaction_at_the_delegation_address() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let confirmations = &fixture.pinned_confirmations;
-    // The initiator reads the group, approves, and announces.
     assert_eq!(
         confirmations.initiator_paths,
         [
@@ -481,7 +432,6 @@ fn an_approval_is_an_interaction_at_the_delegation_address() -> Result<(), Box<d
             "POST /identifiers/delegator1/exchanges",
         ]
     );
-    // The joining member reads the announcement first.
     assert_eq!(confirmations.joiner_paths.len(), 4);
     assert!(
         confirmations
@@ -494,7 +444,6 @@ fn an_approval_is_an_interaction_at_the_delegation_address() -> Result<(), Box<d
         confirmations.initiator_paths.get(..)
     );
 
-    // The address is Roadmap 8.5's, and the announcement is Roadmap 8.4's route and slot.
     assert!(confirmations.approval_path.ends_with(DELEGATION_SEGMENT));
     assert_eq!(confirmations.announcement_route, INTERACTION_ROUTE);
     let announced = body(&fixture, "approve_as_the_initiator", "/exchanges")?;
@@ -504,7 +453,6 @@ fn an_approval_is_an_interaction_at_the_delegation_address() -> Result<(), Box<d
             .and_then(Value::as_object)
             .is_some_and(|embeds| embeds.contains_key(INTERACTION_SLOT))
     );
-    // The topic is the group's own alias, which is what the helper passes.
     assert_eq!(confirmations.announcement_topic, "delegators");
     assert!(!confirmations.note.is_empty());
     Ok(())
@@ -516,11 +464,9 @@ fn the_two_members_anchor_the_same_seal_on_the_happy_path() -> Result<(), Box<dy
     let initiator = body(&fixture, "approve_as_the_initiator", "/delegation")?;
     let joiner = body(&fixture, "approve_as_a_joining_member", "/delegation")?;
 
-    // One seal each, the same one, in the same event.
     assert_eq!(initiator.pointer("/ixn/a"), joiner.pointer("/ixn/a"));
     assert_eq!(initiator.pointer("/ixn/d"), joiner.pointer("/ixn/d"));
     assert_eq!(initiator.pointer("/ixn/a/0"), Some(&fixture.pinned_confirmations.seal));
-    // Which names the delegatee group three ways, as a delegated inception's seal does.
     let seal = InceptionSeal::new(
         IdentifierPrefix::from_qb64(&fixture.pinned_confirmations.delegatee_group)?,
         fixture.pinned_confirmations.delegatee_group.parse::<Said>()?,
@@ -530,17 +476,13 @@ fn the_two_members_anchor_the_same_seal_on_the_happy_path() -> Result<(), Box<dy
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The two divergences this round inherits.
-// ---------------------------------------------------------------------------
-
+// --- The two divergences this round inherits ---
 #[test]
 fn the_rotation_set_is_the_signing_set_a_third_time() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "the_rotation_set_is_the_signing_set_a_third_time")?;
     assert_eq!(recorded.get("identical").and_then(Value::as_bool), Some(true));
     assert_eq!(recorded.get("announced_smids"), recorded.get("announced_rmids"));
-    // Unconditional here: no rotation set is consulted at all.
     let expressions = &fixture.declarations.member_expressions;
     assert!(
         expressions
@@ -559,7 +501,6 @@ fn the_rotation_set_is_the_signing_set_a_third_time() -> Result<(), Box<dyn Erro
 fn the_member_list_is_the_callers_and_the_delivery_list_excludes_the_sender() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "the_member_list_is_hand_assembled")?;
-    // This half does exclude the sender, which Roadmap 8.3's proposing half fails to do.
     assert_eq!(
         recorded.get("sender_is_a_recipient").and_then(Value::as_bool),
         Some(false)
@@ -584,8 +525,6 @@ fn the_member_list_is_the_callers_and_the_delivery_list_excludes_the_sender() ->
 #[test]
 fn the_scenario_still_reads_a_group_prefix_out_of_an_operations_name() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Roadmap 8.5 recorded this for a single-signature delegate; here it is a group's prefix, and
-    // the scenario does it twice.
     let discoveries = &fixture.declarations.prefix_discoveries;
     assert!(discoveries.len() >= 2);
     for discovery in discoveries {
@@ -615,7 +554,6 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
             );
         }
     }
-    // And every anchor read the scan found belongs to a file the fixture names as a source.
     for read in &fixture.declarations.anchor_reads {
         assert!(
             fixture.sources.contains(&read.file),
@@ -623,7 +561,6 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
             read.file
         );
         assert!(!read.binds.is_empty() && !read.expression.is_empty());
-        // And it says which of the two readings it is, checked against its own text.
         assert!(
             read.takes == "the first seal" || read.takes == "the whole list",
             "{} reads the seal list in an unrecognised way",

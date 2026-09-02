@@ -1,22 +1,6 @@
-//! Exact route-table and classifier vectors recorded from the pinned reference's own
-//! `exchanging.ts`.
+//! Exact route-table and classifier vectors recorded from the pinned reference's own `exchanging.ts`.
 //!
-//! This is the only item in the port whose unit is a **type system**, so the fixture has two halves
-//! and so does this file.
-//!
-//! The **executed** half: every one of the thirteen guards and thirteen assertions was called on a
-//! message of its own route, on a message of another, on a message whose declared payload is simply
-//! absent, and on six shapes that are not messages, with the exact verdict or error text recorded.
-//! Those verdicts are compared with this port's.
-//!
-//! The **declared** half: what each variant says its `e` and `a` blocks contain, read from the
-//! reference's syntax tree — because there is nothing to execute. That is compared with the
-//! generated schema, with what the integration tests actually send, and with the shapes this port
-//! decodes.
-//!
-//! The finding both halves converge on is that the reference's narrowing is a **claim**: an
-//! assertion compares the route and returns a value typed as though the payload had been checked,
-//! and it never was.
+//! Thirteen guards and thirteen assertions, executed and declared, and the narrowing that is only a claim.
 
 use std::error::Error;
 
@@ -38,10 +22,7 @@ const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -186,7 +167,6 @@ fn shape<'a>(fixture: &'a Fixture, variant: &str) -> Result<&'a VariantShape, Bo
         .ok_or_else(|| format!("no recorded shape for {variant}").into())
 }
 
-/// One message on `route`, with the given attribute and embed blocks.
 fn message(route: &str, attributes: &str, embeds: &str) -> Result<ExchangeRecord, Box<dyn Error>> {
     let document = format!(
         r#"{{"v":"KERI10JSON000100_","t":"exn","d":"EEXN","i":"{MEMBER}","rp":"{SECOND}","p":"","dt":"2023-11-14T22:13:20.123000+00:00","r":"{route}","q":{{}},"a":{attributes},"e":{embeds}}}"#
@@ -194,14 +174,12 @@ fn message(route: &str, attributes: &str, embeds: &str) -> Result<ExchangeRecord
     Ok(serde_json::from_str(&document)?)
 }
 
-/// An attribute block naming a group and its members, as every real proposal sends one.
 fn group_block() -> String {
     format!(
         r#"{{"{GROUP_LABEL}":"{GROUP}","{SIGNING_MEMBERS_LABEL}":["{MEMBER}","{SECOND}"],"{ROTATION_MEMBERS_LABEL}":["{MEMBER}","{SECOND}"]}}"#
     )
 }
 
-/// A well-formed embed for one multisig route, so a message can be built for every one of them.
 fn embed_for(route: MultisigRoute) -> String {
     let inner = match route {
         MultisigRoute::Inception => {
@@ -238,10 +216,7 @@ const ANCHOR: &str = r#"{"v":"KERI10JSON000_","t":"ixn","d":"EANC","i":"EGRP","s
 const ACDC: &str = r#"{"v":"ACDC10JSON000_","d":"ECRED","i":"EISSUER","ri":"EREG","s":"ESCHEMA","a":{"d":"EATTR","i":"EHOLDER","dt":"2023-11-14T22:13:20.123000+00:00"}}"#;
 const ISSUANCE: &str = r#"{"v":"KERI10JSON000_","t":"iss","d":"EISS","i":"ECRED","s":"0","ri":"EREG","dt":"2023-11-14T22:13:20.123000+00:00"}"#;
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -262,7 +237,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.variant_shapes.len(), 13);
     assert_eq!(fixture.executed.len(), 13);
     assert_eq!(fixture.hostile.len(), 6);
-    // Every send call site in the pinned tree, which is where the attribute evidence comes from.
     assert!(fixture.send_call_sites >= 30);
     Ok(())
 }
@@ -272,7 +246,6 @@ fn the_thirteen_constants_are_this_ports_route_table() -> Result<(), Box<dyn Err
     let fixture = fixture()?;
     assert_eq!(fixture.declarations.route_constants.len(), 13);
 
-    // Same routes, same order, same text.
     let recorded: Vec<&str> = fixture
         .declarations
         .route_constants
@@ -282,7 +255,6 @@ fn the_thirteen_constants_are_this_ports_route_table() -> Result<(), Box<dyn Err
     let ported: Vec<&str> = ExchangeRoute::ALL.iter().map(|route| route.as_str()).collect();
     assert_eq!(recorded, ported);
 
-    // And every constant's name says which route it is, so the pairing cannot drift.
     for constant in &fixture.declarations.route_constants {
         assert!(constant.name.ends_with("_ROUTE"), "{}", constant.name);
         let parsed = constant.value.parse::<ExchangeRoute>()?;
@@ -294,7 +266,6 @@ fn the_thirteen_constants_are_this_ports_route_table() -> Result<(), Box<dyn Err
 #[test]
 fn the_five_ipex_routes_are_roadmap_6_3s() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The table composes rather than duplicating: these five come from `signify-acdc`.
     let recorded: Vec<&str> = fixture
         .declarations
         .route_constants
@@ -307,22 +278,17 @@ fn the_five_ipex_routes_are_roadmap_6_3s() -> Result<(), Box<dyn Error>> {
         let route = text.parse::<ExchangeRoute>()?;
         assert!(matches!(route, ExchangeRoute::Ipex(_)), "{text} is not an IPEX route");
     }
-    // Every one of Roadmap 6.3's five appears in the reference's constants.
     for route in IpexRoute::ALL {
         assert!(recorded.contains(&route.as_str()), "{} is missing", route.as_str());
     }
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The declared half: what the variants say, and what nothing checks.
-// ---------------------------------------------------------------------------
-
+// --- The declared half: what the variants say, and what nothing checks ---
 #[test]
 fn every_guard_and_assertion_is_one_route_comparison() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     for record in &fixture.route_table {
-        // A guard is a `===` against its own constant and nothing else.
         assert!(
             record
                 .guard_body
@@ -331,7 +297,6 @@ fn every_guard_and_assertion_is_one_route_comparison() -> Result<(), Box<dyn Err
             record.guard,
             record.guard_body
         );
-        // An assertion delegates to the one shared helper, naming its own constant.
         assert!(
             record
                 .assertion_body
@@ -340,13 +305,11 @@ fn every_guard_and_assertion_is_one_route_comparison() -> Result<(), Box<dyn Err
             record.assertion,
             record.assertion_body
         );
-        // Neither mentions the block the variant it narrows to declares.
         for slot in ["exn.e", "exn.a"] {
             assert!(!record.guard_body.contains(slot));
             assert!(!record.assertion_body.contains(slot));
         }
     }
-    // And the helper they share reads the route, compares it, and throws.
     let helper = &fixture.declarations.assert_route;
     assert!(helper.contains("msg.exn?.r !== route"));
     assert!(helper.contains("Expected ${label} but got route: ${msg.exn?.r}"));
@@ -369,12 +332,9 @@ fn the_thirteen_guards_have_no_consumers_and_six_assertions_have_none_either() -
             dead.push(record.assertion.as_str());
         }
     }
-    // Six of the thirteen assertions are unused too: nineteen dead exports of twenty-six.
     assert_eq!(dead.len(), 6);
     assert_eq!(fixture.route_table.len() + dead.len(), 19);
 
-    // The seven that are used account for nineteen call sites — fewer than the twenty-six symbols
-    // declared to serve them.
     let used: usize = fixture
         .route_table
         .iter()
@@ -382,14 +342,11 @@ fn the_thirteen_guards_have_no_consumers_and_six_assertions_have_none_either() -
         .sum();
     assert_eq!(used, 19, "the assertion call sites changed");
 
-    // Each symbol names the route it serves, so the three declarations and the variant beside them
-    // cannot drift from the constant.
     for record in &fixture.route_table {
         let suffix = record.assertion.trim_start_matches("assert");
         assert_eq!(record.guard, format!("is{suffix}"));
         assert_eq!(record.variant, format!("{suffix}Exchange"));
         assert!(record.variant_declaration.contains(&record.constant));
-        // Every route but the three empty IPEX steps declares an embed slot.
         assert_eq!(
             record.slot.is_some(),
             !matches!(record.value.as_str(), "/ipex/apply" | "/ipex/agree" | "/ipex/admit")
@@ -401,8 +358,6 @@ fn the_thirteen_guards_have_no_consumers_and_six_assertions_have_none_either() -
 #[test]
 fn every_variant_declares_the_slot_this_port_requires() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The correspondence the whole classifier rests on: what the reference's variant declares its
-    // `e` block contains is what this port decodes for that route.
     for route in MultisigRoute::ALL {
         let recorded = fixture
             .variant_shapes
@@ -439,7 +394,6 @@ fn only_the_three_member_bearing_routes_declare_members() -> Result<(), Box<dyn 
             .find(|record| record.route == route.as_str())
             .ok_or("no recorded shape")?;
         let block = recorded.attribute_block.as_deref().ok_or("no attribute block")?;
-        // Every multisig variant declares the group.
         assert!(block.contains(GROUP_LABEL), "{} declares no gid", route.as_str());
         assert_eq!(
             block.contains(SIGNING_MEMBERS_LABEL),
@@ -447,10 +401,8 @@ fn only_the_three_member_bearing_routes_declare_members() -> Result<(), Box<dyn 
             "{} disagrees with this port about smids",
             route.as_str()
         );
-        // `rmids` is declared optional wherever `smids` is declared at all.
         assert_eq!(block.contains(ROTATION_MEMBERS_LABEL), route.names_members());
     }
-    // Only the registry proposal declares a usage.
     let registry = shape(&fixture, "MultisigVcpExchange")?;
     assert!(
         registry
@@ -473,7 +425,6 @@ fn the_five_ipex_variants_declare_no_attribute_block() -> Result<(), Box<dyn Err
     ] {
         assert_eq!(shape(&fixture, variant)?.attribute_block, None, "{variant}");
     }
-    // Which is why this port requires no group attributes of an IPEX step.
     let classified = ClassifiedExchange::classify(&message("/ipex/admit", "{}", "{}")?)?;
     assert!(classified.as_ipex().is_some());
     Ok(())
@@ -491,8 +442,6 @@ fn only_multisig_routes_have_a_group_variant() -> Result<(), Box<dyn Error>> {
     assert_eq!(with_group.len(), 8);
     assert!(with_group.iter().all(|route| route.starts_with("/multisig/")));
 
-    // Upstream that asymmetry means `assertIpexGrant` on a group request returns an unnarrowed
-    // value. Here one classifier serves both containers, so it disappears.
     for record in &fixture.route_table {
         assert_eq!(record.group.is_some(), record.value.starts_with("/multisig/"));
         assert_eq!(record.group_declaration.is_some(), record.group.is_some());
@@ -512,10 +461,8 @@ fn only_multisig_routes_have_a_group_variant() -> Result<(), Box<dyn Error>> {
 fn the_generated_schema_names_no_group_attribute() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let counts = &fixture.declarations.attribute_labels_in_schema.in_generated_schema;
-    // Zero, zero, zero: the `a` block shapes exist only in the hand-written variants.
     assert_eq!((counts.gid, counts.smids, counts.rmids), (0, 0, 0));
     assert!(!fixture.declarations.attribute_labels_in_schema.note.is_empty());
-    // And the schema's own exchange shapes carry no attribute constraint either.
     assert!(fixture.declarations.schema_exchange_resource.contains("pathed"));
     assert!(fixture.declarations.schema_exn_multisig.contains("paths"));
     Ok(())
@@ -526,14 +473,10 @@ fn the_hand_written_revocation_variant_hides_the_anchor_its_schema_declares() ->
     let fixture = fixture()?;
     let revocation = shape(&fixture, "MultisigRevExchange")?;
     let block = revocation.embed_block.as_deref().ok_or("no embed block")?;
-    // The hand-written variant declares `rev` and nothing else.
     assert!(block.contains("rev:"));
     assert!(!block.contains("anc:"), "the variant now declares its anchor: {block}");
-    // The generated schema declares the anchor.
     assert!(fixture.declarations.schema_multisig_revoke_embeds.contains("anc:"));
 
-    // Roadmap 4.1 modelled the schema, so this port keeps the anchor — and a revocation proposal
-    // without one is refused rather than silently accepted with a field the caller cannot reach.
     let with_anchor = message("/multisig/rev", &group_block(), &embed_for(MultisigRoute::Revocation))?;
     let classified = ClassifiedExchange::classify(&with_anchor)?;
     assert!(matches!(
@@ -560,7 +503,6 @@ fn a_grant_and_an_issuance_declare_the_same_embed() -> Result<(), Box<dyn Error>
     assert_eq!(grant, issuance, "the two embed blocks diverged");
     assert!(fixture.declarations.schema_multisig_issue_embeds.contains("acdc"));
 
-    // So one shape decodes both, and each classifies under its own route.
     let embeds = embed_for(MultisigRoute::Issuance);
     let proposal = ClassifiedExchange::classify(&message("/multisig/iss", &group_block(), &embeds)?)?;
     assert!(matches!(
@@ -577,7 +519,6 @@ fn a_grant_and_an_issuance_declare_the_same_embed() -> Result<(), Box<dyn Error>
 #[test]
 fn the_schema_models_no_ipex_embed() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Eight members, all multisig — an offer's `{ acdc }` is not among them.
     let union = &fixture.declarations.schema_exn_embeds;
     for member in [
         "MultisigInceptEmbeds",
@@ -595,10 +536,7 @@ fn the_schema_models_no_ipex_embed() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The executed half: what the guards and assertions actually did.
-// ---------------------------------------------------------------------------
-
+// --- The executed half: what the guards and assertions actually did ---
 #[test]
 fn every_guard_agreed_with_its_own_route_and_refused_another() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -609,12 +547,10 @@ fn every_guard_agreed_with_its_own_route_and_refused_another() -> Result<(), Box
         assert_eq!(record.assertion_on_own_route.outcome, "returned");
         assert_eq!(record.assertion_on_other_route.outcome, "threw");
 
-        // The refusal names the label it expected and the route it found.
         let error = record.assertion_on_other_route.error.as_deref().ok_or("no error")?;
         assert!(error.starts_with("Expected "), "{error}");
         assert!(error.contains(" but got route: /multisig/"), "{error}");
 
-        // This port agrees about which route is which.
         let route = record.route.parse::<ExchangeRoute>()?;
         assert_eq!(route.as_str(), record.route);
         assert_eq!(record.guard, format!("is{}", &record.assertion["assert".len()..]));
@@ -626,8 +562,6 @@ fn every_guard_agreed_with_its_own_route_and_refused_another() -> Result<(), Box
 fn a_route_that_promises_a_payload_it_does_not_carry_is_accepted_upstream_and_refused_here()
 -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Every one of the eight multisig routes: the guard says yes and the assertion hands the
-    // message back, with the block the variant declares simply absent.
     for route in MultisigRoute::ALL {
         let record = entry(&fixture, route.as_str())?;
         assert_eq!(
@@ -643,7 +577,6 @@ fn a_route_that_promises_a_payload_it_does_not_carry_is_accepted_upstream_and_re
         );
         assert_eq!(record.declared_slot_present_when_empty, Some(false));
 
-        // Here the same message is a typed refusal naming what was missing.
         let outcome = ClassifiedExchange::classify(&message(route.as_str(), &group_block(), "{}")?);
         assert!(
             matches!(
@@ -659,8 +592,6 @@ fn a_route_that_promises_a_payload_it_does_not_carry_is_accepted_upstream_and_re
 
 #[test]
 fn every_multisig_route_classifies_the_message_it_promises() -> Result<(), Box<dyn Error>> {
-    // The other side of the same coin: a well-formed message on each of the eight routes
-    // classifies, and its embed is the one the route names.
     for route in MultisigRoute::ALL {
         let classified = ClassifiedExchange::classify(&message(route.as_str(), &group_block(), &embed_for(route))?)?;
         let proposal = classified
@@ -694,7 +625,6 @@ fn a_guard_and_its_assertion_fail_differently_on_a_message_with_no_exn() -> Resu
         .find(|record| record.name == "no_exn_at_all")
         .ok_or("no recorded case")?;
 
-    // One question mark apart: the assertion reads `msg.exn?.r` and the guard reads `msg.exn.r`.
     assert_eq!(record.guard.outcome, "threw");
     assert_eq!(record.guard.kind.as_deref(), Some("TypeError"));
     assert_eq!(record.assertion.kind.as_deref(), Some("Error"));
@@ -706,8 +636,6 @@ fn a_guard_and_its_assertion_fail_differently_on_a_message_with_no_exn() -> Resu
             .is_some_and(|error| error.contains("but got route: undefined"))
     );
 
-    // Unrepresentable here: a classified message is decoded from a typed resource, which has no
-    // shape without its `exn`.
     for wrong in ["{}", r#"{"exn":null}"#, r#"{"pathed":{}}"#] {
         assert!(
             serde_json::from_str::<ExchangeResource>(wrong).is_err(),
@@ -733,12 +661,9 @@ fn the_recorded_hostile_shapes_are_each_accounted_for() -> Result<(), Box<dyn Er
         ]
     );
     for record in &fixture.hostile {
-        // Every one of the six fails the assertion; four of them are quietly `false` for the guard.
         assert_eq!(record.assertion.outcome, "threw", "{}", record.name);
     }
 
-    // The one worth reading: a route that *is* the label text produces an error naming itself
-    // twice, which tells a reader nothing.
     let confusing = fixture
         .hostile
         .iter()
@@ -759,7 +684,6 @@ fn an_unnamed_route_is_a_message_here_and_a_failure_upstream() -> Result<(), Box
         .iter()
         .find(|record| record.name == "an_unknown_route")
         .ok_or("no recorded case")?;
-    // Upstream every guard returns false for it and every assertion throws.
     assert_eq!(record.guard.value, Some(Value::Bool(false)));
     assert_eq!(record.assertion.outcome, "threw");
     assert!(
@@ -770,7 +694,6 @@ fn an_unnamed_route_is_a_message_here_and_a_failure_upstream() -> Result<(), Box
             .is_some_and(|error| error.contains(CHALLENGE_RESPONSE_ROUTE))
     );
 
-    // Here it classifies, because this crate's own `Challenges::respond` sends it.
     let classified = ClassifiedExchange::classify(&message(
         CHALLENGE_RESPONSE_ROUTE,
         r#"{"words":["shell","gloom"]}"#,
@@ -782,22 +705,17 @@ fn an_unnamed_route_is_a_message_here_and_a_failure_upstream() -> Result<(), Box
             route: CHALLENGE_RESPONSE_ROUTE.to_owned()
         }
     );
-    // And it is not in the table, which is the fact that makes the table open.
     assert!(CHALLENGE_RESPONSE_ROUTE.parse::<ExchangeRoute>().is_err());
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// What the integration tests actually send.
-// ---------------------------------------------------------------------------
-
+// --- What the integration tests actually send ---
 #[test]
 fn every_attribute_block_the_reference_sends_is_one_this_port_accepts() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let mut checked = 0_usize;
     for (route_text, observed) in &fixture.observed_attributes {
         let Some(ExchangeRoute::Multisig(route)) = ExchangeRoute::parse(route_text) else {
-            // `/challenge/response` is here too, and it is not a multisig route.
             continue;
         };
         let sets = observed
@@ -806,7 +724,6 @@ fn every_attribute_block_the_reference_sends_is_one_this_port_accepts() -> Resul
             .ok_or("no recorded label sets")?;
         for set in sets {
             let labels: Vec<&str> = set.as_str().ok_or("a label set is not text")?.split(',').collect();
-            // The route requires members exactly when the reference sends them.
             assert_eq!(
                 labels.contains(&SIGNING_MEMBERS_LABEL),
                 route.names_members(),
@@ -814,7 +731,6 @@ fn every_attribute_block_the_reference_sends_is_one_this_port_accepts() -> Resul
             );
             assert!(labels.contains(&GROUP_LABEL), "{route_text} sends no group");
 
-            // Build that exact block and classify it.
             let mut block = Map::new();
             for label in &labels {
                 let value = match *label {
@@ -838,7 +754,6 @@ fn every_attribute_block_the_reference_sends_is_one_this_port_accepts() -> Resul
             checked = checked.saturating_add(1);
         }
     }
-    // Eight multisig routes, one of which sends two different blocks.
     assert_eq!(checked, 9);
     Ok(())
 }
@@ -846,8 +761,6 @@ fn every_attribute_block_the_reference_sends_is_one_this_port_accepts() -> Resul
 #[test]
 fn the_fourteenth_route_the_reference_sends_is_not_in_the_table() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // `Challenges.respond` is a real call site, sending a route no constant names and an attribute
-    // block shaped like nothing else here.
     let observed = fixture
         .observed_attributes
         .get(CHALLENGE_RESPONSE_ROUTE)
@@ -868,10 +781,7 @@ fn the_fourteenth_route_the_reference_sends_is_not_in_the_table() -> Result<(), 
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The divergences.
-// ---------------------------------------------------------------------------
-
+// --- The divergences ---
 #[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -891,7 +801,6 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
             }
         }
     }
-    // The anchor alias every embed with an `anc` field points at.
     assert!(fixture.declarations.anchor_event_alias.contains("IXN_V_1"));
     Ok(())
 }
@@ -910,7 +819,6 @@ fn a_group_request_and_a_plain_one_classify_alike() -> Result<(), Box<dyn Error>
         member_name: Some("member1".to_owned()),
         sender: Some(MEMBER.to_owned()),
     };
-    // Upstream this needs a second overload on all twenty-six functions and eight extra variants.
     assert_eq!(
         ClassifiedExchange::try_from(&plain)?,
         ClassifiedExchange::try_from(&grouped)?

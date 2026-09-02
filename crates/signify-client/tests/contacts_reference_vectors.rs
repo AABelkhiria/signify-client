@@ -1,9 +1,6 @@
 //! Exact contact-endpoint vectors recorded from the pinned reference's own `Contacts`.
 //!
-//! The pinned `contacting.test.ts` has one `Contacts` case, and it is unusually complete for this
-//! port: it asserts all five paths, all five HTTP methods, both write bodies field for field, and
-//! that a delete carries no body at all. Every one of those is reproduced here against the same
-//! values driven out of the reference itself.
+//! All five paths and methods, both write bodies field for field, and that a delete carries no body.
 
 mod support;
 
@@ -30,15 +27,10 @@ use signify_keri::serialization::{Sad, SadValue};
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-contacts/v1.json");
 
-/// The contact prefix the pinned unit test uses.
 const CONTACT: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
-/// A second one, so a listing carries more than one entry.
 const OTHER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -145,7 +137,6 @@ fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.result)?)
 }
 
-/// A connected client, its scripted agent.
 type Harness = (ConnectedClient, Arc<AgentTransport>);
 
 fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
@@ -178,7 +169,6 @@ fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.first().ok_or("no endpoint request was sent")?;
@@ -189,7 +179,6 @@ fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
     Ok(IdentifierPrefix::from_qb64(text)?)
 }
 
-/// The `ContactInfo` the pinned unit test sends, in its own field order.
 fn pinned_info() -> Result<Sad, Box<dyn Error>> {
     let mut info = Sad::new();
     info.insert("name", "John Doe".to_owned())?;
@@ -197,10 +186,7 @@ fn pinned_info() -> Result<Sad, Box<dyn Error>> {
     Ok(info)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -222,7 +208,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 16);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of them — not the dropped filter, not the escaping prefix.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         assert!(entry.request.is_some(), "call {} made no request", entry.name);
     }
@@ -234,13 +219,11 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Five methods over one resource, and the class this item owns whole.
     assert_eq!(
         declarations.class_members,
         ["client", "<constructor>", "list", "get", "add", "delete", "update"]
     );
 
-    // Three optional arguments where two must move together.
     assert_eq!(
         declarations.list_parameters,
         ["group?: string", "filterField?: string", "filterValue?: string"]
@@ -255,10 +238,8 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.list_filter_guard.contains(FILTER_VALUE_PARAMETER));
     assert!(declarations.list_group_guard.contains(GROUP_PARAMETER));
 
-    // The bare question mark, concatenated unconditionally.
     assert_eq!(declarations.list_path, "path = `/contacts` + '?' + params.toString()");
 
-    // All four single-contact paths concatenate the prefix raw.
     for path in [
         &declarations.get_path,
         &declarations.add_path,
@@ -270,14 +251,12 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     }
     assert!(declarations.get_path.contains(CONTACTS_SEGMENT));
 
-    // One method each, and the delete that passes `undefined` where the writes pass `info`.
     assert_eq!(declarations.get_method, "method = 'GET'");
     assert_eq!(declarations.add_method, "method = 'POST'");
     assert_eq!(declarations.update_method, "method = 'PUT'");
     assert_eq!(declarations.delete_method, "method = 'DELETE'");
     assert!(declarations.delete_fetch.contains("undefined"));
 
-    // The cast this port replaces with a decode, the open bag, and the one required field.
     assert_eq!(declarations.get_return, "await res.json()");
     assert!(declarations.contact_info_interface.contains("[key: string]: unknown"));
     assert!(declarations.contact_type.contains("id: string"));
@@ -310,7 +289,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
             .any(|line| line.contains("body, undefined"))
     );
 
-    // Five calls, five methods, two distinct addresses.
     assert_eq!(pinned.unit_test_methods, ["GET", "GET", "POST", "PUT", "DELETE"]);
     assert_eq!(pinned.unit_test_paths.len(), 2);
     for path in &pinned.unit_test_paths {
@@ -320,7 +298,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
         );
     }
 
-    // The info the test sends, which this port reproduces field for field and in order.
     let info = pinned
         .unit_test_info
         .as_object()
@@ -329,7 +306,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     assert_eq!(info.get("name").and_then(Value::as_str), Some("John Doe"));
     assert_eq!(info.get("company").and_then(Value::as_str), Some("My Company"));
 
-    // Outside that case the family is used three times in the whole tree, all of them `list`.
     assert!(pinned.integration_helper_call.contains("list(undefined, 'alias'"));
     assert!(pinned.call_sites.total >= 3);
     assert!(pinned.call_sites.scanned_files > 100);
@@ -360,10 +336,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `list`.
-// ---------------------------------------------------------------------------
-
+// --- `list` ---
 #[test]
 fn the_pinned_filtered_listing_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -403,7 +376,6 @@ fn a_group_only_listing_writes_one_parameter() -> Result<(), Box<dyn Error>> {
 #[test]
 fn the_integration_helpers_own_listing_reproduces() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // `getOrCreateContact` filters by alias with a regular expression and no group at all.
     let recorded = request_of(&fixture, "list_filter_only")?;
     assert_eq!(recorded.path, "/contacts?filter_field=alias&filter_value=%5Ealice%24");
 
@@ -413,7 +385,6 @@ fn the_integration_helpers_own_listing_reproduces() -> Result<(), Box<dyn Error>
     assert_eq!(filter.field, ALIAS_FIELD);
     let contacts = block_on(client.contacts().list(None, Some(&filter)))?;
     assert_eq!(sent(&transport)?.0, recorded.path);
-    // Nothing here interprets the value: the regular expression is the agent's business.
     assert_eq!(
         contacts.first().and_then(|contact| contact.alias.as_deref()),
         Some("alice")
@@ -425,7 +396,6 @@ fn the_integration_helpers_own_listing_reproduces() -> Result<(), Box<dyn Error>
 fn an_unfiltered_listing_is_the_one_deliberate_path_difference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "list_unfiltered")?;
-    // The reference concatenates `'?' + params.toString()` unconditionally.
     assert_eq!(recorded.path, "/contacts?");
 
     let answer = answer_of(&fixture, "list_unfiltered")?;
@@ -435,7 +405,6 @@ fn an_unfiltered_listing_is_the_one_deliberate_path_difference() -> Result<(), B
 
     assert_eq!(path, "/contacts");
     assert_ne!(path, recorded.path);
-    // The *signed* path is identical either way, which is ADR `0028`'s first ground.
     assert_eq!(path, recorded.path.trim_end_matches('?'));
     assert_eq!(contacts.len(), 2);
     Ok(())
@@ -444,8 +413,6 @@ fn an_unfiltered_listing_is_the_one_deliberate_path_difference() -> Result<(), B
 #[test]
 fn half_a_filter_is_unrepresentable_where_the_reference_drops_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Both halves alone produce an unfiltered listing upstream — the caller asked to filter and
-    // was answered with everything.
     for name in ["list_half_a_filter", "list_half_a_filter_value_only"] {
         let recorded = request_of(&fixture, name)?;
         assert_eq!(recorded.path, "/contacts?", "{name} sent something else");
@@ -453,7 +420,6 @@ fn half_a_filter_is_unrepresentable_where_the_reference_drops_it() -> Result<(),
         assert!(!recorded.path.contains(FILTER_VALUE_PARAMETER), "{name}");
     }
 
-    // Here a filter always carries both halves, so the same mistake writes a real filter.
     let (client, transport) = connected(&[b"[]"])?;
     let filter = ContactFilter::new(ALIAS_FIELD, "");
     block_on(client.contacts().list(None, Some(&filter)))?;
@@ -467,7 +433,6 @@ fn half_a_filter_is_unrepresentable_where_the_reference_drops_it() -> Result<(),
 fn a_filter_value_is_encoded_on_both_sides() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "list_filter_needing_encoding")?;
-    // `URLSearchParams` encodes it, so this is one of the few dynamic values that already agree.
     assert_eq!(recorded.path, "/contacts?filter_field=alias&filter_value=a%26b%3Dc");
 
     let (client, transport) = connected(&[b"[]"])?;
@@ -477,10 +442,7 @@ fn a_filter_value_is_encoded_on_both_sides() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `get`, `add`, `update`, `delete`.
-// ---------------------------------------------------------------------------
-
+// --- `get`, `add`, `update`, `delete` ---
 #[test]
 fn the_pinned_read_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -579,8 +541,6 @@ fn a_delete_carries_no_body_at_all() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "delete")?;
     assert_eq!(recorded.path, format!("/contacts/{CONTACT}"));
     assert_eq!(recorded.method, "DELETE");
-    // Upstream passes `undefined`, and its own test asserts the request's body is undefined —
-    // not an empty object, and not `null`.
     assert!(recorded.body_is_undefined);
     assert_eq!(recorded.body, None);
 
@@ -597,7 +557,6 @@ fn a_delete_carries_no_body_at_all() -> Result<(), Box<dyn Error>> {
 fn a_prefix_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "get_prefix_needing_encoding")?;
-    // One argument becoming two segments and a query, and a different `@path` to sign.
     assert_eq!(recorded.path, "/contacts/a/b?c=d");
     assert!(IdentifierPrefix::from_qb64("a/b?c=d").is_err());
     Ok(())
@@ -617,10 +576,8 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
         matches!(outcome, Err(ClientError::Api { .. })),
         "an answer naming no identifier was not refused: {outcome:?}"
     );
-    // The request still went out, so this refuses the answer rather than the call.
     assert_eq!(sent(&transport)?.0, format!("/contacts/{CONTACT}"));
 
-    // A listing entry missing the one field the schema requires is refused the same way.
     let listing = call(&fixture, "list_wrong_shape")?;
     assert_eq!(listing.error, None);
     let answer = serde_json::to_vec(&listing.result)?;

@@ -1,14 +1,6 @@
 //! Hermetic assertions over the recorded multisig join.
 //!
-//! Wave 14 drove the spine of `test-integration/multisig-join.test.ts` against a live
-//! deployment: a 1-of-1 group, a rotation that commits a third member into rotation authority,
-//! and a second rotation that brings him into the signing set — which he joins by **rebuilding**
-//! the shown rotation from the proposal's member lists and his own queried key states, comparing
-//! the SAID he built with the SAID he was shown, and only then submitting his signature through
-//! `groups().join`. Upstream's member3 signs the shown bytes unexamined, which Roadmap 8.4
-//! recorded; the recording proves the checked path reaches the same wire outcome.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! A third member committed then seated, rebuilding the rotation he was shown and comparing SAIDs first.
 
 use std::error::Error;
 use std::fs;
@@ -75,8 +67,6 @@ fn the_first_rotation_commits_the_incoming_member_before_admitting_him() -> Resu
         return Ok(());
     };
 
-    // KERI's own two-step admission: the incoming member first appears among the *next* digests
-    // — two signers, three commitments — and only the following rotation seats him.
     assert_eq!(captured.after_first_rotation_keys.len(), 2);
     assert_eq!(captured.after_first_rotation_digests.len(), 3);
     Ok(())
@@ -88,16 +78,11 @@ fn the_join_rebuilt_exactly_the_shown_rotation() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
 
-    // The port's whole difference from upstream's join: the rotation is rebuilt from the
-    // proposal's member lists and the joiner's own queried states, and the SAIDs must agree —
-    // where upstream's member3 signs the shown bytes unexamined (Roadmap 8.4's finding).
     assert_eq!(captured.shown_rotation_said, captured.rebuilt_rotation_said);
 
-    // And after the join the group seats all three, with three fresh commitments.
     assert_eq!(captured.joined_keys.len(), 3);
     assert_eq!(captured.joined_digests.len(), 3);
 
-    // The join travelled through Roadmap 8.2's endpoint, proven from member3's transcript.
     assert!(
         captured.member3_transcript.iter().any(|observation| {
             observation.method == "POST"

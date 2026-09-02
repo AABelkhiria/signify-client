@@ -1,23 +1,8 @@
 //! Wave 7 — witness behavior: incept witnessed, rotate, cut the witness, add it back.
 //!
-//! `test-integration/witness.test.ts` is the only upstream scenario that exercises a witness
-//! receipt end to end *through change*: an identifier incepts with one witness at threshold one,
-//! rotates while keeping it, rotates it **out** with a cut, and rotates it back **in** with an
-//! add — four establishment events, each of which the agent completes only once the witness set
-//! it names has receipted it. The observation after every step is the key state's witness list,
-//! read back from the agent.
-//!
-//! The witness is Wan, `BBilc4…`, whose controller OOBI the client resolves first exactly as the
-//! upstream case does — from the URL **as KERIA reaches it**, because the agent is the one who
-//! fetches it (the preset records this distinction; the reference's own file never says so).
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave7_witness_behavior -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Incepts witnessed, rotates, cuts the witness, and adds it back: four receipted establishments.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -32,40 +17,28 @@ use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::preset::WITNESS_PREFIXES;
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 
-/// One establishment event and the witness state the agent reported after it.
 #[derive(Debug, Serialize)]
 struct Step {
-    /// What this step did: `incept`, `rotate`, `cut`, or `add`.
     action: &'static str,
-    /// The event exactly as the port serialized and signed it.
     derived_event: String,
     derived_said: String,
-    /// The agent's echo from the completed operation.
     agent_event: String,
-    /// The key state's witness list after the operation completed.
     witnesses_after: Vec<String>,
-    /// The key state's witness threshold after the operation completed.
     threshold_after: String,
-    /// The key state's sequence number after the operation completed.
     sequence_after: String,
 }
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
-    /// The witness whose membership changes; Wan of the demo triple.
     witness: String,
-    /// The identifier under test.
     prefix: String,
     steps: Vec<Step>,
-    /// Operations left listed after the run; upstream waits every one out.
     operations_remaining: usize,
     transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one submission's operation out, deletes it, and returns the agent's echoed event.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -74,7 +47,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Reads the key state's witness list, threshold, and sequence back for `alias`.
 async fn state_triple(client: &ConnectedClient, alias: &str) -> Result<(Vec<String>, String, String), Box<dyn Error>> {
     let stored = client.identifiers().get(alias).await?;
     Ok((
@@ -84,7 +56,6 @@ async fn state_triple(client: &ConnectedClient, alias: &str) -> Result<(Vec<Stri
     ))
 }
 
-/// Rotates `alias` with the given cuts and adds, capturing the event and the state after it.
 async fn rotate_step(
     client: &ConnectedClient,
     alias: &str,
@@ -131,8 +102,6 @@ async fn a_witness_is_kept_cut_and_added_back() -> Result<(), Box<dyn Error>> {
     )
     .await?;
 
-    // Resolve the witness's controller OOBI, as the upstream case does before anything else. The
-    // URL is the witness's address as KERIA reaches it, because the agent does the fetching.
     let witness_url = environment
         .witness_urls
         .first()
@@ -147,7 +116,6 @@ async fn a_witness_is_kept_cut_and_added_back() -> Result<(), Box<dyn Error>> {
     let resolved_name = completed.name().to_owned();
     client.operations().delete(&resolved_name).await?;
 
-    // Incept with that one witness at threshold one, and wait for its receipt.
     progress("aid1: creating with one witness at threshold one");
     let mut request = CreateIdentifierRequest::new(CreateAlgorithm::salty(None));
     request.witnesses = vec![witness_prefix.clone()];
@@ -166,13 +134,10 @@ async fn a_witness_is_kept_cut_and_added_back() -> Result<(), Box<dyn Error>> {
         sequence_after,
     }];
 
-    // Rotate keeping the witness, rotate it out, rotate it back in.
     steps.push(rotate_step(&client, "aid1", "rotate", Vec::new(), Vec::new()).await?);
     steps.push(rotate_step(&client, "aid1", "cut", vec![witness_prefix.clone()], Vec::new()).await?);
     steps.push(rotate_step(&client, "aid1", "add", Vec::new(), vec![witness_prefix.clone()]).await?);
 
-    // The upstream case's assertions, checked before recording so a divergence is loud — but the
-    // recording happens either way, so a diverging run still leaves its evidence.
     let witness_sets: Vec<&[String]> = steps.iter().map(|step| step.witnesses_after.as_slice()).collect();
     let expected: Vec<Vec<String>> = vec![
         vec![witness.clone()],

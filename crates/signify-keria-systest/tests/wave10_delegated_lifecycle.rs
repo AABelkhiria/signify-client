@@ -1,22 +1,8 @@
 //! Wave 10 — the delegated lifecycle: two inceptions, a rotation, and both refresh modes.
 //!
-//! `singlesig-dip.test.ts` and `singlesig-drt.test.ts` share one §7 row. The first creates two
-//! delegated identifiers — one **unwitnessed**, one **witnessed by the whole triple** — and
-//! approves each with a plain interaction on the delegator (where wave 9 used the delegation
-//! address; the two are byte-identical but for the path, which is Roadmap 8.5's finding used in
-//! the other direction). The delegate's agent sees the first anchor through a **sequence** query
-//! and the second through an **anchor** query, and the upstream case ends by proving the anchor
-//! query idempotent. The second file rotates a delegated identifier: the `drt` is itself a
-//! delegated event, pending under `delegation.{said}` until the delegator anchors a seal of the
-//! rotation.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave10_delegated_lifecycle -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Two delegated inceptions and a delegated rotation, seen through both refresh modes.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -33,36 +19,25 @@ use signify_keri::serialization::{Sad, SadValue};
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 use signify_types::api::{Role, Seal};
 
-/// One delegated establishment: the event, its operation, and how it completed.
 #[derive(Debug, Serialize)]
 struct DelegatedStep {
-    /// The identifier (for an inception) or the rotated identifier.
     prefix: String,
-    /// The event exactly as the delegate's client serialized it.
     derived_event: String,
     derived_said: String,
-    /// The operation's name; upstream asserts the `delegation.{said}` convention.
     operation_name: String,
-    /// Whether the operation was pending before the delegator anchored the seal.
     pending_before_approval: bool,
-    /// The approving interaction as the delegator's client serialized it.
     approval_event: String,
-    /// How the delegate's agent was made to see the anchor: `sequence` or `anchor`.
     refreshed_by: &'static str,
-    /// Whether the identifier carried the witness triple.
     witnessed: bool,
 }
 
-/// Everything one scenario observed, written as its fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
     delegator_prefix: String,
     steps: Vec<DelegatedStep>,
-    /// dip only: whether repeating the anchor query completed again.
     anchor_query_idempotent: Option<bool>,
-    /// drt only: the completed rotation operation's echoed `t` and `s`.
     completed_kind: Option<String>,
     completed_sequence: Option<String>,
     delegator_operations_remaining: usize,
@@ -71,7 +46,6 @@ struct Captured {
     delegate_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one operation out and deletes it and any dependency, as wave 9 learned to.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -88,7 +62,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Creates the witnessed delegator `name1` with its agent end role and introduces it.
 async fn introduced_delegator(
     delegator_client: &ConnectedClient,
     delegate_client: &ConnectedClient,
@@ -131,8 +104,6 @@ async fn introduced_delegator(
     Ok(prefix)
 }
 
-/// Anchors a `{i, s, d}` seal in the delegator's log with a **plain interaction** — the same
-/// bytes wave 9 sent to the delegation address, byte-identical but for the path.
 async fn approve_via_interact(
     delegator_client: &ConnectedClient,
     identifier: &str,
@@ -149,7 +120,6 @@ async fn approve_via_interact(
     Ok(String::from_utf8(interacted.artifact().event.raw().to_vec())?)
 }
 
-/// Queries the delegator's key state at one sequence and waits the query out.
 async fn refresh_by_sequence(
     delegate_client: &ConnectedClient,
     delegator: &IdentifierPrefix,
@@ -164,7 +134,6 @@ async fn refresh_by_sequence(
     Ok(())
 }
 
-/// Queries the delegator's key state by an anchored seal and waits the query out.
 async fn refresh_by_anchor(
     delegate_client: &ConnectedClient,
     delegator: &IdentifierPrefix,
@@ -179,7 +148,6 @@ async fn refresh_by_anchor(
     Ok(())
 }
 
-/// Creates one delegated identifier and captures its pending operation.
 async fn delegated_inception(
     delegate_client: &ConnectedClient,
     alias: &str,
@@ -212,7 +180,6 @@ async fn delegated_inception(
     Ok((prefix, derived_event, derived_said, operation_name, pending))
 }
 
-/// Two clients connected fresh, with their recorders.
 async fn two_clients(
     environment: &Environment,
     scenario: &str,
@@ -258,7 +225,6 @@ async fn delegated_inceptions_complete_under_both_refresh_modes() -> Result<(), 
     let delegator = Box::pin(introduced_delegator(&delegator_client, &delegate_client, &environment)).await?;
     let mut steps = Vec::new();
 
-    // delegate1: unwitnessed, approved by a plain interaction, seen through a sequence query.
     let (prefix, derived_event, derived_said, operation_name, pending) =
         delegated_inception(&delegate_client, "delegate1", &delegator, &environment, false).await?;
     let approval = approve_via_interact(&delegator_client, &prefix, "0", &prefix).await?;
@@ -276,7 +242,6 @@ async fn delegated_inceptions_complete_under_both_refresh_modes() -> Result<(), 
         witnessed: false,
     });
 
-    // delegate2: witnessed by the whole triple, seen through an anchor query.
     let (prefix, derived_event, derived_said, operation_name, pending) =
         delegated_inception(&delegate_client, "delegate2", &delegator, &environment, true).await?;
     let approval = approve_via_interact(&delegator_client, &prefix, "0", &prefix).await?;
@@ -299,7 +264,6 @@ async fn delegated_inceptions_complete_under_both_refresh_modes() -> Result<(), 
         witnessed: true,
     });
 
-    // The upstream case's last claim: the anchor query is idempotent.
     refresh_by_anchor(&delegate_client, &delegator, seal).await?;
     let anchor_query_idempotent = Some(true);
 
@@ -336,7 +300,6 @@ async fn a_delegated_rotation_pends_until_its_seal_is_anchored() -> Result<(), B
     let delegator = Box::pin(introduced_delegator(&delegator_client, &delegate_client, &environment)).await?;
     let mut steps = Vec::new();
 
-    // The unwitnessed delegated inception, as in the dip case.
     let (prefix, derived_event, derived_said, operation_name, pending) =
         delegated_inception(&delegate_client, "delegate1", &delegator, &environment, false).await?;
     let approval = approve_via_interact(&delegator_client, &prefix, "0", &prefix).await?;
@@ -353,7 +316,6 @@ async fn a_delegated_rotation_pends_until_its_seal_is_anchored() -> Result<(), B
         witnessed: false,
     });
 
-    // The rotation: itself a delegated event, pending under `delegation.{said}` until anchored.
     progress("delegate1: rotating the delegated identifier");
     let rotated = delegate_client
         .identifiers()

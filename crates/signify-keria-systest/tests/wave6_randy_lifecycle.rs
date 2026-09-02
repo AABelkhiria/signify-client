@@ -1,25 +1,8 @@
 //! Wave 6 — the randy identifier lifecycle: fresh-entropy keys against a live agent.
 //!
-//! `test-integration/randy.test.ts` is the §7 row for the *other* key algorithm: keys generated
-//! from operating-system entropy and held sealed to the passcode, rather than derived from a
-//! salt. Nothing about a randy identifier can be pinned — every run's keys are new — so the
-//! upstream case is structural, and its strongest assertion is the **key commitment**: the
-//! rotation's new signing key, hashed with BLAKE3-256, must equal the digest the inception
-//! committed to. That check ties three artifacts together — the inception the port built, the
-//! rotation the port built one wait later, and the agent's acceptance of both — and it is
-//! recomputed here from the recorded events rather than trusted.
-//!
-//! The interaction anchors a seal of the inception where upstream anchors the bare string
-//! `[icp.pre]`, exactly as wave 3 did and for the same reason: a bare string is not a `Sad`
-//! (Roadmap 4.6), so the anchor divergence is documented once and reproduced identically.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave6_randy_lifecycle -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Incepts, anchors, and rotates a fresh-entropy identifier so the key commitment can be recomputed.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -33,7 +16,6 @@ use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateI
 use signify_keri::serialization::{Sad, SadValue};
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 
-/// One event: the port's exact bytes, its SAID, and the agent's echo.
 #[derive(Debug, Serialize)]
 struct EventCapture {
     derived_event: String,
@@ -41,38 +23,28 @@ struct EventCapture {
     agent_event: String,
 }
 
-/// The key-commitment check, with every input recorded so it can be recomputed.
 #[derive(Debug, Serialize)]
 struct KeyCommitment {
-    /// The digest the inception committed to, its `n[0]`.
     inception_diger: String,
-    /// The signing key the rotation revealed, its `k[0]`.
     rotation_verfer: String,
-    /// BLAKE3-256 over the revealed key's qb64, computed by the port at run time.
     recomputed: String,
 }
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
-    /// The randy identifier's prefix.
     prefix: String,
     inception: EventCapture,
-    /// The seal this run anchored where upstream anchors the bare string `[icp.pre]`.
     port_anchor: String,
     interaction: EventCapture,
     rotation: EventCapture,
     commitment: KeyCommitment,
-    /// The key event log's length after the interaction and after the rotation.
     log_lengths: Vec<usize>,
-    /// Operations left listed after the run; upstream asserts zero.
     operations_remaining: usize,
     transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one submission's operation out, deletes it, and returns the agent's echoed event.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -81,7 +53,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Reads one text field out of a JSON document, by label.
 fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
     document
         .get(label)
@@ -90,7 +61,6 @@ fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
         .ok_or_else(|| format!("the document carries no text field {label}").into())
 }
 
-/// Reads the sole element of one text array, by label.
 fn sole_text(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
     let values = document
         .get(label)
@@ -102,14 +72,12 @@ fn sole_text(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
     }
 }
 
-/// Compares one observed value with what the scenario expects.
 fn check(mismatches: &mut Vec<String>, what: &str, observed: &str, expected: &str) {
     if observed != expected {
         mismatches.push(format!("{what}: observed {observed}, expected {expected}"));
     }
 }
 
-/// Creates the randy identifier and captures both sides plus its key and commitment.
 async fn create_randy(
     client: &ConnectedClient,
     mismatches: &mut Vec<String>,
@@ -134,7 +102,6 @@ async fn create_randy(
     Ok((inception, prefix_text, verfer, diger))
 }
 
-/// Rotates the identifier and checks the reveal against the inception's commitment.
 async fn rotate_randy(
     client: &ConnectedClient,
     inception_verfer: &str,
@@ -161,7 +128,6 @@ async fn rotate_randy(
     if sole_text(&document, "n")? == inception_diger {
         mismatches.push("the rotation kept the inception's next-key digest".to_owned());
     }
-    // The commitment: the revealed key's BLAKE3-256 digest is the digest the inception committed.
     let recomputed = Digest::derive(DigestAlgorithm::Blake3_256, rotation_verfer.as_bytes()).qb64()?;
     check(mismatches, "key commitment", &recomputed, inception_diger);
     Ok((
@@ -188,11 +154,9 @@ async fn the_randy_lifecycle_rotates_to_the_committed_key() -> Result<(), Box<dy
     .await?;
     let mut mismatches = Vec::new();
 
-    // A randy identifier at the reference's defaults: one key, one next key, fresh entropy.
     let (inception, prefix_text, inception_verfer, inception_diger) = create_randy(&client, &mut mismatches).await?;
     let prefix = signify_keri::prefix::IdentifierPrefix::from_qb64(&prefix_text)?;
 
-    // The listing knows it, under its alias, at its prefix.
     let listing = client.identifiers().list(ItemRange::DEFAULT).await?;
     if listing.identifiers.len() != 1 {
         mismatches.push(format!(
@@ -205,8 +169,6 @@ async fn the_randy_lifecycle_rotates_to_the_committed_key() -> Result<(), Box<dy
         check(&mut mismatches, "listed prefix", &hab.common().prefix, &prefix_text);
     }
 
-    // Interact, anchoring a seal of the inception — upstream anchors the bare string `[icp.pre]`,
-    // which Vec<Sad> cannot spell; wave 3 records that divergence and this reproduces it.
     progress("aid1: interacting");
     let mut seal = Sad::new();
     seal.insert("i", SadValue::text(&prefix_text))?;
@@ -230,7 +192,6 @@ async fn the_randy_lifecycle_rotates_to_the_committed_key() -> Result<(), Box<dy
     let mut log_lengths = Vec::new();
     log_lengths.push(client.key_events().get(&prefix).await?.len());
 
-    // Rotate, and check the reveal against the commitment.
     let (rotation, commitment) = rotate_randy(&client, &inception_verfer, &inception_diger, &mut mismatches).await?;
 
     log_lengths.push(client.key_events().get(&prefix).await?.len());
@@ -250,7 +211,6 @@ async fn the_randy_lifecycle_rotates_to_the_committed_key() -> Result<(), Box<dy
         transcript: transcript.observations(),
     };
 
-    // Record before asserting, so a diverging run still leaves the evidence of how it diverged.
     if record("observations/randy_lifecycle.json", &captured)? {
         progress("recorded observations/randy_lifecycle.json");
     } else {

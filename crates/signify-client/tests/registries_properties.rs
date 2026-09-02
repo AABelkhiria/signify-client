@@ -1,11 +1,6 @@
 //! Invariants of the registry endpoint family.
 //!
-//! Four dynamic values reach a path here — the identifier alias in all three calls, plus the
-//! registry name in a rename — and the reference encodes none of them. That is the property most
-//! worth stating, because a rename lets *two* names escape at once.
-//!
-//! The rest is about the two events a creation builds: a registry inception whose SAID is its own
-//! identifier, and the seal that anchors it, which names that identifier twice.
+//! Four unencoded path values, a rename letting two escape at once, and the two events a creation builds.
 
 use std::error::Error;
 
@@ -23,7 +18,6 @@ use signify_keri::serialization::Sad;
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
-/// Names including the shapes that break the reference: delimiters, dot segments, Unicode.
 fn names() -> impl Strategy<Value = String> {
     prop_oneof![
         "[a-zA-Z0-9_-]{1,24}",
@@ -36,7 +30,6 @@ fn names() -> impl Strategy<Value = String> {
     ]
 }
 
-/// Builds the collection path both `list` and `create` address.
 fn collection(identifier: &str) -> Result<ResourcePath, Box<dyn Error>> {
     Ok(ResourcePath::builder()
         .segment(IDENTIFIERS_SEGMENT)
@@ -45,7 +38,6 @@ fn collection(identifier: &str) -> Result<ResourcePath, Box<dyn Error>> {
         .build()?)
 }
 
-/// Builds the path a rename addresses.
 fn member(identifier: &str, registry: &str) -> Result<ResourcePath, Box<dyn Error>> {
     Ok(ResourcePath::builder()
         .segment(IDENTIFIERS_SEGMENT)
@@ -58,8 +50,6 @@ fn member(identifier: &str, registry: &str) -> Result<ResourcePath, Box<dyn Erro
 proptest! {
     #![proptest_config(ProptestConfig { cases: 96, ..ProptestConfig::default() })]
 
-    /// An identifier alias stays one segment, whatever it holds — the defect the reference has in
-    /// all three of its paths.
     #[test]
     fn an_alias_never_leaves_its_own_segment(identifier in names()) {
         let path = collection(&identifier).map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -71,8 +61,6 @@ proptest! {
         prop_assert!(!path.as_str().contains('#'));
     }
 
-    /// A rename carries two names, and *neither* can escape — which is what makes this family's
-    /// path the widest surface in the crate.
     #[test]
     fn neither_name_in_a_rename_can_escape(identifier in names(), registry in names()) {
         let path = member(&identifier, &registry).map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -89,8 +77,6 @@ proptest! {
         prop_assert_eq!(path.query(), None);
     }
 
-    /// A registry inception's SAID *is* its identifier, so the seal that anchors it names one value
-    /// twice — whatever nonce and backers it was built from.
     #[test]
     fn a_registry_seals_itself_by_its_own_said(
         nonce in "[A-Za-z0-9_-]{1,44}",
@@ -107,7 +93,6 @@ proptest! {
             builder = builder.configuration(vec![ConfigurationTrait::NoBackers]);
         }
         let Ok(inception) = builder.build() else {
-            // A backer set the builder refuses is not what this property is about.
             return Ok(());
         };
 
@@ -121,7 +106,6 @@ proptest! {
             .ok_or_else(|| TestCaseError::fail("the inception carries no SAID"))?;
         prop_assert_eq!(said, registry.as_str(), "a registry's SAID is not its identifier");
 
-        // The seal the anchoring interaction event carries.
         let mut seal = Sad::new();
         seal.insert("i", registry.clone()).map_err(|error| TestCaseError::fail(error.to_string()))?;
         seal.insert("s", "0".to_owned()).map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -132,7 +116,6 @@ proptest! {
         .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(rendered.matches(registry.as_str()).count(), 2);
 
-        // The nonce reaches the event verbatim, and the backing decides the trait.
         prop_assert_eq!(inception.sad().get_text("n"), Some(nonce.as_str()));
         let traits = inception
             .sad()
@@ -142,7 +125,6 @@ proptest! {
         prop_assert_eq!(traits, Some(usize::from(!backed)));
     }
 
-    /// A request keeps exactly what it was built with, whatever the names hold.
     #[test]
     fn a_request_keeps_what_it_was_built_with(
         identifier in names(),
@@ -152,7 +134,6 @@ proptest! {
         let mut request = CreateRegistryRequest::new(identifier.clone(), registry.clone());
         prop_assert_eq!(&request.identifier, &identifier);
         prop_assert_eq!(&request.registry, &registry);
-        // The reference's default: `noBackers` is true, so an ordinary registry is unbacked.
         prop_assert_eq!(&request.backing, &RegistryBacking::None);
         prop_assert_eq!(request.nonce.as_deref(), None);
 
@@ -163,8 +144,6 @@ proptest! {
         prop_assert_eq!(&request.identifier, &identifier);
     }
 
-    /// Backing is a choice: naming backers always clears the unbacked trait, and naming none
-    /// always sets it. Upstream these are independent arguments that can disagree.
     #[test]
     fn backing_and_its_trait_can_never_disagree(backers in proptest::collection::vec("[A-Z]{4}", 0..6), threshold in 0_u32..8) {
         let backing = if backers.is_empty() {
@@ -183,8 +162,6 @@ proptest! {
     }
 }
 
-/// Regression: an alias of exactly `..` keeps its dots while `../identifiers` is encoded, so a
-/// component can never *introduce* a dot segment. The same pair Roadmap 6.5 and 6.6 pinned.
 #[test]
 fn an_alias_of_two_dots_addresses_the_identifier_it_names() -> Result<(), Box<dyn Error>> {
     assert_eq!(collection("..")?.as_str(), "/identifiers/../registries");
@@ -196,8 +173,6 @@ fn an_alias_of_two_dots_addresses_the_identifier_it_names() -> Result<(), Box<dy
     Ok(())
 }
 
-/// Regression: an unbacked registry writes the `NB` trait and a backed one writes none, which is
-/// the whole observable difference between the two in the event.
 #[test]
 fn the_backing_decides_the_configuration_trait() -> Result<(), Box<dyn Error>> {
     let issuer = IdentifierPrefix::from_qb64(ISSUER)?;
@@ -220,7 +195,6 @@ fn the_backing_decides_the_configuration_trait() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: a backer set beyond Roadmap 4.7's bound is refused rather than sent.
 #[test]
 fn an_over_long_backer_set_is_refused() -> Result<(), Box<dyn Error>> {
     let issuer = IdentifierPrefix::from_qb64(ISSUER)?;
@@ -233,8 +207,6 @@ fn an_over_long_backer_set_is_refused() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: a rename body is one field, whatever the new name holds — including quotes and
-/// braces, which a hand-built body would have to escape.
 #[test]
 fn a_rename_body_is_always_one_field() -> Result<(), Box<dyn Error>> {
     for name in ["renamed", r#"a"quoted"one"#, "{braced}", "", "ñ"] {

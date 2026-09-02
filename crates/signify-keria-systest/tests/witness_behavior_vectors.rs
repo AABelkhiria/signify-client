@@ -1,14 +1,6 @@
 //! Hermetic assertions over the recorded witness behavior.
 //!
-//! Wave 7 drove `test-integration/witness.test.ts` against a live deployment: an identifier
-//! incepted with one witness at threshold one, rotated keeping it, rotated it out with a cut, and
-//! rotated it back in with an add — four establishment events the agent completed only once the
-//! named witness set had receipted them. This file re-checks the recording from the events' own
-//! bytes: the witness ladder, the cut and add fields, the SAIDs, and one finding worth pinning —
-//! **`bt` changes JSON type with its value inside a single log** (Roadmap 8.4's discovery,
-//! reproduced deliberately by this port) and a live KERIA accepts both spellings interleaved.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! Four receipted establishments walking a witness in, out, and back in, and `bt` changing JSON type.
 
 use std::error::Error;
 use std::fs;
@@ -20,7 +12,6 @@ use signify_keri::prefix::{IdentifierPrefix, PrefixVerification};
 use signify_keri::said::{Said, SaidVerification};
 use signify_keri::serialization::Sad;
 
-/// Wan, the first witness of the demo triple; the one whose membership changes.
 const WITNESS: &str = "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha";
 
 #[derive(Debug, Deserialize)]
@@ -65,7 +56,6 @@ fn captured() -> Result<Option<Captured>, Box<dyn Error>> {
     Ok(Some(serde_json::from_str(&fs::read_to_string(path)?)?))
 }
 
-/// Reads one text field out of a JSON document, by label.
 fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
     document
         .get(label)
@@ -74,7 +64,6 @@ fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
         .ok_or_else(|| format!("the document carries no text field {label}").into())
 }
 
-/// Reads one array of text out of a JSON document, by label.
 fn text_array(document: &Value, label: &str) -> Result<Vec<String>, Box<dyn Error>> {
     document
         .get(label)
@@ -100,7 +89,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert_eq!(captured.witness, WITNESS);
     assert_eq!(captured.operations_remaining, 0);
 
-    // Four establishment events, in the upstream case's order, at sequences zero to three.
     let actions: Vec<&str> = captured.steps.iter().map(|step| step.action.as_str()).collect();
     assert_eq!(actions, ["incept", "rotate", "cut", "add"]);
     let sequences: Vec<&str> = captured.steps.iter().map(|step| step.sequence_after.as_str()).collect();
@@ -114,7 +102,6 @@ fn the_witness_ladder_is_kept_cut_and_added_back() -> Result<(), Box<dyn Error>>
         return Ok(());
     };
 
-    // The upstream case's assertions: the key state's witness list after each step.
     let sets: Vec<&[String]> = captured
         .steps
         .iter()
@@ -129,8 +116,6 @@ fn the_witness_ladder_is_kept_cut_and_added_back() -> Result<(), Box<dyn Error>>
         .collect();
     assert_eq!(thresholds, ["1", "1", "0", "1"]);
 
-    // And the events themselves carry the change: the inception names the witness in `b`, the
-    // cut names it in `br`, the add in `ba`, and the plain rotation names nobody.
     let documents: Vec<Value> = captured
         .steps
         .iter()
@@ -153,12 +138,6 @@ fn the_witness_threshold_changes_json_type_with_its_value() -> Result<(), Box<dy
         return Ok(());
     };
 
-    // Roadmap 8.4's finding, live: `incept` writes `bt` as hexadecimal text while `rotate`
-    // defaults `intive` and writes a bare number for a non-zero threshold and text at zero — so
-    // one identifier's log carries "1", 1, "0", 1 — and a real KERIA accepts all four
-    // interleaved. The port reproduces the spellings deliberately (Roadmap 3.5); if this ever
-    // fails, either the port's encoding or the deployment's tolerance changed, and both are worth
-    // knowing.
     let spellings: Vec<Value> = captured
         .steps
         .iter()
@@ -184,7 +163,6 @@ fn every_event_verifies_and_was_accepted_byte_for_byte() -> Result<(), Box<dyn E
     };
 
     for (index, step) in captured.steps.iter().enumerate() {
-        // The SAID (or, for the inception, the prefix) re-verifies over the derived bytes.
         let sad = Sad::from_json_bytes(step.derived_event.as_bytes())?;
         if step.action == "incept" {
             IdentifierPrefix::from_qb64(&captured.prefix)?.verify(&sad, PrefixVerification::Strict)?;
@@ -192,11 +170,9 @@ fn every_event_verifies_and_was_accepted_byte_for_byte() -> Result<(), Box<dyn E
             Said::from_qb64(&step.derived_said)?.verify(&sad, "d", SaidVerification::strict())?;
         }
 
-        // The agent echoed the same document back.
         let echoed: Value = serde_json::from_str(&step.agent_event)?;
         assert_eq!(text_field(&echoed, "d")?, step.derived_said, "step {index} echo");
 
-        // And the exact bytes appear inside a successful POST body in the transcript.
         let resource = if step.action == "incept" {
             "/identifiers"
         } else {

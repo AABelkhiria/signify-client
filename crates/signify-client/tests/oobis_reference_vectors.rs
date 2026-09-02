@@ -1,10 +1,6 @@
 //! Exact OOBI-endpoint vectors recorded from the pinned reference's own `Oobis`.
 //!
-//! Unlike Roadmap 6.9's and 6.10's families, this one has real pinned unit coverage: three cases
-//! in `test/app/coring.test.ts` assert four exact paths, both `resolve` body fields, and both HTTP
-//! methods. So the generator drives the reference's own class through those calls and every
-//! integration call site besides, and every assertion that test makes is recomputed here from the
-//! reference's own driven output.
+//! Four exact paths, both `resolve` body fields, and both methods, recomputed from the reference's own output.
 
 mod support;
 
@@ -28,21 +24,13 @@ use signify_types::api::{OperationOutcome, Role};
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-oobis/v1.json");
 
-/// The AID both pinned `Endroles` cases use.
 const GROUP_AID: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
-/// The AID `endroles-by-aid.test.ts` asks about — 43 characters, so not a prefix at all.
 const UNKNOWN_AID: &str = "EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-/// The same shape at the length a prefix actually is.
 const UNKNOWN_VALID_AID: &str = "EAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-/// The vLEI schema OOBI every multisig integration test resolves.
 const SCHEMA_OOBI: &str = "http://vlei-server:7723/oobi/EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
-/// A controller OOBI of the shape `resolve-env.ts` publishes.
 const WITNESS_OOBI: &str = "http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -180,7 +168,6 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.first().ok_or("no endpoint request was sent")?;
@@ -191,10 +178,7 @@ fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
     Ok(IdentifierPrefix::from_qb64(text)?)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -225,8 +209,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 23);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of them — not the empty OOBI, not the escaping alias, not
-        // the answer of the wrong shape.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         assert!(entry.request.is_some(), "call {} made no request", entry.name);
     }
@@ -238,7 +220,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // All three paths are template literals with no encoding anywhere.
     assert_eq!(
         declarations.get_path,
         "path = `/identifiers/${name}/oobis?role=${role}`"
@@ -256,7 +237,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         assert!(!path.contains("encodeURIComponent"), "{path} encodes something");
         assert!(!path.contains("URLSearchParams"), "{path} builds a query safely");
     }
-    // The three segments and the one query parameter this port pins as constants.
     assert!(declarations.get_path.contains(&format!("/{OOBIS_SEGMENT}?")));
     assert!(declarations.get_path.contains(&format!("{ROLE_PARAMETER}=")));
     assert!(declarations.resolve_path.contains(RESOLUTIONS_SEGMENT));
@@ -265,7 +245,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.get_method, "method = 'GET'");
     assert_eq!(declarations.resolve_method, "method = 'POST'");
 
-    // The default this port makes visible, and the two arguments it types.
     assert_eq!(declarations.get_parameters, ["name: string", "role: string = 'agent'"]);
     assert!(
         declarations
@@ -276,22 +255,18 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.resolve_parameters, ["oobi: string", "alias?: string"]);
     assert_eq!(declarations.endroles_parameters, ["aid: string", "role?: string"]);
 
-    // The body literal, in the field order this port writes, and the `undefined` test that keeps
-    // an absent alias apart from an empty one.
     assert_eq!(declarations.resolve_body, "data: any = { url: oobi, }");
     assert_eq!(
         declarations.resolve_alias,
         "if (alias !== undefined) { data.oobialias = alias; }"
     );
 
-    // The cast this port replaces with a decode, and the whole five-member class.
     assert_eq!(declarations.get_return, "await res.json()");
     assert_eq!(
         declarations.class_members,
         ["client", "<constructor>", "get", "resolve", "endroles"]
     );
 
-    // Both response types, and the nine roles the schema names.
     assert!(declarations.oobi_type.contains("role: OOBIRole"));
     assert!(declarations.oobi_type.contains("oobis: string[]"));
     assert!(declarations.end_role_type.contains("cid: string"));
@@ -309,7 +284,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     let fixture = fixture()?;
     let pinned = &fixture.pinned_confirmations;
 
-    // Three cases, six assertions between them: four paths and both body fields.
     assert_eq!(pinned.unit_test_assertions.len(), 6);
     for expected in [
         "url + '/identifiers/aid/oobis?role=agent'",
@@ -325,7 +299,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
         );
     }
 
-    // Every path that test asserts is one this port drove the reference to produce.
     assert_eq!(pinned.unit_test_paths.len(), 4);
     for path in &pinned.unit_test_paths {
         assert!(
@@ -335,8 +308,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     }
     assert!(!pinned.note.is_empty());
 
-    // The integration test supplies the rest: the role filter, the empty answers, and the fact
-    // that a `get` answer's OOBI is a URL somebody then splits and resolves.
     assert_eq!(pinned.integration_expectations.len(), 10);
     assert!(
         pinned
@@ -352,7 +323,6 @@ fn only_one_pinned_call_site_takes_the_default_role() -> Result<(), Box<dyn Erro
     let fixture = fixture()?;
     let pinned = &fixture.pinned_confirmations;
 
-    // Fifty-nine `get` call sites across the pinned tree, and exactly one omits the role.
     assert!(pinned.get_call_sites.len() > 50);
     assert_eq!(pinned.get_call_sites_taking_the_default.len(), 1);
     let defaulted = pinned
@@ -364,8 +334,6 @@ fn only_one_pinned_call_site_takes_the_default_role() -> Result<(), Box<dyn Erro
     assert_eq!(defaulted.call, "oobis().get('delegate')");
     assert!(defaulted.file.ends_with("delegation.test.ts"));
 
-    // Every role a pinned call site names is one this crate has a variant for, so nothing the
-    // reference sends needs `Role::Other`.
     for site in &pinned.get_call_sites {
         if let Some(role) = &site.role {
             if role.starts_with('\'') || role.contains("Name") || role.contains('.') {
@@ -379,7 +347,6 @@ fn only_one_pinned_call_site_takes_the_default_role() -> Result<(), Box<dyn Erro
         }
     }
 
-    // The default's own request is byte-identical to naming `agent` outright.
     let defaulted_request = request_of(&fixture, "get_default_role")?;
     assert_eq!(defaulted_request.path, "/identifiers/delegate/oobis?role=agent");
     assert_eq!(DEFAULT_ROLE, Role::Agent);
@@ -410,10 +377,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `get`.
-// ---------------------------------------------------------------------------
-
+// --- `get` ---
 #[test]
 fn every_recorded_publication_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -434,7 +398,6 @@ fn every_recorded_publication_addresses_the_recorded_path() -> Result<(), Box<dy
         assert_eq!(method, "GET");
         assert_eq!(body, None, "{name} sent a body");
 
-        // The agent's answer decodes into what the reference returns unchecked.
         assert_eq!(listing.role, role);
         assert!(
             listing.oobis.iter().all(|oobi| RequestUrl::new(oobi.as_str()).is_ok()),
@@ -448,8 +411,6 @@ fn every_recorded_publication_addresses_the_recorded_path() -> Result<(), Box<dy
 fn an_alias_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "get_name_needing_encoding")?;
-    // The reference sent `/identifiers/a/b?c=d/oobis?role=agent`: one argument becoming two
-    // segments and a query, and a different `@path` for Roadmap 3.10 to sign.
     assert_eq!(recorded.path, "/identifiers/a/b?c=d/oobis?role=agent");
 
     let (client, transport) = connected(&[b"{\"role\":\"agent\",\"oobis\":[]}"])?;
@@ -457,7 +418,6 @@ fn an_alias_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn Error>
     let (path, _, _) = sent(&transport)?;
     assert_eq!(path, "/identifiers/a%2Fb%3Fc%3Dd/oobis?role=agent");
     assert_ne!(path, recorded.path);
-    // Two segments upstream, one here, whatever the alias holds.
     assert_eq!(path.split('?').next().map(|route| route.split('/').count()), Some(4));
     Ok(())
 }
@@ -466,7 +426,6 @@ fn an_alias_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn Error>
 fn a_role_can_never_add_a_query_parameter() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "get_role_injecting_a_parameter")?;
-    // The reference built its query by interpolation, so the role chose a second parameter.
     assert_eq!(recorded.path, "/identifiers/aid/oobis?role=agent&extra=1");
     assert_eq!(recorded.path.matches('=').count(), 2);
 
@@ -493,15 +452,11 @@ fn a_wrong_shaped_publication_is_refused_where_the_reference_casts_it() -> Resul
         matches!(outcome, Err(ClientError::Api { .. })),
         "an answer naming neither a role nor an OOBI list was not refused: {outcome:?}"
     );
-    // The request still went out, so this refuses the answer rather than the call.
     assert_eq!(sent(&transport)?.0, "/identifiers/aid/oobis?role=agent");
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `resolve`.
-// ---------------------------------------------------------------------------
-
+// --- `resolve` ---
 #[test]
 fn every_recorded_resolution_reproduces_its_body_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -519,7 +474,6 @@ fn every_recorded_resolution_reproduces_its_body_byte_for_byte() -> Result<(), B
         if let Some(alias) = alias {
             resolution = resolution.with_alias(alias);
         }
-        // The body is reproducible without a client at all, which is the point of exposing it.
         assert_eq!(
             String::from_utf8(resolution.body()?)?,
             recorded.body.clone().unwrap_or_default(),
@@ -535,7 +489,6 @@ fn every_recorded_resolution_reproduces_its_body_byte_for_byte() -> Result<(), B
         assert_eq!(method, "POST");
         assert_eq!(body, recorded.body, "{name} sent a different body");
 
-        // The answer is an OOBI operation, and it names the OOBI it is resolving.
         assert_eq!(operation.metadata.map(|metadata| metadata.oobi), Some(url.to_owned()));
         assert!(operation.name.starts_with("oobi."));
     }
@@ -545,8 +498,6 @@ fn every_recorded_resolution_reproduces_its_body_byte_for_byte() -> Result<(), B
 #[test]
 fn a_resolution_returns_an_operation_rather_than_waiting() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The pinned tree resolves an OOBI thirty-four times and every caller hands the result
-    // straight to `waitOperation`; nothing here polls, which is Roadmap 7.2's item.
     let pending = answer_of(&fixture, "resolve_without_alias")?;
     let (client, _) = connected(&[&pending])?;
     let operation = block_on(
@@ -557,7 +508,6 @@ fn a_resolution_returns_an_operation_rather_than_waiting() -> Result<(), Box<dyn
     assert!(matches!(operation.outcome, OperationOutcome::Pending));
     assert!(!operation.outcome.is_done());
 
-    // A completed one carries the key state the resolution discovered.
     let completed = answer_of(&fixture, "resolve_schema_oobi")?;
     let (client, _) = connected(&[&completed])?;
     let operation = block_on(
@@ -588,16 +538,12 @@ fn an_oobi_the_agent_could_not_fetch_is_refused_where_the_reference_sends_it() -
         let recorded = request_of(&fixture, name)?;
         assert_eq!(recorded.body.as_deref(), Some(sent_body), "{name} sent something else");
         assert_eq!(recorded.path, "/oobis");
-        // There is no value of this type that spells any of them.
         assert!(RequestUrl::new(hostile).is_err(), "{name}'s OOBI was accepted as a URL");
     }
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `endroles`.
-// ---------------------------------------------------------------------------
-
+// --- `endroles` ---
 #[test]
 fn both_pinned_end_role_paths_reproduce() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -622,14 +568,11 @@ fn both_pinned_end_role_paths_reproduce() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // The two paths the pinned unit test asserts, exactly.
     let unfiltered = request_of(&fixture, "endroles_without_role")?;
     let filtered = request_of(&fixture, "endroles_with_role")?;
     assert_eq!(unfiltered.path, format!("/endroles/{GROUP_AID}"));
     assert_eq!(filtered.path, format!("/endroles/{GROUP_AID}/agent"));
 
-    // A role the identifier has not granted answers with an empty list rather than a failure,
-    // which is what `endroles-by-aid.test.ts` expects.
     assert_eq!(
         call(&fixture, "endroles_mailbox")?.result.as_array().map(Vec::len),
         Some(0)
@@ -641,15 +584,11 @@ fn both_pinned_end_role_paths_reproduce() -> Result<(), Box<dyn Error>> {
 fn the_unknown_aid_the_reference_asks_about_is_not_a_prefix() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "endroles_unknown_aid")?;
-    // 43 characters where a qualified `E` prefix is 44 — so what the reference's own integration
-    // test sends is not an identifier at all, and it reached the path unchecked.
     assert_eq!(UNKNOWN_AID.len(), 43);
     assert_eq!(GROUP_AID.len(), 44);
     assert_eq!(recorded.path, format!("/endroles/{UNKNOWN_AID}"));
     assert!(IdentifierPrefix::from_qb64(UNKNOWN_AID).is_err());
 
-    // The case that test is making — an AID the agent has never heard of answers with an empty
-    // list — reproduces with a prefix one character longer.
     let valid = request_of(&fixture, "endroles_unknown_valid_aid")?;
     assert_eq!(valid.path, format!("/endroles/{UNKNOWN_VALID_AID}"));
     let answer = answer_of(&fixture, "endroles_unknown_valid_aid")?;
@@ -684,7 +623,6 @@ fn a_wrong_shaped_end_role_listing_is_refused() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "endroles_wrong_shape")?;
     assert_eq!(recorded.error, None);
-    // The reference returned `[{cid}]` — two of the three declared fields missing — as `EndRole[]`.
     assert_eq!(
         recorded
             .result

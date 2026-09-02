@@ -1,14 +1,6 @@
 //! Exact IPEX-submission vectors recorded from the pinned reference's own `Ipex`.
 //!
-//! The pinned `test/app/credentialing.test.ts` calls all five submitters across its three IPEX
-//! cases and asserts each one's full URL, which is the whole of what it checks about them — no body
-//! is asserted anywhere. So the generator builds each message through the reference's own Roadmap
-//! 6.3 builder and then submits it through the reference's own submitter, recording the request
-//! that leaves; every recorded `exn` is one `fixtures/acdc-ipex/v1.json` has already proven
-//! byte-exact, and this file proves the body assembled around it.
-//!
-//! The sender's keys derive at the reference's production Argon2 cost, so this file is deliberately
-//! slow. Everything else is deterministic: every message's timestamp is supplied.
+//! All five submitters' full URLs, and the body assembled around an `exn` already proven byte-exact.
 
 mod support;
 
@@ -37,10 +29,7 @@ use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-ipex/v1.json");
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -186,18 +175,13 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the endpoint request at `index`.
 fn sent(transport: &AgentTransport, index: usize) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-// ---------------------------------------------------------------------------
-// Rebuilding the five messages the generator submitted.
-// ---------------------------------------------------------------------------
-
-/// The sender's keeper, at the reference's production cost so its signatures are the recorded ones.
+// --- Rebuilding the five messages the generator submitted ---
 fn keeper(passcode: &str) -> Result<Box<dyn IdentifierKeeper>, Box<dyn Error>> {
     let salt = Salt::from_qb64(&format!("0AA{}", &passcode[..21]), SecurityTier::Low)?;
     let factory = KeeperFactory::new(salt);
@@ -264,7 +248,6 @@ fn disclosure(fixture: &Fixture) -> Result<Disclosure, Box<dyn Error>> {
     ))
 }
 
-/// The five messages, in conversation order, each chaining on the one before it.
 fn conversation(fixture: &Fixture) -> Result<Vec<(&'static str, IpexMessage)>, Box<dyn Error>> {
     let keeper = keeper(&fixture.provenance.bran)?;
     let keeper = keeper.as_ref();
@@ -308,10 +291,7 @@ fn recipients(fixture: &Fixture) -> Result<Vec<IdentifierPrefix>, Box<dyn Error>
     Ok(vec![IdentifierPrefix::from_qb64(&fixture.provenance.recipient)?])
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -335,7 +315,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert!(!fixture.provenance.second_recipient.is_empty());
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
     assert!(!fixture.embedded_artifacts.note.is_empty());
-    // The three artifacts a grant embeds, each rebuilt below and each appearing in its body.
     let grant_body = request_of(&fixture, "grant")?.body.clone().unwrap_or_default();
     for artifact in [
         &fixture.embedded_artifacts.acdc_raw,
@@ -355,7 +334,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         assert_eq!(entry.requests, 1, "call {} sent more than one request", entry.name);
     }
-    // Five messages, one per route.
     assert_eq!(fixture.messages.len(), 5);
     for route in IpexRoute::ALL {
         let name = route.as_str().trim_start_matches("/ipex/");
@@ -377,7 +355,6 @@ fn the_pinned_unit_test_publishes_all_five_submission_urls() -> Result<(), Box<d
     assert!(!pinned.note.is_empty());
     assert!(pinned.submitter_call_sites.is_object());
 
-    // Eight assertions across three cases, over five distinct addresses.
     assert_eq!(pinned.published_submission_urls.len(), 8);
     assert_eq!(pinned.distinct_submission_urls.len(), 5);
     for route in IpexRoute::ALL {
@@ -391,12 +368,10 @@ fn the_pinned_unit_test_publishes_all_five_submission_urls() -> Result<(), Box<d
         );
         assert!(pinned.published_routes.iter().any(|value| value == route.as_str()));
     }
-    // Every address the reference sent is one this port also produces.
     for path in &pinned.driven_paths {
         assert!(path.starts_with("/identifiers/"), "an unexpected address: {path}");
     }
 
-    // The accessor is the one endpoint accessor `clienting.test.ts` does *not* type-assert.
     assert!(!pinned.accessor_assertion);
     assert!(!pinned.accessor_assertions_that_do_exist.is_empty());
     assert_eq!(pinned.unit_test_files_naming_ipex, ["test/app/credentialing.test.ts"]);
@@ -421,7 +396,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         );
     }
 
-    // Two submitters take no `atc` at all; the other three do.
     let without: [&Submitter; 2] = [&declarations.submit_apply, &declarations.submit_agree];
     let with: [&Submitter; 3] = [
         &declarations.submit_offer,
@@ -452,7 +426,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         assert!(submitter.body.contains("atc"));
     }
 
-    // Every submitter writes the same three other fields, addresses `/ipex/`, and casts its answer.
     for submitter in [without.as_slice(), with.as_slice()].concat() {
         for label in ["exn:", "sigs", "rec:"] {
             assert!(submitter.body.contains(label), "a body lacks {label}");
@@ -490,10 +463,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The five submissions.
-// ---------------------------------------------------------------------------
-
+// --- The five submissions ---
 #[test]
 fn every_message_rebuilds_byte_for_byte_before_it_is_submitted() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -535,7 +505,6 @@ fn all_five_submissions_reproduce_the_recorded_requests() -> Result<(), Box<dyn 
             "{name} sent a different body"
         );
 
-        // The two routes with no `atc` write three fields; the other three write four.
         let document: Value = serde_json::from_str(&body.unwrap_or_default())?;
         let fields = document.as_object().ok_or("a body is not an object")?;
         let expected = if matches!(name, "apply" | "agree") { 3 } else { 4 };
@@ -548,7 +517,6 @@ fn all_five_submissions_reproduce_the_recorded_requests() -> Result<(), Box<dyn 
 #[test]
 fn two_routes_discard_an_attachment_that_is_always_empty() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference's own `apply` and `agree` return an attachment their submitters never send.
     for name in ["apply", "agree"] {
         let record = fixture
             .messages
@@ -563,7 +531,6 @@ fn two_routes_discard_an_attachment_that_is_always_empty() -> Result<(), Box<dyn
                 .contains("atc")
         );
     }
-    // The one route that really carries material is the grant.
     let grant = fixture.messages.get("grant").ok_or("no recorded grant")?;
     assert!(grant.attachment.starts_with("-LAg"));
     assert!(
@@ -573,7 +540,6 @@ fn two_routes_discard_an_attachment_that_is_always_empty() -> Result<(), Box<dyn
             .unwrap_or_default()
             .contains("atc")
     );
-    // An offer and an admit send an `atc` that is the empty string.
     for name in ["offer", "admit"] {
         let record = fixture
             .messages
@@ -594,7 +560,6 @@ fn two_routes_discard_an_attachment_that_is_always_empty() -> Result<(), Box<dyn
 #[test]
 fn a_route_can_never_disagree_with_the_resource_it_is_posted_to() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference posted a grant to `/ipex/apply` and an apply to `/ipex/grant`.
     let grant_to_apply = request_of(&fixture, "grant_through_the_apply_submitter")?;
     assert_eq!(grant_to_apply.path, "/identifiers/multisig/ipex/apply");
     assert!(
@@ -614,7 +579,6 @@ fn a_route_can_never_disagree_with_the_resource_it_is_posted_to() -> Result<(), 
             .contains(r#""r":"/ipex/apply""#)
     );
 
-    // Here the address is read from the message, so both are unrepresentable.
     let recipients = recipients(&fixture)?;
     let (client, transport) = connected(&[b"{}", b"{}"])?;
     let messages = conversation(&fixture)?;
@@ -638,7 +602,6 @@ fn a_route_can_never_disagree_with_the_resource_it_is_posted_to() -> Result<(), 
 #[test]
 fn an_empty_recipient_list_is_refused_before_anything_is_sent() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference sends `"rec":[]`, asking the agent to deliver to nobody.
     let recorded = request_of(&fixture, "grant_no_recipients")?;
     assert!(recorded.body.clone().unwrap_or_default().contains(r#""rec":[]"#));
 
@@ -654,7 +617,6 @@ fn an_empty_recipient_list_is_refused_before_anything_is_sent() -> Result<(), Bo
         matches!(outcome, Err(ClientError::NoIpexRecipients { .. })),
         "an empty recipient list was accepted: {outcome:?}"
     );
-    // Only the two lifecycle requests went out.
     assert_eq!(transport.requests().len(), 2);
     Ok(())
 }
@@ -669,14 +631,11 @@ fn a_recipient_list_is_carried_as_given_and_is_not_checked_against_the_message()
             .unwrap_or_default()
             .contains(&fixture.provenance.second_recipient)
     );
-    // Upstream a grant addressed to one identifier can be delivered to another, unchecked.
     let elsewhere = request_of(&fixture, "grant_recipient_is_not_the_addressee")?;
     let body = elsewhere.body.clone().unwrap_or_default();
     assert!(body.contains(&format!(r#""rec":["{}"]"#, fixture.provenance.second_recipient)));
     assert!(body.contains(&format!(r#""rp":"{}""#, fixture.provenance.recipient)));
 
-    // This port reproduces both, because the pinned tree proves nothing either way about fanning
-    // out and the method documents that it does not check.
     let messages = conversation(&fixture)?;
     let grant = messages
         .iter()
@@ -701,7 +660,6 @@ fn a_recipient_list_is_carried_as_given_and_is_not_checked_against_the_message()
 #[test]
 fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference sends `/identifiers/a/b/ipex/apply`: the alias becomes two segments.
     assert_eq!(
         request_of(&fixture, "apply_alias_needing_encoding")?.path,
         "/identifiers/a/b/ipex/apply"
@@ -720,7 +678,6 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
     assert_eq!(path, "/identifiers/a%2Fb/ipex/apply");
     assert_eq!(path.split('/').count(), 5);
 
-    // And the encoded form is what a real alias produces unchanged.
     let plain = ResourcePath::builder()
         .segment("identifiers")
         .segment("multisig")
@@ -749,11 +706,9 @@ fn the_answer_is_decoded_rather_than_cast() -> Result<(), Box<dyn Error>> {
     assert!(operation.name.starts_with("exchange."));
     let metadata = operation.metadata.ok_or("the operation carried no metadata")?;
     assert!(!metadata.said.is_empty());
-    // The body is owned, so it can be read as often as a caller likes.
     assert!(submitted.operation().is_ok());
     assert!(!submitted.response_body().is_empty());
 
-    // A wrong-shaped answer is a typed failure, where the reference casts whatever arrives.
     let (other, _) = connected(&[br#"{"not":"an operation"}"#])?;
     let submitted = block_on(other.ipex().submit("multisig", grant, &recipients))?;
     assert!(

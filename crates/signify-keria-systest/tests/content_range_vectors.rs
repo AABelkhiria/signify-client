@@ -1,15 +1,6 @@
 //! Hermetic assertions over the `Content-Range` values a live KERIA actually sent.
 //!
-//! `PORTING.md` §10 asked whether a deployment ever answers something Roadmap 5.3's
-//! `ContentRange::parse` would refuse. Roadmap 5.3 declined to impose RFC 9110's `start <= end <
-//! total`, reasoning that inventing the constraint could reject a valid response — and this file is
-//! where that reasoning is either vindicated or overturned by evidence.
-//!
-//! It is vindicated. A real KERIA answers a range past the end of a collection with
-//! `aids 100-0/4`: **start greater than end**, which RFC 9110 forbids. A parser that had enforced
-//! the constraint would reject a response a deployment genuinely sends.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! Five values a deployment actually sent, including `aids 100-0/4`, whose start exceeds its end.
 
 use std::error::Error;
 use std::fs;
@@ -59,8 +50,6 @@ fn every_value_the_deployment_sent_is_one_this_port_accepts() -> Result<(), Box<
     assert!(!captured.preset.is_empty());
     assert!(captured.note.len() > 80);
 
-    // This is the whole question §10 asked. Every literal a deployment sent, through the port's
-    // own parser: if one is refused, the grammar needs widening and this test says which.
     let mut refused = Vec::new();
     for capture in &captured.captures {
         let Some(value) = capture.content_range.as_deref() else {
@@ -88,10 +77,6 @@ fn a_real_deployment_sends_a_start_greater_than_its_end() -> Result<(), Box<dyn 
         return Ok(());
     };
 
-    // The finding. RFC 9110 requires `start <= end`; asked for a range past the end of the
-    // collection, KERIA answers `aids 100-0/4`. Roadmap 5.3 chose not to enforce the constraint
-    // because "inventing it could reject a valid response" — and here is the response it would
-    // have rejected.
     let inverted: Vec<&Capture> = captured
         .captures
         .iter()
@@ -113,7 +98,6 @@ fn a_real_deployment_sends_a_start_greater_than_its_end() -> Result<(), Box<dyn 
          asking past the end of the collection, and §10's question is open again"
     );
 
-    // And the port parses it rather than refusing it.
     for capture in &inverted {
         let value = capture
             .content_range
@@ -125,9 +109,6 @@ fn a_real_deployment_sends_a_start_greater_than_its_end() -> Result<(), Box<dyn 
             "{value} was parsed into something ordered"
         );
 
-        // What provoked it matters as much as the answer: this is what a deployment sends when
-        // asked for a page that starts past the end of the collection, not something it sends at
-        // random. Without the request the finding would be an anecdote about one header.
         let requested = capture
             .request_range
             .as_deref()
@@ -165,9 +146,6 @@ fn the_two_listing_endpoints_disagree_about_an_empty_collection() -> Result<(), 
         "both listings should have been asked about an empty collection"
     );
 
-    // A second finding, free with the first: asked about a collection it has nothing in, one
-    // endpoint answers a total of one and the other a total of zero — and they disagree about the
-    // status too, 206 against 200. Recorded rather than resolved; nothing here says which is right.
     let totals: Vec<Option<u64>> = empty
         .iter()
         .map(|capture| {
@@ -200,9 +178,6 @@ fn the_malformed_request_is_unrepresentable_rather_than_merely_unsent() -> Resul
         return Ok(());
     };
 
-    // The scenario could not ask for a range whose start exceeds its end, because `ItemRange::new`
-    // refuses to build one. Worth recording: the port cannot make the malformed request RFC 9110
-    // forbids, even though a deployment happily answers with one.
     assert!(!captured.unrepresentable.is_empty());
     assert!(
         captured

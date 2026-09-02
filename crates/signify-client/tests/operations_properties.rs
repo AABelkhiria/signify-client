@@ -1,4 +1,6 @@
 //! Invariants of the operations endpoint.
+//!
+//! Address, decoding, and dependency invariants for the operations family.
 
 use proptest::prelude::*;
 use signify_client::endpoint::operations::{MAX_FAILURE_MESSAGE_BYTES, OPERATIONS_SEGMENT, TYPE_PARAMETER, completed};
@@ -10,7 +12,6 @@ fn fail(error: impl core::fmt::Display) -> TestCaseError {
     TestCaseError::fail(error.to_string())
 }
 
-/// The path `get` and `delete` share, built as the endpoint builds it.
 fn operation_path(name: &str) -> Result<ResourcePath, TestCaseError> {
     ResourcePath::builder()
         .segment(OPERATIONS_SEGMENT)
@@ -20,8 +21,6 @@ fn operation_path(name: &str) -> Result<ResourcePath, TestCaseError> {
 }
 
 proptest! {
-    /// An operation name is encoded exactly once and can never escape its own path segment,
-    /// whatever it holds — which is the defect the reference has here.
     #[test]
     fn an_operation_name_never_escapes_its_segment(name in "[ -~]{1,48}") {
         let path = operation_path(&name)?;
@@ -29,19 +28,16 @@ proptest! {
         prop_assert_eq!(path.query(), None, "a name introduced a query");
         prop_assert_eq!(path.path(), path.as_str());
 
-        // Exactly one more segment than the resource itself.
         let segments: Vec<&str> = path.path().split('/').skip(1).collect();
         prop_assert_eq!(segments.len(), 2);
         prop_assert_eq!(segments.first().copied(), Some(OPERATIONS_SEGMENT));
 
-        // And nothing in the encoded segment can be read as a separator.
         let encoded = segments.get(1).copied().unwrap_or_default();
         prop_assert!(!encoded.contains('/'));
         prop_assert!(!encoded.contains('?'));
         prop_assert!(!encoded.contains('#'));
     }
 
-    /// A listing carries a query exactly when it was filtered, and the filter is encoded once.
     #[test]
     fn a_listing_carries_a_query_exactly_when_filtered(kind in prop::option::of("[ -~]{1,24}")) {
         let path = ResourcePath::builder()
@@ -57,18 +53,14 @@ proptest! {
                 .ok_or_else(|| TestCaseError::fail("a filter wrote no query"))?;
             let expected = format!("{TYPE_PARAMETER}=");
             prop_assert!(query.starts_with(&expected), "a filter wrote the wrong parameter");
-            // Exactly one parameter, whatever the filter held.
             prop_assert_eq!(query.matches('&').count(), 0);
         } else {
-            // The reference writes a bare `?` here; this port writes nothing.
             prop_assert_eq!(path.query(), None);
             prop_assert_eq!(path.as_str(), "/operations");
         }
-        // The signed path is the same either way, because Roadmap 3.10 strips the query.
         prop_assert_eq!(path.path(), "/operations");
     }
 
-    /// The three outcomes are told apart exactly, and only a completed one yields a response.
     #[test]
     fn only_a_completed_operation_yields_a_response(
         state in 0_usize..3,
@@ -111,8 +103,6 @@ proptest! {
         }
     }
 
-    /// A failure message is kept whole below the bound and truncated on a character boundary
-    /// above it — never split through one.
     #[test]
     fn a_failure_message_is_bounded_on_a_character_boundary(repeats in 0_usize..400) {
         const LOCK: char = '\u{1f510}';
@@ -136,12 +126,9 @@ proptest! {
         if message.len() <= MAX_FAILURE_MESSAGE_BYTES {
             prop_assert_eq!(kept.as_str(), message.as_str());
         }
-        // Whatever survives is a whole number of characters, so the string is always valid.
         prop_assert_eq!(kept.len() % 4, 0);
     }
 
-    /// An operation decodes into the same three states whether it is read untyped or narrowed,
-    /// and narrowing never changes the outcome.
     #[test]
     fn narrowing_never_changes_the_outcome(done in any::<bool>(), failed in any::<bool>()) {
         let document = if !done {
@@ -174,20 +161,16 @@ proptest! {
         prop_assert_eq!(typed.name.as_str(), "witness.EABC.0");
         prop_assert_eq!(typed.metadata.as_ref().map(|metadata| metadata.sn), Some(0));
 
-        // Only a completed one yields a response, whichever form it was read in.
         prop_assert_eq!(completed(typed).is_ok(), done && !failed);
     }
 }
 
-/// Regression: a name of exactly `..` is encoded rather than kept, unlike Roadmap 5.3's identifier
-/// alias — because an operation name is opaque, so nothing addresses the same resource by meaning.
 #[test]
 fn a_dot_segment_name_is_encoded() -> Result<(), Box<dyn std::error::Error>> {
     let path = ResourcePath::builder()
         .segment(OPERATIONS_SEGMENT)
         .segment("..")
         .build()?;
-    // `.` is unreserved, so it survives — but the segment can still never introduce a new one.
     assert_eq!(path.as_str(), "/operations/..");
     assert_eq!(path.query(), None);
 
@@ -199,8 +182,6 @@ fn a_dot_segment_name_is_encoded() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Regression: an operation carrying both a response and an error, or neither, is refused rather
-/// than resolved to one of them — the schema admits neither shape.
 #[test]
 fn a_contradictory_operation_is_refused() {
     let both = serde_json::json!({

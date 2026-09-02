@@ -1,16 +1,6 @@
 //! Exact vectors for the three rounds a multisig group runs over a credential registry.
 //!
-//! Creating a registry, issuing a credential from it, and revoking that credential. Two of the
-//! units live in `test-integration/utils/multisig-utils.ts` and are transpiled in memory as Roadmap
-//! 8.3's are; the third, `multisigRevoke`, is written inline in a test body and is driven through
-//! the reference's own `revoke` and `send` in the same order.
-//!
-//! **This is where the reference stops reading altogether.** Both helpers do
-//! `if (!isInitiator) await waitAndMarkNotification(client, route);` — they wait for a bell,
-//! discard the SAID it carries, and build from their own arguments. No `getRequest` is made
-//! anywhere, which eight driven rounds confirm: not one of them fetches a group request. So two
-//! members handed a different nonce create different registries, two handed different attributes
-//! issue different credentials, and neither call fails.
+//! Registry creation, issuance, and revocation, and eight rounds confirming no member ever reads a proposal.
 
 use std::error::Error;
 
@@ -29,10 +19,7 @@ const FIXTURE: &str = include_str!("../../../fixtures/client-multisig-credential
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -179,10 +166,7 @@ fn quirk<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Value, Box<dyn Erro
         .ok_or_else(|| format!("no recorded divergence {name}").into())
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and declarations.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and declarations ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -213,7 +197,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
         assert!(!entry.requests.is_empty(), "call {} sent nothing", entry.name);
-        // Every one of the eight succeeds upstream, including the three that should not.
         assert_eq!(entry.error, None, "call {} failed upstream", entry.name);
         assert!(!entry.result.is_null(), "call {} answered nothing", entry.name);
     }
@@ -254,16 +237,12 @@ fn the_three_helpers_are_the_ones_the_scenarios_call() -> Result<(), Box<dyn Err
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The finding: a joining member never reads the proposal.
-// ---------------------------------------------------------------------------
-
+// --- The finding: a joining member never reads the proposal ---
 #[test]
 fn a_joining_member_waits_for_a_bell_and_discards_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "a_joining_member_never_reads_the_proposal")?;
 
-    // Two waits, both discarding, one per helper.
     let waits = recorded
         .get("waits")
         .and_then(Value::as_array)
@@ -279,7 +258,6 @@ fn a_joining_member_waits_for_a_bell_and_discards_it() -> Result<(), Box<dyn Err
         );
     }
 
-    // Neither helper contains a `getRequest`, and eight driven rounds made none.
     assert_eq!(
         recorded
             .get("proposal_reads_in_these_helpers")
@@ -299,8 +277,6 @@ fn a_joining_member_waits_for_a_bell_and_discards_it() -> Result<(), Box<dyn Err
         "a driven round fetched a group request after all"
     );
 
-    // The two waits the fixture records are the only two the multisig helpers make in a
-    // transaction round; other rounds do bind their SAIDs.
     let bound: Vec<&NotificationWait> = fixture
         .declarations
         .notification_waits
@@ -311,7 +287,6 @@ fn a_joining_member_waits_for_a_bell_and_discards_it() -> Result<(), Box<dyn Err
         bound.iter().all(|wait| wait.binds.is_some()),
         "a bound wait records no binding"
     );
-    // Each helper waits on the route of the round it is running, and then throws the answer away.
     for (enclosing, route) in [
         ("createRegistryMultisig", REGISTRY_ROUTE),
         ("issueCredentialMultisig", ISSUANCE_ROUTE),
@@ -341,15 +316,12 @@ fn a_different_nonce_is_a_different_registry_with_nothing_said() -> Result<(), B
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "a_different_nonce_is_a_different_registry")?;
 
-    // Handed the same nonce, the two members derive the same registry.
     assert_eq!(recorded.get("agree").and_then(Value::as_bool), Some(true));
     assert_eq!(recorded.get("proposed_registry"), recorded.get("joined_registry"));
-    // Handed a different one, they do not — and neither call fails.
     assert_eq!(recorded.get("divergent_agrees").and_then(Value::as_bool), Some(false));
     assert_eq!(recorded.get("error"), Some(&Value::Null));
     assert_ne!(recorded.get("proposed_registry"), recorded.get("divergent_registry"));
 
-    // The nonce is inside the inception the registry identifier is a digest over.
     let proposed = body(&fixture, "propose_the_registry", "/registries")?;
     assert_eq!(
         proposed.pointer("/vcp/n").and_then(Value::as_str),
@@ -373,7 +345,6 @@ fn different_attributes_are_a_different_credential_with_nothing_said() -> Result
     assert_eq!(recorded.get("divergent_agrees").and_then(Value::as_bool), Some(false));
     assert_eq!(recorded.get("error"), Some(&Value::Null));
 
-    // Every field of a credential is inside its SAID, so one changed attribute is a new credential.
     let proposed = body(&fixture, "propose_the_issuance", "/credentials")?;
     let divergent = body(&fixture, "join_the_issuance_with_different_attributes", "/credentials")?;
     assert_eq!(
@@ -386,22 +357,17 @@ fn different_attributes_are_a_different_credential_with_nothing_said() -> Result
         divergent.pointer("/acdc/a/LEI"),
         "the two issuances used the same attributes after all"
     );
-    // And the schema and registry they share, so only the attributes moved.
     assert_eq!(proposed.pointer("/acdc/s"), divergent.pointer("/acdc/s"));
     assert_eq!(proposed.pointer("/acdc/ri"), divergent.pointer("/acdc/ri"));
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The finding: a revocation in the issuance slot.
-// ---------------------------------------------------------------------------
-
+// --- The finding: a revocation in the issuance slot ---
 #[test]
 fn a_revocation_travels_in_the_issuance_slot() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "a_revocation_travels_in_the_issuance_slot")?;
 
-    // The route names a revocation and the embed carries one — under the issuance label.
     assert_eq!(
         recorded.get("announced_route").and_then(Value::as_str),
         Some(REVOCATION_ROUTE)
@@ -413,11 +379,8 @@ fn a_revocation_travels_in_the_issuance_slot() -> Result<(), Box<dyn Error>> {
             Value::String(ANCHOR_SLOT.to_owned()),
         ])
     );
-    // The event in that slot really is a revocation, which is what makes it a misfiling rather
-    // than a mislabelled issuance.
     assert_eq!(recorded.get("embedded_ilk").and_then(Value::as_str), Some("rev"));
 
-    // So the exact body the reference sent does not classify here.
     let sent = body(&fixture, "propose_the_revocation", "/exchanges")?;
     let exn = sent.get("exn").ok_or("no exn")?.clone();
     let listing = serde_json::json!([{ "exn": exn, "paths": {}, "groupName": "multisig",
@@ -427,16 +390,12 @@ fn a_revocation_travels_in_the_issuance_slot() -> Result<(), Box<dyn Error>> {
     let refused = ClassifiedExchange::try_from(entry).is_err();
     assert!(refused, "a revocation in the issuance slot was classified");
 
-    // This port sends it in the slot the route names.
     assert_eq!(REVOCATION_ROUTE.rsplit('/').next(), Some(REVOCATION_SLOT));
     assert_ne!(REVOCATION_SLOT, TRANSACTION_SLOT);
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The two smaller findings.
-// ---------------------------------------------------------------------------
-
+// --- The two smaller findings ---
 #[test]
 fn the_issuance_result_drops_the_signatures_it_computed() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -460,7 +419,6 @@ fn the_issuance_result_drops_the_signatures_it_computed() -> Result<(), Box<dyn 
             .collect::<Vec<&str>>(),
         names
     );
-    // The revocation result has the same gap.
     assert!(
         !fixture
             .declarations
@@ -472,15 +430,12 @@ fn the_issuance_result_drops_the_signatures_it_computed() -> Result<(), Box<dyn 
         assert!(!member.declared.is_empty());
     }
 
-    // Driven: the issuance round reads the group identifier **twice** — once to issue, and once
-    // more so the helper can rebuild the keeper and sign the same anchor again.
     let reads = call(&fixture, "propose_the_issuance")?
         .requests
         .iter()
         .filter(|request| request.method == "GET" && request.path == "/identifiers/multisig")
         .count();
     assert_eq!(reads, 2, "the issuance round no longer reads the group twice");
-    // The registry round, whose endpoint does return its signatures, reads it once.
     let registry_reads = call(&fixture, "propose_the_registry")?
         .requests
         .iter()
@@ -501,8 +456,6 @@ fn the_registry_round_is_filed_under_its_own_topic() -> Result<(), Box<dyn Error
         .iter()
         .filter_map(Value::as_str)
         .collect();
-    // The pinned tree is not consistent with itself: most registry sends use `registry`, one uses
-    // `multisig`.
     assert!(topics.len() >= 2);
     assert!(topics.contains(&REGISTRY_TOPIC));
     assert!(topics.contains(&"multisig"));
@@ -511,11 +464,8 @@ fn the_registry_round_is_filed_under_its_own_topic() -> Result<(), Box<dyn Error
         "the registry topic is not the majority form"
     );
 
-    // The ported helper sends the majority form, which is what this port reproduces.
     assert_eq!(fixture.pinned_confirmations.registry_topic, REGISTRY_TOPIC);
     assert_eq!(fixture.pinned_confirmations.issuance_topic, "multisig");
-    // The same disagreement, read off the declarations rather than the driven rounds: of the
-    // tree's registry sends, most name `registry` and one names `multisig`.
     let declared: Vec<&str> = fixture
         .declarations
         .send_calls
@@ -534,9 +484,6 @@ fn the_registry_round_is_filed_under_its_own_topic() -> Result<(), Box<dyn Error
         assert!(entry.route.starts_with("/multisig/") || entry.route.starts_with('<'));
         assert!(!entry.embed_slots.is_empty(), "a send names no embed");
 
-        // And the slots each transaction route is sent with. A registry carries its inception and
-        // its anchor; an issuance carries three messages; and a revocation carries its event under
-        // the *issuance* label, which is the finding above.
         match entry.route.as_str() {
             REGISTRY_ROUTE => assert_eq!(entry.embed_slots, [REGISTRY_SLOT, ANCHOR_SLOT]),
             ISSUANCE_ROUTE => {
@@ -555,10 +502,7 @@ fn the_registry_round_is_filed_under_its_own_topic() -> Result<(), Box<dyn Error
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The rounds themselves.
-// ---------------------------------------------------------------------------
-
+// --- The rounds themselves ---
 #[test]
 fn each_round_addresses_its_own_endpoint_and_announces_on_its_own_route() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -601,10 +545,8 @@ fn a_registry_proposal_embeds_its_inception_and_its_anchor() -> Result<(), Box<d
         announced.pointer("/exn/r").and_then(Value::as_str),
         Some(REGISTRY_ROUTE)
     );
-    // The registry inception is the one the endpoint created.
     let created = body(&fixture, "propose_the_registry", "/registries")?;
     assert_eq!(embeds.get(REGISTRY_SLOT), created.get("vcp"));
-    // And this port's classifier reads it.
     let listing = serde_json::json!([{ "exn": announced.get("exn").ok_or("no exn")?.clone(), "paths": {},
         "groupName": "multisig", "memberName": "member1", "sender": LOCAL }]);
     let decoded: Vec<MultisigExchangeResource> = serde_json::from_value(listing)?;
@@ -632,9 +574,6 @@ fn an_issuance_proposal_embeds_three_messages_and_signs_one() -> Result<(), Box<
         Some(ISSUANCE_ROUTE)
     );
 
-    // All three paths appear in the attachment stream, but only the anchor's is followed by a
-    // signature group: the credential and the transaction event travel with an *empty* pathed
-    // group, which is what `[serder, '']` produces, because the anchor's signature authorizes them.
     let attachment = announced.get("atc").and_then(Value::as_str).ok_or("no attachment")?;
     for slot in [ISSUANCE_SLOT, TRANSACTION_SLOT, ANCHOR_SLOT] {
         assert!(attachment.contains(&format!("-e-{slot}")), "no path for {slot}");
@@ -650,10 +589,8 @@ fn an_issuance_proposal_embeds_three_messages_and_signs_one() -> Result<(), Box<
         );
     }
 
-    // The route names the transaction event and the embed is discriminated by the credential.
     assert_eq!(ISSUANCE_ROUTE.rsplit('/').next(), Some(TRANSACTION_SLOT));
     assert_eq!(ISSUANCE_SLOT, "acdc");
-    // And this port classifies it.
     let listing = serde_json::json!([{ "exn": announced.get("exn").ok_or("no exn")?.clone(), "paths": {},
         "groupName": "multisig", "memberName": "member1", "sender": LOCAL }]);
     let decoded: Vec<MultisigExchangeResource> = serde_json::from_value(listing)?;

@@ -1,12 +1,6 @@
 //! Exact client-lifecycle vectors recorded from the pinned reference's own `SignifyClient`.
 //!
-//! The generator replaces `globalThis.fetch` with a recorder that answers as a KERIA agent would,
-//! pins the clock, and walks the real client through boot, state, connect, two signed requests,
-//! both passcode calls, and one non-success status. Every request it made is recorded with its
-//! method, URL, headers, and body — and this test rebuilds each one.
-//!
-//! Because the clock is pinned and the agent's key is fixed, the signed requests compare **with
-//! their signatures**, as Roadmap 5.5's did.
+//! Boot, state, connect, two signed requests, both passcode calls, and one non-success status.
 
 use std::error::Error;
 use std::sync::Arc;
@@ -204,9 +198,6 @@ struct ScanHit {
     count: usize,
 }
 
-/// A minimal executor; every future on this path is ready on its first poll, which is what
-/// Roadmap 5.1's ADR `0019` guarantees for the scripted transport. The crate is runtime-neutral,
-/// so its tests are too.
 fn block_on<F: core::future::Future>(future: F) -> F::Output {
     use core::task::{Context, Poll, Waker};
     let mut future = Box::pin(future);
@@ -222,7 +213,6 @@ fn fixture() -> Result<Fixture, Box<dyn Error>> {
     Ok(serde_json::from_str(FIXTURE)?)
 }
 
-/// The clock every signed request reads, pinned to the instant the generator pinned.
 fn pinned_clock(fixture: &Fixture) -> Arc<dyn Clock> {
     Arc::new(TestClock::with_wall_clock(
         SystemTime::UNIX_EPOCH + Duration::from_millis(fixture.provenance.fixed_clock_ms),
@@ -236,11 +226,6 @@ fn config(fixture: &Fixture) -> Result<ClientConfig, Box<dyn Error>> {
     )
 }
 
-/// The agent-resource body the generator's mock returned.
-///
-/// Assembled as text rather than through a JSON value, because the controller's establishment
-/// event must keep its version string first — Roadmap 3.2 refuses a message whose `v` is not the
-/// opening field, and a JSON map would sort the keys.
 fn agent_state_body(fixture: &Fixture) -> Vec<u8> {
     let agent = format!(
         r#"{{"vn":[1,0],"i":"{prefix}","s":"0","p":"","d":"{prefix}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{key}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{prefix}","br":[],"ba":[]}},"di":"{controller}"}}"#,
@@ -256,7 +241,6 @@ fn agent_state_body(fixture: &Fixture) -> Vec<u8> {
     document.into_bytes()
 }
 
-/// Finds one recorded request by the step that produced it.
 fn recorded<'a>(fixture: &'a Fixture, step: &str) -> Result<&'a RecordedRequest, Box<dyn Error>> {
     fixture
         .lifecycle
@@ -266,10 +250,7 @@ fn recorded<'a>(fixture: &'a Fixture, step: &str) -> Result<&'a RecordedRequest,
         .ok_or_else(|| format!("no recorded request for {step}").into())
 }
 
-/// Answers with a signed empty document, as the generator's agent did.
 fn signed_response(fixture: &Fixture, body: Vec<u8>) -> Result<Response, Box<dyn Error>> {
-    // The signature headers are the ones the generator's agent produced; this test compares
-    // requests, and authenticates responses in the dedicated case below.
     let mut headers = Headers::new();
     headers.insert(
         signify_http::header::HeaderName::new("signify-resource")?,
@@ -281,11 +262,9 @@ fn signed_response(fixture: &Fixture, body: Vec<u8>) -> Result<Response, Box<dyn
 #[test]
 fn every_recorded_step_and_scan_hit_carries_its_context() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Every lifecycle step says what it exercises, so a reader of the fixture alone can follow it.
     for step in &fixture.lifecycle {
         assert!(!step.note.is_empty(), "step {} records no note", step.name);
     }
-    // The reference's own passcode refusal, recorded verbatim beside this port's typed one.
     assert_eq!(
         fixture.pinned_confirmations.passcode_error,
         "bran must be 21 characters"
@@ -295,7 +274,6 @@ fn every_recorded_step_and_scan_hit_carries_its_context() -> Result<(), Box<dyn 
         Passcode::new("short"),
         Err(ClientError::InvalidPasscodeLength { .. })
     ));
-    // The boot-body expression the `pidx` divergence is read from.
     assert!(
         fixture
             .reference_quirks
@@ -303,7 +281,6 @@ fn every_recorded_step_and_scan_hit_carries_its_context() -> Result<(), Box<dyn 
             .expression
             .contains("pidx: 1")
     );
-    // Every scan hit counts at least one occurrence.
     for hit in &fixture.reference_quirks.ready_is_libsodium_initialization.scan.files {
         assert!(hit.count >= 1, "{} recorded no occurrence", hit.file);
     }
@@ -333,7 +310,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The default boot URL and the passcode length are both constants this port hard-codes.
     assert!(
         declarations
             .default_boot_url
@@ -341,7 +317,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     );
     assert!(declarations.passcode_length_check.contains("bran.length < 21"));
 
-    // The boot body's five fields, in the order this port writes them.
     for (earlier, later) in [
         ("icp:", "sig:"),
         ("sig:", "stem:"),
@@ -356,14 +331,12 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     }
     assert!(declarations.boot_body.contains("pidx: 1"));
 
-    // The lifecycle's own checks.
     assert!(declarations.state_path.contains("/agent/"));
     assert!(declarations.connect_anchor_check.contains("agent.anchor"));
     assert!(declarations.connect_delegation_check.contains("serder.sad.s == 0"));
     assert!(declarations.approve_delegation_url.contains("?type=ixn"));
     assert!(declarations.fetch_error_message.contains("res.status"));
 
-    // Both random helpers, and `ready`.
     assert!(declarations.random_passcode.contains("randombytes_buf(16)"));
     assert!(declarations.random_passcode.contains("substring(2, 23)"));
     assert!(declarations.random_nonce.contains("crypto_sign_SEEDBYTES"));
@@ -385,7 +358,6 @@ fn the_boot_request_matches_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let transport = Arc::new(ScriptedTransport::new().respond(signed_response(&fixture, b"{}".to_vec())?));
     let client = SignifyClient::new(config(&fixture)?, transport.clone(), pinned_clock(&fixture))?;
 
-    // The controller derives to the prefix the pinned test publishes.
     assert!(fixture.pinned_confirmations.controller_prefix_is_published);
     assert_eq!(
         client.controller().prefix().qb64()?,
@@ -396,7 +368,6 @@ fn the_boot_request_matches_byte_for_byte() -> Result<(), Box<dyn Error>> {
         fixture.pinned_confirmations.inception_raw
     );
 
-    // And the body it posts is the exact literal the pinned test asserts.
     assert!(fixture.pinned_confirmations.boot_body_is_published);
     assert_eq!(
         core::str::from_utf8(&client.boot_body()?)?,
@@ -430,7 +401,6 @@ fn the_state_request_matches_and_its_body_is_typed() -> Result<(), Box<dyn Error
     assert_eq!(actual.method().as_str(), expected.method);
     assert!(actual.body().is_none(), "a state read carries no body");
 
-    // Both halves are typed, where the reference's are `any`.
     assert_eq!(state.agent().identifier, fixture.provenance.agent_prefix);
     assert_eq!(
         state.controller_event().said(),
@@ -452,7 +422,6 @@ fn connecting_validates_the_agent_and_approves_the_delegation() -> Result<(), Bo
     let client = SignifyClient::new(config(&fixture)?, transport.clone(), pinned_clock(&fixture))?;
     let connected = block_on(client.connect())?;
 
-    // The controller has advanced to the interaction event approving the delegation.
     assert_eq!(
         connected.controller().current_sequence_number().to_string(),
         fixture.connected.controller_sequence_number
@@ -472,7 +441,6 @@ fn connecting_validates_the_agent_and_approves_the_delegation() -> Result<(), Bo
         fixture.connected.agent_verification_key
     );
 
-    // Two requests: the state read, then the unsigned approval.
     let sent = transport.recorded();
     assert_eq!(sent.len(), 2);
     let approval = sent.get(1).ok_or("no approval request")?;
@@ -503,8 +471,6 @@ fn a_signed_request_matches_byte_for_byte_including_its_signature() -> Result<()
     let client = SignifyClient::new(config(&fixture)?, transport.clone(), pinned_clock(&fixture))?;
     let connected = block_on(client.connect())?.with_freshness(Freshness::Ignore);
 
-    // The response the scripted transport returns is not signed, so authenticating it fails —
-    // which is itself the check that authentication runs at all.
     let path = ResourcePath::builder().segment("contacts").build()?;
     let outcome = block_on(connected.fetch(ClientRequest::new(Method::Get, path)));
     assert!(
@@ -512,7 +478,6 @@ fn a_signed_request_matches_byte_for_byte_including_its_signature() -> Result<()
         "an unsigned response was accepted"
     );
 
-    // The request that went out is still the one the reference sent, signature included.
     let sent = transport.recorded();
     let actual = sent.get(2).ok_or("no signed request")?;
     let expected = recorded(&fixture, "fetch_get")?;
@@ -554,7 +519,6 @@ fn both_passcode_calls_match_and_are_unsigned() -> Result<(), Box<dyn Error>> {
         let expected = recorded(&fixture, step)?;
         assert_eq!(actual.url().as_str(), expected.url, "{step}");
         assert_eq!(actual.method().as_str(), expected.method, "{step}");
-        // Unsigned: no signature header goes out, exactly as upstream.
         assert!(actual.headers().get("signature").is_none(), "{step} was signed");
         assert!(
             actual.headers().get("signature-input").is_none(),
@@ -589,8 +553,6 @@ fn a_non_success_status_is_typed_rather_than_a_message() -> Result<(), Box<dyn E
     assert_eq!(status, 400);
     assert_eq!(detail, "Error info");
 
-    // The reference builds one string out of method, path, status, status text, and body; the
-    // recorded message shows all five, and the parts stay separate here.
     let recorded_error = fixture
         .lifecycle
         .iter()
@@ -615,7 +577,6 @@ fn the_random_helpers_match_the_recorded_shapes() -> Result<(), Box<dyn Error>> 
     assert!(!shapes.passcode_note.is_empty());
     assert!(!shapes.nonce_note.is_empty());
 
-    // The recorded alphabet is URL-safe Base64, which is what this port validates against.
     assert!(
         shapes
             .passcode_alphabet
@@ -679,13 +640,11 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
     let fixture = fixture()?;
     let quirks = &fixture.reference_quirks;
 
-    // 1. The boot body's `pidx` is 1 while the client's own field is 0; here it is a constant.
     let pidx = &quirks.boot_hardcodes_pidx_one;
     assert_eq!(pidx.recorded_pidx, 1);
     assert_eq!(pidx.client_pidx, 0);
     assert_eq!(signify_client::client::BOOT_PREFIX_INDEX, pidx.recorded_pidx);
 
-    // 2. The delegation approval carries no signature; reproduced.
     let approval = &quirks.approve_delegation_is_unauthenticated;
     assert!(approval.url.contains("?type=ixn"));
     let request = approval.request.as_ref().ok_or("no approval recorded")?;
@@ -698,7 +657,6 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
         "the approval was signed"
     );
 
-    // 3. Both passcode calls are likewise unsigned.
     for recorded in &quirks.passcode_save_and_delete_are_unauthenticated.requests {
         let request = recorded.as_ref().ok_or("a passcode request was not recorded")?;
         assert!(request.url.contains("/salt/"));
@@ -711,10 +669,8 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
         );
     }
 
-    // 4. A 404 is a message upstream and a typed variant here.
     assert!(quirks.state_reports_404_as_a_message.expression.contains("404"));
 
-    // 5. `ridx` is assigned after construction upstream; here the controller is rebuilt with it.
     assert!(
         quirks
             .connect_assigns_ridx_without_rederiving
@@ -722,13 +678,10 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
             .contains("ridx")
     );
 
-    // 6. `ready` is libsodium initialization, recorded `N/A` against the file's own text.
     let ready = &quirks.ready_is_libsodium_initialization;
     assert!(ready.source.contains("_sodium.ready"));
     assert!(ready.source.lines().count() <= 6, "ready.ts is four lines");
     assert!(ready.scan.scanned_files > 100);
-    // The module is imported from exactly one place — the export surface — and nothing in the
-    // protocol tree touches it.
     assert_eq!(ready.scan.needle, "ready.ts");
     assert_eq!(ready.scan.total, 1);
     assert_eq!(
@@ -736,7 +689,6 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
         Some("src/exports.ts")
     );
 
-    // 7. The run-time connect check is a compile-time one here: `SignifyClient` has no `fetch`.
     assert!(
         quirks
             .fetch_requires_connect_at_run_time

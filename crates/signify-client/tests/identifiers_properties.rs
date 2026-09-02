@@ -1,13 +1,6 @@
-//! Invariants of the identifier endpoint family that hold for every input, not just the recorded
-//! ones.
+//! Invariants of the identifier endpoint family that hold for every input, not just the recorded ones.
 //!
-//! The properties here are the ones a caller's safety rests on: an alias can never leave its own
-//! path segment whatever it holds — which is exactly the defect the reference has in five of its
-//! seven name-bearing paths — a request body always names the fields the agent needs and never the
-//! ones it would misread, and an answer is believed only in a state it actually claimed.
-//!
-//! Every client here derives its controller at the ephemeral profile, because none of these
-//! properties is about key derivation.
+//! An alias never leaves its path segment, and an answer is believed only in a state it actually claimed.
 
 mod support;
 
@@ -32,10 +25,6 @@ use signify_types::api::Role;
 
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
 
-/// Seals the identifier salt this client's controller key can open.
-///
-/// Derived once for the whole binary: the sealing key is an Argon2 derivation at the production
-/// profile, and every case here wants the same one.
 fn sealed_salt() -> Result<&'static str, Box<dyn Error>> {
     use signify_crypto::cipher::Encrypter;
     use signify_crypto::salt::Salt;
@@ -51,14 +40,12 @@ fn sealed_salt() -> Result<&'static str, Box<dyn Error>> {
     Ok(SEALED.get_or_init(|| sealed))
 }
 
-/// An identifier record for `aid1`, whose keeper this client can rebuild.
 fn record(prefix: &str, key: &str, next: &str, sealed: &str) -> String {
     format!(
         r#"{{"name":"aid1","prefix":"{prefix}","icp_dt":"{STAMP}","state":{{"vn":[1,0],"i":"{prefix}","s":"0","p":"","d":"{prefix}","f":"0","dt":"{STAMP}","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{prefix}","br":[],"ba":[]}},"di":""}},"transferable":true,"windexes":[],"salty":{{"tier":"low","sxlt":"{sealed}","pidx":0,"kidx":0,"stem":"signify:aid","dcode":"E","icodes":["A"],"ncodes":["A"],"transferable":true}}}}"#
     )
 }
 
-/// Connects a client answering `bodies` after the two the lifecycle consumes.
 fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
     let configuration = || {
         ClientConfig::new(ADMIN, PASSCODE)
@@ -82,7 +69,6 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the paths of the endpoint requests one client sent, in order.
 fn endpoint_paths(transport: &AgentTransport) -> Vec<String> {
     transport
         .requests()
@@ -92,7 +78,6 @@ fn endpoint_paths(transport: &AgentTransport) -> Vec<String> {
         .collect()
 }
 
-/// Returns the body of the endpoint request at `index`.
 fn endpoint_body(transport: &AgentTransport, index: usize) -> Option<String> {
     transport
         .requests()
@@ -101,12 +86,6 @@ fn endpoint_body(transport: &AgentTransport, index: usize) -> Option<String> {
         .and_then(|bytes| String::from_utf8(bytes).ok())
 }
 
-/// A creation whose keeper can be stored.
-///
-/// The cost is the reference's own production profile, and it has to be: a keeper built at the
-/// ephemeral profile refuses to report its parameters, because an identifier record stores a tier
-/// and not a cost, so it could never be reloaded to the same keys. That makes these properties
-/// slow, and correctly so — a request body carries exactly what a reload will read.
 fn storable_creation() -> CreateIdentifierRequest {
     CreateIdentifierRequest::new(CreateAlgorithm::Salty {
         passcode: Some(PASSCODE.to_owned()),
@@ -117,7 +96,6 @@ fn storable_creation() -> CreateIdentifierRequest {
     })
 }
 
-/// Aliases including the shapes that break the reference: delimiters, dot segments, and Unicode.
 fn aliases() -> impl Strategy<Value = String> {
     prop_oneof![
         "[a-zA-Z0-9_-]{1,24}",
@@ -131,7 +109,6 @@ fn aliases() -> impl Strategy<Value = String> {
     ]
 }
 
-/// Asserts one path is exactly `segments` segments under `/identifiers`, with the alias contained.
 fn assert_contained(path: &str, alias: &str, trailing: Option<&str>) -> Result<(), TestCaseError> {
     let parts: Vec<&str> = path.split('/').collect();
     let expected = trailing.map_or(3, |_| 4);
@@ -151,8 +128,6 @@ fn assert_contained(path: &str, alias: &str, trailing: Option<&str>) -> Result<(
 proptest! {
     #![proptest_config(ProptestConfig { cases: 24, ..ProptestConfig::default() })]
 
-    /// The defect the reference has in five of its seven paths, closed by construction: whatever an
-    /// alias holds, it stays one path segment and never introduces a query or a fragment.
     #[test]
     fn an_alias_never_leaves_its_own_segment(alias in aliases()) {
         let record = record(
@@ -172,8 +147,6 @@ proptest! {
         assert_contained(paths.get(1).map_or("", String::as_str), &alias, Some("members"))?;
     }
 
-    /// An update always sends exactly one field, whatever the new name holds — including quotes and
-    /// braces, which a hand-built body would have to escape.
     #[test]
     fn an_update_body_is_always_exactly_one_field(name in "[\\PC]{0,40}") {
         let record = record(
@@ -194,8 +167,6 @@ proptest! {
         prop_assert_eq!(fields.get("name").and_then(Value::as_str), Some(name.as_str()));
     }
 
-    /// The window a listing asks for reaches the agent exactly, for any satisfiable pair, and the
-    /// path never carries it — the reference sends it as a header too.
     #[test]
     fn a_requested_window_is_sent_exactly(start in 0_u64..1_000, span in 0_u64..1_000) {
         let end = start.saturating_add(span);
@@ -205,8 +176,6 @@ proptest! {
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let listing = block_on(client.identifiers().list(window))
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        // This transport reports no content-range, so an unreported window is `None` rather than
-        // the three zeroes the reference would produce.
         prop_assert!(listing.window.is_none());
         prop_assert!(listing.identifiers.is_empty());
 
@@ -218,8 +187,6 @@ proptest! {
         prop_assert!(!sent.request().url().as_str().contains('?'));
     }
 
-    /// A window whose end precedes its start is unrepresentable, so it can never be sent — where
-    /// the reference interpolates whatever it was handed.
     #[test]
     fn an_unsatisfiable_window_cannot_be_built(start in 1_u64..1_000, drop in 1_u64..1_000) {
         let end = start.saturating_sub(drop);
@@ -228,13 +195,6 @@ proptest! {
     }
 }
 
-/// A creation names `proxy` exactly when one was given, and never names the group's member lists —
-/// where a rotation always names both. That asymmetry is the reference's own.
-///
-/// This is a small deterministic sweep rather than a generated one: every case derives real keys at
-/// the reference's production Argon2 profile, because a keeper built at the ephemeral profile
-/// refuses to report the parameters a request body carries. The generated properties above are the
-/// ones whose input space is actually large.
 #[test]
 fn a_body_names_its_optional_fields_exactly_when_they_apply() -> Result<(), Box<dyn Error>> {
     for proxy in [None, Some("EPROXY".to_owned())] {
@@ -251,8 +211,6 @@ fn a_body_names_its_optional_fields_exactly_when_they_apply() -> Result<(), Box<
         assert!(fields.contains_key("sigs"));
         assert!(fields.contains_key("salty"));
         assert_eq!(fields.contains_key("proxy"), proxy.is_some());
-        // Never, outside a group: the reference leaves both `undefined` and `JSON.stringify`
-        // drops them.
         assert!(!fields.contains_key("smids"));
         assert!(!fields.contains_key("rmids"));
         assert_eq!(fields.len(), 4 + usize::from(proxy.is_some()));
@@ -260,8 +218,6 @@ fn a_body_names_its_optional_fields_exactly_when_they_apply() -> Result<(), Box<
     Ok(())
 }
 
-/// A salty block always carries the reference's nine fields in the reference's order, for any key
-/// count — because a reload reads every one of them.
 #[test]
 fn a_salty_block_always_carries_the_same_nine_fields_in_order() -> Result<(), Box<dyn Error>> {
     for keys in 1_usize..3 {
@@ -309,7 +265,6 @@ fn a_salty_block_always_carries_the_same_nine_fields_in_order() -> Result<(), Bo
     Ok(())
 }
 
-/// A rotation always names both member lists, empty or not — where a creation omits them.
 #[test]
 fn a_rotation_always_names_both_member_lists() -> Result<(), Box<dyn Error>> {
     let record = record(
@@ -330,7 +285,6 @@ fn a_rotation_always_names_both_member_lists() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// A pending record is refused wherever key state is required, whatever it is called.
 #[test]
 fn a_pending_record_is_refused_under_any_alias() -> Result<(), Box<dyn Error>> {
     for alias in ["group1", "..", "a/b", ""] {
@@ -345,9 +299,6 @@ fn a_pending_record_is_refused_under_any_alias() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: an alias of exactly `..` keeps its dots, and one carrying a slash is encoded, so a
-/// component can never introduce a dot segment or a new segment. This is the same pair Roadmap 6.5
-/// pinned for an operation name; the reference's identifier paths do not encode at all.
 #[test]
 fn an_alias_of_two_dots_addresses_the_identifier_it_names() -> Result<(), Box<dyn Error>> {
     let (client, transport) = connected(&[b"{}", b"{}"])?;
@@ -359,8 +310,6 @@ fn an_alias_of_two_dots_addresses_the_identifier_it_names() -> Result<(), Box<dy
     Ok(())
 }
 
-/// Regression: a location authorization with no scheme and no endpoint still writes both, because
-/// the SAID commits to them — and the defaults are the reference's own.
 #[test]
 fn a_defaulted_location_authorization_writes_every_attribute() -> Result<(), Box<dyn Error>> {
     let record = record(
@@ -385,7 +334,6 @@ fn a_defaulted_location_authorization_writes_every_attribute() -> Result<(), Box
         .get("a")
         .and_then(signify_keri::serialization::SadValue::as_map)
         .ok_or("the reply carries no attributes")?;
-    // All three, in the order the SAID commits to, with the reference's own defaults filled in.
     assert_eq!(
         attributes.entries().map(|(label, _)| label).collect::<Vec<_>>(),
         ["eid", "url", "scheme"]
@@ -402,8 +350,6 @@ fn a_defaulted_location_authorization_writes_every_attribute() -> Result<(), Box
     Ok(())
 }
 
-/// Regression: an end-role authorization for a role this crate does not name still travels, because
-/// `Role::Other` keeps the text exactly as given.
 #[test]
 fn an_unnamed_role_is_carried_verbatim() -> Result<(), Box<dyn Error>> {
     let role = Role::Other("custodian".to_owned());
@@ -414,7 +360,6 @@ fn an_unnamed_role_is_carried_verbatim() -> Result<(), Box<dyn Error>> {
             .identifiers()
             .add_end_role("aid1", &role, None, Timestamp::parse(STAMP)?),
     );
-    // The record lookup answers `{}`, which is not an identifier record, so the call stops there.
     assert!(matches!(outcome, Err(ClientError::Api { .. })));
     assert_eq!(endpoint_paths(&transport), ["/identifiers/aid1"]);
     Ok(())

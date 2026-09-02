@@ -1,26 +1,8 @@
 //! Wave 8 — single-signature rotation and interaction: the local/remote key-state divergence.
 //!
-//! `test-integration/singlesig-rot.test.ts` and `singlesig-ixn.test.ts` are twins, and together
-//! they are two §7 rows. Each has one client advance a witnessed identifier's log by one event —
-//! a rotation in one file, an interaction in the other — and then observes the same thing from
-//! two sides: the owner's key state has moved, while a second client that resolved the identifier
-//! as a contact still holds the *old* state, one sequence behind, until it refreshes with
-//! `keyStates().query` at the new sequence number.
-//!
-//! That query is the call whose base wave 1 settled: the upstream twins forward the key state's
-//! own `s` — hexadecimal text — verbatim, so they are the one recorded call site that is correct
-//! above sequence nine, and [`QuerySequence::Hexadecimal`] is how this port spells the same
-//! request. The interaction also shows the anchor contrast to waves 3 and 6: upstream passes
-//! `{}`, an empty object, which **is** representable as a `Sad` — so this wave's interaction
-//! reproduces upstream's anchor exactly where the salty and randy waves could not.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave8_singlesig_events -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Advances a witnessed log by one event and watches a second client's observer catch up.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -36,7 +18,6 @@ use signify_keri::serialization::Sad;
 use signify_keria_systest::{Environment, Recorder, connect, progress, record, recorder};
 use signify_types::api::Role;
 
-/// The slice of a key state the twins assert about.
 #[derive(Debug, Serialize)]
 struct StateBrief {
     sequence: String,
@@ -44,38 +25,27 @@ struct StateBrief {
     next_digest: String,
 }
 
-/// Everything one twin's run observed, written as its fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
-    /// The witnessed identifier under test.
     prefix: String,
-    /// The prefix the second client's contact resolution answered with; upstream asserts equality.
     contact_resolved: String,
-    /// Local and remote sequences before the event; upstream asserts they match.
     local_before: StateBrief,
     remote_before_sequence: String,
-    /// The event that advanced the log, as the port serialized it and as the agent echoed it.
     derived_event: String,
     derived_said: String,
     agent_event: String,
-    /// The owner's state after the event.
     local_after: StateBrief,
-    /// The second client's stale state after the event — one sequence behind.
     remote_stale_sequence: String,
-    /// The exact sequence text the refresh query sent; hexadecimal, wave 1's answer.
     query_sequence_sent: String,
-    /// The state the refresh query resolved to.
     refreshed: StateBrief,
-    /// Operations left listed on each client after the run; upstream asserts zero.
     owner_operations_remaining: usize,
     observer_operations_remaining: usize,
     owner_transcript: Vec<signify_keria_systest::Observation>,
     observer_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one submission's untyped operation out, deletes it, and returns the agent's echo.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<serde_json::Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -84,7 +54,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<serde_j
     Ok(response)
 }
 
-/// Creates a witnessed identifier with the agent end role — the upstream helper's defaults.
 async fn witnessed_identifier(
     client: &ConnectedClient,
     alias: &str,
@@ -112,7 +81,6 @@ async fn witnessed_identifier(
     Ok(prefix)
 }
 
-/// Resolves `alias`'s agent OOBI on `observer` and returns the prefix the resolution answered.
 async fn resolve_contact(
     owner: &ConnectedClient,
     alias: &str,
@@ -136,7 +104,6 @@ async fn resolve_contact(
     Ok(state.identifier)
 }
 
-/// Reads the sole key state one client holds for `prefix`, as a brief.
 async fn state_brief(client: &ConnectedClient, prefix: &IdentifierPrefix) -> Result<StateBrief, Box<dyn Error>> {
     let states = client.key_states().get(prefix).await?;
     let state = match states.as_slice() {
@@ -150,14 +117,12 @@ async fn state_brief(client: &ConnectedClient, prefix: &IdentifierPrefix) -> Res
     })
 }
 
-/// Which twin is running.
 #[derive(Clone, Copy)]
 enum Advance {
     Rotate,
     Interact,
 }
 
-/// Runs one twin end to end and returns its capture and its mismatches.
 async fn run_twin(advance: Advance) -> Result<(Captured, Vec<String>), Box<dyn Error>> {
     let environment = Environment::from_environment()?;
     let scenario = match advance {
@@ -194,8 +159,6 @@ async fn run_twin(advance: Advance) -> Result<(Captured, Vec<String>), Box<dyn E
         ));
     }
 
-    // Advance the log by one event. The interaction's `{}` anchor is upstream's own, and unlike
-    // the bare-string anchors of waves 3 and 6 it is representable, so it is reproduced exactly.
     let submitted = match advance {
         Advance::Rotate => {
             progress("name1: rotating");
@@ -217,8 +180,6 @@ async fn run_twin(advance: Advance) -> Result<(Captured, Vec<String>), Box<dyn E
     let local_after = state_brief(&owner, &prefix).await?;
     let remote_stale = state_brief(&observer, &prefix).await?;
 
-    // Refresh the observer at the owner's new sequence — the key state's own `s` is hexadecimal
-    // text, and wave 1 proved the agent reads the query in that base.
     let sequence_value = u64::from_str_radix(&local_after.sequence, 16)?;
     let query_sequence = QuerySequence::Hexadecimal(sequence_value);
     let query_sequence_sent = query_sequence.to_text();
@@ -257,7 +218,6 @@ async fn run_twin(advance: Advance) -> Result<(Captured, Vec<String>), Box<dyn E
     Ok((captured, mismatches))
 }
 
-/// The assertions both twins share, checked after recording.
 fn shared_assertions(captured: &Captured, mismatches: &mut Vec<String>) {
     if captured.contact_resolved != captured.prefix {
         mismatches.push("the contact resolution answered a different prefix".to_owned());
@@ -293,8 +253,6 @@ async fn a_rotation_is_seen_remotely_only_after_a_refresh() -> Result<(), Box<dy
     let (captured, mut mismatches) = Box::pin(run_twin(Advance::Rotate)).await?;
     shared_assertions(&captured, &mut mismatches);
 
-    // The rotation's own claims: the keys moved locally, and the refreshed remote state carries
-    // exactly the new key and commitment.
     if captured.local_after.signing_key == captured.local_before.signing_key {
         mismatches.push("the rotation kept the signing key".to_owned());
     }
@@ -322,7 +280,6 @@ async fn an_interaction_is_seen_remotely_only_after_a_refresh() -> Result<(), Bo
     let (captured, mut mismatches) = Box::pin(run_twin(Advance::Interact)).await?;
     shared_assertions(&captured, &mut mismatches);
 
-    // An interaction changes no keys: the local state keeps both, and so does the refresh.
     if captured.local_after.signing_key != captured.local_before.signing_key {
         mismatches.push("the interaction changed the signing key".to_owned());
     }

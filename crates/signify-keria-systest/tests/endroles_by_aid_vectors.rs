@@ -1,12 +1,6 @@
 //! Hermetic assertions over the recorded end-roles-by-AID reads.
 //!
-//! Wave 12 drove `test-integration/endroles-by-aid.test.ts` against a live deployment: a
-//! two-member witnessed multisig inception, the group end-role round over `/multisig/rpy` under
-//! one shared stamp, and then **Alice's** five reads of `/endroles/{aid}` — a third party asking
-//! about a group she is not a member of. This file re-checks the recording from its own values
-//! and the reader's transcript.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! A group's end-role round, then a third party's five reads naming exactly both members' agents.
 
 use std::error::Error;
 use std::fs;
@@ -71,7 +65,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert!(!captured.preset.is_empty());
     assert!(!captured.alice_transcript.is_empty());
 
-    // Four distinct parties: two members, the group they derived together, and Alice.
     let prefixes = [
         &captured.member1_prefix,
         &captured.member2_prefix,
@@ -88,8 +81,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     }
     assert_eq!(captured.agent_eids.len(), 2);
 
-    // Every client ends clean — which for a group inception and four end-role replies means every
-    // operation, dependency, and born-done exchange submission was waited out and deleted.
     assert_eq!(captured.member1_operations_remaining, 0);
     assert_eq!(captured.member2_operations_remaining, 0);
     assert_eq!(captured.alice_operations_remaining, 0);
@@ -102,8 +93,6 @@ fn the_groups_end_roles_name_both_agents_and_nothing_else() -> Result<(), Box<dy
         return Ok(());
     };
 
-    // The upstream case's first two reads: all roles and the agent filter answer the same set —
-    // both members' agents, every triple naming the group as `cid` and `agent` as the role.
     for listing in [&captured.all_roles, &captured.agent_roles] {
         assert!(!listing.is_empty());
         for role in &**listing {
@@ -125,8 +114,6 @@ fn a_role_nobody_granted_and_an_identifier_nobody_owns_answer_empty() -> Result<
         return Ok(());
     };
 
-    // The third and fourth reads: an empty list, not an error — asking is always allowed, and the
-    // unknown identifier is well-formed (Roadmap 7.1 pinned that upstream's own is not).
     assert_eq!(captured.mailbox_roles_len, 0);
     IdentifierPrefix::from_qb64(&captured.unknown_prefix)?;
     assert_eq!(captured.unknown_roles_len, 0);
@@ -154,7 +141,6 @@ fn every_read_went_through_the_end_roles_resource() -> Result<(), Box<dyn Error>
         return Ok(());
     };
 
-    // The five reads, proven from Alice's transcript against Roadmap 7.1's resource.
     let expected = [
         format!("/endroles/{}", captured.group_prefix),
         format!("/endroles/{}/agent", captured.group_prefix),

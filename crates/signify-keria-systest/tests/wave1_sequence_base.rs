@@ -1,30 +1,8 @@
 //! Wave 1 — which base does a KERIA agent read a query's sequence number in?
 //!
-//! `PORTING.md` §10 carries this as an open question owed to Roadmap 9.2, and Roadmap 6.7 refused
-//! to guess: `query`'s `sn` reaches the wire as text, and of the reference's forty-two recorded
-//! call sites every literal is a single digit, where decimal and hexadecimal agree. The one
-//! computed site forwards a key state's `s` — which the protocol writes in **hexadecimal** — while
-//! the same file reads that field back with a base-ten `parseInt`. Either rendering reproduces
-//! every recorded byte and is silently wrong above nine, so `QuerySequence` is a two-variant enum
-//! with no default and ADR `0030` leaves the choice to the caller.
-//!
-//! Only a deployment can settle it. This scenario builds a log past nine and asks for event ten
-//! both ways.
-//!
-//! # Why the prefix must be somebody else's
-//!
-//! Querying your *own* prefix may be answered from the agent's local key event log without the
-//! mailbox query whose semantics are in question ever happening — which would make the experiment
-//! look conclusive and mean nothing. So the log is built by one client and queried by a second,
-//! through an OOBI, which is the arrangement the question is actually about.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave1_sequence_base -- --ignored --test-threads=1
-//! ```
+//! Builds an eleven-event log with a second client and asks for event ten in both bases.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -39,26 +17,17 @@ use signify_keri::manager::DerivationCost;
 use signify_keria_systest::{Environment, connect, record, recorder};
 use signify_types::api::Role;
 
-/// How many events the queried log is built to hold: an inception and ten interactions.
 const LOG_LENGTH: u64 = 11;
 
-/// The highest sequence number that log contains, which is the one both spellings ask about.
 const LAST_SEQUENCE: u64 = LOG_LENGTH - 1;
 
-/// One spelling of a sequence number, and what the deployment did with it.
 #[derive(Debug, Serialize)]
 struct Attempt {
-    /// How the number was written on the wire.
     spelling: String,
-    /// Which base that spelling is.
     base: &'static str,
-    /// The event this attempt was asking about, in decimal.
     asks_about: u64,
-    /// Whether the operation completed.
     completed: bool,
-    /// The sequence number of the key state that came back, as the deployment wrote it.
     answered_sequence: Option<String>,
-    /// Whatever error the deployment or the port reported.
     error: Option<String>,
 }
 
@@ -66,16 +35,11 @@ struct Attempt {
 struct Captured {
     scenario: &'static str,
     preset: String,
-    /// How long the queried log is, in events.
     log_length: u64,
-    /// The prefix queried, which belongs to a different client than the one asking.
     remote_prefix: String,
-    /// Why the prefix is remote.
     remote_note: &'static str,
     attempts: Vec<Attempt>,
-    /// What the run concludes, or that it concludes nothing.
     conclusion: String,
-    /// The asking client's whole transcript, so a failure can be read rather than guessed at.
     transcript: Vec<signify_keria_systest::Observation>,
 }
 
@@ -89,17 +53,6 @@ fn plain_identifier() -> CreateIdentifierRequest {
     })
 }
 
-/// Reads the pattern of which spellings resolved, and says what it does and does not establish.
-///
-/// The log has [`LOG_LENGTH`] events, sequences 0 through [`LAST_SEQUENCE`]. Read as decimal, `10`
-/// names an event that exists; read as hexadecimal it names event 16, which does not. `a` is the
-/// mirror image. So whichever spelling resolves is the one the deployment could satisfy, and that
-/// names the base.
-///
-/// An earlier draft compared the answered sequences alone and so reported two absent answers as
-/// "the same event" — a conclusion drawn from a run where nothing succeeded, which is precisely the
-/// failure this matrix exists to prevent. Every arm below requires the attempt it reasons from to
-/// have completed.
 fn conclusion(attempts: &[Attempt]) -> String {
     let decimal_ten = attempts.iter().find(|attempt| attempt.spelling == "10");
     let hex_ten = attempts.iter().find(|attempt| attempt.spelling == "a");
@@ -153,11 +106,6 @@ fn conclusion(attempts: &[Attempt]) -> String {
     }
 }
 
-/// Picks the one query answer the deployment resolved, for recording on its own.
-///
-/// `signify-client`'s hermetic suite decodes this body through the very type this scenario found to
-/// be wrong, so it is written out from the transcript rather than by hand: the two recordings then
-/// cannot drift apart when the scenario is re-run.
 fn resolved_answer(transcript: &[signify_keria_systest::Observation]) -> Option<serde_json::Value> {
     transcript
         .iter()
@@ -174,8 +122,6 @@ fn resolved_answer(transcript: &[signify_keria_systest::Observation]) -> Option<
 async fn which_base_a_deployment_reads_a_sequence_number_in() -> Result<(), Box<dyn Error>> {
     let environment = Environment::from_environment()?;
 
-    // Two clients: one owns the log, the other asks about it. See the note above — a query about
-    // your own prefix need not exercise the path this question is about.
     let owner_recorder = recorder("sequence_base_owner")?;
     let owner_passcode = signify_client::random::random_passcode()?;
     let owner = connect(&environment, owner_passcode.expose(), &owner_recorder).await?;
@@ -184,15 +130,10 @@ async fn which_base_a_deployment_reads_a_sequence_number_in() -> Result<(), Box<
     let asker_passcode = signify_client::random::random_passcode()?;
     let asker = connect(&environment, asker_passcode.expose(), &asker_recorder).await?;
 
-    // A log of eleven events: an inception and ten interactions, so sequence ten exists and is
-    // written `10` in decimal and `a` in hexadecimal — the first number where the two disagree.
     let created = owner.identifiers().create("logowner", &plain_identifier()).await?;
     owner.poller().wait(created.operation()?).await?;
     let prefix = created.artifact().event.identifier().clone();
 
-    // An identifier publishes no agent OOBI until it has authorised its agent to speak for it —
-    // the step upstream performs first, and the one whose absence this scenario found by failing
-    // with "the owner published no OOBI".
     let agent = owner.agent().prefix().clone();
     let stamp = signify_keria_systest::now()?;
     let authorised = owner
@@ -208,7 +149,6 @@ async fn which_base_a_deployment_reads_a_sequence_number_in() -> Result<(), Box<
         let _ = round;
     }
 
-    // The asker learns the prefix the way a stranger would.
     let oobi = owner.oobis().get("logowner", &Role::Agent).await?;
     let url = oobi.oobis.first().ok_or("the owner published no OOBI")?;
     let resolution = OobiResolution {
@@ -222,8 +162,6 @@ async fn which_base_a_deployment_reads_a_sequence_number_in() -> Result<(), Box<
     for (spelling, base, sequence) in [
         ("10", "decimal", QuerySequence::Decimal(10)),
         ("a", "hexadecimal", QuerySequence::Hexadecimal(10)),
-        // Decimal sixteen is hexadecimal ten's neighbour: `16` reads as 16 in base ten and 22 in
-        // base sixteen, and this log has neither, so how it *fails* is informative too.
         ("16", "decimal", QuerySequence::Decimal(16)),
     ] {
         let query = KeyStateQuery {

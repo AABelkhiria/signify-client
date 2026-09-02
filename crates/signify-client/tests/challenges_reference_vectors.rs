@@ -1,9 +1,6 @@
 //! Exact challenge-endpoint vectors recorded from the pinned reference's own `Challenges`.
 //!
-//! Three of the class's four methods are Roadmap 7.4's. The fourth, `respond`, is a wrapper over
-//! `Exchanges.send` and belongs to Roadmap 7.7 — and that is not asserted here but *read out of the
-//! reference*: the fixture's `deferred_capability` block holds `respond`'s whole body and the three
-//! `Exchanges` methods it reaches, so the deferral is checkable rather than claimed.
+//! Three methods' exact addresses and bodies; `respond`'s deferral read out of the reference rather than claimed.
 
 mod support;
 
@@ -32,15 +29,10 @@ use signify_types::api::OperationOutcome;
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-challenges/v1.json");
 
-/// The identifier the pinned unit test challenges.
 const SOURCE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
-/// The exchange SAID the pinned unit test marks as accepted.
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -158,7 +150,6 @@ fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.result)?)
 }
 
-/// A connected client and its scripted agent.
 type Harness = (ConnectedClient, Arc<AgentTransport>);
 
 fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
@@ -191,7 +182,6 @@ fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let recorded = transport.requests();
     let request = recorded.get(2).ok_or("no endpoint request was sent")?;
@@ -204,10 +194,7 @@ fn source() -> Result<IdentifierPrefix, Box<dyn Error>> {
     Ok(IdentifierPrefix::from_qb64(SOURCE)?)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -216,7 +203,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
     assert!(!fixture.generated_on.is_empty());
     assert!(fixture.sources.iter().any(|source| source.ends_with("contacting.ts")));
-    // The exchange module is a source here *because* of what was deferred from it.
     assert!(fixture.sources.iter().any(|source| source.ends_with("exchanging.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
     assert_eq!(fixture.provenance.admin_url, ADMIN);
@@ -224,14 +210,12 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
     assert_eq!(fixture.provenance.source_prefix, SOURCE);
     assert_eq!(fixture.provenance.exchange_said, SAID);
-    // Twelve words, which is what 128 bits of BIP39 entropy produces.
     assert_eq!(fixture.provenance.words.len(), 12);
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
 
     assert_eq!(fixture.calls.len(), 13);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of them — not `NaN`, not an empty word list.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         assert!(entry.request.is_some(), "call {} made no request", entry.name);
     }
@@ -248,7 +232,6 @@ fn the_deferred_capability_is_read_from_the_reference() -> Result<(), Box<dyn Er
     assert!(!deferred.note.is_empty());
     assert!(!deferred.rust_decision.is_empty());
 
-    // `respond` delegates: it reads the habitat and calls `Exchanges.send`, and reaches nothing else.
     assert!(deferred.body.contains("exchanges.send("));
     assert!(deferred.body.contains("identifiers().get(name)"));
     assert_eq!(
@@ -259,7 +242,6 @@ fn the_deferred_capability_is_read_from_the_reference() -> Result<(), Box<dyn Er
             "Exchanges.sendFromEvents"
         ]
     );
-    // The submission it needs is the generic exchange one, which is Roadmap 7.7's whole write half.
     assert_eq!(
         deferred.send_from_events_path,
         "path = `/identifiers/${name}/exchanges`"
@@ -267,8 +249,6 @@ fn the_deferred_capability_is_read_from_the_reference() -> Result<(), Box<dyn Er
     assert!(deferred.send_from_events_body.contains("tpc: topic"));
     assert!(deferred.send_from_events_body.contains("exn: exn.sad"));
 
-    // The two constants this module keeps, because they are facts about challenges rather than
-    // about exchanges.
     assert_eq!(deferred.topic, CHALLENGE_TOPIC);
     assert_eq!(deferred.route, CHALLENGE_RESPONSE_ROUTE);
     assert!(deferred.body.contains(CHALLENGE_RESPONSE_ROUTE));
@@ -281,13 +261,11 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Four methods, of which three are this item's.
     assert_eq!(
         declarations.class_members,
         ["client", "<constructor>", "generate", "respond", "verify", "responded"]
     );
 
-    // The strength is stringified straight into the query, with a default that reaches the wire.
     assert_eq!(declarations.generate_parameters, ["strength: number = 128"]);
     assert_eq!(
         declarations.generate_path,
@@ -298,7 +276,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.generate_path.contains(CHALLENGES_SEGMENT));
     assert!(declarations.generate_path.contains(STRENGTH_PARAMETER));
 
-    // Both verification calls share one address and differ only in method and body.
     assert_eq!(declarations.verify_path, "path = `/challenges_verify/${source}`");
     assert_eq!(declarations.responded_path, declarations.verify_path);
     assert!(declarations.verify_path.contains(CHALLENGES_VERIFY_SEGMENT));
@@ -309,12 +286,10 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.verify_parameters, ["source: string", "words: string[]"]);
     assert_eq!(declarations.responded_parameters, ["source: string", "said: string"]);
 
-    // `responded` is the only method that does not read its answer.
     assert_eq!(declarations.verify_return, "await res.json()");
     assert_eq!(declarations.responded_return, "return res;");
     assert!(!declarations.responded_return.contains("json"));
 
-    // The answer type, whose three optional fields are what `responded` eventually fills in.
     assert!(declarations.challenge_type.contains("words: string[]"));
     assert!(declarations.challenge_type.contains("authenticated?: boolean"));
     Ok(())
@@ -351,7 +326,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
             .any(|line| line.contains("lastBody.said"))
     );
 
-    // Two addresses, both driven.
     assert_eq!(pinned.unit_test_paths.len(), 2);
     for path in &pinned.unit_test_paths {
         assert!(
@@ -362,8 +336,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     assert_eq!(pinned.unit_test_words.len(), 12);
     assert_eq!(pinned.unit_test_said, SAID);
 
-    // The integration suites add the second strength, the operation, and the empty challenge list
-    // that `responded` exists to fill.
     assert_eq!(pinned.integration_usage.len(), 5);
     assert!(
         pinned
@@ -406,10 +378,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `generate`.
-// ---------------------------------------------------------------------------
-
+// --- `generate` ---
 #[test]
 fn both_recorded_strengths_reproduce_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -430,13 +399,11 @@ fn both_recorded_strengths_reproduce_byte_for_byte() -> Result<(), Box<dyn Error
         assert_eq!(path, recorded.path, "{name} addressed a different resource");
         assert_eq!(method, recorded.method);
         assert_eq!(body, None);
-        // The agent's own answer carries exactly the word count BIP39 gives that strength.
         assert_eq!(challenge.words.len(), words);
         assert_eq!(
             usize::try_from(strength.word_count()).unwrap_or_default(),
             challenge.words.len()
         );
-        // A fresh challenge has been answered by nobody.
         assert_eq!(challenge.authenticated, None);
     }
     Ok(())
@@ -445,7 +412,6 @@ fn both_recorded_strengths_reproduce_byte_for_byte() -> Result<(), Box<dyn Error
 #[test]
 fn the_default_strength_produces_the_same_request_as_naming_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // `generate()` writes the `= 128` default into the query, so it is an observable request.
     let defaulted = request_of(&fixture, "generate_default")?;
     let named = request_of(&fixture, "generate_128")?;
     assert_eq!(defaulted.path, named.path);
@@ -457,7 +423,6 @@ fn the_default_strength_produces_the_same_request_as_naming_it() -> Result<(), B
 #[test]
 fn a_strength_no_generator_could_satisfy_is_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference stringifies all three straight into the query.
     for (name, path) in [
         ("generate_fractional", "/challenges?strength=1.5"),
         ("generate_not_a_number", "/challenges?strength=NaN"),
@@ -465,7 +430,6 @@ fn a_strength_no_generator_could_satisfy_is_unrepresentable() -> Result<(), Box<
     ] {
         assert_eq!(request_of(&fixture, name)?.path, path, "{name} sent something else");
     }
-    // None of them is an entropy size, and this type takes only entropy sizes.
     for bits in [0_u32, 1, 127, 129, 255, 257] {
         assert!(
             matches!(
@@ -475,15 +439,11 @@ fn a_strength_no_generator_could_satisfy_is_unrepresentable() -> Result<(), Box<
             "{bits} was accepted"
         );
     }
-    // A fraction and a negative are not even expressible as the argument's type.
     assert_eq!(ChallengeStrength::DECLARED, [128, 160, 192, 224, 256]);
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `verify` and `responded`.
-// ---------------------------------------------------------------------------
-
+// --- `verify` and `responded` ---
 #[test]
 fn the_pinned_verification_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -500,7 +460,6 @@ fn the_pinned_verification_reproduces_byte_for_byte() -> Result<(), Box<dyn Erro
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_eq!(body, recorded.body, "the verification body differs");
-    // It is an operation, not a verdict: the agent has to go and look.
     assert!(matches!(operation.outcome, OperationOutcome::Pending));
     assert_eq!(operation.metadata.map(|metadata| metadata.words), Some(words));
     Ok(())
@@ -521,7 +480,6 @@ fn the_pinned_acceptance_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>
     assert_eq!(path, recorded.path);
     assert_eq!(method, "PUT");
     assert_eq!(body, recorded.body);
-    // And the two verification calls really do address the identical resource.
     assert_eq!(path, request_of(&fixture, "verify")?.path);
     Ok(())
 }
@@ -530,7 +488,6 @@ fn the_pinned_acceptance_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>
 fn responded_returns_nothing_where_the_reference_returns_a_transport_type() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "responded")?;
-    // The reference hands back the platform `Response` without reading it.
     assert_eq!(
         recorded.result.get("kind").and_then(Value::as_str),
         Some("Response"),
@@ -542,7 +499,6 @@ fn responded_returns_nothing_where_the_reference_returns_a_transport_type() -> R
         "the reference now reads the body"
     );
 
-    // Here the method returns the unit type, so no transport type crosses the SDK boundary.
     let (client, _) = connected(&[b"{}"])?;
     let returned: () = block_on(client.challenges().responded(&source()?, &Said::from_qb64(SAID)?))?;
     assert_eq!(returned, ());
@@ -553,7 +509,6 @@ fn responded_returns_nothing_where_the_reference_returns_a_transport_type() -> R
 fn an_empty_word_list_is_refused_where_the_reference_sends_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "verify_empty_words")?;
-    // Upstream asks the agent to confirm that an identifier signed nothing.
     assert_eq!(recorded.body.as_deref(), Some(r#"{"words":[]}"#));
     assert_eq!(recorded.path, format!("/challenges_verify/{SOURCE}"));
 
@@ -563,7 +518,6 @@ fn an_empty_word_list_is_refused_where_the_reference_sends_it() -> Result<(), Bo
         matches!(outcome, Err(ClientError::EmptyChallengeWords)),
         "an empty word list was not refused: {outcome:?}"
     );
-    // Refused before anything was sent, which is what makes it a caller error rather than a request.
     assert!(sent(&transport).is_err(), "an empty verification reached the agent");
     Ok(())
 }
@@ -572,7 +526,6 @@ fn an_empty_word_list_is_refused_where_the_reference_sends_it() -> Result<(), Bo
 fn a_source_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "verify_source_needing_encoding")?;
-    // One argument becoming two segments and a query, and a different `@path` to sign.
     assert_eq!(recorded.path, "/challenges_verify/a/b?c=d");
     assert!(IdentifierPrefix::from_qb64("a/b?c=d").is_err());
     Ok(())
@@ -582,10 +535,8 @@ fn a_source_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dy
 fn the_said_reaches_the_body_and_changes_no_address() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let hostile = request_of(&fixture, "responded_said_needing_encoding")?;
-    // Unlike the source, it cannot move the request: it is written into the JSON body.
     assert_eq!(hostile.path, format!("/challenges_verify/{SOURCE}"));
     assert_eq!(hostile.body.as_deref(), Some(r#"{"said":"E/../x?y=1"}"#));
-    // It is still typed, because a SAID that names no message records an acceptance of nothing.
     assert!(Said::from_qb64("E/../x?y=1").is_err());
     assert!(Said::from_qb64(SAID).is_ok());
     Ok(())
@@ -605,7 +556,6 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
         matches!(outcome, Err(ClientError::Api { .. })),
         "an answer carrying no words was not refused: {outcome:?}"
     );
-    // The request still went out, so this refuses the answer rather than the call.
     assert_eq!(sent(&transport)?.0, "/challenges?strength=128");
 
     let verified = call(&fixture, "verify_wrong_shape")?;

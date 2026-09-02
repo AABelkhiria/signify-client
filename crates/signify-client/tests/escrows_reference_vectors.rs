@@ -1,15 +1,6 @@
 //! Exact escrows-endpoint vectors recorded from the pinned reference's own `Escrows`.
 //!
-//! `Escrows` takes a whole `SignifyClient`, so the generator drives the real client with
-//! `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the
-//! arrangement Roadmap 6.4's fixture established and 6.8's reused for exactly this shape of
-//! family.
-//!
-//! Thirteen listings are recorded. Twelve reproduce byte for byte; the thirteenth is the
-//! unfiltered one, whose bare `?` this port deliberately omits on ADR `0028`'s grounds.
-//!
-//! The answers are the other half. Four of the thirteen are shapes the reference accepts and hands
-//! to a caller as escrowed replies; each is proven refused here.
+//! Thirteen listings, twelve byte-exact, the unfiltered one's bare `?` omitted, and four answers refused.
 
 mod support;
 
@@ -33,10 +24,7 @@ const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 const FIXTURE: &str = include_str!("../../../fixtures/client-escrows/v1.json");
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -52,9 +40,6 @@ struct Fixture {
     reference_quirks: Value,
 }
 
-/// keripy read as corroboration only: `PORTING.md` §1.1 scopes it to capabilities signify-ts
-/// cannot emit, and this is not one. It is here because signify-ts cannot answer the question
-/// *what routes does a reply escrow actually hold*, and keripy is where the escrow lives.
 #[derive(Debug, Deserialize)]
 struct KeripyCorroboration {
     keripy_sha: String,
@@ -136,7 +121,6 @@ struct Call {
 }
 
 impl Call {
-    /// The route the reference was called with: `None` when it was called with no argument at all.
     fn route(&self) -> Option<&str> {
         self.arguments.first().map(String::as_str)
     }
@@ -195,20 +179,16 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<SentRequest, Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.first().ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-/// What one request carried: its path, its method, and its body.
 type SentRequest = (String, String, Option<String>);
 
-/// What a driven listing produced: the request it sent, and what the client made of the answer.
 type DrivenListing = (SentRequest, Result<Vec<Value>, ClientError>);
 
-/// Drives one recorded listing and returns what was sent, plus what the client made of the answer.
 fn drive(recorded: &Call) -> Result<DrivenListing, Box<dyn Error>> {
     let answer = serde_json::to_vec(&recorded.answer)?;
     let (client, transport) = connected(&[&answer])?;
@@ -222,10 +202,7 @@ fn drive(recorded: &Call) -> Result<DrivenListing, Box<dyn Error>> {
     Ok((sent(&transport)?, listing))
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -252,8 +229,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 13);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of the thirteen — including the four whose answers are not
-        // escrow listings at all.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         assert!(entry.request.is_some(), "call {} sent nothing", entry.name);
     }
@@ -265,14 +240,11 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The query is built with `URLSearchParams`, which is what encodes the one caller value.
     assert_eq!(declarations.list_reply_params, "params = new URLSearchParams()");
-    // The guard tests `!== undefined`, so an empty string is a route.
     assert_eq!(
         declarations.list_reply_guard,
         "if (route !== undefined) { params.append('route', route); }"
     );
-    // The path concatenates its question mark unconditionally.
     assert_eq!(
         declarations.list_reply_path,
         "path = `/escrows/rpy` + '?' + params.toString()"
@@ -283,14 +255,11 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.list_reply_method, "method = 'GET'");
     assert!(declarations.list_reply_fetch.contains("null"));
 
-    // The cast this port replaces with a decode.
     assert_eq!(declarations.list_reply_return, "await res.json()");
 
-    // One optional argument, and one method.
     assert_eq!(declarations.list_reply_signature, ["route?: string"]);
     assert_eq!(declarations.escrows_members, ["client", "<constructor>", "listReply"]);
 
-    // The whole module is two exports, which is what makes this one item close the file.
     assert_eq!(declarations.escrows_exports, ["Escrows", "Rpy"]);
     Ok(())
 }
@@ -300,8 +269,6 @@ fn the_response_type_is_roadmap_4_1s_reply_record() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // `Rpy` is a re-export of a schema type, so there is nothing here to port: Roadmap 4.1 curated
-    // it as `ReplyRecord`.
     assert_eq!(
         declarations.rpy_alias,
         "export type Rpy = components['schemas']['Rpy'];"
@@ -310,7 +277,6 @@ fn the_response_type_is_roadmap_4_1s_reply_record() -> Result<(), Box<dyn Error>
         declarations.rpy_schema,
         "Rpy: | components['schemas']['RPY_V_1'] | components['schemas']['RPY_V_2'];"
     );
-    // Both shapes, and the difference between them: KERI 2 carries an identifier.
     assert_eq!(
         declarations.rpy_v1_schema,
         "RPY_V_1: { v: string; t: string; d: string; dt: string; r: string; a: unknown; };"
@@ -319,10 +285,8 @@ fn the_response_type_is_roadmap_4_1s_reply_record() -> Result<(), Box<dyn Error>
         declarations.rpy_v2_schema,
         "RPY_V_2: { v: string; t: string; d: string; i: string; dt: string; r: string; a: unknown; };"
     );
-    // Both type `t` as a bare string, which is why a cast could not have refused a wrong ilk.
     assert!(declarations.rpy_v1_schema.contains("t: string"));
 
-    // The alias has exactly one consumer, and it is Roadmap 8.1's file.
     assert_eq!(declarations.rpy_alias_consumers.total, 1);
     assert!(
         declarations
@@ -341,7 +305,6 @@ fn the_escrow_vocabulary_is_one_route_named_only_in_a_test() -> Result<(), Box<d
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The one route the pinned tree names appears exactly once, in the unit test.
     assert_eq!(declarations.pinned_route_uses.needle, PRESENTATION_REQUEST_ROUTE);
     assert_eq!(declarations.pinned_route_uses.total, 1);
     assert_eq!(
@@ -354,8 +317,6 @@ fn the_escrow_vocabulary_is_one_route_named_only_in_a_test() -> Result<(), Box<d
         ["test/app/escrowing.test.ts"]
     );
 
-    // The two reply routes the reference actually produces are used, and never as an escrow
-    // filter: every hit is somewhere other than this file or its test.
     for scan in [
         &declarations.reply_route_uses.end_role_add,
         &declarations.reply_route_uses.loc_scheme,
@@ -371,7 +332,6 @@ fn the_escrow_vocabulary_is_one_route_named_only_in_a_test() -> Result<(), Box<d
         }
     }
 
-    // So there is no closed set to enumerate, and the route stays borrowed text.
     assert!(declarations.escrows_accessor_uses.total >= 1);
     assert!(declarations.list_reply_uses.total >= 1);
     assert!(declarations.notes.is_object());
@@ -380,19 +340,14 @@ fn the_escrow_vocabulary_is_one_route_named_only_in_a_test() -> Result<(), Box<d
 
 #[test]
 fn keripy_corroborates_that_the_one_named_route_is_not_a_reply_route() -> Result<(), Box<dyn Error>> {
-    // Scoped corroboration, not a governing reference (`PORTING.md` §1.1, ADR `0009`) — exactly how
-    // Roadmap 7.4 and 7.5 read keripy. signify-ts governs every byte this family sends; what it
-    // cannot answer is what a reply escrow actually holds, because it never fills one.
     let fixture = fixture()?;
     let keripy = &fixture.keripy_corroboration;
     assert_eq!(keripy.keripy_sha, KERIPY_SHA);
     assert!(keripy.scoping.starts_with("corroboration only"));
     assert!(!keripy.note.is_empty());
 
-    // The escrow this endpoint reads out of.
     assert!(keripy.escrow_reply_declaration.starts_with("def escrowReply("));
 
-    // Every route a reply may carry, from the three routers that register one.
     assert_eq!(
         keripy.reply_routes,
         [
@@ -405,13 +360,9 @@ fn keripy_corroborates_that_the_one_named_route_is_not_a_reply_route() -> Result
             "/watcher/{aid}/{action}",
         ]
     );
-    // Both routes the signify-ts reference produces are among them, which is the cross-check that
-    // this list is the right list.
     assert!(keripy.reply_routes.iter().any(|route| route == "/loc/scheme"));
     assert!(keripy.reply_routes.iter().any(|route| route.starts_with("/end/role/")));
 
-    // And the one route the pinned unit test filters on is **not**: keripy names it once, in a
-    // specification document, as the route of an `exn`.
     assert!(!keripy.presentation_request_is_a_reply_route);
     assert!(
         !keripy
@@ -434,7 +385,6 @@ fn keripy_corroborates_that_the_one_named_route_is_not_a_reply_route() -> Result
             .contains(PRESENTATION_REQUEST_ROUTE)
     );
 
-    // None of that changes a byte: the port still sends exactly what the pinned test asserts.
     let recorded = call(&fixture, "pinned_route")?;
     let ((path, _, _), _) = drive(recorded)?;
     assert_eq!(path, "/escrows/rpy?route=%2Fpresentation%2Frequest");
@@ -460,7 +410,6 @@ fn the_pinned_url_and_method_are_produced() -> Result<(), Box<dyn Error>> {
     assert_eq!(confirmations.driven_method, "GET");
     assert!(!confirmations.note.is_empty());
 
-    // And this port produces the same URL for the same route.
     let recorded = call(&fixture, "pinned_route")?;
     let ((path, method, body), _) = drive(recorded)?;
     assert_eq!(&path, published);
@@ -492,10 +441,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The requests.
-// ---------------------------------------------------------------------------
-
+// --- The requests ---
 #[test]
 fn every_recorded_request_reproduces_except_the_bare_question_mark() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -508,7 +454,6 @@ fn every_recorded_request_reproduces_except_the_bare_question_mark() -> Result<(
         assert_eq!(body, None, "call {} sent a body", recorded.name);
         assert_eq!(expected.body, None);
         if recorded.name == "no_route" {
-            // The one deliberate difference: upstream appends `'?'` unconditionally.
             assert_eq!(expected.path, "/escrows/rpy?");
             assert_eq!(path, "/escrows/rpy");
         } else {
@@ -516,7 +461,6 @@ fn every_recorded_request_reproduces_except_the_bare_question_mark() -> Result<(
             reproduced = reproduced.saturating_add(1);
         }
     }
-    // Twelve of the thirteen, byte for byte.
     assert_eq!(reproduced, 12);
     Ok(())
 }
@@ -524,8 +468,6 @@ fn every_recorded_request_reproduces_except_the_bare_question_mark() -> Result<(
 #[test]
 fn a_route_reaches_the_query_encoded_exactly_once() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference escapes these too — `URLSearchParams`, not interpolation — so each of these is
-    // an agreement rather than a divergence.
     for (name, expected) in [
         ("route_with_query_delimiters", "/escrows/rpy?route=a%26b%3Dc"),
         ("route_with_space", "/escrows/rpy?route=a+b"),
@@ -540,7 +482,6 @@ fn a_route_reaches_the_query_encoded_exactly_once() -> Result<(), Box<dyn Error>
         );
         let ((path, _, _), _) = drive(recorded)?;
         assert_eq!(path, expected, "call {name}");
-        // Whatever the route held, the resource is still `/escrows/rpy`.
         assert!(path.starts_with("/escrows/rpy?"));
         assert_eq!(path.matches('?').count(), 1);
         assert_eq!(path.matches('&').count(), 0);
@@ -568,10 +509,7 @@ fn an_empty_route_and_an_absent_one_are_two_requests() -> Result<(), Box<dyn Err
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The answers.
-// ---------------------------------------------------------------------------
-
+// --- The answers ---
 #[test]
 fn the_pinned_listing_decodes_into_the_replies_the_reference_built() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -583,7 +521,6 @@ fn the_pinned_listing_decodes_into_the_replies_the_reference_built() -> Result<(
     let listing = listing?;
     assert_eq!(listing.len(), 2);
 
-    // Every declared field survives, and the reference returned exactly what it was sent.
     assert_eq!(recorded.result, recorded.answer);
     for (decoded, sent) in listing.iter().zip(answered) {
         for label in ["v", "t", "d", "dt", "r"] {
@@ -594,7 +531,6 @@ fn the_pinned_listing_decodes_into_the_replies_the_reference_built() -> Result<(
             decoded.get("r").and_then(Value::as_str),
             Some(PRESENTATION_REQUEST_ROUTE)
         );
-        // A KERI 1 reply carries no identifier, and none is invented.
         assert_eq!(decoded.get("i"), None);
     }
     Ok(())
@@ -602,9 +538,6 @@ fn the_pinned_listing_decodes_into_the_replies_the_reference_built() -> Result<(
 
 #[test]
 fn an_escrowed_reply_is_one_this_port_could_have_built() -> Result<(), Box<dyn Error>> {
-    // The generator built the pinned answers with the reference's own `reply()`. Rebuilding one
-    // with Roadmap 3.6's builder from the same inputs reproduces its identifier, which is what
-    // makes the recorded messages genuine escrow material rather than fixture-shaped JSON.
     let fixture = fixture()?;
     let recorded = call(&fixture, "pinned_route")?;
     let first = recorded
@@ -625,18 +558,14 @@ fn an_escrowed_reply_is_one_this_port_could_have_built() -> Result<(), Box<dyn E
         .attributes(attributes)
         .build()?;
 
-    // The identifier is a digest over the exact bytes, so reproducing it proves the bytes.
     assert_eq!(
         Some(rebuilt.said().qb64()?.as_str()),
         first.get("d").and_then(Value::as_str),
         "the rebuilt reply derives a different identifier"
     );
-    // And every field agrees, including the version string's own byte count.
     let decoded: Value = serde_json::from_slice(rebuilt.raw())?;
     assert_eq!(&decoded, first);
     assert_eq!(decoded.get("v").and_then(Value::as_str), Some("KERI10JSON00013f_"));
-    // The recorded literal is *not* what `serde_json` writes back, because a parsed map sorts —
-    // the same reason a decoded `ReplyRecord` cannot be used to verify its own SAID.
     assert_ne!(core::str::from_utf8(rebuilt.raw())?, serde_json::to_string(first)?);
     Ok(())
 }
@@ -655,7 +584,6 @@ fn an_empty_listing_is_an_answer() -> Result<(), Box<dyn Error>> {
 fn a_wrong_ilk_answer_is_refused_where_the_reference_counts_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "wrong_ilk_answer")?;
-    // The reference returned it as an escrowed reply: `Rpy` types `t` as a bare string.
     assert_eq!(recorded.error, None);
     assert_eq!(
         recorded
@@ -672,7 +600,6 @@ fn a_wrong_ilk_answer_is_refused_where_the_reference_counts_it() -> Result<(), B
         matches!(listing, Err(ClientError::Api { .. })),
         "an inception event was accepted as an escrowed reply: {listing:?}"
     );
-    // The request still went out, so this is a refusal of the answer rather than of the call.
     assert_eq!(path, "/escrows/rpy?route=%2Fpresentation%2Frequest");
     Ok(())
 }
@@ -696,7 +623,6 @@ fn an_answer_that_is_not_a_listing_is_refused() -> Result<(), Box<dyn Error>> {
 fn an_undeclared_field_is_ignored_where_the_reference_keeps_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "unknown_field_answer")?;
-    // The reference hands the caller everything the agent sent.
     assert_eq!(
         recorded
             .result
@@ -711,7 +637,6 @@ fn an_undeclared_field_is_ignored_where_the_reference_keeps_it() -> Result<(), B
     assert_eq!(listing.len(), 1);
     let decoded = listing.first().ok_or("the listing is empty")?;
     assert_eq!(decoded.get("escrowed"), None);
-    // The attribute block the schema types `unknown` is still captured whole.
     assert_eq!(
         decoded.get("a"),
         recorded

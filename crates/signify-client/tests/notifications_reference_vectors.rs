@@ -1,9 +1,6 @@
 //! Exact notification-endpoint vectors recorded from the pinned reference's own `Notifications`.
 //!
-//! Three methods, one of which is the second windowed listing in the port and the only one that
-//! reads a `Content-Range` back. The evidence that matters most here is not a path: it is **what a
-//! notification's identifier actually is**, which the reference documents wrongly and which the
-//! fixture establishes from `randomNonce` and from keripy rather than from any pinned literal.
+//! Three methods, the port's second windowed listing, and what a notification's identifier actually is.
 
 mod support;
 
@@ -30,13 +27,9 @@ const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 const FIXTURE: &str = include_str!("../../../fixtures/client-notifications/v1.json");
 
-/// The literal the pinned unit test passes, which is not a qualified identifier at all.
 const PINNED_LITERAL: &str = "notificationSAID";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -162,13 +155,10 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-/// The body the agent was made to answer with — for `list` the page itself, where `result` is the
-/// wrapper the reference builds around it.
 fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.payload)?)
 }
 
-/// A connected client, its scripted agent.
 type Harness = (ConnectedClient, Arc<AgentTransport>);
 
 fn connected(bodies: &[&[u8]], content_range: Option<&str>) -> Result<Harness, Box<dyn Error>> {
@@ -204,7 +194,6 @@ fn connected(bodies: &[&[u8]], content_range: Option<&str>) -> Result<Harness, B
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, `Range` header, and body of the first endpoint request.
 type SentRequest = (String, String, Option<String>, Option<String>);
 
 fn sent(transport: &AgentTransport) -> Result<SentRequest, Box<dyn Error>> {
@@ -220,16 +209,12 @@ fn unit() -> Result<RangeUnit, Box<dyn Error>> {
     Ok(RangeUnit::new(NOTIFICATION_RANGE_UNIT)?)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    // keripy is a second reference here, scoped to what fills a notification's identifier.
     assert_eq!(fixture.keripy_sha, KERIPY_SHA);
     assert_eq!(fixture.keripy_sources.len(), 2);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
@@ -244,7 +229,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 12);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of them — not a fractional window, not a reversed one.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         let request = entry.request.as_ref().ok_or("a recorded call made no request")?;
         assert!(
@@ -262,17 +246,14 @@ fn a_notification_identifier_is_not_a_said() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let record = &fixture.notification_identifier;
 
-    // The reference says it is one.
     assert!(record.documentation.contains("SAID of the notification"));
     assert!(record.mark_parameters_are_named_said());
 
-    // keripy builds the record with an empty identifier and fills it with a nonce.
     assert!(record.keripy_notice_leaves_it_empty.contains(r#"i="""#));
     assert!(record.keripy_dicter_fills_it.contains("randomNonce()"));
     assert!(record.keripy_dicter_fill_sites >= 1);
     assert_eq!(record.keripy_sha, KERIPY_SHA);
 
-    // And the two references disagree about that nonce's code — neither of them a digest code.
     assert!(record.signify_random_nonce.contains("Ed25519_Seed"));
     assert!(record.keripy_random_nonce_code.contains("Salt_128"));
     assert_eq!(record.signify_nonce_leading, "A");
@@ -281,12 +262,10 @@ fn a_notification_identifier_is_not_a_said() -> Result<(), Box<dyn Error>> {
     assert_ne!(record.signify_nonce_leading, record.sample_said_leading);
     assert_ne!(record.keripy_nonce_leading, record.sample_said_leading);
 
-    // The decisive check: neither nonce parses as a SAID, and the digest does.
     assert!(Said::from_qb64(&record.signify_nonce).is_err());
     assert!(Said::from_qb64(&record.keripy_nonce).is_err());
     assert!(Said::from_qb64(&record.sample_said).is_ok());
     assert_eq!(record.sample_said, fixture.provenance.sample_said);
-    // Nor does the literal the pinned unit test passes.
     assert!(Said::from_qb64(PINNED_LITERAL).is_err());
 
     assert!(!record.note.is_empty());
@@ -295,7 +274,6 @@ fn a_notification_identifier_is_not_a_said() -> Result<(), Box<dyn Error>> {
 }
 
 impl IdentifierRecord {
-    /// Whether the reference still calls the argument `said`.
     fn mark_parameters_are_named_said(&self) -> bool {
         self.documentation.contains("@param {string} said")
     }
@@ -311,7 +289,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         ["client", "<constructor>", "list", "mark", "delete"]
     );
 
-    // Both window bounds are numbers with observable defaults.
     assert_eq!(declarations.list_parameters, ["start: number = 0", "end: number = 24"]);
     assert!(declarations.list_range_header.contains("notes=${start}-${end}"));
     assert!(declarations.list_range_header.contains("Range"));
@@ -320,13 +297,11 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.list_path.contains(NOTIFICATIONS_SEGMENT));
     assert!(declarations.list_range_header.contains(NOTIFICATION_RANGE_UNIT));
 
-    // The window is read back and then spread into the returned object.
     assert!(declarations.list_content_range.contains("content-range"));
     assert!(declarations.list_range_parse.contains("parseRangeHeaders"));
     assert!(declarations.list_return.contains("start: range.start"));
     assert!(declarations.list_return.contains("notes: notes"));
 
-    // Both single-notification paths concatenate raw, and differ only in method.
     assert_eq!(declarations.mark_path, "path = `/notifications/` + said");
     assert_eq!(declarations.delete_path, declarations.mark_path);
     assert!(!declarations.mark_path.contains("encodeURIComponent"));
@@ -335,11 +310,9 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.mark_parameters, ["said: string"]);
     assert_eq!(declarations.delete_parameters, ["said: string"]);
 
-    // `mark` reads its answer as text; `delete` sends no body at all.
     assert_eq!(declarations.mark_return, "await res.text()");
     assert!(declarations.delete_fetch.contains("undefined"));
 
-    // The response type, whose `r` is what `mark` flips.
     assert!(declarations.notification_type.contains("i: string"));
     assert!(declarations.notification_type.contains("r: boolean"));
     Ok(())
@@ -368,8 +341,6 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
         );
     }
 
-    // Every integration call site passes a runtime field, which is why the identifier's shape had
-    // to be established from `randomNonce` rather than from a literal.
     assert_eq!(pinned.integration_usage.len(), 3);
     assert!(
         pinned
@@ -406,10 +377,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `list`.
-// ---------------------------------------------------------------------------
-
+// --- `list` ---
 #[test]
 fn the_pinned_windowed_listing_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -429,7 +397,6 @@ fn the_pinned_windowed_listing_reproduces_byte_for_byte() -> Result<(), Box<dyn 
     assert_eq!(header.as_deref(), Some("notes=20-40"));
     assert_eq!(body, None);
 
-    // The window comes back separate from the page.
     let window = listing.window.ok_or("no window was reported")?;
     assert_eq!(window.start(), 20);
     assert_eq!(window.end(), 40);
@@ -442,7 +409,6 @@ fn the_pinned_windowed_listing_reproduces_byte_for_byte() -> Result<(), Box<dyn 
 #[test]
 fn the_default_window_produces_the_same_request_as_naming_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // `list()` writes both defaults into the header, so it is an observable request.
     let defaulted = request_of(&fixture, "list_default_window")?;
     assert_eq!(defaulted.headers.get("range").map(String::as_str), Some("notes=0-24"));
     assert_eq!(ItemRange::DEFAULT.header_value(&unit()?), "notes=0-24");
@@ -460,9 +426,7 @@ fn an_absent_content_range_stays_unreported_rather_than_becoming_zeroes() -> Res
     let fixture = fixture()?;
     let recorded = call(&fixture, "list_no_content_range")?;
     assert_eq!(recorded.content_range, None);
-    // The agent answered with one real notification…
     assert_eq!(recorded.payload.as_array().map(Vec::len), Some(1));
-    // …and the reference reported its window as three zeroes anyway.
     for field in ["start", "end", "total"] {
         assert_eq!(
             recorded.result.get(field).and_then(Value::as_u64),
@@ -480,10 +444,8 @@ fn an_absent_content_range_stays_unreported_rather_than_becoming_zeroes() -> Res
     let (client, _) = connected(&[&answer], None)?;
     let listing = block_on(client.notifications().list(ItemRange::DEFAULT))?;
 
-    // Here the window is simply not known, and the page is still a page.
     assert_eq!(listing.window, None);
     assert_eq!(listing.notifications.len(), 1);
-    // Which is distinguishable from an agent that reported an empty window.
     let empty = answer_of(&fixture, "list_empty")?;
     let empty_range = call(&fixture, "list_empty")?.content_range.clone();
     let (client, _) = connected(&[&empty], empty_range.as_deref())?;
@@ -497,7 +459,6 @@ fn an_absent_content_range_stays_unreported_rather_than_becoming_zeroes() -> Res
 #[test]
 fn a_window_that_is_not_a_count_of_items_is_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference stringifies both bounds straight into the header.
     let fractional = request_of(&fixture, "list_fractional_window")?;
     assert_eq!(
         fractional.headers.get("range").map(String::as_str),
@@ -506,9 +467,7 @@ fn a_window_that_is_not_a_count_of_items_is_unrepresentable() -> Result<(), Box<
     let reversed = request_of(&fixture, "list_reversed_window")?;
     assert_eq!(reversed.headers.get("range").map(String::as_str), Some("notes=40-20"));
 
-    // Neither is expressible: the bounds are `u64` and the start may not exceed the end.
     assert!(ItemRange::new(40, 20).is_err());
-    // And every window this port can build writes two whole numbers.
     let header = ItemRange::new(1, 2)?.header_value(&unit()?);
     assert_eq!(header, "notes=1-2");
     assert!(!header.contains('.'));
@@ -520,7 +479,6 @@ fn a_wrong_shaped_page_is_refused_where_the_reference_does_not_even_type_it() ->
     let fixture = fixture()?;
     let recorded = call(&fixture, "list_wrong_shape")?;
     assert_eq!(recorded.error, None);
-    // `list` is `Promise<any>`, so upstream the entry reaches the caller unchallenged.
     assert_eq!(recorded.payload.as_array().map(Vec::len), Some(1));
     assert_eq!(
         recorded.result.get("notes").and_then(Value::as_array).map(Vec::len),
@@ -536,15 +494,11 @@ fn a_wrong_shaped_page_is_refused_where_the_reference_does_not_even_type_it() ->
         matches!(outcome, Err(ClientError::Api { .. })),
         "a notification missing its declared fields was not refused: {outcome:?}"
     );
-    // The request still went out, so this refuses the answer rather than the call.
     assert_eq!(sent(&transport)?.0, "/notifications");
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// `mark` and `delete`.
-// ---------------------------------------------------------------------------
-
+// --- `mark` and `delete` ---
 #[test]
 fn both_pinned_single_notification_calls_reproduce_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -583,7 +537,6 @@ fn a_real_identifier_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
         } else {
             block_on(notifications.delete(&nonce))?;
         }
-        // A qualified nonce's alphabet is URL-safe Base64, so encoding leaves it unchanged.
         assert_eq!(sent(&transport)?.0, recorded.path, "{name} rewrote the identifier");
     }
     Ok(())
@@ -593,7 +546,6 @@ fn a_real_identifier_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
 fn an_identifier_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "mark_needing_encoding")?;
-    // Upstream the path became a query — the case Roadmap 5.3's own fixture recorded.
     assert_eq!(recorded.path, "/notifications/a?b=c");
 
     let (client, transport) = connected(&[b"\"\""], None)?;
@@ -609,13 +561,11 @@ fn an_identifier_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn E
 fn a_delete_carries_no_body_where_mark_sends_null() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let deleted = request_of(&fixture, "delete")?;
-    // `delete` passes `undefined`; `mark` passes `null`.
     assert!(deleted.body_is_undefined);
     assert_eq!(deleted.body, None);
     let marked = request_of(&fixture, "mark")?;
     assert!(!marked.body_is_undefined);
 
-    // Neither sends a body on the wire here, which is what both produce.
     let (client, transport) = connected(&[b"{}"], None)?;
     block_on(client.notifications().delete(PINNED_LITERAL))?;
     assert_eq!(sent(&transport)?.3, None);
@@ -627,12 +577,9 @@ fn marking_returns_its_body_as_strictly_decoded_text() -> Result<(), Box<dyn Err
     let fixture = fixture()?;
     assert_eq!(fixture.declarations.mark_return, "await res.text()");
 
-    // A well-formed answer comes back as text.
     let (client, _) = connected(&[b"marked"], None)?;
     assert_eq!(block_on(client.notifications().mark(PINNED_LITERAL))?, "marked");
 
-    // A body that is not valid UTF-8 is refused, where `res.text()` substitutes U+FFFD and hands
-    // the caller something that reads as a message.
     let (client, _) = connected(&[&[0xff, 0xfe, 0x00]], None)?;
     let outcome = block_on(client.notifications().mark(PINNED_LITERAL));
     assert!(

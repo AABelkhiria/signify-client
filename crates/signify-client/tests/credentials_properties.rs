@@ -1,14 +1,6 @@
 //! Invariants of the credentials endpoint family.
 //!
-//! Seven dynamic values reach a path across this family's six methods, and the reference
-//! interpolates every one of them raw. The properties that matter are that none of them can: what
-//! is not a SAID or a registry identifier is refused outright, what is one carries no delimiter to
-//! escape with, and an alias is always exactly one segment however it is spelled.
-//!
-//! The rest is about the two documents this family owns. A [`CredentialFilter`] is the only request
-//! body in the crate whose contents are the *agent's* query language rather than a protocol shape,
-//! so what it renders is stated for every shape rather than the three the fixture records; and a
-//! credential record is the largest answer any read here returns.
+//! Seven raw-interpolated path values that can never escape their segment, and the two documents this family owns.
 
 use std::error::Error;
 
@@ -31,12 +23,10 @@ const ISSUANCE: &str = "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW";
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
-/// Syntactically valid Blake3-256 SAIDs.
 fn saids() -> impl Strategy<Value = Said> {
     "[A-Za-z0-9_-]{43}".prop_filter_map("not a said", |body| Said::from_qb64(&format!("E{body}")).ok())
 }
 
-/// Text that would reshape a path if it ever reached one unencoded.
 fn hostile_text() -> impl Strategy<Value = String> {
     prop_oneof![
         "[\\PC]{0,48}",
@@ -49,7 +39,6 @@ fn hostile_text() -> impl Strategy<Value = String> {
     ]
 }
 
-/// Field labels an agent query might carry, including the reference's own `-i` and `$eq`.
 fn query_labels() -> impl Strategy<Value = String> {
     prop_oneof![
         Just("-i".to_owned()),
@@ -60,7 +49,6 @@ fn query_labels() -> impl Strategy<Value = String> {
     ]
 }
 
-/// A complete credential record with the given status kind.
 fn credential_document(status: &str) -> String {
     json!({
         "sad": {
@@ -125,8 +113,6 @@ fn credential_document(status: &str) -> String {
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
 
-    /// A SAID reaches every path it appears in as exactly one segment, byte-identically to what the
-    /// reference interpolates raw — so the encoding costs no fidelity while removing the escape.
     #[test]
     fn a_said_is_always_one_unchanged_segment(said in saids()) {
         let text = said.qb64().map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -150,10 +136,6 @@ proptest! {
         prop_assert_eq!(state.path().split('/').count(), 4);
     }
 
-    /// Nothing that would reshape a path is ever a SAID or a registry identifier.
-    ///
-    /// The reference accepts any string for both, so `get`, `state`, and `revoke` can all be made
-    /// to address a different resource — and Roadmap 3.10 signs `@path`, so the signature follows.
     #[test]
     fn nothing_that_reshapes_a_path_is_a_credential_reference(text in hostile_text()) {
         let reshapes = text.contains('/') || text.contains('?') || text.contains('#') || text.is_empty();
@@ -166,10 +148,6 @@ proptest! {
         }
     }
 
-    /// An alias is always exactly one path segment, whatever it holds.
-    ///
-    /// The reference concatenates it raw in both `issue` and `revoke`, so an alias with a slash
-    /// chooses a different resource there.
     #[test]
     fn an_alias_is_always_one_segment(alias in hostile_text()) {
         prop_assume!(!alias.is_empty());
@@ -185,7 +163,6 @@ proptest! {
         prop_assert_eq!(path.query(), None);
     }
 
-    /// A filter always renders exactly the reference's four fields, in its order, whatever it holds.
     #[test]
     fn a_filter_always_renders_four_fields_in_order(
         label in query_labels(),
@@ -206,7 +183,6 @@ proptest! {
             .to_json_bytes()
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let text = String::from_utf8(body).map_err(|error| TestCaseError::fail(error.to_string()))?;
-        // `prop_assert!` treats its argument as a format string, so each shape is decided first.
         let opens_with_the_filter = text.starts_with("{\"filter\":");
         let carries_an_empty_sort = text.contains("\"sort\":[]");
         let tail = format!("\"skip\":{skip},\"limit\":{limit}}}");
@@ -215,7 +191,6 @@ proptest! {
         prop_assert!(carries_an_empty_sort);
         prop_assert!(ends_with_the_bounds);
 
-        // It is always a JSON object with exactly those four labels.
         let document: Value =
             serde_json::from_str(&text).map_err(|error| TestCaseError::fail(error.to_string()))?;
         let fields = document.as_object().ok_or_else(|| TestCaseError::fail("not an object"))?;
@@ -225,7 +200,6 @@ proptest! {
         }
     }
 
-    /// A listing always addresses the same two constant segments and carries nothing in its path.
     #[test]
     fn a_listing_never_carries_input_in_its_path(skip in 0_u32..u32::MAX, limit in 0_u32..u32::MAX) {
         let _ = CredentialFilter::new().with_skip(skip).with_limit(limit);
@@ -238,13 +212,10 @@ proptest! {
         prop_assert_eq!(path.query(), None);
     }
 
-    /// A credential record decodes only in the status kinds the schema declares, and refuses others.
     #[test]
     fn a_credential_record_accepts_only_the_declared_status_kinds(status in "[a-z]{3}") {
         let document = credential_document(&status);
         let decoded = serde_json::from_str::<CredentialRecord>(&document);
-        // `bis` and `brv` describe a backed registry, whose status carries a registry anchor this
-        // document does not, so only the unbacked pair can decode from it.
         if status == "iss" || status == "rev" {
             prop_assert!(decoded.is_ok(), "{status} was refused: {decoded:?}");
         } else {
@@ -252,13 +223,10 @@ proptest! {
         }
     }
 
-    /// Arbitrary bytes either decode as a credential record or are refused with a reason; nothing
-    /// panics and nothing is repaired.
     #[test]
     fn arbitrary_bytes_decode_or_are_refused(bytes in prop::collection::vec(any::<u8>(), 0..512)) {
         match serde_json::from_slice::<CredentialRecord>(&bytes) {
             Ok(record) => {
-                // Anything accepted re-encodes and decodes again to the same value.
                 let encoded = serde_json::to_vec(&record)
                     .map_err(|error| TestCaseError::fail(error.to_string()))?;
                 let again = serde_json::from_slice::<CredentialRecord>(&encoded)
@@ -270,14 +238,9 @@ proptest! {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Named regressions.
-// ---------------------------------------------------------------------------
-
+// --- Named regressions ---
 #[test]
 fn the_default_filter_is_the_references_defaults_rather_than_the_zero_values() -> Result<(), Box<dyn Error>> {
-    // Deriving `Default` would give `limit: 0`, which asks for nothing rather than for the
-    // reference's twenty-five — a silent behavioural change the type system would not catch.
     let default = CredentialFilter::default();
     assert_eq!(default, CredentialFilter::new());
     assert_eq!(default.limit, DEFAULT_CREDENTIAL_LIMIT);
@@ -291,8 +254,6 @@ fn the_default_filter_is_the_references_defaults_rather_than_the_zero_values() -
 
 #[test]
 fn a_filter_carrying_nested_clauses_survives_re_encoding() -> Result<(), Box<dyn Error>> {
-    // The reference's own filter is two levels deep — `{'-i': {$eq: …}}` — and its sort a list of
-    // one-field documents, so both nesting shapes reach the wire.
     let mut equality = Sad::new();
     equality.insert("$eq", CREDENTIAL)?;
     let mut clause = Sad::new();
@@ -312,7 +273,6 @@ fn a_filter_carrying_nested_clauses_survives_re_encoding() -> Result<(), Box<dyn
             r#"{{"filter":{{"-i":{{"$eq":"{CREDENTIAL}"}}}},"sort":[{{"-s":1}},{{"-d":-1}}],"skip":0,"limit":25}}"#
         )
     );
-    // It is valid JSON that round-trips through a general parser unchanged.
     let document: Value = serde_json::from_str(&text)?;
     assert_eq!(document.get("sort").and_then(Value::as_array).map(Vec::len), Some(2));
     Ok(())
@@ -320,7 +280,6 @@ fn a_filter_carrying_nested_clauses_survives_re_encoding() -> Result<(), Box<dyn
 
 #[test]
 fn a_registry_identifier_is_one_unchanged_segment() -> Result<(), Box<dyn Error>> {
-    // `state` carries two dynamic values, both of which the reference concatenates raw.
     let registry = RegistryIdentifier::from_qb64(REGISTRY)?;
     let said = Said::from_qb64(CREDENTIAL)?;
     let path = ResourcePath::builder()
@@ -334,9 +293,6 @@ fn a_registry_identifier_is_one_unchanged_segment() -> Result<(), Box<dyn Error>
 
 #[test]
 fn a_deeply_nested_answer_is_a_typed_refusal_rather_than_a_crash() {
-    // A credential record's `sad.a` and its schema's `properties` are both open, so an agent can
-    // nest arbitrarily. `serde_json` bounds its own recursion, which this asserts rather than
-    // assumes.
     let mut document = String::from(r#"{"sad":"#);
     document.push_str(&"[".repeat(4096));
     document.push_str(&"]".repeat(4096));
@@ -347,8 +303,6 @@ fn a_deeply_nested_answer_is_a_typed_refusal_rather_than_a_crash() {
 
 #[test]
 fn the_reference_mock_credentials_two_defects_are_each_enough_to_refuse_it() -> Result<(), Box<dyn Error>> {
-    // Missing fields alone would do it; so would the seal's numeric sequence. Both are asserted so
-    // repairing one upstream does not silently make the other pass.
     let complete = credential_document("iss");
     assert!(serde_json::from_str::<CredentialRecord>(&complete).is_ok());
 

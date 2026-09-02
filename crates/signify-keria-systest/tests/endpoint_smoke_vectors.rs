@@ -1,12 +1,6 @@
 //! Hermetic assertions over the recorded endpoint smoke coverage.
 //!
-//! Wave 5 drove `test-integration/endpoints.test.ts` against a live deployment: an unwitnessed
-//! identifier granting the agent role, granting the **mailbox** role to itself, adding a location
-//! scheme, and reading back the OOBI the agent derives from the pair. This file re-checks the
-//! recording from its own values — the expected URL is recomputed from the recorded prefixes, not
-//! read from a flag the scenario wrote.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! No agent role before the grant, the exact triple after, and the OOBI a self-controlled mailbox derives.
 
 use std::error::Error;
 use std::fs;
@@ -15,7 +9,6 @@ use std::path::Path;
 use serde::Deserialize;
 use signify_keri::prefix::IdentifierPrefix;
 
-/// The location the upstream case authorises for its mailbox.
 const MAILBOX_URL: &str = "https://mymailbox.com";
 
 #[derive(Debug, Deserialize)]
@@ -68,7 +61,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert!(!captured.transcript.is_empty(), "the recording kept no transcript");
     assert_eq!(captured.operations_remaining, 0);
 
-    // Both prefixes are real qualified identifiers, and they are different parties.
     IdentifierPrefix::from_qb64(&captured.cid)?;
     IdentifierPrefix::from_qb64(&captured.agent_prefix)?;
     assert_ne!(captured.cid, captured.agent_prefix);
@@ -81,12 +73,8 @@ fn the_agent_role_goes_from_none_to_exactly_one() -> Result<(), Box<dyn Error>> 
         return Ok(());
     };
 
-    // Upstream's first assertion: nothing was authorised before the grant — creating an
-    // identifier does not grant its agent anything by itself.
     assert_eq!(captured.agent_roles_before, 0);
 
-    // And after the grant, exactly the one triple the upstream case deep-equals: the identifier
-    // as `cid`, the agent as `eid`.
     let role = match captured.agent_roles.as_slice() {
         [role] => role,
         other => return Err(format!("expected one agent authorisation, found {}", other.len()).into()),
@@ -103,8 +91,6 @@ fn the_mailbox_role_names_the_identifier_itself() -> Result<(), Box<dyn Error>> 
         return Ok(());
     };
 
-    // The self-controlled endpoint: cid and eid are deliberately the same prefix, which is what
-    // makes the derived OOBI below end in the same identifier twice.
     let role = match captured.mailbox_roles.as_slice() {
         [role] => role,
         other => return Err(format!("expected one mailbox authorisation, found {}", other.len()).into()),
@@ -121,9 +107,6 @@ fn the_mailbox_oobi_joins_the_location_to_the_role() -> Result<(), Box<dyn Error
         return Ok(());
     };
 
-    // The upstream case's final assertion, recomputed from the recorded prefixes rather than
-    // trusted: the OOBI is the authorised URL joined to `/oobi/{cid}/mailbox/{eid}`, and because
-    // the mailbox is self-controlled the identifier appears twice.
     assert_eq!(
         captured.mailbox_oobi,
         format!("{MAILBOX_URL}/oobi/{}/mailbox/{}", captured.cid, captured.cid)
@@ -137,9 +120,6 @@ fn the_reads_went_through_the_end_roles_resource() -> Result<(), Box<dyn Error>>
         return Ok(());
     };
 
-    // The mapping the wave documents: upstream's helper raw-fetches
-    // `/identifiers/{alias}/endroles/{role}`, the port reads `/endroles/{aid}/{role}` — Roadmap
-    // 7.1's resource. The transcript proves which address answered the triples above.
     for role in ["agent", "mailbox"] {
         let resource = format!("/endroles/{}/{role}", captured.cid);
         assert!(

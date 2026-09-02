@@ -1,26 +1,8 @@
 //! Wave 9 — single-signature delegation: an inception that exists only once it is anchored.
 //!
-//! `test-integration/delegation.test.ts` is the §7 row for Roadmap 8.5's endpoint driven whole: a
-//! delegate creates an identifier naming a delegator, and that inception's operation stays
-//! **pending** — the identifier does not exist yet — until the delegator anchors a seal of it in
-//! its own log and the delegate's agent sees that anchor. The seeing is itself a step: the
-//! delegate's client queries the delegator's key state at sequence one, which is what makes its
-//! agent fetch the approving interaction from the witnesses.
-//!
-//! Two of Roadmap 8.5's refusals are exercised live. The delegate's prefix is read from the
-//! creation's own artifact, not parsed out of an operation name (`op.name.split('.')[1]`
-//! upstream); and the seal is [`InceptionSeal`], whose three fields cannot disagree, not a
-//! hand-assembled object. The tail reproduces the upstream case's odd contact resolution: the
-//! delegate's agent OOBI **truncated at `/agent/`** still resolves, and answers the delegate's
-//! prefix.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave9_delegation -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Creates a delegated identifier, proves it pending, then anchors its seal at the delegation address.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -38,32 +20,21 @@ use signify_keri::said::Said;
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 use signify_types::api::Role;
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
-    /// The witnessed delegator.
     delegator_prefix: String,
-    /// The delegated identifier.
     delegate_prefix: String,
-    /// The delegated inception exactly as the delegate's client serialized it.
     delegate_event: String,
     delegate_said: String,
-    /// Whether the creation's operation was still pending before the approval — the row's point.
     pending_before_approval: bool,
-    /// The approving interaction as the delegator's client serialized it.
     approval_event: String,
     approval_said: String,
-    /// The seal that interaction anchors, read back from the event.
     anchored_seal: String,
-    /// The sequence text the delegate's key-state query sent; hexadecimal.
     query_sequence_sent: String,
-    /// The delegate record's prefix after the operation completed.
     accepted_prefix: String,
-    /// The truncated OOBI URL the delegator resolved the delegate through.
     truncated_oobi: String,
-    /// The prefix that resolution answered with.
     contact_resolved: String,
     delegator_operations_remaining: usize,
     delegate_operations_remaining: usize,
@@ -71,12 +42,6 @@ struct Captured {
     delegate_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one operation out and deletes it **and its dependency**, as the upstream helper does.
-///
-/// A delegation approval spawns a second operation — `witness.{said}`, the receipting of the
-/// anchoring interaction — embedded in the first one's `metadata.depends`. Upstream's
-/// `deleteOperations` walks that chain; a helper that deleted only the top operation leaves the
-/// dependency listed, which is how this wave's first run failed its own postcondition.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -93,7 +58,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Creates the witnessed delegator with its agent end role, as the upstream case does.
 async fn witnessed_delegator(
     client: &ConnectedClient,
     environment: &Environment,
@@ -120,7 +84,6 @@ async fn witnessed_delegator(
     Ok(prefix)
 }
 
-/// Resolves one OOBI URL on `client` under `alias` and returns the prefix it answered.
 async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<String, Box<dyn Error>> {
     progress(&format!("resolving {alias}'s OOBI"));
     let resolution = OobiResolution {
@@ -135,7 +98,6 @@ async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result
     Ok(state.identifier)
 }
 
-/// Creates the witnessed delegator and introduces it to the delegate through its agent OOBI.
 async fn introduced_delegator(
     delegator_client: &ConnectedClient,
     delegate_client: &ConnectedClient,
@@ -156,8 +118,6 @@ async fn introduced_delegator(
     Ok(delegator_prefix)
 }
 
-/// Queries the delegator's key state at sequence one on the delegate's client, which is what
-/// makes its agent fetch the approving interaction; returns the sequence text sent.
 async fn refresh_delegator_state(
     delegate_client: &ConnectedClient,
     delegator_prefix: &IdentifierPrefix,
@@ -172,9 +132,6 @@ async fn refresh_delegator_state(
     Ok(query_sequence.to_text())
 }
 
-/// The tail of the upstream case: the delegate authorises its agent, and the delegator resolves
-/// the delegate's agent OOBI **truncated at `/agent/`** — upstream's own odd URL — as a contact.
-/// Returns the truncated URL and the prefix it resolved to.
 async fn truncated_contact_tail(
     delegate_client: &ConnectedClient,
     delegator_client: &ConnectedClient,
@@ -223,12 +180,9 @@ async fn a_delegated_inception_pends_until_its_seal_is_anchored() -> Result<(), 
     .await?;
     let mut mismatches = Vec::new();
 
-    // The delegator, witnessed by the whole triple, and known to the delegate through its OOBI.
     let delegator_prefix =
         introduced_delegator(&delegator_client, &delegate_client, &environment, &mut mismatches).await?;
 
-    // The delegate creates an identifier naming the delegator. The prefix comes from the
-    // artifact, not from an operation's name; and the operation stays pending.
     progress("delegate: creating the delegated identifier");
     let mut request = CreateIdentifierRequest::new(CreateAlgorithm::salty(None));
     request.delegator = Some(delegator_prefix.clone());
@@ -237,8 +191,6 @@ async fn a_delegated_inception_pends_until_its_seal_is_anchored() -> Result<(), 
     let pending_name = created.operation()?.name;
     let pending_before_approval = !delegate_client.operations().get(&pending_name).await?.outcome.is_done();
 
-    // The delegator anchors the seal — built from the delegate's prefix and inception digest,
-    // which for a self-addressing delegated inception are the same value.
     progress("delegator: approving the delegation");
     let seal = InceptionSeal::new(delegate_prefix.clone(), Said::from_qb64(&delegate_prefix.qb64()?)?);
     let approved = delegator_client
@@ -255,8 +207,6 @@ async fn a_delegated_inception_pends_until_its_seal_is_anchored() -> Result<(), 
         .map(|seal| seal.to_string())
         .unwrap_or_default();
 
-    // The delegate's agent learns of the anchor by querying the delegator's key state at
-    // sequence one — hexadecimal, wave 1's answer — and only then does the creation complete.
     let query_sequence_sent = refresh_delegator_state(&delegate_client, &delegator_prefix).await?;
 
     progress("delegate: waiting out the pending inception");

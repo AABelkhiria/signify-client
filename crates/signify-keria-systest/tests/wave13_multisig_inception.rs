@@ -1,25 +1,8 @@
 //! Wave 13 — multisig inception: two groups, witnessed and witnessless.
 //!
-//! `test-integration/multisig-inception.test.ts` is the first half of the **Multisig
-//! inception/join** row: two members incept a group **witnessed at threshold two of the demo
-//! triple**, assert that both derived the same prefix and that the members listing names both of
-//! them in order for signing and rotation alike — and then incept a second group with **no
-//! witnesses at all** (`toad: 0, wits: []`), whose members assertions upstream comments out
-//! against `keria#189`. What that issue actually does to a live KERIA 1.0.1 is recorded here
-//! rather than assumed: the listing call's outcome for the witnessless group is captured either
-//! way it goes.
-//!
-//! The rounds run through the port's `propose_inception`/`accept_inception`, exactly as wave 12's
-//! setup did — the difference is that here the groups *are* the observation, at two witness
-//! configurations wave 12 did not touch.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave13_multisig_inception -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Incepts two groups by two members: witnessed at threshold two, and witnessless at zero.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -39,24 +22,18 @@ use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 use signify_types::api::Role;
 
-/// One group's round: what both members derived and what the agent lists.
 #[derive(Debug, Serialize)]
 struct GroupRound {
     group_name: String,
-    /// Whether the group named the witness triple, and at what threshold.
     witnessed: bool,
     witness_threshold: u32,
-    /// The prefix each member's client derived; upstream asserts them equal.
     proposer_prefix: String,
     acceptor_prefix: String,
-    /// The signing and rotation member AIDs the proposer's `members()` listing answered, in
-    /// order — or the error it answered instead, for the witnessless group `keria#189` is about.
     signing_aids: Vec<String>,
     rotation_aids: Vec<String>,
     members_error: Option<String>,
 }
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
@@ -69,7 +46,6 @@ struct Captured {
     member1_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one operation out and deletes it and any dependency.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -86,7 +62,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Creates one identifier witnessed by the whole triple, with the agent end role.
 async fn witnessed_identifier(
     client: &ConnectedClient,
     alias: &str,
@@ -113,7 +88,6 @@ async fn witnessed_identifier(
     Ok(prefix)
 }
 
-/// Resolves one OOBI URL under `alias` and waits the resolution out.
 async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<(), Box<dyn Error>> {
     progress(&format!("resolving {alias}'s OOBI"));
     let resolution = OobiResolution {
@@ -127,7 +101,6 @@ async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result
     Ok(())
 }
 
-/// Returns the first agent OOBI `alias` publishes.
 async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box<dyn Error>> {
     client
         .oobis()
@@ -139,8 +112,6 @@ async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box
         .ok_or_else(|| format!("{alias} publishes no OOBI").into())
 }
 
-/// Polls until an unread notification carries `route`, marking every match read; returns the last
-/// one's named message.
 async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Said, Box<dyn Error>> {
     progress(&format!("waiting for a notification on {route}"));
     for _ in 0..60 {
@@ -166,7 +137,6 @@ async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Sai
     Err(format!("no notification on {route} arrived in time").into())
 }
 
-/// Runs one two-member inception round and reads the members listing back.
 async fn group_round(
     member1: &ConnectedClient,
     member2: &ConnectedClient,
@@ -204,13 +174,9 @@ async fn group_round(
     wait_and_delete(member1, &proposed.creation().operation()?.name).await?;
     wait_and_delete(member2, &accepted.creation().operation()?.name).await?;
 
-    // Upstream reads both records back and asserts the prefixes equal; here both derivations were
-    // already compared inside the round, and the records confirm what the agents stored.
     let stored1 = member1.identifiers().get(group_name).await?;
     let stored2 = member2.identifiers().get(group_name).await?;
 
-    // The members listing — commented out upstream for the witnessless group against `keria#189`,
-    // so its outcome is recorded here whichever way it goes rather than asserted blindly.
     let (signing_aids, rotation_aids, members_error) = match member1.identifiers().members(group_name).await {
         Ok(listing) => (
             listing.signing.iter().map(|record| record.aid.clone()).collect(),
@@ -259,8 +225,6 @@ async fn two_groups_incept_witnessed_and_witnessless() -> Result<(), Box<dyn Err
     resolve_url(&member2, &agent_oobi(&member1, "member1").await?, "member1").await?;
     let participants = [aid1.clone(), aid2.clone()];
 
-    // The witnessed group: the whole triple at threshold two — the one witness configuration no
-    // earlier wave has driven.
     let witnesses: Vec<IdentifierPrefix> = environment
         .witness_prefixes
         .iter()
@@ -268,7 +232,6 @@ async fn two_groups_incept_witnessed_and_witnessless() -> Result<(), Box<dyn Err
         .collect::<Result<_, _>>()?;
     let witnessed_round = group_round(&member1, &member2, &participants, "multisig", &witnesses, 2).await?;
 
-    // The witnessless group: `toad: 0, wits: []`, whose members listing upstream dare not assert.
     let witnessless_round = group_round(&member1, &member2, &participants, "multisig2", &[], 0).await?;
 
     let captured = Captured {

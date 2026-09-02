@@ -1,16 +1,6 @@
 //! Exact registry-endpoint vectors recorded from the pinned reference's own `Registries`.
 //!
-//! The pinned `test/app/registry.test.ts` publishes an exact `vcp` and `ixn` pair and the
-//! establishment-only refusal. **Those two vectors are not reproducible here**: their issuer prefix
-//! is the literal `'hab prefix'`, which no `IdentifierPrefix` can be, so they are recorded verbatim
-//! and the input is proven refused — the arrangement Roadmap 3.8 established. Byte parity comes
-//! from driving the reference instead, with `globalThis.fetch` replaced by a recorder that signs as
-//! a KERIA agent would and the identifier lookup `create` performs answered with a deterministic
-//! record.
-//!
-//! Key material derives at the reference's production Argon2 profile, so this file is deliberately
-//! slow. The nonce is pinned so a registry inception is reproducible; each sealed salt is masked as
-//! `<SXLT>` and compared by what it opens to.
+//! The pinned `vcp`/`ixn` pair recorded verbatim and its input proven unrepresentable; parity driven instead.
 
 mod support;
 
@@ -39,10 +29,7 @@ use signify_keri::registry::RegistryInceptionBuilder;
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-registries/v1.json");
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -196,14 +183,12 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the endpoint request at `index`.
 fn sent(transport: &AgentTransport, index: usize) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-/// The sealing key pair this client's controller salt derives.
 fn sealing_keys() -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
     let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
     let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
@@ -213,7 +198,6 @@ fn sealing_keys() -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
     ))
 }
 
-/// Replaces every sealed salt in a rendered body with the generator's mask.
 fn mask_sealed(body: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
     let (_, decrypter) = sealing_keys()?;
     let mut masked = String::with_capacity(body.len());
@@ -237,10 +221,6 @@ fn mask_sealed(body: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
     Ok((masked, opened))
 }
 
-/// The identifier record `create` looks up, as JSON bytes this client's keeper can reload.
-///
-/// The fixture masks each sealed salt, because a fresh ephemeral key seals it on every run, so it
-/// is sealed again here with the same controller key the generator used.
 fn identifier_record(record: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut document = record.clone();
     let (encrypter, _) = sealing_keys()?;
@@ -248,7 +228,6 @@ fn identifier_record(record: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&document)?)
 }
 
-/// Rewrites every `sxlt_opens_to` in a document into a fresh `sxlt`.
 fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Box<dyn Error>> {
     match document {
         Value::Object(fields) => {
@@ -273,10 +252,7 @@ fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Bo
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -320,20 +296,16 @@ fn the_pinned_unit_tests_two_vectors_are_recorded_and_their_input_refused() -> R
     );
     assert!(!pinned.note.is_empty());
 
-    // The two events it asserts, recorded verbatim.
     assert_eq!(pinned.published_events.len(), 2);
     let inception = pinned.published_events.first().map(String::as_str).unwrap_or_default();
     let anchor = pinned.published_events.get(1).map(String::as_str).unwrap_or_default();
     assert!(inception.contains(r#""t":"vcp""#));
     assert!(inception.contains(r#""c":["NB"]"#));
     assert!(anchor.contains(r#""t":"ixn""#));
-    // The registry identifier appears twice in its own inception — a registry's SAID is its
-    // prefix — and twice more in the seal that anchors it.
     let registry = "EMppKX_JxXBuL_xE3A_a6lOcseYwaB7jAvZ0YFdgecXX";
     assert_eq!(inception.matches(registry).count(), 2);
     assert_eq!(anchor.matches(registry).count(), 2);
 
-    // Why they cannot be reproduced: the issuer is not a prefix, and both events carry it.
     assert_eq!(pinned.issuer_prefix, "hab prefix");
     assert!(
         IdentifierPrefix::from_qb64(&pinned.issuer_prefix).is_err(),
@@ -342,7 +314,6 @@ fn the_pinned_unit_tests_two_vectors_are_recorded_and_their_input_refused() -> R
     assert!(inception.contains(&format!(r#""ii":"{}""#, pinned.issuer_prefix)));
     assert!(anchor.contains(&format!(r#""i":"{}""#, pinned.issuer_prefix)));
 
-    // The nonce it uses *is* representable, so that half of the input is not the obstacle.
     assert_eq!(pinned.nonce, "");
     let issuer = IdentifierPrefix::from_qb64(&fixture.provenance.identifier)?;
     let empty_nonce = RegistryInceptionBuilder::new(issuer, pinned.nonce.clone())
@@ -354,7 +325,6 @@ fn the_pinned_unit_tests_two_vectors_are_recorded_and_their_input_refused() -> R
         "an empty nonce was not written: {rendered}"
     );
 
-    // The refusal it asserts, which this port produces before deriving anything.
     assert_eq!(pinned.published_refusal, ["establishment only not implemented"]);
     Ok(())
 }
@@ -362,8 +332,6 @@ fn the_pinned_unit_tests_two_vectors_are_recorded_and_their_input_refused() -> R
 #[test]
 fn the_pinned_unit_test_publishes_the_unencoded_path_itself() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference's own suite asserts a path with a literal space in it, so the encoding
-    // divergence is confirmed from upstream rather than argued from this port's side.
     assert_eq!(
         fixture.pinned_confirmations.published_paths,
         ["/identifiers/a name/registries"]
@@ -389,7 +357,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Three paths, four dynamic values, none encoded.
     assert!(declarations.list_path.contains(REGISTRIES_SEGMENT));
     for raw in [
         &declarations.list_path,
@@ -401,13 +368,11 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     }
     assert!(declarations.rename_path.contains("${registryName}"));
 
-    // `noBackers` defaults to true, and the trait it writes.
     assert!(declarations.create_defaults.contains("noBackers = true"));
     assert!(declarations.create_no_backers.contains("NoBackers"));
     assert!(declarations.create_arguments.contains("baks?: string[]"));
     assert!(declarations.create_arguments.contains("nonce?: string"));
 
-    // The establishment-only trait is pushed, and only then thrown on.
     assert!(declarations.create_est_only.contains("'EO'"));
     assert!(
         declarations
@@ -415,18 +380,15 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
             .contains("establishment only not implemented")
     );
 
-    // The registry inception and the anchor it is sealed into.
     assert!(declarations.create_incept.contains("vdr.incept"));
     assert!(declarations.create_anchor.contains("regser.pre"));
 
-    // The body and its algorithm block.
     for label in ["name:", "vcp:", "ixn:", "sigs:"] {
         assert!(declarations.from_events_body.contains(label), "body lacks {label}");
     }
     assert!(declarations.from_events_algorithm.contains("keeper.params()"));
     assert!(declarations.rename_body.contains("name: newName"));
 
-    // The result holds a promise, not a response.
     assert!(declarations.registry_result_members.iter().any(|member| member == "op"));
     assert!(declarations.registry_result_op.contains("await this.promise"));
     assert!(declarations.notes.is_object());
@@ -456,10 +418,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The calls.
-// ---------------------------------------------------------------------------
-
+// --- The calls ---
 #[test]
 fn a_listing_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -482,12 +441,10 @@ fn a_listing_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
 #[test]
 fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference sends `/identifiers/a/b/registries`: the alias becomes two segments.
     assert_eq!(
         request_of(&fixture, "list_alias_needing_encoding")?.path,
         "/identifiers/a/b/registries"
     );
-    // And a rename lets *both* names escape.
     assert_eq!(
         request_of(&fixture, "rename_names_needing_encoding")?.path,
         "/identifiers/a/b/registries/c/d"
@@ -511,7 +468,6 @@ fn a_default_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error
     let request = CreateRegistryRequest::new("issuer", "vLEI").with_nonce(&fixture.provenance.nonce);
     let created = block_on(client.registries().create(&request))?;
 
-    // Two requests, where the reference makes two as well — the lookup and the submission.
     assert_eq!(call(&fixture, "create_default")?.requests, 2);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/issuer");
     let (path, method, body) = sent(&transport, 1)?;
@@ -522,7 +478,6 @@ fn a_default_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
-    // The registry identifier is the inception's own SAID, and it is what the anchor seals.
     let registry = created.inception.identifier().qb64()?;
     assert!(masked.contains(&format!(r#""i":"{registry}""#)));
     assert!(masked.contains(&format!(r#""c":["{NO_BACKERS_TRAIT}"]"#)));
@@ -552,7 +507,6 @@ fn a_backed_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
-    // A backed registry declares no `NB` trait and carries its threshold and backers.
     assert!(masked.contains(r#""c":[]"#));
     assert!(masked.contains(r#""bt":"2""#));
     for backer in &fixture.provenance.backers {
@@ -565,7 +519,6 @@ fn a_backed_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>
 fn a_generated_nonce_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shape = &fixture.generated_nonce_shape;
-    // Random nonces cannot be pinned, so the shape is what is compared.
     assert_eq!(shape.path, "/identifiers/issuer/registries");
     assert_eq!(shape.method, "POST");
     assert_eq!(shape.body_fields, ["name", "vcp", "ixn", "sigs", "salty"]);
@@ -574,7 +527,6 @@ fn a_generated_nonce_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     assert_eq!(shape.nonce_code, "A");
     assert_eq!(shape.nonce_length, 44);
     assert!(!shape.note.is_empty());
-    // The registry inception's own field order, which its SAID commits to.
     assert_eq!(shape.vcp_fields, ["v", "t", "d", "i", "ii", "s", "c", "bt", "b", "n"]);
 
     let record = identifier_record(&fixture.identifier_records.ordinary)?;
@@ -600,7 +552,6 @@ fn a_generated_nonce_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         .get("vcp")
         .and_then(Value::as_object)
         .ok_or("the body carries no registry inception")?;
-    // A `serde_json::Map` sorts, so the order is asserted on the rendered text instead.
     assert_eq!(inception.len(), shape.vcp_fields.len());
     for label in &shape.vcp_fields {
         assert!(inception.contains_key(label), "the inception lacks {label}");
@@ -611,7 +562,6 @@ fn a_generated_nonce_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         .ok_or("the registry inception carries no nonce")?;
     assert_eq!(nonce.len(), shape.nonce_length);
     assert!(nonce.starts_with(&shape.nonce_code));
-    // Roadmap 4.7 required a nonce; 6.4 supplied the generator, and this is where they meet.
     assert_eq!(
         document.get("vcp").and_then(|vcp| vcp.get("i")).and_then(Value::as_str),
         Some(created.inception.identifier().qb64()?.as_str())
@@ -625,7 +575,6 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_built() -> Result<
     let recorded = &fixture.establishment_only;
     assert_eq!(recorded.identifier_configuration, ["EO"]);
     assert_eq!(recorded.reference_error_message, "establishment only not implemented");
-    // The reference had already sent the identifier lookup and built the whole registry inception.
     assert_eq!(recorded.requests_made, 1);
     assert!(!recorded.note.is_empty());
 
@@ -640,8 +589,6 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_built() -> Result<
         matches!(outcome, Err(ClientError::EstablishmentOnlyIssuer { .. })),
         "an establishment-only issuer was not refused: {outcome:?}"
     );
-    // The lookup goes out here too — it is what reveals the configuration — but nothing is built
-    // and nothing is submitted after it.
     assert_eq!(transport.requests().len(), 3);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/estonly");
     Ok(())
@@ -669,7 +616,6 @@ fn a_rename_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
 fn a_creation_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let answer = serde_json::to_vec(&call(&fixture, "create_default")?.result)?;
-    // The generator's `create` returns the artifacts, so the operation is the transport's answer.
     let operation = serde_json::from_slice::<Value>(&answer);
     assert!(operation.is_ok());
 
@@ -684,12 +630,10 @@ fn a_creation_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Er
 
     let operation = created.operation()?;
     assert_eq!(operation.name, "registry.EREG");
-    // A registry operation waits on the key event that anchors it, which is a nested operation.
     let metadata = operation.metadata.ok_or("the operation carried no metadata")?;
     assert_eq!(metadata.pre, "EISS");
     assert_eq!(metadata.anchor.sn, 1);
     assert_eq!(metadata.depends.name, "witness.EISS.1");
-    // The body is owned, so it can be read again — the reference's `op()` consumes its promise.
     assert!(created.operation().is_ok());
     assert!(!created.response_body().is_empty());
     Ok(())

@@ -1,26 +1,8 @@
 //! Wave 12 — end roles by AID: a third party reading a group's authorisations.
 //!
-//! `test-integration/endroles-by-aid.test.ts` is the §7 row for Roadmap 7.1's `/endroles/{aid}`
-//! read exercised the way it exists for: **Alice is not a member** of the group she asks about.
-//! The setup is the largest of any wave so far — a two-member witnessed multisig inception, then
-//! the group **end-role round**: each member authorises both agents for the group under one
-//! shared timestamp and relays the signed reply to its peer on `/multisig/rpy`, each reply's
-//! operation completing only once both members' signatures have arrived. Alice then resolves the
-//! group's OOBI (truncated at `/agent/`, as upstream does) and asks five questions: all roles,
-//! the agent role, a role nobody granted, an identifier nobody owns, and her own.
-//!
-//! The round is upstream's own `addEndRoleMultisig` arrangement expressed through this port's
-//! public API: `add_end_role` on the group alias signs with the member's indexed key, the reply
-//! travels as an `rpy` embed under the group's establishment seal, and the shared stamp is what
-//! makes both members derive the same reply SAID — Roadmap 8.8's one-clock lesson, applied.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave12_endroles_by_aid -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Incepts a two-member group, runs the end-role round, and has a third party read it back.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -46,10 +28,8 @@ use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 use signify_types::api::{Notification, Role};
 
-/// The group alias, as the upstream case names it.
 const GROUP_NAME: &str = "endroles-byaid-group";
 
-/// One end-role triple as the agent answered it.
 #[derive(Debug, Serialize)]
 struct RecordedRole {
     cid: String,
@@ -57,7 +37,6 @@ struct RecordedRole {
     eid: String,
 }
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
@@ -65,13 +44,10 @@ struct Captured {
     member1_prefix: String,
     member2_prefix: String,
     group_prefix: String,
-    /// The two agents the round authorised, in member order.
     agent_eids: Vec<String>,
-    /// Alice's five reads, in the upstream case's order.
     all_roles: Vec<RecordedRole>,
     agent_roles: Vec<RecordedRole>,
     mailbox_roles_len: usize,
-    /// The well-formed identifier nobody owns that the fourth read asks about.
     unknown_prefix: String,
     unknown_roles_len: usize,
     alice_prefix: String,
@@ -82,7 +58,6 @@ struct Captured {
     alice_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one operation out and deletes it and any dependency.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -99,7 +74,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Creates one identifier witnessed by the whole triple, with the agent end role.
 async fn witnessed_identifier(
     client: &ConnectedClient,
     alias: &str,
@@ -126,7 +100,6 @@ async fn witnessed_identifier(
     Ok(prefix)
 }
 
-/// Resolves one OOBI URL under `alias` and waits the resolution out.
 async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<(), Box<dyn Error>> {
     progress(&format!("resolving {alias}'s OOBI"));
     let resolution = OobiResolution {
@@ -140,7 +113,6 @@ async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result
     Ok(())
 }
 
-/// Returns the first agent OOBI `alias` publishes.
 async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box<dyn Error>> {
     client
         .oobis()
@@ -152,7 +124,6 @@ async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box
         .ok_or_else(|| format!("{alias} publishes no OOBI").into())
 }
 
-/// Polls until at least `minimum` unread notifications carry `route`, marking each read.
 async fn await_notifications(
     client: &ConnectedClient,
     route: &str,
@@ -177,8 +148,6 @@ async fn await_notifications(
     Err(format!("no {minimum} notifications on {route} arrived in time").into())
 }
 
-/// One member's half of the group end-role round for one agent: authorise, then relay the signed
-/// reply to the peers on `/multisig/rpy` under the group's establishment seal.
 async fn add_group_end_role(
     client: &ConnectedClient,
     member_alias: &str,
@@ -211,20 +180,16 @@ async fn add_group_end_role(
     let embed = ExchangeEmbed::new("rpy", reply.reply.serialized())?.with_attachment(attachment)?;
 
     let addressee = peers.first().ok_or("the end-role round has no peers")?.clone();
-    // The payload names the group — `{gid}` — which is how the agent files the notification
-    // under the peer's `/multisig/rpy` route; without it, nobody is notified.
     let mut payload = signify_keri::serialization::Sad::new();
     payload.insert("gid", record.common.prefix.clone())?;
     let draft = ExchangeDraft::new("/multisig/rpy", addressee, signify_keria_systest::now()?)
         .payload(payload)
         .embeds(vec![embed]);
     let sent = client.exchanges().send(member_alias, GROUP_NAME, &draft, peers).await?;
-    // The submission's operation is born done yet stays listed — wave 11's lesson.
     wait_and_delete(client, &sent.operation()?.name).await?;
     Ok(operation_name)
 }
 
-/// Connects the three clients the scenario needs, in transcript order.
 async fn three_clients(
     environment: &Environment,
     transcripts: &[std::sync::Arc<signify_keria_systest::Recorder>; 3],
@@ -251,7 +216,6 @@ async fn three_clients(
     Ok((member1, member2, alice))
 }
 
-/// Reads one role listing as flat triples.
 async fn roles(
     client: &ConnectedClient,
     identifier: &IdentifierPrefix,
@@ -270,7 +234,6 @@ async fn roles(
         .collect())
 }
 
-/// Incepts the two-member group and returns its prefix.
 async fn incept_group(
     member1: &ConnectedClient,
     member2: &ConnectedClient,
@@ -334,7 +297,6 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
     let transcripts = [recorder("member1")?, recorder("member2")?, recorder("alice")?];
     let (member1, member2, alice) = Box::pin(three_clients(&environment, &transcripts)).await?;
 
-    // Members and Alice, witnessed; the members cross-resolved so the proposal can travel.
     let aid1 = witnessed_identifier(&member1, "member1", &environment).await?;
     let aid2 = witnessed_identifier(&member2, "member2", &environment).await?;
     let alice_prefix = witnessed_identifier(&alice, "alice", &environment).await?;
@@ -344,7 +306,6 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
     let group = incept_group(&member1, &member2, &aid1, &aid2, &environment).await?;
     progress(&format!("group incepted as {}", group.qb64()?));
 
-    // The end-role round: one shared stamp, both agents, each member relaying to its peer.
     let stamp = signify_keria_systest::now()?;
     let agent_eids = [member1.agent().prefix().clone(), member2.agent().prefix().clone()];
     let mut member1_operations = Vec::new();
@@ -368,7 +329,6 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
         wait_and_delete(&member2, name).await?;
     }
 
-    // Alice learns the group through its OOBI, truncated at `/agent/` as upstream truncates it.
     let group_oobi = agent_oobi(&member1, GROUP_NAME).await?;
     let truncated = group_oobi
         .split("/agent/")
@@ -377,7 +337,6 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
         .ok_or("the group OOBI has no /agent/ segment")?;
     resolve_url(&alice, &truncated, GROUP_NAME).await?;
 
-    // The five reads, in the upstream case's order.
     let all_roles = roles(&alice, &group, None).await?;
     let agent_roles = roles(&alice, &group, Some(&Role::Agent)).await?;
     let mailbox_roles_len = roles(&alice, &group, Some(&Role::Mailbox)).await?.len();

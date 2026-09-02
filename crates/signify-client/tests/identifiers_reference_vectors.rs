@@ -1,15 +1,6 @@
 //! Exact identifier-endpoint vectors recorded from the pinned reference's own `Identifier`.
 //!
-//! `Identifier` takes an `IdentifierDeps` — one `fetch` method, a `pidx`, and a manager — so the
-//! generator hands the real class a recorder, exactly as the pinned `aiding.test.ts` does, and
-//! every request it makes is captured with its path, method, headers, and the **exact body bytes**
-//! `SignifyClient.fetch` would send. This test rebuilds each one through a connected client and
-//! compares what actually goes out.
-//!
-//! Because a salty keeper's sealed salt draws a fresh ephemeral key per call, each side's
-//! ciphertext is masked as `<SXLT>` and compared by what it opens to. Everything else is compared
-//! byte for byte, including every signature — the key material derives at the reference's own
-//! production Argon2 profile, so this file is deliberately slow.
+//! Every request rebuilt through a connected client and compared byte for byte, signatures included.
 
 mod support;
 
@@ -45,12 +36,7 @@ const MULTISIG_PASSCODE: &str = "0123456789lmnopqrstuv";
 const DELEGATOR: &str = "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C";
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
 
-/// The instant the generator pinned: 2023-11-14T22:13:20.123Z.
-
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -215,13 +201,9 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-/// Connects a client whose transport answers `bodies` after the two the lifecycle consumes.
 fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
     let config = ClientConfig::new(ADMIN, PASSCODE)?
         .with_boot_url(BOOT)?
-        // The controller's own Argon2 cost does not reach any byte compared here: a keeper's
-        // sealing key comes from the passcode salt directly, and an identifier's keys derive at
-        // the production profile the request asks for.
         .with_derivation_cost(DerivationCost::Ephemeral);
     let probe = SignifyClient::new(
         ClientConfig::new(ADMIN, PASSCODE)?
@@ -245,15 +227,12 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((connected, transport))
 }
 
-/// Returns the path, method, and body of the request the client sent after connecting.
 fn sent(transport: &AgentTransport, index: usize) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-/// Replaces every sealed salt in a rendered body with the generator's mask, returning what each
-/// one opened to.
 fn mask_sealed(body: &str, passcode: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
     let decrypter = Decrypter::from_signer(
         &Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?
@@ -280,7 +259,6 @@ fn mask_sealed(body: &str, passcode: &str) -> Result<(String, Vec<String>), Box<
     Ok((masked, opened))
 }
 
-/// Compares one sent body with its recorded one, masking sealed salts on both sides.
 fn assert_body(sent: Option<&str>, recorded: &RecordedRequest, passcode: &str) -> Result<(), Box<dyn Error>> {
     let expected = recorded.body.as_deref().ok_or("the recorded request carried no body")?;
     let actual = sent.ok_or("the sent request carried no body")?;
@@ -290,12 +268,10 @@ fn assert_body(sent: Option<&str>, recorded: &RecordedRequest, passcode: &str) -
     Ok(())
 }
 
-/// The identifier record the generator built for `aid1`, as JSON bytes.
 fn record_document(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
     reseal(&fixture.signed_request.identifier, PASSCODE)
 }
 
-/// Turns a fixture record's `sxlt_opens_to` back into a sealed salt this client can open.
 fn reseal(record: &Value, passcode: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     use signify_crypto::cipher::Encrypter;
     let mut document = record.clone();
@@ -306,7 +282,6 @@ fn reseal(record: &Value, passcode: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&document)?)
 }
 
-/// Rewrites every `sxlt_opens_to` in a document into a fresh `sxlt`.
 fn reseal_in_place(document: &mut Value, encrypter: &signify_crypto::cipher::Encrypter) -> Result<(), Box<dyn Error>> {
     match document {
         Value::Object(fields) => {
@@ -331,10 +306,7 @@ fn reseal_in_place(document: &mut Value, encrypter: &signify_crypto::cipher::Enc
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -370,7 +342,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The one header this family sends, and its two defaults.
     assert!(declarations.list_range_header.contains(IDENTIFIER_RANGE_UNIT));
     assert!(declarations.list_range_header.contains("Range"));
     assert_eq!(declarations.list_defaults, ["start: number = 0", "end: number = 24"]);
@@ -378,7 +349,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(ItemRange::DEFAULT.end(), 24);
     assert!(declarations.list_result.contains("parseRangeHeaders"));
 
-    // Two paths encode their name; five do not.
     assert!(declarations.get_path.contains("encodeURIComponent"));
     assert!(declarations.update_path.contains("encodeURIComponent"));
     for raw in [
@@ -395,7 +365,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.loc_scheme_path.contains(LOCATION_SCHEMES_SEGMENT));
     assert!(declarations.members_path.contains(MEMBERS_SEGMENT));
 
-    // The body literals whose field order and optionality this port reproduces.
     for label in ["name:", "icp:", "sigs:", "proxy:", "smids:", "rmids:"] {
         assert!(declarations.create_body.contains(label), "create body lacks {label}");
     }
@@ -403,7 +372,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.rotate_body.contains("rot:"));
     assert!(declarations.create_pidx_increment.contains("pidx + 1"));
 
-    // The keeper parameter literals, whose order the algorithm block follows.
     assert!(
         declarations
             .salty_parameters
@@ -417,7 +385,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.group_parameters.contains("mhab: this.mhab"));
     assert!(declarations.reloaded_randy_transferability.contains("aid['prefix']"));
 
-    // `EventResult` and the signing entry point this item also owns.
     assert!(declarations.event_result_members.iter().any(|member| member == "op"));
     assert!(declarations.signed_request_resource.contains("Signify-Resource"));
     assert!(declarations.signed_request_signer.contains("keeper.signers[0]"));
@@ -474,10 +441,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Reads.
-// ---------------------------------------------------------------------------
-
+// --- Reads ---
 #[test]
 fn a_listing_sends_the_recorded_range_and_reads_the_window_back() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -494,7 +458,6 @@ fn a_listing_sends_the_recorded_range_and_reads_the_window_back() -> Result<(), 
         assert_eq!(method, recorded.method);
         assert_eq!(body, None, "a listing sends no body, as upstream");
 
-        // The `Range` header is the only one this family adds, and it matches byte for byte.
         let expected = recorded
             .headers
             .iter()
@@ -511,7 +474,6 @@ fn a_listing_sends_the_recorded_range_and_reads_the_window_back() -> Result<(), 
 fn an_absent_content_range_is_told_apart_from_an_empty_one() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "list_without_content_range")?;
-    // The reference reports {0, 0, 0} for an answer carrying no header at all.
     assert_eq!(recorded.result.get("total"), Some(&Value::from(0)));
     assert_eq!(
         recorded.result.get("aids").and_then(Value::as_array).map(Vec::len),
@@ -543,7 +505,6 @@ fn a_get_addresses_the_recorded_path_and_encodes_its_name() -> Result<(), Box<dy
         call(&fixture, "get")?.result.get("prefix").and_then(Value::as_str)
     );
 
-    // The pinned unit test's own awkward name, which the reference encodes and so does this.
     let encoded = request_of(&fixture, "get_name_needing_encoding")?;
     let (client, transport) = connected(&[&document])?;
     let _ = block_on(client.identifiers().get("a name with ñ!"));
@@ -558,7 +519,6 @@ fn a_pending_group_is_refused_by_get_and_returned_by_get_any() -> Result<(), Box
     let refused = call(&fixture, "get_pending_refused")?;
     assert_eq!(refused.error.as_deref(), Some("No key state for identifier group1"));
 
-    // The same record with its key state removed, which is what the generator sent.
     let mut document: Value = serde_json::from_slice(&record_document(&fixture)?)?;
     if let Some(fields) = document.as_object_mut() {
         fields.remove("state");
@@ -609,11 +569,7 @@ fn a_member_listing_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> 
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Writes.
-// ---------------------------------------------------------------------------
-
-/// The creation request the reference's `create('aid1', {bran})` amounts to.
+// --- Writes ---
 fn salty_request(passcode: &str, keys: usize) -> CreateIdentifierRequest {
     CreateIdentifierRequest::new(CreateAlgorithm::Salty {
         passcode: Some(passcode.to_owned()),
@@ -635,8 +591,6 @@ fn a_default_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
-    // The artifact returned is the same event the body carries, and the pinned unit test
-    // publishes exactly that identifier.
     let identifier = submission.artifact().event.identifier().qb64()?;
     assert_eq!(identifier, "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK");
     assert!(recorded.body.as_deref().is_some_and(|text| text.contains(&identifier)));
@@ -660,10 +614,6 @@ fn a_non_transferable_creation_reproduces_the_recorded_body() -> Result<(), Box<
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
 
-    // This body differs from the reference's in exactly one field, and only here: `create` reuses
-    // one variable for the prefix code and the stored digest code, so a non-transferable record
-    // names the basic prefix code `B` where the digest algorithm belongs. Roadmap 4.6 recorded the
-    // divergence; this is where it reaches the wire.
     let expected = recorded.body.as_deref().ok_or("the recorded request carried no body")?;
     assert!(expected.contains(r#""dcode":"B""#));
     assert_eq!(expected.matches(r#""dcode""#).count(), 1);
@@ -695,8 +645,6 @@ fn a_multisig_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
     let (path, method, body) = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
-    // The identifier derives from its own passcode, but its salt is sealed to the *client's*
-    // controller key — which is what the generator's mock client used too.
     assert_body(body.as_deref(), recorded, PASSCODE)?;
     assert_eq!(recorded.sxlt_opens_to, [format!("0AA{MULTISIG_PASSCODE}")]);
     Ok(())
@@ -722,7 +670,6 @@ fn a_witnessed_creation_writes_the_proxy_the_others_omit() -> Result<(), Box<dyn
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
-    // Seven fields would be a group; this is five, because `proxy` is the only optional one set.
     assert!(
         recorded
             .body
@@ -812,7 +759,6 @@ fn an_interaction_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     seal.insert("d", prefix.to_owned())?;
     let _ = block_on(client.identifiers().interact("aid1", vec![seal]))?;
 
-    // Two requests: the record read, then the submission — exactly as many as the reference made.
     assert_eq!(call(&fixture, "interact")?.requests, 2);
     assert_eq!(transport.requests().len(), 2 + call(&fixture, "interact")?.requests);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
@@ -827,8 +773,6 @@ fn an_interaction_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
 fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "interact_name_needing_encoding")?;
-    // The reference sends `/identifiers/a/b/events`: a slash in an alias silently addresses a
-    // different resource, and Roadmap 3.10 signs `@path`, so it changes what is signed too.
     assert_eq!(recorded.path, "/identifiers/a/b/events");
 
     let (client, transport) = connected(&[&record_document(&fixture)?, b"{}"])?;
@@ -848,7 +792,6 @@ fn a_rotation_always_writes_both_member_lists() -> Result<(), Box<dyn Error>> {
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
-    // Empty here and absent from a creation: the reference defaults them before mapping.
     assert!(
         recorded
             .body
@@ -919,14 +862,10 @@ fn a_location_scheme_reply_reproduces_the_recorded_body() -> Result<(), Box<dyn 
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The prefix index, the randy shape, and the signed external request.
-// ---------------------------------------------------------------------------
-
+// --- The prefix index, the randy shape, and the signed external request ---
 #[test]
 fn the_prefix_index_advances_with_every_creation() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference's own walk: the first body carries index 0, the second index 1.
     let quirk = fixture
         .reference_quirks
         .get("pidx_advances_on_the_client")
@@ -954,7 +893,6 @@ fn the_prefix_index_advances_with_every_creation() -> Result<(), Box<dyn Error>>
 #[test]
 fn a_randy_creation_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Random keys cannot be pinned, so the shape is what is compared.
     assert_eq!(fixture.randy_shape.path, "/identifiers");
     assert_eq!(fixture.randy_shape.method, "POST");
     assert_eq!(fixture.randy_shape.randy_fields, ["nxts", "prxs", "transferable"]);
@@ -978,7 +916,6 @@ fn a_randy_creation_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         .ok_or("the body carries no randy block")?;
     let mut sorted = fixture.randy_shape.randy_fields.clone();
     sorted.sort();
-    // A `serde_json::Map` sorts its keys, so the *order* is asserted on the rendered text.
     assert_eq!(randy.keys().cloned().collect::<Vec<_>>(), sorted);
     assert!(rendered.contains(r#""randy":{"nxts":["#));
     assert_eq!(
@@ -995,7 +932,6 @@ fn a_randy_creation_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     );
     assert_eq!(submission.artifact().signatures.len(), fixture.randy_shape.sig_count);
 
-    // The field the schema does not declare, written back exactly as the reference writes it.
     assert_eq!(randy.get("transferable"), Some(&Value::Bool(true)));
     assert_eq!(
         fixture.randy_reload_shape.randy_fields,
@@ -1013,9 +949,6 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
     assert_eq!(signed.agent_prefix, AGENT);
 
     let (client, transport) = connected(&[&record_document(&fixture)?])?;
-    // The recorded controller prefix is the generator's, derived at the production Argon2 profile
-    // Roadmap 6.4's fixture already proves; this client derives its controller cheaply, which
-    // reaches nothing compared here — `createSignedRequest` never uses the controller's key.
     assert!(!signed.controller_prefix.is_empty());
 
     let url = signify_http::transport::RequestUrl::new(&signed.post.url)?;
@@ -1024,18 +957,13 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
         .build()?;
     let external = block_on(client.sign_external_request("aid1", request))?;
 
-    // The lookup goes to the agent; the signed request itself is never sent from here.
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
     assert_eq!(signed.lookup_path, format!("{ADMIN}{}", sent(&transport, 0)?.0));
     assert_eq!(external.url().as_str(), signed.post.url);
     assert_eq!(external.method().as_str(), signed.post.method);
 
-    // Every header the reference produced, byte for byte — including the signature, because the
-    // clock is pinned on both sides.
     for header in &signed.post.headers {
         if header.name == "content-type" {
-            // The browser `Request` adds a `text/plain` content type for a string body. It is not
-            // a covered component and nothing sends it here.
             continue;
         }
         assert_eq!(
@@ -1045,7 +973,6 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
             header.name
         );
     }
-    // The resource stamped is the *identifier's* prefix, not the controller's.
     assert_ne!(signed.controller_prefix, signed.identifier_signing_key);
     assert_eq!(
         external.headers().get("signify-resource"),

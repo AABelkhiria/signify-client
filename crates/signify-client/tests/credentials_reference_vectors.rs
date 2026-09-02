@@ -1,17 +1,6 @@
 //! Exact credentials-endpoint vectors recorded from the pinned reference's own `Credentials`.
 //!
-//! Unlike Roadmap 6.9's and 6.10's families, this one **is** exercised by the pinned unit tree: the
-//! single `Credentials` case in `test/app/credentialing.test.ts` calls all six methods. So the
-//! generator drives the reference through that test's own mocks — `mockGetAID` and
-//! `mockCredential`, read from `test/app/test-utils.ts` by the reference's own compiler — and
-//! `pinned_confirmations.unit_test_assertions` holds every value the test asserts, recomputed from
-//! what the reference produced. Those are checked here first, so the whole comparison is anchored
-//! to the reference's own suite rather than to the generator.
-//!
-//! The clock is pinned, because `issue` and `revoke` both default their timestamp to a clock
-//! reading and everything either of them derives commits to it. Key material derives at the
-//! reference's production Argon2 profile, so this file is deliberately slow; each sealed salt is
-//! masked as `<SXLT>` and compared by what it opens to.
+//! All six methods driven through the reference's own mocks, with every value its unit case asserts recomputed.
 
 mod support;
 
@@ -43,10 +32,8 @@ use signify_types::api::Credential as CredentialRecord;
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-credentials/v1.json");
 
-/// How the reference spells that instant, which is the `dt` `issue` and `revoke` default to.
 const FIXED_STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 
-/// The pinned unit test's identifier, registry, schema, issuee, and credential.
 const IDENTIFIER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const ISSUE_REGISTRY: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
@@ -55,10 +42,7 @@ const CREDENTIAL: &str = "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo";
 const CREDENTIAL_REGISTRY: &str = "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df";
 const ISSUANCE: &str = "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -159,9 +143,7 @@ struct Call {
     note: String,
     request: Option<RecordedRequest>,
     requests: usize,
-    /// What the mocked agent answered the last request with.
     answer: Value,
-    /// What the reference's own method returned; `null` where it returns `void`.
     result: Value,
     error: Option<String>,
 }
@@ -292,13 +274,10 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// One endpoint request as it left the transport: path, method, body, and declared `accept`.
 type SentRequest = (String, String, Option<String>, Option<String>);
 
-/// Returns the path, method, body, and `accept` of the endpoint request at `index`.
 fn sent(transport: &AgentTransport, index: usize) -> Result<SentRequest, Box<dyn Error>> {
     let recorded = transport.requests();
-    // Two requests are the lifecycle's: the state read and the delegation approval.
     let request = recorded.get(2 + index).ok_or("no endpoint request was sent")?;
     let path = request.resource();
     let body = request.body_text();
@@ -306,7 +285,6 @@ fn sent(transport: &AgentTransport, index: usize) -> Result<SentRequest, Box<dyn
     Ok((path, request.method().to_owned(), body, accept))
 }
 
-/// The sealing key pair this client's controller salt derives.
 fn sealing_keys() -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
     let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
     let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
@@ -316,7 +294,6 @@ fn sealing_keys() -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
     ))
 }
 
-/// Replaces every sealed salt in a rendered body with the generator's mask.
 fn mask_sealed(body: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
     let (_, decrypter) = sealing_keys()?;
     let mut masked = String::with_capacity(body.len());
@@ -340,7 +317,6 @@ fn mask_sealed(body: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
     Ok((masked, opened))
 }
 
-/// The identifier record every lookup answers with, as JSON bytes this client's keeper can reload.
 fn identifier_record(record: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut document = record.clone();
     let (encrypter, _) = sealing_keys()?;
@@ -348,7 +324,6 @@ fn identifier_record(record: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&document)?)
 }
 
-/// Rewrites every `sxlt_opens_to` in a document into a fresh `sxlt`.
 fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Box<dyn Error>> {
     match document {
         Value::Object(fields) => {
@@ -373,9 +348,7 @@ fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Bo
     Ok(())
 }
 
-/// The credential the pinned unit test's `issue` builds, rebuilt from its own inputs.
 fn pinned_credential(stamp: &str) -> Result<Credential, Box<dyn Error>> {
-    // The reference spreads `args.a` and then appends `dt`, so the block reads `d, i, LEI, dt`.
     let attributes = CredentialAttributes::new(stamp.parse()?)
         .issuee(&IdentifierPrefix::from_qb64(ISSUEE)?)?
         .text("LEI", "1234")?
@@ -389,10 +362,7 @@ fn pinned_credential(stamp: &str) -> Result<Credential, Box<dyn Error>> {
     .build()?)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -443,7 +413,6 @@ fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn 
 
     let asserted = &pinned.unit_test_assertions;
     assert!(!asserted.note.is_empty());
-    // The six paths and methods.
     assert_eq!(asserted.list_path, "/credentials/query");
     assert_eq!(asserted.list_method, "POST");
     assert_eq!(asserted.get_path, format!("/credentials/{SCHEMA}"));
@@ -462,11 +431,9 @@ fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn 
     assert_eq!(asserted.state_method, "GET");
     assert_eq!(asserted.delete_path, format!("/credentials/{CREDENTIAL}"));
     assert_eq!(asserted.delete_method, "DELETE");
-    // Both reads send no body at all.
     assert_eq!(asserted.state_body, None);
     assert_eq!(asserted.delete_body, None);
 
-    // The issuance fields.
     assert_eq!(asserted.issue_acdc_registry, ISSUE_REGISTRY);
     assert_eq!(asserted.issue_acdc_schema, SCHEMA);
     assert_eq!(asserted.issue_acdc_issuee, ISSUEE);
@@ -481,7 +448,6 @@ fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn 
     assert_eq!(asserted.issue_signature_prefix, "AA");
     assert_eq!(asserted.issue_signature_length, 88);
 
-    // The revocation fields, which the test asserts as exact identifiers.
     assert_eq!(asserted.revoke_rev_sequence, "1");
     assert_eq!(asserted.revoke_rev_kind, "rev");
     assert_eq!(asserted.revoke_rev_registry, CREDENTIAL_REGISTRY);
@@ -494,7 +460,6 @@ fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn 
     assert_eq!(asserted.revoke_signature_prefix, "AA");
     assert_eq!(asserted.revoke_signature_length, 88);
 
-    // Every path the test publishes is one the driven calls produced.
     assert!(!pinned.published_paths.is_empty());
     assert!(!pinned.published_identifiers.is_empty());
     assert!(pinned.driven_paths.iter().any(|path| path == "/credentials/query"));
@@ -506,7 +471,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The class this item ports, in its own declaration order.
     for member in ["list", "get", "delete", "state", "issue", "revoke"] {
         assert!(
             declarations.class_members.iter().any(|name| name == member),
@@ -514,7 +478,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         );
     }
 
-    // The listing: a `POST` to a query resource, with four defaulted fields.
     assert!(declarations.list_path.contains("/credentials/query"));
     assert!(declarations.list_filter_default.contains("kargs.filter === undefined"));
     assert!(declarations.list_sort_default.contains("kargs.sort === undefined"));
@@ -525,7 +488,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     }
     assert!(declarations.filter_interface.contains("skip?: number"));
 
-    // Five paths, seven dynamic values, none encoded.
     for raw in [
         &declarations.get_path,
         &declarations.delete_path,
@@ -538,23 +500,19 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.get_path.contains("${said}"));
     assert!(declarations.state_path.contains("${ri}"));
     assert!(declarations.state_path.contains("${said}"));
-    // `issue` addresses the record's own alias, not the caller's argument.
     assert!(declarations.issue_path.contains("${hab.name}"));
     assert!(declarations.revoke_path.contains("${name}"));
 
-    // The read returning two types, and the delete sending nothing.
     assert!(declarations.get_headers.contains("application/json+cesr"));
     assert!(declarations.get_return.contains("res.text()"));
     assert!(declarations.get_return.contains("res.json()"));
     assert!(declarations.delete_fetch.contains("method"));
 
-    // The two `saidify` expressions and the anchor between them.
     assert!(declarations.issue_subject.contains("Saider.saidify"));
     assert!(declarations.issue_acdc.contains("args.i ?? hab.prefix"));
     assert!(declarations.issue_iss.contains("Ilks.iss"));
     assert!(declarations.issue_anchor.contains("interact"));
     for label in ["acdc:", "iss:", "ixn:", "sigs,"] {
-        // `sigs` is shorthand in the literal, which is why it is matched with a comma.
         assert!(declarations.issue_body.contains(label), "the issue body lacks {label}");
     }
     assert!(declarations.issue_est_only.contains("'EO'"));
@@ -564,7 +522,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
             .contains("Establishment only not implemented")
     );
 
-    // The revocation, whose registry and prior are the server's.
     assert!(declarations.revoke_credential_lookup.contains("this.get(said)"));
     assert!(declarations.revoke_registry_lookup.contains("cred.sad.ri"));
     assert!(declarations.revoke_registry_lookup.contains("cred.sad.rd"));
@@ -578,7 +535,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         );
     }
 
-    // The two result interfaces and the schema the answers are cast to.
     assert!(declarations.issue_result_interface.contains("acdc: Serder"));
     assert!(declarations.revoke_result_interface.contains("rev: Serder"));
     assert!(declarations.credential_schema.contains("issatc"));
@@ -609,10 +565,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The reads.
-// ---------------------------------------------------------------------------
-
+// --- The reads ---
 #[test]
 fn an_unfiltered_listing_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -626,7 +579,6 @@ fn an_unfiltered_listing_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
     assert_eq!(method, recorded.method);
     assert_eq!(method, "POST");
     assert_eq!(body.as_deref(), recorded.body.as_deref());
-    // The four fields are written even though nothing was supplied.
     assert_eq!(body.as_deref(), Some(r#"{"filter":{},"sort":[],"skip":0,"limit":25}"#));
     assert!(listed.is_empty());
     assert_eq!(DEFAULT_CREDENTIAL_LIMIT, 25);
@@ -657,7 +609,6 @@ fn the_pinned_filter_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>
     assert_eq!(method, recorded.method);
     assert_eq!(body.as_deref(), recorded.body.as_deref());
 
-    // The pinned test asserts the body it sent is deeply equal to the filter it passed.
     let asserted = &fixture.pinned_confirmations.unit_test_assertions.list_body;
     let sent_document: Value = serde_json::from_str(&body.unwrap_or_default())?;
     assert_eq!(sent_document, *asserted);
@@ -690,7 +641,6 @@ fn a_json_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<()
     assert_eq!(path, format!("/credentials/{SCHEMA}"));
     assert_eq!(method, "GET");
     assert_eq!(body, None);
-    // The `Accept` header the reference appends after signing.
     assert_eq!(accept.as_deref(), recorded.accept.as_deref());
     assert_eq!(accept.as_deref(), Some("application/json"));
 
@@ -714,17 +664,13 @@ fn a_cesr_read_declares_the_other_media_type_and_returns_text() -> Result<(), Bo
     assert_eq!(method, "GET");
     assert_eq!(accept.as_deref(), recorded.accept.as_deref());
     assert_eq!(accept.as_deref(), Some("application/json+cesr"));
-    // Both reads address the same resource; only the header differs, exactly as upstream.
     assert_eq!(recorded.path, request_of(&fixture, "get_json")?.path);
-    // The text is returned as sent, not decoded — the reference's `res.text()`.
     assert_eq!(stream, String::from_utf8(answer)?);
     Ok(())
 }
 
 #[test]
 fn a_cesr_answer_that_is_not_utf8_is_refused_rather_than_repaired() -> Result<(), Box<dyn Error>> {
-    // `res.text()` substitutes U+FFFD, so a stream carrying an invalid byte still parses upstream
-    // and says something else.
     let (client, _) = connected(&[b"-VAS\xff\xfeGAB"])?;
     let outcome = block_on(client.credentials().get_cesr(&Said::from_qb64(CREDENTIAL)?));
     assert!(
@@ -738,27 +684,21 @@ fn a_cesr_answer_that_is_not_utf8_is_refused_rather_than_repaired() -> Result<()
 fn the_references_own_mock_credential_is_refused() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shortfall = &fixture.mock_records.shortfall;
-    // Seven of eleven fields absent, two present that the schema does not declare.
     assert_eq!(shortfall.credential_schema_fields.len(), 11);
     assert_eq!(shortfall.credential_record_missing.len(), 7);
     assert_eq!(shortfall.credential_record_extra, ["sadsigers", "sadcigars"]);
     assert_eq!(shortfall.credential_record_fields.len(), 6);
     assert!(!shortfall.note.is_empty());
-    // Its status carries a seal whose sequence number is a JSON *number* where the schema and this
-    // port both declare text, which is a second way the same mock cannot decode.
     assert_eq!(shortfall.credential_status_seal_sequence_type, "number");
     assert_eq!(shortfall.credential_status_schema_sequence_type, "string");
     assert!(shortfall.credential_status_seal.get("s").is_some_and(Value::is_number));
 
-    // And the identifier mock beside it omits a field its own schema declares required, which the
-    // generator adds back because nothing derived reads it.
     assert_eq!(shortfall.identifier_record_missing, ["icp_dt"]);
     assert_eq!(
         fixture.mock_records.identifier.get("icp_dt").and_then(Value::as_str),
         Some(shortfall.added_inception_stamp.as_str())
     );
 
-    // The reference handed this back as a `Credential` regardless; the recorded call proves it.
     let recorded = call(&fixture, "get_mock_credential")?;
     assert_eq!(recorded.error, None);
     assert!(recorded.result.is_object());
@@ -781,17 +721,14 @@ fn the_references_own_mock_credential_is_refused() -> Result<(), Box<dyn Error>>
 #[test]
 fn a_said_can_never_reshape_a_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // One argument becomes three extra segments, a query, and a fragment.
     assert_eq!(
         request_of(&fixture, "get_said_needing_encoding")?.path,
         "/credentials/E/../identifiers?x=1#y"
     );
-    // Two arguments become four segments where two were meant.
     assert_eq!(
         request_of(&fixture, "state_names_needing_encoding")?.path,
         "/registries/a/b/c/d"
     );
-    // And a revocation lets both the alias and the SAID escape.
     assert_eq!(
         request_of(&fixture, "revoke_said_needing_encoding")?.path,
         "/identifiers/a/b/credentials/c/d"
@@ -812,8 +749,6 @@ fn an_unqualified_said_becomes_a_credential_identifier_upstream() -> Result<(), 
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "revoke_said_needing_encoding")?;
     let body = recorded.body.clone().unwrap_or_default();
-    // The reference writes the raw argument into the revocation event itself, so an event whose
-    // `i` is the string `c/d` is signed and submitted.
     assert!(body.contains(r#""i":"c/d""#), "the recorded body no longer carries it");
     assert!(Said::from_qb64("c/d").is_err());
     Ok(())
@@ -831,7 +766,6 @@ fn a_delete_addresses_the_recorded_path_and_sends_no_body() -> Result<(), Box<dy
     assert_eq!(path, recorded.path);
     assert_eq!(path, format!("/credentials/{CREDENTIAL}"));
     assert_eq!(method, "DELETE");
-    // Every other write in this file carries a document; this one carries nothing.
     assert_eq!(body, None);
     Ok(())
 }
@@ -859,10 +793,7 @@ fn a_state_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The writes.
-// ---------------------------------------------------------------------------
-
+// --- The writes ---
 #[test]
 fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -877,7 +808,6 @@ fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
             .issue("aid1", pinned_credential(&fixture.provenance.stamp)?),
     )?;
 
-    // Two requests, where the reference makes two as well — the lookup and the submission.
     assert_eq!(call(&fixture, "issue_pinned")?.requests, 2);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
     let (path, method, body, _) = sent(&transport, 1)?;
@@ -889,7 +819,6 @@ fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
-    // The three artifacts the reference returns, byte for byte.
     let result = &call(&fixture, "issue_pinned")?.result;
     let expected = |label: &str| result.get(label).and_then(Value::as_str).unwrap_or_default().to_owned();
     assert_eq!(
@@ -912,7 +841,6 @@ fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
     assert_eq!(issued.artifacts.issuance.said().qb64()?, expected("iss_said"));
     assert_eq!(issued.artifacts.anchor.event.said().qb64()?, expected("anc_said"));
 
-    // Every field the pinned unit test asserts, checked on what this port produced.
     let asserted = &fixture.pinned_confirmations.unit_test_assertions;
     let document: Value = serde_json::from_str(&masked)?;
     let field = |block: &str, label: &str| {
@@ -959,7 +887,6 @@ fn the_issuance_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn 
     assert_eq!(typed.name, format!("credential.{CREDENTIAL}"));
     let metadata = typed.metadata.ok_or("the operation carried no metadata")?;
     assert_eq!(metadata.ced.digest, CREDENTIAL);
-    // The body is owned, so it can be read again — the reference's `op` is awaited once.
     assert!(issued.operation().is_ok());
     assert!(!issued.response_body().is_empty());
     Ok(())
@@ -978,7 +905,6 @@ fn a_credential_naming_another_issuer_is_refused_before_anything_is_signed() -> 
         .get("anchoring_identifier")
         .and_then(Value::as_str)
         .unwrap_or_default();
-    // The reference wrote a credential claiming one issuer and anchored it in another's log.
     assert_eq!(issuer, "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1");
     assert_eq!(anchoring, IDENTIFIER);
     assert_ne!(issuer, anchoring);
@@ -1003,7 +929,6 @@ fn a_credential_naming_another_issuer_is_refused_before_anything_is_signed() -> 
         matches!(outcome, Err(ClientError::CredentialIssuerMismatch { .. })),
         "a mismatched issuer was accepted: {outcome:?}"
     );
-    // The lookup goes out — it is what reveals the prefix — and nothing is submitted after it.
     assert_eq!(transport.requests().len(), 3);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
     Ok(())
@@ -1018,7 +943,6 @@ fn an_issuance_addresses_the_callers_alias_rather_than_the_agents() -> Result<()
     assert_eq!(renamed.method, "POST");
     assert_eq!(renamed.requests, 2);
     assert!(!renamed.note.is_empty());
-    // Upstream the agent's own answer chose the resource, and the path Roadmap 3.10 signs.
     assert_eq!(renamed.path, "/identifiers/chosen-by-the-agent/credentials");
 
     let mut record: Value = fixture.mock_records.identifier.clone();
@@ -1032,7 +956,6 @@ fn an_issuance_addresses_the_callers_alias_rather_than_the_agents() -> Result<()
             .credentials()
             .issue("aid1", pinned_credential(&fixture.provenance.stamp)?),
     )?;
-    // Here the caller's alias addresses the resource, whatever the agent answered with.
     assert_eq!(sent(&transport, 1)?.0, "/identifiers/aid1/credentials");
     Ok(())
 }
@@ -1067,7 +990,6 @@ fn the_pinned_revocation_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
     let record = identifier_record(&fixture.mock_records.identifier)?;
     let operation = serde_json::to_vec(&call(&fixture, "revoke_pinned")?.answer)?;
 
-    // The reference reads all three of these back from the agent; here they are inputs.
     let revocation = RevocationEventBuilder::new(
         Said::from_qb64(CREDENTIAL)?,
         RegistryIdentifier::from_qb64(CREDENTIAL_REGISTRY)?,
@@ -1079,9 +1001,7 @@ fn the_pinned_revocation_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
     let (client, transport) = connected(&[&record, &operation])?;
     let revoked = block_on(client.credentials().revoke("aid1", revocation))?;
 
-    // The reference makes three requests here — the lookup, the credential read, and the write.
     assert_eq!(call(&fixture, "revoke_pinned")?.requests, 3);
-    // This port makes two: it looks the credential up nowhere.
     assert_eq!(transport.requests().len(), 4);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
 
@@ -1116,8 +1036,6 @@ fn the_revocation_the_pinned_unit_test_asserts_reproduces_field_for_field() -> R
     let record = identifier_record(&fixture.mock_records.identifier)?;
     let asserted = &fixture.pinned_confirmations.unit_test_assertions;
 
-    // The test revokes `lastBody.acdc.i` — the credential's *issuer*, which is the identifier's own
-    // prefix — so this is the SAID it actually names.
     let revocation = RevocationEventBuilder::new(
         Said::from_qb64(IDENTIFIER)?,
         RegistryIdentifier::from_qb64(CREDENTIAL_REGISTRY)?,
@@ -1183,7 +1101,6 @@ fn a_caller_supplied_revocation_timestamp_reproduces_the_recorded_body() -> Resu
     assert_eq!(path, recorded.path);
     let (masked, _) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
-    // The supplied timestamp reaches the event rather than the clock's.
     assert!(masked.contains(r#""dt":"2023-08-23T15:16:07.553000+00:00""#));
     Ok(())
 }
@@ -1192,8 +1109,6 @@ fn a_caller_supplied_revocation_timestamp_reproduces_the_recorded_body() -> Resu
 fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = &fixture.revoke_without_registry;
-    // Upstream a credential naming neither `ri` nor `rd` cannot be revoked, because the registry
-    // the revocation commits to is read out of the agent's answer.
     assert_eq!(
         recorded.reference_error_message,
         "Neither ri nor rd property found in credential"
@@ -1208,7 +1123,6 @@ fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>
             .is_some_and(|sad| !sad.contains_key("ri") && !sad.contains_key("rd"))
     );
 
-    // Here the registry is the caller's, so the same credential is revocable.
     let record = identifier_record(&fixture.mock_records.identifier)?;
     let revocation = RevocationEventBuilder::new(
         Said::from_qb64(CREDENTIAL)?,
@@ -1220,7 +1134,6 @@ fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>
     let (client, transport) = connected(&[&record, b"{}"])?;
     let revoked = block_on(client.credentials().revoke("aid1", revocation))?;
     assert_eq!(revoked.artifacts.revocation.registry().qb64()?, CREDENTIAL_REGISTRY);
-    // Two requests, where the reference makes three: no credential is ever read.
     assert_eq!(transport.requests().len(), 4);
     Ok(())
 }
@@ -1241,7 +1154,6 @@ fn a_revocation_answer_decodes_as_an_untyped_operation() -> Result<(), Box<dyn E
     let (client, _) = connected(&[&record, &operation])?;
     let revoked = block_on(client.credentials().revoke("aid1", revocation))?;
 
-    // Upstream declares a four-way union here, so the answer is untyped until a caller narrows it.
     let untyped = revoked.operation()?;
     assert_eq!(untyped.name, format!("done.{CREDENTIAL}"));
     assert!(untyped.outcome.is_done());
@@ -1270,10 +1182,7 @@ fn an_establishment_only_identifier_cannot_revoke_either() -> Result<(), Box<dyn
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Paths that carry no representable hostile input.
-// ---------------------------------------------------------------------------
-
+// --- Paths that carry no representable hostile input ---
 #[test]
 fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;

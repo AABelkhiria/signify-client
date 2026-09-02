@@ -1,11 +1,6 @@
 //! Exact schema-endpoint vectors recorded from the pinned reference's own `Schemas`.
 //!
-//! A scan of every pinned `.ts` file finds this family in four of them, and **no unit test
-//! exercises either call**: `clienting.test.ts` asserts only that `client.schemas()` is a
-//! `Schemas`. The real usage is `test-integration/credentials.test.ts`, which reads both vLEI
-//! schemas by SAID and lists them against a live KERIA. So the vectors here are the reference
-//! driven directly, with the two SAIDs that integration test uses — the paths a real deployment
-//! sees.
+//! No unit test exercises either call, so the vectors are the two SAIDs a live deployment actually sees.
 
 mod support;
 
@@ -27,14 +22,10 @@ use signify_keri::said::Said;
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-schemas/v1.json");
 
-/// The two vLEI schema SAIDs `test-integration/credentials.test.ts` reads.
 const QVI: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const LEGAL_ENTITY: &str = "ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -120,10 +111,7 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-// ---------------------------------------------------------------------------
-// A KERIA agent, answering exactly as the generator's mocked `fetch` did.
-// ---------------------------------------------------------------------------
-
+// --- A KERIA agent, answering exactly as the generator's mocked `fetch` did ---
 fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
     let configuration = || {
         ClientConfig::new(ADMIN, PASSCODE)
@@ -147,17 +135,13 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.first().ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -184,9 +168,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 6);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of them, the wrong-shaped answer included.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
-        // Neither call sends a body, whichever it is.
         let request = entry.request.as_ref().ok_or("a recorded call made no request")?;
         assert_eq!(request.body, None, "call {} sent a body", entry.name);
     }
@@ -198,7 +180,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The segment is singular in both paths, where the class and accessor are plural.
     assert_eq!(declarations.get_path, "path = `/schema/${said}`");
     assert_eq!(declarations.list_path, "path = `/schema`");
     assert!(declarations.get_path.contains(SCHEMA_SEGMENT));
@@ -207,11 +188,9 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.get_method, "method = 'GET'");
     assert_eq!(declarations.list_method, "method = 'GET'");
 
-    // The cast this port replaces with a decode, and the whole four-member class.
     assert_eq!(declarations.get_return, "await res.json()");
     assert_eq!(declarations.class_members, ["client", "<constructor>", "get", "list"]);
 
-    // The response type: ten required fields, one of them an open map.
     for field in [
         "$id",
         "$schema",
@@ -231,7 +210,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 fn the_pinned_tree_exercises_this_family_only_in_integration() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let pinned = &fixture.pinned_confirmations;
-    // Four files name it: two source, one unit test, one integration test.
     assert_eq!(
         pinned.files_naming_schemas,
         [
@@ -242,7 +220,6 @@ fn the_pinned_tree_exercises_this_family_only_in_integration() -> Result<(), Box
         ]
     );
     assert_eq!(pinned.files_naming_schemas, fixture.declarations.files_naming_schemas);
-    // The unit test asserts the accessor's type and nothing else.
     let unit = pinned
         .assertions
         .get("test/app/clienting.test.ts")
@@ -250,8 +227,6 @@ fn the_pinned_tree_exercises_this_family_only_in_integration() -> Result<(), Box
     assert_eq!(unit.len(), 1);
     assert!(unit.iter().any(|line| line.contains("instanceof Schemas")));
 
-    // The integration test is where both calls are actually made, and what it checks is that a
-    // schema comes back under the SAID it was asked for.
     let integration = pinned
         .assertions
         .get("test-integration/credentials.test.ts")
@@ -262,12 +237,9 @@ fn the_pinned_tree_exercises_this_family_only_in_integration() -> Result<(), Box
     assert!(integration.iter().any(|line| line.contains("holderSchemas.length, 2")));
     assert!(!pinned.note.is_empty());
 
-    // Both SAIDs the integration test uses are valid qualified digests, which is what lets this
-    // port take a `Said` rather than a string without narrowing the reference's reach.
     assert!(Said::from_qb64(&pinned.qvi_schema_said).is_ok());
     assert!(Said::from_qb64(&pinned.le_schema_said).is_ok());
 
-    // Only two distinct addresses exist in the whole family, however many calls are made.
     assert_eq!(
         pinned.driven_paths,
         [
@@ -304,10 +276,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The calls.
-// ---------------------------------------------------------------------------
-
+// --- The calls ---
 #[test]
 fn both_recorded_reads_address_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -324,7 +293,6 @@ fn both_recorded_reads_address_the_recorded_path() -> Result<(), Box<dyn Error>>
         assert_eq!(method, "GET");
         assert_eq!(body, None);
 
-        // The agent's answer decodes into what the reference returns unchecked.
         assert_eq!(schema.id, said);
         assert!(!schema.credential_type.is_empty());
     }
@@ -344,12 +312,10 @@ fn a_listing_addresses_the_constant_path() -> Result<(), Box<dyn Error>> {
     assert_eq!(path, "/schema");
     assert_eq!(method, "GET");
     assert_eq!(body, None);
-    // The integration test asserts a count of two; this is that same pair.
     assert_eq!(schemas.len(), 2);
     assert_eq!(schemas.first().map(|schema| schema.id.as_str()), Some(QVI));
     assert_eq!(schemas.get(1).map(|schema| schema.id.as_str()), Some(LEGAL_ENTITY));
 
-    // An empty listing addresses the very same path — there is no input to change it.
     let empty = request_of(&fixture, "list_empty")?;
     assert_eq!(empty.path, recorded.path);
     let answer = serde_json::to_vec(&call(&fixture, "list_empty")?.result)?;
@@ -362,8 +328,6 @@ fn a_listing_addresses_the_constant_path() -> Result<(), Box<dyn Error>> {
 fn a_said_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "get_said_needing_encoding")?;
-    // The reference sent `/schema/E/../schema?x=1#y`: three extra segments, a query, and a
-    // fragment, from one argument.
     assert_eq!(recorded.path, "/schema/E/../schema?x=1#y");
     assert!(Said::from_qb64("E/../schema?x=1#y").is_err());
     Ok(())
@@ -373,7 +337,6 @@ fn a_said_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn 
 fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "get_wrong_shape")?;
-    // The reference returned an object with only `$id`, typed `Schema` at compile time only.
     assert_eq!(recorded.error, None);
     assert_eq!(recorded.result.get("$id").and_then(Value::as_str), Some(QVI));
     assert_eq!(recorded.result.as_object().map(serde_json::Map::len), Some(1));
@@ -385,7 +348,6 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
         matches!(outcome, Err(ClientError::Api { .. })),
         "a schema missing nine required fields was not refused: {outcome:?}"
     );
-    // The request still went out, so this refuses the answer rather than the call.
     assert_eq!(sent(&transport)?.0, format!("/schema/{QVI}"));
     Ok(())
 }
@@ -393,15 +355,11 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
 #[test]
 fn nothing_checks_the_schema_came_back_under_the_said_asked_for() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference's own integration test makes this check at the call site, and `Schemas.get`
-    // does not — so an agent answering with a different schema is not challenged here either.
     let answer = serde_json::to_vec(&call(&fixture, "get_legal_entity")?.result)?;
     let (client, _) = connected(&[&answer])?;
     let schema = block_on(client.schemas().get(&Said::from_qb64(QVI)?))?;
     assert_eq!(schema.id, LEGAL_ENTITY);
     assert_ne!(schema.id, QVI);
-    // Which is exactly why the fixture records the integration assertion as the check that
-    // matters, and why the method's own documentation tells a caller to make it.
     assert!(
         fixture
             .pinned_confirmations

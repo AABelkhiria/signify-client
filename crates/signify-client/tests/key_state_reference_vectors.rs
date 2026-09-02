@@ -1,9 +1,6 @@
 //! Exact key-event and key-state vectors recorded from the pinned reference's own classes.
 //!
-//! `KeyEvents` and `KeyStates` each take a whole `SignifyClient`, so the generator drives the real
-//! client with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent
-//! would — the arrangement Roadmap 6.4's fixture established. This test rebuilds each call through
-//! a connected client and compares the path, the method, and the body that actually go out.
+//! Each call rebuilt through a connected client: the path, the method, and the body that actually go out.
 
 mod support;
 
@@ -30,10 +27,7 @@ const PREFIX_ONE: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const PREFIX_TWO: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const ANCHOR_SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -147,7 +141,6 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.first().ok_or("no endpoint request was sent")?;
@@ -158,7 +151,6 @@ fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
     Ok(IdentifierPrefix::from_qb64(text)?)
 }
 
-/// Runs one call and compares its request with the recorded one.
 fn assert_matches_recorded(
     fixture: &Fixture,
     name: &str,
@@ -175,10 +167,7 @@ fn assert_matches_recorded(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -206,9 +195,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 11);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of these — not an empty listing, not a prefix carrying
-        // query delimiters, not a two-digit sequence number. Everything it validates, it
-        // validates on the far side of the wire.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
         assert!(entry.request.is_some(), "call {} made no request", entry.name);
     }
@@ -220,7 +206,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The three read paths, none of which encodes its prefix.
     assert!(declarations.events_path.contains("/events?pre=${pre}"));
     assert!(declarations.states_path.contains("/states?pre=${pre}"));
     assert!(declarations.states_list_path.contains("join('&')"));
@@ -236,11 +221,9 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.queries_path.contains(QUERIES_SEGMENT));
     assert!(declarations.events_path.contains(PREFIX_PARAMETER));
 
-    // The body literal names only `pre`; the other two are added conditionally.
     assert!(declarations.query_body.contains("pre: pre"));
     assert!(!declarations.query_body.contains("sn:"));
 
-    // The sequence number's three spellings, and the anchor's.
     assert_eq!(
         declarations.query_signature,
         ["pre: string", "sn?: string", "anchor?: any"]
@@ -249,7 +232,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.query_anchor_doc.contains("{any}"));
     assert!(declarations.query_metadata_sn.contains("number"));
     assert!(declarations.query_metadata_anchor.contains("Anchor"));
-    // The two shapes that share the name `anchor`: the schema's begins `pre`, a seal's begins `s`.
     assert!(declarations.anchor_schema.starts_with("pre:"));
     assert!(declarations.seal_schema.starts_with("s:"));
     assert!(declarations.key_event_record.contains("KeyEvent"));
@@ -277,7 +259,6 @@ fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>
             "{path} was not driven"
         );
     }
-    // The body the pinned test inspects field by field.
     assert!(fixture.pinned_confirmations.pinned_query_body.contains(r#""sn":"1""#));
     Ok(())
 }
@@ -305,10 +286,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Reads.
-// ---------------------------------------------------------------------------
-
+// --- Reads ---
 #[test]
 fn a_key_event_read_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -323,7 +301,6 @@ fn a_key_event_read_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> 
     assert_eq!(method, "GET");
     assert_eq!(body, None, "a key-event read sends no body");
 
-    // The agent's answer decodes into the typed record Roadmap 4.1 built.
     assert_eq!(events.len(), 1);
     let record = events.first().ok_or("no record decoded")?;
     assert!(!record.atc.is_empty());
@@ -362,7 +339,6 @@ fn a_listing_repeats_the_parameter_in_the_recorded_order() -> Result<(), Box<dyn
     assert_eq!(method, "GET");
     assert_eq!(states.len(), 2);
 
-    // A one-prefix listing is exactly a read, which the reference's own paths confirm.
     let single = request_of(&fixture, "states_list_one")?;
     assert_eq!(single.path, request_of(&fixture, "states_get")?.path);
     Ok(())
@@ -371,21 +347,16 @@ fn a_listing_repeats_the_parameter_in_the_recorded_order() -> Result<(), Box<dyn
 #[test]
 fn an_empty_listing_is_refused_rather_than_addressing_a_bare_question_mark() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference sends `/states?` and asks for nothing at all.
     assert_eq!(request_of(&fixture, "states_list_empty")?.path, "/states?");
 
     let (client, transport) = connected(&[b"[]"])?;
     let outcome = block_on(client.key_states().list(&[]));
     assert!(matches!(outcome, Err(ClientError::EmptyKeyStateListing)));
-    // Nothing was sent: only the two lifecycle requests were made.
     assert_eq!(transport.requests().len(), 2);
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Queries.
-// ---------------------------------------------------------------------------
-
+// --- Queries ---
 #[test]
 fn a_query_with_a_sequence_number_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -414,7 +385,6 @@ fn a_query_with_neither_argument_reproduces_the_recorded_body() -> Result<(), Bo
 fn a_query_anchored_on_a_seal_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let answer = serde_json::to_vec(&call(&fixture, "query_seal_anchor")?.result)?;
-    // This is the shape every integration caller passes, and the only one a live KERIA has seen.
     assert_matches_recorded(&fixture, "query_seal_anchor", &answer, |client| {
         let Ok(pre) = prefix(PREFIX_ONE) else { return };
         let anchor = Seal {
@@ -432,12 +402,9 @@ fn the_pinned_query_carries_an_anchor_this_port_cannot_express() -> Result<(), B
     let recorded = request_of(&fixture, "query_pinned")?;
     let body: Value = serde_json::from_str(recorded.body.as_deref().unwrap_or("null"))?;
 
-    // The pinned unit test passes a bare SAID string where every integration caller passes a seal.
-    // It is recorded verbatim and is unrepresentable here: `anchor` is a `Seal`.
     assert_eq!(body.get("anchor").and_then(Value::as_str), Some(ANCHOR_SAID));
     assert!(body.get("anchor").and_then(Value::as_object).is_none());
 
-    // The rest of that same body — the prefix and the sequence number — reproduces exactly.
     let answer = serde_json::to_vec(&call(&fixture, "query_pinned")?.result)?;
     let (client, transport) = connected(&[&answer])?;
     let _ = block_on(
@@ -462,33 +429,22 @@ fn a_query_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Error
     let (client, _) = connected(&[&answer])?;
     let operation = block_on(client.key_states().query(&KeyStateQuery::latest(prefix(PREFIX_ONE)?)))?;
 
-    // Roadmap 4.1 replaced the three-way `QueryOperation` union with one generic type, so the
-    // pending state is a variant rather than a `done: false` a caller has to remember to check.
     assert_eq!(operation.name, format!("query.{PREFIX_ONE}"));
     assert!(matches!(operation.outcome, OperationOutcome::Pending));
     let metadata = operation.metadata.ok_or("the recorded operation carried no metadata")?;
     assert_eq!(metadata.pre, PREFIX_ONE);
-    // The reference's generated schema declares `QueryMetadata.sn` a `number`, which is the shape
-    // this recorded answer carries.
     assert_eq!(metadata.sn, Some(EchoedSequence::Number(1)));
     Ok(())
 }
 
 #[test]
 fn a_live_agent_echoes_the_sequence_number_back_as_the_string_it_was_sent() -> Result<(), Box<dyn Error>> {
-    // Recorded from a live KERIA 1.0.1 by `signify-keria-systest`'s `sequence_base` scenario:
-    // the agent copies the request's `sn` into the operation's metadata verbatim, so the JSON type
-    // is whatever the caller sent — a string, always, since that is all `query` can send. Typing
-    // this field as `u64` alone made every live query response undecodable, which is what the
-    // scenario found. See `fixtures/keria-integration/observations/sequence_base.json`.
     let answer =
         br#"{"name":"query.EEbP.a","metadata":{"pre":"EEbP","sn":"a"},"done":false,"error":null,"response":null}"#;
     let operation: QueryOperation = serde_json::from_slice(answer)?;
     let metadata = operation.metadata.ok_or("the recorded answer carried no metadata")?;
     assert_eq!(metadata.sn, Some(EchoedSequence::Text("a".to_owned())));
 
-    // Both spellings read back as the text they arrived as, and neither is rewritten into the
-    // other: the base of an echoed string is the caller's choice, not something this type recovers.
     assert_eq!(metadata.sn.as_ref().map(EchoedSequence::to_text).as_deref(), Some("a"));
     assert_eq!(EchoedSequence::Number(10).to_text(), "10");
     Ok(())
@@ -498,7 +454,6 @@ fn a_live_agent_echoes_the_sequence_number_back_as_the_string_it_was_sent() -> R
 fn a_two_digit_sequence_number_is_where_the_bases_part_company() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "query_two_digit_sequence")?;
-    // The reference passes its string through untouched, so its own body says nothing about base.
     assert!(
         recorded
             .body
@@ -506,15 +461,11 @@ fn a_two_digit_sequence_number_is_where_the_bases_part_company() -> Result<(), B
             .is_some_and(|body| body.contains(r#""sn":"10""#))
     );
 
-    // The decimal rendering reproduces it; the hexadecimal one does not, and that is the whole
-    // point of making the caller choose.
     let decimal = KeyStateQuery::at(prefix(PREFIX_ONE)?, QuerySequence::Decimal(10)).body()?;
     let hexadecimal = KeyStateQuery::at(prefix(PREFIX_ONE)?, QuerySequence::Hexadecimal(10)).body()?;
     assert_eq!(String::from_utf8(decimal)?, recorded.body.clone().unwrap_or_default());
     assert!(String::from_utf8(hexadecimal)?.contains(r#""sn":"a""#));
 
-    // Below ten every recorded call is identical either way, which is why the reference's own
-    // evidence cannot settle it.
     for value in 0..10 {
         assert_eq!(
             QuerySequence::Decimal(value).to_text(),
@@ -527,7 +478,6 @@ fn a_two_digit_sequence_number_is_where_the_bases_part_company() -> Result<(), B
 #[test]
 fn a_prefix_carrying_query_delimiters_is_not_a_prefix() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference produced `/events?pre=E&pre=EOTHER#x`: a second parameter and a fragment.
     let recorded = request_of(&fixture, "events_get_prefix_needing_encoding")?;
     assert_eq!(recorded.path, "/events?pre=E&pre=EOTHER#x");
     assert!(IdentifierPrefix::from_qb64("E&pre=EOTHER#x").is_err());
@@ -536,10 +486,6 @@ fn a_prefix_carrying_query_delimiters_is_not_a_prefix() -> Result<(), Box<dyn Er
 
 #[test]
 fn the_recorded_live_query_answer_decodes_whole() -> Result<(), Box<dyn Error>> {
-    // The complete body a live KERIA 1.0.1 returned for a resolved query, decoded through the same
-    // type the client uses. The scenario that recorded it could not decode it at all before
-    // `QueryMetadata.sn` was widened, so this pins the whole document rather than just the field
-    // that was wrong.
     const LIVE: &str = include_str!("../../../fixtures/keria-integration/observations/live_query_answer.json");
     let operation: QueryOperation = serde_json::from_str(LIVE)?;
     let metadata = operation.metadata.ok_or("the live answer carried no metadata")?;
@@ -548,7 +494,6 @@ fn the_recorded_live_query_answer_decodes_whole() -> Result<(), Box<dyn Error>> 
         return Err("the recorded live answer is not a completed operation".into());
     };
 
-    // KERIA writes a key state's own sequence number in hexadecimal: this is event ten of eleven.
     assert_eq!(state.sequence_number, "a");
     assert_eq!(state.first_seen, "a");
     assert_eq!(state.establishment_kind, "ixn");

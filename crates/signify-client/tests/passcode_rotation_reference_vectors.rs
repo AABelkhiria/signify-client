@@ -1,22 +1,6 @@
 //! Exact vectors for the passcode-rotation workflow, against both references.
 //!
-//! Roadmap 8.9 ports `SignifyClient.rotate` — the client half of moving to a new passcode. The
-//! artifact half is Roadmap 4.5's `Controller.rotate`, recorded in `fixtures/keri-controller/`.
-//!
-//! **The finding is one variable.** `Controller.rotate` computes `nbran` and `nsalter` from the new
-//! passcode and then writes `const nsigner = this.salter.signer(undefined, false)` — the *old*
-//! salter — and feeds it to both the decrypter, which is right, and the encrypter, which is not.
-//! Driven, the controller salt and both identifiers' key material come back sealed to the passcode
-//! being left behind: they open under the old one and under the new one not at all. A client that
-//! rotated and reconnected could not read its own identifiers, and whoever holds the old passcode
-//! still can.
-//!
-//! keripy does the opposite. `Manager.updateAeid` builds its encrypter from the **new** key, checks
-//! the new seed belongs to it, then opens each secret with the old decrypter and seals it with the
-//! new one. This port follows keripy; ADR `0033` records the divergence, which was a maintainer
-//! decision of 2026-08-27 closing `PORTING.md` §10's open row.
-//!
-//! Nothing upstream exercises any of it: the one pinned call passes an **empty** identifier list.
+//! The one-variable defect sealing key material to the passcode being left behind; this port follows keripy.
 
 mod support;
 
@@ -29,10 +13,7 @@ const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 const FIXTURE: &str = include_str!("../../../fixtures/client-passcode-rotation/v1.json");
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -160,10 +141,7 @@ fn quirk<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Value, Box<dyn Erro
         .ok_or_else(|| format!("no recorded divergence named {name}").into())
 }
 
-// ---------------------------------------------------------------------------
-// Provenance.
-// ---------------------------------------------------------------------------
-
+// --- Provenance ---
 #[test]
 fn the_manifest_matches_both_pinned_references() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -192,16 +170,12 @@ fn the_manifest_matches_both_pinned_references() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The finding, from the syntax tree and from the wire.
-// ---------------------------------------------------------------------------
-
+// --- The finding, from the syntax tree and from the wire ---
 #[test]
 fn the_encrypter_is_built_from_the_salter_being_replaced() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Two of the three `n`-prefixed locals are the new passcode's; the third is not.
     assert!(declarations.nbran_declaration.contains("bran.substring(0, 21)"));
     assert!(declarations.nsalter_declaration.contains("nbran"));
     assert!(
@@ -210,7 +184,6 @@ fn the_encrypter_is_built_from_the_salter_being_replaced() -> Result<(), Box<dyn
     );
     assert!(!declarations.nsigner_declaration.contains("nsalter"));
 
-    // And that one signer feeds both ciphers: the decrypter, correctly, and the encrypter, not.
     assert_eq!(declarations.cipher_construction.len(), 2);
     for construction in &declarations.cipher_construction {
         assert!(
@@ -227,7 +200,6 @@ fn the_encrypter_is_built_from_the_salter_being_replaced() -> Result<(), Box<dyn
         .collect();
     assert_eq!(kinds, ["Encrypter", "Decrypter"]);
 
-    // The sealed controller salt is `this.bran`, which the rotation never updates.
     assert!(declarations.sealed_salt_declaration.contains("this.bran"));
     Ok(())
 }
@@ -237,7 +209,6 @@ fn the_recorded_payload_opens_under_the_passcode_being_left_behind() -> Result<(
     let fixture = fixture()?;
     let old_salt = format!("0AA{}", fixture.provenance.passcode);
 
-    // All three sealed values open under the old passcode, and none under the new one.
     for (name, sealed) in [
         ("the controller salt", &fixture.sealing.controller_salt),
         ("the salty identifier", &fixture.sealing.salty_identifier),
@@ -253,7 +224,6 @@ fn the_recorded_payload_opens_under_the_passcode_being_left_behind() -> Result<(
         );
     }
 
-    // The controller's sealed salt is the *old* salt, not the new one.
     assert_eq!(
         fixture.sealing.controller_salt.opens_under_old.as_deref(),
         Some(old_salt.as_str())
@@ -263,7 +233,6 @@ fn the_recorded_payload_opens_under_the_passcode_being_left_behind() -> Result<(
         Some(format!("0AA{}", fixture.provenance.second_passcode).as_str())
     );
 
-    // And each identifier's material is unchanged by the round trip — only its key is wrong.
     assert_eq!(
         fixture.sealing.salty_identifier.opens_under_old.as_deref(),
         Some(fixture.identifiers.salty.salt.as_str())
@@ -273,8 +242,6 @@ fn the_recorded_payload_opens_under_the_passcode_being_left_behind() -> Result<(
         fixture.identifiers.randy.seeds.first().map(String::as_str)
     );
 
-    // Both identifiers name the keys their stored material must re-derive — the check the
-    // reference performs inside its loop, and this port performs before anything is sealed.
     assert_eq!(fixture.identifiers.salty.state_keys.len(), 1);
     assert_eq!(
         fixture.identifiers.salty.state_keys.first().map(String::as_str),
@@ -297,7 +264,6 @@ fn keripy_seals_under_the_new_key() -> Result<(), Box<dyn Error>> {
     assert_eq!(keripy.file, "src/keri/app/keeping.py");
     assert_eq!(keripy.symbol, "Manager.updateAeid");
 
-    // The line this port follows, and the check that comes with it.
     assert_eq!(
         keripy.encrypter_from_new_key,
         "self.encrypter = core.Encrypter(verkey=aeid)"
@@ -308,7 +274,6 @@ fn keripy_seals_under_the_new_key() -> Result<(), Box<dyn Error>> {
     );
     assert!(keripy.docstring_claim.contains("reencrypts"));
 
-    // Its cipher lines decrypt with the old and encrypt with the new, which is the whole contrast.
     assert!(!keripy.cipher_lines.is_empty());
     assert!(
         keripy
@@ -334,14 +299,12 @@ fn nothing_upstream_exercises_the_re_encryption() -> Result<(), Box<dyn Error>> 
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "nothing_upstream_exercises_the_re_encryption")?;
 
-    // One call in the whole pinned tree, and it rotates no identifiers at all.
     assert_eq!(fixture.declarations.unit_test_calls.len(), 1);
     let call = fixture.declarations.unit_test_calls.first().ok_or("no recorded call")?;
     assert_eq!(call.identifier_count, Some(0));
     assert_eq!(call.identifiers, "[]");
     assert!(call.text.contains("client.rotate("));
 
-    // So the payload it produces carries an empty `keys` map: every branch below is dead.
     let entries = recorded
         .get("empty_payload_keys")
         .and_then(Value::as_array)
@@ -355,7 +318,6 @@ fn a_second_rotation_upstream_commits_to_the_original_passcode_again() -> Result
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "a_second_rotation_derives_from_the_original_salt")?;
 
-    // The controller's salt never moves, so both rotations commit to the same old key.
     assert_eq!(recorded.get("identical").and_then(Value::as_bool), Some(true));
     assert_eq!(recorded.get("bran_moved").and_then(Value::as_bool), Some(false));
     assert_eq!(
@@ -365,10 +327,7 @@ fn a_second_rotation_upstream_commits_to_the_original_passcode_again() -> Result
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The request itself.
-// ---------------------------------------------------------------------------
-
+// --- The request itself ---
 #[test]
 fn the_rotation_is_one_unsigned_put_to_the_agent() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -377,20 +336,16 @@ fn the_rotation_is_one_unsigned_put_to_the_agent() -> Result<(), Box<dyn Error>>
     assert_eq!(request.method, "PUT");
     assert_eq!(request.path, format!("/agent/{}", fixture.provenance.controller_prefix));
 
-    // Unsigned, as upstream: the reference calls the global `fetch` here rather than its own
-    // signed pipeline, so the request carrying every re-sealed secret has no HTTP signature.
     assert!(!request.signed);
     let recorded = quirk(&fixture, "the_rotation_travels_unsigned")?;
     assert_eq!(recorded.get("signed").and_then(Value::as_bool), Some(false));
 
-    // The body's four fields, in the reference's own order.
     assert_eq!(request.body_fields, ["rot", "sigs", "sxlt", "keys"]);
     assert_eq!(request.signature_count, 2);
     assert_eq!(request.key_entries.len(), 2);
     assert!(request.key_entries.contains(&fixture.identifiers.salty.prefix));
     assert!(request.key_entries.contains(&fixture.identifiers.randy.prefix));
 
-    // A salty entry carries its sealed salt; a randy entry carries both key lists.
     assert_eq!(request.salty_entry_fields, ["sxlt"]);
     assert_eq!(request.randy_entry_fields, ["prxs", "nxts"]);
     Ok(())
@@ -402,14 +357,12 @@ fn the_rotation_event_is_the_shape_the_reference_sends() -> Result<(), Box<dyn E
     let rotation = &fixture.request.rotation;
 
     assert_eq!(rotation.get("t").and_then(Value::as_str), Some("rot"));
-    // Always sequence one: the reference never passes a sequence number, which Roadmap 4.5 pinned.
     assert_eq!(rotation.get("s").and_then(Value::as_str), Some("1"));
     assert_eq!(
         rotation.get("i").and_then(Value::as_str),
         Some(fixture.provenance.controller_prefix.as_str())
     );
 
-    // Two keys under a weighted threshold: the new key carries all the weight, the old none.
     let keys = rotation.get("k").and_then(Value::as_array).ok_or("no keys")?;
     assert_eq!(keys.len(), 2);
     let threshold = rotation.get("kt").and_then(Value::as_array).ok_or("no threshold")?;
@@ -437,7 +390,6 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
         assert!(decision.len() > 40, "{name} does not say what this port does");
     }
 
-    // Both methods' text is recorded whole, so a reader can check the claims against the source.
     assert!(
         fixture
             .declarations
@@ -449,10 +401,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Driven: this client, through the same rotation.
-// ---------------------------------------------------------------------------
-
+// --- Driven: this client, through the same rotation ---
 mod driven {
     use super::{Fixture, fixture};
 
@@ -497,10 +446,6 @@ mod driven {
         Ok((block_on(client.connect())?, transport))
     }
 
-    /// The encryption key one passcode derives — what every keeper here seals to.
-    ///
-    /// At the driven client's own derivation cost, so the key matches the one its controller
-    /// derives; a production-cost derivation of the same passcode is a different key entirely.
     fn encryption(passcode: &str) -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
         let salt = Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?;
         let signer = salt.derive_signer_with_profile(
@@ -514,7 +459,6 @@ mod driven {
         ))
     }
 
-    /// Assembles one accepted identifier record around a key-manager section.
     fn hab_record(prefix: &str, key_manager: Value, keys: &[String]) -> Result<AcceptedHab, Box<dyn Error>> {
         let record = serde_json::json!({
             "name": "aid",
@@ -539,14 +483,10 @@ mod driven {
         Ok(serde_json::from_value(Value::Object(record))?)
     }
 
-    /// The fixture's salty and randy identifiers, sealed to the old passcode's key.
     fn identifiers(fixture: &Fixture, encrypter: &Encrypter) -> Result<Vec<AcceptedHab>, Box<dyn Error>> {
         let salty = &fixture.identifiers.salty;
         let salt = Salt::from_qb64(&salty.salt, SecurityTier::Low)?;
 
-        // The identifier's own signing keys, derived at this client's cost. The fixture's were
-        // derived at the reference's production cost, and a cost is part of a key's identity — so
-        // reusing them here would fail the check this rotation performs, correctly.
         let derived = SaltyKeyCreator::new(&salt, Stem::new("signify:aid")?).create(
             1,
             KeyTransferability::Transferable,
@@ -580,7 +520,6 @@ mod driven {
         Ok(vec![salty_record, randy_record])
     }
 
-    /// The body of the last request the transport recorded.
     fn last_body(transport: &AgentTransport) -> Result<Value, Box<dyn Error>> {
         let requests = transport.requests();
         let last = requests.last().ok_or("no request was made")?;
@@ -598,21 +537,14 @@ mod driven {
         let new_passcode = Passcode::new(fixture.provenance.second_passcode.clone())?;
         block_on(client.rotate_passcode(&new_passcode, &records))?;
 
-        // One PUT, to the agent's own resource, unsigned as upstream.
         let requests = transport.requests();
         let last = requests.last().ok_or("no request was made")?;
         assert_eq!(last.method(), fixture.request.method);
-        // The agent's own resource, addressed by this controller's prefix. The fixture's prefix is
-        // the reference's, derived at production cost; this client runs at the ephemeral cost, so
-        // the shape is what compares, not the identifier.
         let expected = format!("/agent/{}", client.controller().prefix().qb64()?);
         assert!(last.path().ends_with(&expected), "{}", last.path());
         assert!(fixture.request.path.starts_with("/agent/"));
         assert!(last.header("signature").is_none(), "the rotation was signed");
 
-        // And the same four fields in the same order, with the same per-identifier shapes. The
-        // order is read off the bytes that left the transport: decoding and re-encoding would sort
-        // them and prove nothing.
         let written = core::str::from_utf8(last.body().ok_or("the request carried no body")?)?.to_owned();
         let body = last_body(&transport)?;
         let mut previous = 0;
@@ -642,8 +574,6 @@ mod driven {
         block_on(client.rotate_passcode(&new_passcode, &records))?;
         let body = last_body(&transport)?;
 
-        // The controller's sealed salt is the NEW salt under the NEW key — where the reference
-        // seals the old salt under the old key, which this fixture records.
         let sealed = body.get("sxlt").and_then(Value::as_str).ok_or("no sealed salt")?;
         let opened = new_decrypter.decrypt_salt(&Ciphertext::from_qb64(sealed)?, SecurityTier::Low)?;
         assert_eq!(
@@ -656,7 +586,6 @@ mod driven {
             "the reference sealed something else"
         );
 
-        // The identifiers' material is unchanged, and now sealed to the new passcode.
         let keys = body.get("keys").and_then(Value::as_object).ok_or("no keys map")?;
         let salty_sealed = keys
             .get(&fixture.identifiers.salty.prefix)
@@ -666,7 +595,6 @@ mod driven {
         let salty_opened = new_decrypter.decrypt_salt(&Ciphertext::from_qb64(salty_sealed)?, SecurityTier::Low)?;
         assert_eq!(salty_opened.expose_qb64()?.as_str(), fixture.identifiers.salty.salt);
 
-        // And the passcode being left behind opens none of it, which the reference's does.
         for sealed in [sealed, salty_sealed] {
             assert!(
                 old_decrypter
@@ -696,9 +624,6 @@ mod driven {
         );
         assert!(refused, "a refused rotation was reported as success");
 
-        // Nothing moved: the controller still holds its old keys and the client its old passcode.
-        // The reference advances its controller before it sends, so a failure there leaves a client
-        // signing with a key the agent has never seen.
         assert_eq!(client.controller().current_keys(), before.as_slice());
         assert_eq!(client.config().passcode().expose(), passcode_before);
         Ok(())
@@ -723,8 +648,6 @@ mod driven {
         );
         assert!(refused, "an identifier with the wrong keys was rotated anyway");
 
-        // Refused before the request: the check the reference performs inside its loop, after it
-        // has already re-sealed everything before it.
         assert_eq!(
             transport.requests().len(),
             sent_before,

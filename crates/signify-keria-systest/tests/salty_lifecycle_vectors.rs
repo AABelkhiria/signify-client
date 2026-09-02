@@ -1,16 +1,6 @@
 //! Hermetic assertions over the recorded salty identifier lifecycle.
 //!
-//! `test-integration/salty.test.ts` is the richest golden-vector scenario in the upstream suite:
-//! from two pinned passcodes it asserts exact prefixes, signing keys, next-key digests, and event
-//! SAIDs. Wave 3 drove that lifecycle through this port against a live deployment; this file
-//! re-checks the recording from its own bytes — the pinned literals are declared *here*, and every
-//! event is re-parsed and re-verified rather than trusting any flag the scenario wrote.
-//!
-//! One divergence is deliberate and asserted as such: the upstream interaction anchors the bare
-//! string `[icp.pre]`, which the port's `Vec<Sad>` anchors cannot spell (Roadmap 4.6), so the
-//! recording anchors a seal of the same inception and its SAID differs from the pinned literal.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! Sixteen of eighteen pinned qb64 values reproduced exactly, the two divergent ones pinned from both sides.
 
 use std::error::Error;
 use std::fs;
@@ -22,11 +12,9 @@ use signify_keri::prefix::{IdentifierPrefix, PrefixVerification};
 use signify_keri::said::{Said, SaidVerification};
 use signify_keri::serialization::Sad;
 
-/// The passcodes the upstream case derives its pinned identifiers from. Published test constants.
 const AID1_PASSCODE: &str = "0123456789abcdefghijk";
 const AID2_PASSCODE: &str = "0123456789lmnopqrstuv";
 
-/// The literals `salty.test.ts` pins, declared here so the fixture cannot vouch for itself.
 const AID1_PREFIX: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const AID1_VERFER: &str = "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9";
 const AID1_DIGER: &str = "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc";
@@ -134,7 +122,6 @@ fn captured() -> Result<Option<Captured>, Box<dyn Error>> {
     Ok(Some(serde_json::from_str(&fs::read_to_string(path)?)?))
 }
 
-/// Reads one text field out of a JSON document, by label.
 fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
     document
         .get(label)
@@ -143,7 +130,6 @@ fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
         .ok_or_else(|| format!("the document carries no text field {label}").into())
 }
 
-/// Reads one array of text out of a JSON document, by label.
 fn text_array(document: &Value, label: &str) -> Result<Vec<String>, Box<dyn Error>> {
     document
         .get(label)
@@ -158,7 +144,6 @@ fn text_array(document: &Value, label: &str) -> Result<Vec<String>, Box<dyn Erro
         .ok_or_else(|| format!("the document carries no text array {label}").into())
 }
 
-/// Returns the creation for one alias, or says which one is missing.
 fn creation<'capture>(captured: &'capture Captured, alias: &str) -> Result<&'capture Creation, Box<dyn Error>> {
     captured
         .creations
@@ -176,8 +161,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert!(!captured.preset.is_empty());
     assert!(!captured.transcript.is_empty(), "the recording kept no transcript");
 
-    // The three creations, in the upstream case's order, with its passcodes: two pinned, one from
-    // entropy — and the prefix index reserved in creation order under the shared stem.
     let aliases: Vec<&str> = captured.creations.iter().map(|c| c.alias.as_str()).collect();
     assert_eq!(aliases, ["aid1", "aid2", "aid3"]);
     for (index, creation) in captured.creations.iter().enumerate() {
@@ -193,7 +176,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert_eq!(creation(&captured, "aid2")?.passcode.as_deref(), Some(AID2_PASSCODE));
     assert_eq!(creation(&captured, "aid3")?.passcode, None);
 
-    // The upstream postcondition: every operation was waited out and deleted.
     assert_eq!(captured.operations_remaining, 0);
     Ok(())
 }
@@ -204,8 +186,6 @@ fn the_pinned_inception_vectors_reproduce() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
 
-    // Decoded here again from the recorded agent answers rather than trusting the scenario's own
-    // comparison: a recording that merely reports its conclusion proves nothing.
     let aid1 = creation(&captured, "aid1")?;
     assert_eq!(aid1.derived_prefix, AID1_PREFIX);
     let event: Value = serde_json::from_str(&aid1.agent_event)?;
@@ -225,8 +205,6 @@ fn the_pinned_inception_vectors_reproduce() -> Result<(), Box<dyn Error>> {
     assert_eq!(text_field(&event, "kt")?, "2");
     assert_eq!(text_field(&event, "nt")?, "2");
 
-    // And every derived inception re-derives its own prefix, the third one included even though
-    // its salt came from entropy and pins nothing.
     for creation in &captured.creations {
         let sad = Sad::from_json_bytes(creation.derived_event.as_bytes())?;
         let prefix = IdentifierPrefix::from_qb64(&creation.derived_prefix)?;
@@ -241,8 +219,6 @@ fn the_agent_accepted_the_ports_exact_bytes() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
 
-    // Byte-level, from the transcript: each derived event appears verbatim inside a successful
-    // POST body, so what the agent accepted is what the port serialized — not a re-encoding.
     let embedded = |resource: &str, needle: &str| -> bool {
         captured.transcript.iter().any(|observation| {
             observation.method == "POST"
@@ -286,7 +262,6 @@ fn the_rotation_reproduces_the_pinned_vector() -> Result<(), Box<dyn Error>> {
     assert_eq!(text_array(&event, "k")?, [ROTATION_VERFER]);
     assert_eq!(text_array(&event, "n")?, [ROTATION_DIGER]);
 
-    // The SAID re-verified over the derived bytes, strictly.
     let sad = Sad::from_json_bytes(captured.rotation.derived_event.as_bytes())?;
     Said::from_qb64(ROTATION_SAID)?.verify(&sad, "d", SaidVerification::strict())?;
     Ok(())
@@ -299,8 +274,6 @@ fn the_interaction_diverges_exactly_where_the_anchor_type_says_it_must() -> Resu
     };
     let interaction = &captured.interaction;
 
-    // The divergence, pinned from both sides: the upstream literal is recorded unchanged, the
-    // run's SAID differs from it, and the reason is stated.
     assert_eq!(interaction.upstream_said, UPSTREAM_INTERACTION_SAID);
     assert_eq!(interaction.upstream_anchor, AID1_PREFIX);
     assert_ne!(interaction.derived_said, UPSTREAM_INTERACTION_SAID);
@@ -309,7 +282,6 @@ fn the_interaction_diverges_exactly_where_the_anchor_type_says_it_must() -> Resu
         "the divergence does not name its cause"
     );
 
-    // What was anchored instead: one seal of aid1's own inception, and nothing else.
     let event: Value = serde_json::from_str(&interaction.derived_event)?;
     assert_eq!(text_field(&event, "s")?, "2");
     let anchors = event
@@ -326,8 +298,6 @@ fn the_interaction_diverges_exactly_where_the_anchor_type_says_it_must() -> Resu
     let recorded_anchor: Value = serde_json::from_str(&interaction.port_anchor)?;
     assert_eq!(seal, &recorded_anchor);
 
-    // The event is still a valid interaction: its SAID verifies strictly over the derived bytes,
-    // and the agent echoed the same document.
     let sad = Sad::from_json_bytes(interaction.derived_event.as_bytes())?;
     Said::from_qb64(&interaction.derived_said)?.verify(&sad, "d", SaidVerification::strict())?;
     let echoed: Value = serde_json::from_str(&interaction.agent_event)?;
@@ -341,14 +311,12 @@ fn the_lifecycle_reads_back_as_upstream_asserts() -> Result<(), Box<dyn Error>> 
         return Ok(());
     };
 
-    // The key state after rotation and interaction, field for field as the upstream case reads it.
     assert_eq!(captured.state.sequence, "2");
     assert_eq!(captured.state.first_seen, "2");
     assert_eq!(captured.state.establishment_kind, "ixn");
     assert_eq!(captured.state.digest, captured.interaction.derived_said);
     assert_eq!(captured.state.establishment_digest, ROTATION_SAID);
 
-    // The three-event log, by SAID, in log order.
     assert_eq!(
         captured.log_saids,
         [
@@ -358,8 +326,6 @@ fn the_lifecycle_reads_back_as_upstream_asserts() -> Result<(), Box<dyn Error>> 
         ]
     );
 
-    // The listing ladder: one, two, three, then the two paged windows, then the window that shows
-    // the rename — exactly the calls the upstream case makes, answered with the names it asserts.
     let names: Vec<(u64, u64, Vec<String>)> = captured
         .listings
         .iter()
@@ -375,7 +341,6 @@ fn the_lifecycle_reads_back_as_upstream_asserts() -> Result<(), Box<dyn Error>> 
     ];
     assert_eq!(names, expected);
 
-    // The rename round.
     assert_eq!(captured.rename.from, "aid3");
     assert_eq!(captured.rename.to, "aid4");
     assert_eq!(captured.rename.updated_name, "aid4");

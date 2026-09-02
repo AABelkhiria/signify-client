@@ -1,12 +1,6 @@
 //! Hermetic assertions over the recorded multisig inceptions.
 //!
-//! Wave 13 drove `test-integration/multisig-inception.test.ts` against a live deployment: a
-//! two-member group witnessed at threshold two of the demo triple, and a second group with no
-//! witnesses at all. This file re-checks the recording — including the observation upstream dare
-//! not make: its witnessless members assertions are commented out against `keria#189`, and this
-//! deployment answers them correctly, so the guard guards a defect that no longer reproduces.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! Two groups, witnessed and witnessless, including the listing upstream comments out against `keria#189`.
 
 use std::error::Error;
 use std::fs;
@@ -68,7 +62,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert!(!captured.preset.is_empty());
     assert!(!captured.member1_transcript.is_empty());
 
-    // Two rounds, at the two witness configurations the upstream case pins.
     let [witnessed, witnessless] = captured.rounds.as_slice() else {
         return Err("the recording does not hold exactly two rounds".into());
     };
@@ -79,7 +72,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
     assert!(!witnessless.witnessed);
     assert_eq!(witnessless.witness_threshold, 0);
 
-    // Distinct parties throughout, and both clients end clean.
     IdentifierPrefix::from_qb64(&captured.member1_prefix)?;
     IdentifierPrefix::from_qb64(&captured.member2_prefix)?;
     IdentifierPrefix::from_qb64(&witnessed.proposer_prefix)?;
@@ -97,17 +89,12 @@ fn both_rounds_agree_on_the_group_and_its_members() -> Result<(), Box<dyn Error>
     };
 
     for round in &captured.rounds {
-        // The upstream case's central assertion: both members derived the same group. A base-ten
-        // reading of the event's hexadecimal `bt` is one way this fails (Roadmap 8.3); at
-        // thresholds two and zero the bases agree, so agreement here is the baseline and wave 12
-        // covered threshold three.
         assert_eq!(
             round.proposer_prefix, round.acceptor_prefix,
             "{}: the members disagree",
             round.group_name
         );
 
-        // The members listing names both, in participant order, for signing and rotation alike.
         assert_eq!(
             round.signing_aids,
             [captured.member1_prefix.clone(), captured.member2_prefix.clone()],
@@ -129,9 +116,6 @@ fn the_witnessless_members_listing_works_despite_upstreams_guard() -> Result<(),
         return Ok(());
     };
 
-    // Upstream comments its witnessless members assertions out against `keria#189`. This
-    // deployment answers the listing correctly — recorded, so if a future deployment regresses,
-    // this fails and says so rather than the recording silently agreeing with the guard.
     let witnessless = captured
         .rounds
         .iter()
@@ -151,7 +135,6 @@ fn both_proposals_travelled_on_the_inception_route() -> Result<(), Box<dyn Error
         return Ok(());
     };
 
-    // Two group creations and two proposal sends from the proposer, proven from its transcript.
     let creations = captured
         .member1_transcript
         .iter()

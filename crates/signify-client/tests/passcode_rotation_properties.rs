@@ -1,15 +1,6 @@
 //! Invariants of the passcode-rotation workflow.
 //!
-//! Rotating a passcode has to move two things: the signing keys, and the encryption protecting the
-//! stored key material. The reference moves only the first — its encrypter derives from the salt it
-//! is replacing — so the invariants here are the ones that make the second true.
-//!
-//! **Whatever the old passcode sealed, the new one opens, unchanged; and the old one no longer
-//! does.** That is one property with two halves, and the second half is the one the reference
-//! fails: its payload opens under the passcode being left behind and under the new one not at all.
-//!
-//! **And nothing moves until the agent accepts.** A rotation that is planned and dropped leaves the
-//! controller exactly as it was, whatever passcode it was planned for.
+//! Whatever the old passcode sealed the new one opens, and nothing moves until the agent accepts.
 
 use std::error::Error;
 
@@ -22,10 +13,8 @@ use signify_keri::controller::{Controller, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_types::api::{AcceptedHab, Hab};
 
-/// The twenty-one character alphabet a passcode is drawn from.
 const ALPHABET: &str = "[0-9a-zA-Z_-]{21}";
 
-/// A controller at the ephemeral derivation cost, so a property can run thousands of cases.
 fn ephemeral(passcode: &str) -> Result<Controller, TestCaseError> {
     Controller::with_options(
         passcode,
@@ -38,7 +27,6 @@ fn ephemeral(passcode: &str) -> Result<Controller, TestCaseError> {
     .map_err(|error| TestCaseError::fail(error.to_string()))
 }
 
-/// The encryption key one passcode derives, at the same cost.
 fn encryption(passcode: &str) -> Result<(Encrypter, Decrypter), TestCaseError> {
     let build = || -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
         let salt = Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?;
@@ -55,7 +43,6 @@ fn encryption(passcode: &str) -> Result<(Encrypter, Decrypter), TestCaseError> {
     build().map_err(|error| TestCaseError::fail(error.to_string()))
 }
 
-/// One randy identifier holding `seed`, sealed to `encrypter`.
 fn randy_record(seed: &[u8; 32], encrypter: &Encrypter) -> Result<(AcceptedHab, String), TestCaseError> {
     let build = || -> Result<(AcceptedHab, String), Box<dyn Error>> {
         let signer = Signer::from_seed(seed, KeyTransferability::Transferable)?;
@@ -86,7 +73,6 @@ fn randy_record(seed: &[u8; 32], encrypter: &Encrypter) -> Result<(AcceptedHab, 
 }
 
 proptest! {
-    /// Whatever the old passcode sealed, the new one opens — unchanged, and exclusively.
     #[test]
     fn the_new_passcode_opens_what_the_old_one_sealed(
         first in ALPHABET,
@@ -112,21 +98,17 @@ proptest! {
             return Err(TestCaseError::fail("no key was re-sealed"));
         };
 
-        // The material survives: the same private key, under a different lock.
         let reopened = new_decrypter
             .decrypt_seed(sealed, KeyTransferability::Transferable)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(reopened.verifier().qb64().ok(), Some(public));
 
-        // And the passcode being replaced no longer opens it. The reference's payload does,
-        // because its encrypter is the one it was already using.
         prop_assert!(
             old_decrypter.decrypt_seed(sealed, KeyTransferability::Transferable).is_err(),
             "the old passcode still opens the rotated key"
         );
     }
 
-    /// The controller's own sealed salt is the new one, under the new key.
     #[test]
     fn the_sealed_salt_is_the_passcode_now_in_force(first in ALPHABET, second in ALPHABET) {
         prop_assume!(first != second);
@@ -153,7 +135,6 @@ proptest! {
         );
     }
 
-    /// A planned rotation that is never applied leaves the controller exactly as it was.
     #[test]
     fn planning_alone_moves_nothing(first in ALPHABET, second in ALPHABET) {
         prop_assume!(first != second);
@@ -165,19 +146,14 @@ proptest! {
         let planned = controller
             .plan_passcode_rotation(&second, &[])
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        // The artifacts exist and are complete...
         prop_assert_eq!(planned.artifacts().signatures.len(), 2);
 
-        // ...and the controller has not moved. Dropping the plan is how a caller declines a
-        // rotation the agent refused; upstream there is nothing to drop, because the controller
-        // has already advanced by the time the request is built.
         drop(planned);
         prop_assert_eq!(controller.current_keys(), before_keys.as_slice());
         prop_assert_eq!(controller.next_digests(), before_digests.as_slice());
         prop_assert_eq!(controller.current_event().raw(), before_event.as_slice());
     }
 
-    /// Rotating twice keeps the chain: each rotation reveals what the last one committed to.
     #[test]
     fn rotating_twice_keeps_the_chain(first in ALPHABET, second in ALPHABET, third in ALPHABET) {
         prop_assume!(first != second && second != third && first != third);
@@ -216,12 +192,9 @@ proptest! {
             signify_crypto::digest::DigestAlgorithm::Blake3_256,
             key.as_bytes(),
         );
-        // Upstream this fails: its second rotation derives from the original salt, so it reveals a
-        // key the first rotation never committed to.
         prop_assert_eq!(committed(&one.rotation), digest.qb64().ok());
     }
 
-    /// An identifier whose stored keys do not match its reported state is refused, always.
     #[test]
     fn a_mismatched_identifier_is_always_refused(
         first in ALPHABET,

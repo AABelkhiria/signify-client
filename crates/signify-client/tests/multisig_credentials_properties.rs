@@ -1,14 +1,6 @@
 //! Invariants of a group's registry, issuance, and revocation rounds.
 //!
-//! These three rounds are where the reference stops reading its proposals, so the invariants are
-//! all forms of one statement: **the value that decides the identifier survives the round trip.**
-//! A registry identifier is a digest over an inception whose nonce is inside it; a credential SAID
-//! is a digest over every field of the credential. Read either from the proposal and the members
-//! agree; take either from your own arguments and they may not, which is what upstream does.
-//!
-//! The other invariant is about slots. These are the rounds whose route and embed slot are *not*
-//! the same word — an issuance is named for its transaction event and discriminated by its
-//! credential — and the one where the reference files an event under the wrong label.
+//! The value that decides an identifier survives the round trip: a registry's nonce, a credential's SAID.
 
 use std::error::Error;
 
@@ -28,14 +20,12 @@ const REGISTRY: &str = "EJBglnT4bORqW6oF87S050gj5i1qBQSHwTj3bLPyMpbX";
 const CREDENTIAL: &str = "ECk3MhIQkFtytQZCiAKKEAA94Y9oL8OtDTINpzsI8JSg";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
-/// The three rounds, each with the slot its embed is discriminated by.
 const ROUNDS: [(&str, &str); 3] = [
     (REGISTRY_ROUTE, REGISTRY_SLOT),
     (ISSUANCE_ROUTE, ISSUANCE_SLOT),
     (REVOCATION_ROUTE, REVOCATION_SLOT),
 ];
 
-/// The embed block one round carries, with `nonce` deciding the registry it names.
 fn embeds(slot: &str, nonce: &str, attributes: &str) -> String {
     let anchor = format!(
         r#""{ANCHOR_SLOT}":{{"v":"KERI10JSON000_","t":"ixn","d":"EANC","i":"{GROUP}","s":"1","p":"{GROUP}","a":[]}}"#
@@ -53,7 +43,6 @@ fn embeds(slot: &str, nonce: &str, attributes: &str) -> String {
     }
 }
 
-/// One group transaction proposal, of the shape the agent answers with.
 fn proposal(route: &str, slot: &str, nonce: &str, attributes: &str) -> String {
     let exn = format!(
         r#"{{"v":"KERI10JSON000_","t":"exn","d":"EEXN","i":"{LOCAL}","rp":"{PEER}","p":"","dt":"2023-11-14T22:13:20.123000+00:00","r":"{route}","q":{{}},"a":{{"{GROUP_LABEL}":"{GROUP}"}},"e":{{"d":"EEMB",{embeds}}}}}"#,
@@ -68,7 +57,6 @@ fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
     Ok(ClassifiedExchange::try_from(entry)?)
 }
 
-/// The nonce a proposed registry inception carries.
 fn nonce_of(classified: &ClassifiedExchange) -> Result<String, TestCaseError> {
     let multisig = classified
         .as_multisig()
@@ -82,11 +70,6 @@ fn nonce_of(classified: &ClassifiedExchange) -> Result<String, TestCaseError> {
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
 
-    /// The nonce that decides a registry identifier reaches a reader unchanged.
-    ///
-    /// The reference's joining half never reads it: it waits for a notification, discards the SAID,
-    /// and creates a registry from its own argument. So the property here is what makes reading
-    /// possible at all — the value is in the message and survives decoding.
     #[test]
     fn a_registrys_nonce_survives_the_round_trip(nonce in "[A-Za-z0-9_-]{43}") {
         let classified = classify(&proposal(REGISTRY_ROUTE, REGISTRY_SLOT, &nonce, "{}"))
@@ -98,7 +81,6 @@ proptest! {
         prop_assert_eq!(multisig.attributes.group.qb64().ok(), Some(GROUP.to_owned()));
     }
 
-    /// A route admits the embed it names, and refuses every other.
     #[test]
     fn a_transaction_route_admits_its_own_embed(
         route in prop::sample::select(ROUNDS.map(|(route, _)| route).to_vec()),
@@ -116,10 +98,6 @@ proptest! {
         }
     }
 
-    /// A revocation is never read as an issuance, whatever it is filed under.
-    ///
-    /// The reference sends `{ iss: [rev, ''], anc }` on `/multisig/rev`, so the event is a
-    /// revocation and the label says issuance. Neither route accepts that pairing here.
     #[test]
     fn a_revocation_under_the_issuance_label_is_refused(route in prop::sample::select(vec![REVOCATION_ROUTE, ISSUANCE_ROUTE])) {
         let misfiled = format!(
@@ -128,7 +106,6 @@ proptest! {
         prop_assert!(classify(&misfiled).is_err(), "{} accepted a revocation labelled as an issuance", route);
     }
 
-    /// A credential's attributes reach a reader unchanged, which is what makes comparing possible.
     #[test]
     fn a_credentials_attributes_survive_the_round_trip(lei in "[A-Z0-9]{20}") {
         let attributes = format!(r#"{{"i":"{PEER}","LEI":"{lei}","dt":"2023-11-14T22:13:20.123000+00:00"}}"#);
@@ -142,13 +119,11 @@ proptest! {
         let read = serde_json::to_value(&embed.acdc.attributes)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(read.get("LEI").and_then(Value::as_str), Some(lei.as_str()));
-        // And the three things every member must agree on beside them.
         prop_assert_eq!(embed.acdc.digest.as_str(), CREDENTIAL);
         prop_assert_eq!(embed.acdc.schema.as_str(), SCHEMA);
         prop_assert_eq!(embed.iss.digest.as_str(), "EISS");
     }
 
-    /// Arbitrary bytes never panic: a proposal classifies or is refused with a reason.
     #[test]
     fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
         match core::str::from_utf8(&bytes) {
@@ -163,18 +138,15 @@ proptest! {
     }
 }
 
-/// Regression: the one round whose route and embed slot are not the same word.
 #[test]
 fn an_issuance_is_named_for_its_transaction_and_discriminated_by_its_credential() {
     assert_eq!(ISSUANCE_ROUTE.rsplit('/').next(), Some(TRANSACTION_SLOT));
     assert_eq!(ISSUANCE_SLOT, "acdc");
     assert_ne!(ISSUANCE_SLOT, TRANSACTION_SLOT);
-    // The other two are named for what they embed.
     assert_eq!(REGISTRY_ROUTE.rsplit('/').next(), Some(REGISTRY_SLOT));
     assert_eq!(REVOCATION_ROUTE.rsplit('/').next(), Some(REVOCATION_SLOT));
 }
 
-/// Regression: the nonce the vLEI scenario pins.
 #[test]
 fn the_scenarios_registry_reproduces() -> Result<(), Box<dyn Error>> {
     let classified = classify(&proposal(
@@ -193,7 +165,6 @@ fn the_scenarios_registry_reproduces() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: a transaction proposal names only the group, so members come from the record.
 #[test]
 fn a_transaction_proposal_names_only_the_group() -> Result<(), Box<dyn Error>> {
     let classified = classify(&proposal(REGISTRY_ROUTE, REGISTRY_SLOT, "AHSND", "{}"))?;

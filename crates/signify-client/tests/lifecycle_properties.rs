@@ -1,8 +1,6 @@
 //! Invariants of the client lifecycle.
 //!
-//! Every client here uses the ephemeral derivation cost. The production profile costs 64 MiB per
-//! key, which a property test would multiply by its case count; nothing under test depends on the
-//! profile, and the cross-language vectors cover the production one exactly.
+//! Construction, connection, and state invariants, every client derived at the ephemeral cost.
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
@@ -30,7 +28,6 @@ fn fail(error: impl core::fmt::Display) -> TestCaseError {
     TestCaseError::fail(error.to_string())
 }
 
-/// A minimal executor; every future on this path is ready on its first poll.
 fn block_on<F: core::future::Future>(future: F) -> F::Output {
     use core::task::{Context, Poll, Waker};
     let mut future = Box::pin(future);
@@ -54,8 +51,6 @@ fn config(passcode: &str) -> Result<ClientConfig, ClientError> {
         .with_derivation_cost(DerivationCost::Ephemeral))
 }
 
-/// A response carrying the agent resource, whose controller event is spliced in as text so its
-/// version string stays first.
 fn agent_state(controller_prefix: &str, inception: &str, rotation_index: u32) -> String {
     let agent = format!(
         r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{AGENT_KEY}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller_prefix}"}}"#
@@ -75,8 +70,6 @@ fn response(status: u16, body: Vec<u8>) -> Result<Response, TestCaseError> {
 }
 
 proptest! {
-    /// A passcode is accepted exactly when it is the right length and holds only URL-safe Base64,
-    /// and the failure names which rule it broke.
     #[test]
     fn a_passcode_is_accepted_exactly_when_it_is_well_formed(
         length in 0_usize..30,
@@ -109,7 +102,6 @@ proptest! {
         }
     }
 
-    /// A passcode never appears in any rendering of itself or of the configuration holding it.
     #[test]
     fn a_passcode_is_never_rendered(suffix in "[A-Za-z0-9_-]{11}") {
         let text = format!("0123456789{suffix}");
@@ -128,8 +120,6 @@ proptest! {
         prop_assert!(!rendered.contains(&text), "a client rendered its passcode");
     }
 
-    /// The boot body carries the same five fields in the same order whatever the passcode, and its
-    /// prefix index is always the constant the reference hardcodes.
     #[test]
     fn the_boot_body_shape_never_varies(suffix in "[A-Za-z0-9_-]{11}") {
         let passcode = format!("0123456789{suffix}");
@@ -144,7 +134,6 @@ proptest! {
         prop_assert_eq!(document.get_text("stem"), Some("signify:controller"));
         prop_assert_eq!(document.get_text("tier"), Some("low"));
 
-        // The inception it carries is the controller's own, byte for byte.
         let inception = document.get("icp").and_then(SadValue::as_map)
             .ok_or_else(|| TestCaseError::fail("no inception in the boot body"))?;
         prop_assert_eq!(
@@ -153,8 +142,6 @@ proptest! {
         );
     }
 
-    /// Every security tier renders as the wire text a KERIA agent stores, and the tier changes the
-    /// keys, so two clients on different tiers are different controllers.
     #[test]
     fn a_tier_changes_the_controller_and_its_wire_text(index in 0_usize..3) {
         let tiers = [SecurityTier::Low, SecurityTier::Medium, SecurityTier::High];
@@ -173,8 +160,6 @@ proptest! {
         prop_assert_eq!(body.get_text("tier"), Some(expected));
     }
 
-    /// An agent whose inception anchors a different controller is always refused, and the failure
-    /// names both prefixes.
     #[test]
     fn an_agent_anchoring_someone_else_is_refused(suffix in "[A-Za-z0-9_-]{11}") {
         let transport = Arc::new(ScriptedTransport::new());
@@ -185,7 +170,6 @@ proptest! {
             .map_err(fail)?
             .to_owned();
 
-        // The agent's inception anchors a controller derived from a different passcode.
         let other = SignifyClient::new(
             config(&format!("abcdefghij{suffix}")).map_err(fail)?,
             Arc::new(ScriptedTransport::new()),
@@ -207,8 +191,6 @@ proptest! {
         );
     }
 
-    /// A 404 is always the missing-agent failure, and any other non-success status is a status
-    /// failure — never parsed as state.
     #[test]
     fn a_non_success_state_read_is_never_parsed(status in 400_u16..600) {
         let transport = Arc::new(ScriptedTransport::new());
@@ -230,7 +212,6 @@ proptest! {
         }
     }
 
-    /// A state body missing either half is refused rather than half-read.
     #[test]
     fn an_incomplete_state_body_is_refused(drop_agent in any::<bool>()) {
         let transport = Arc::new(ScriptedTransport::new());
@@ -252,8 +233,6 @@ proptest! {
         );
     }
 
-    /// A generated passcode is always one this port and the reference would both accept, and a
-    /// generated nonce is always a qualified Ed25519 seed.
     #[test]
     fn the_random_helpers_always_produce_usable_values(rounds in 1_usize..6) {
         for _ in 0..rounds {
@@ -268,20 +247,15 @@ proptest! {
     }
 }
 
-/// Regression: connecting when the controller is already past sequence zero must not approve the
-/// delegation again — the reference's check is on the sequence number, not on a flag.
 #[test]
 fn a_connected_controller_past_zero_does_not_reapprove() -> Result<(), Box<dyn std::error::Error>> {
     let transport = Arc::new(ScriptedTransport::new());
     let client = SignifyClient::new(config(PASSCODE)?, Arc::clone(&transport) as Arc<_>, clock())?;
     let prefix = client.controller().prefix().qb64()?;
 
-    // An establishment event at sequence one: the controller adopts it rather than re-incepting,
-    // so no approval is needed.
     let rotation = format!(
         r#"{{"v":"KERI10JSON000160_","t":"rot","d":"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C","i":"{prefix}","s":"1","p":"{prefix}","kt":"1","k":["DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"],"nt":"1","n":["EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"],"bt":"0","br":[],"ba":[],"a":[]}}"#
     );
-    // The recorded rotation must be a well-formed message before it can be adopted.
     let sized = signify_keri::serialization::SerializedEvent::from_sad(Sad::from_json_bytes(rotation.as_bytes())?)?;
     let adopted = core::str::from_utf8(sized.raw())?.to_owned();
 
@@ -297,20 +271,15 @@ fn a_connected_controller_past_zero_does_not_reapprove() -> Result<(), Box<dyn s
 
     let connected = block_on(client.connect())?;
     assert_eq!(connected.controller().current_sequence_number(), 1);
-    // One request only: the state read. No approval went out.
     assert_eq!(transport.recorded().len(), 1);
     Ok(())
 }
 
-/// Regression: a client that has not connected has no `fetch` at all, which is what makes the
-/// reference's run-time check unnecessary. This test exists to fail if that ever becomes callable.
 #[test]
 fn an_unconnected_client_exposes_no_signed_call() -> Result<(), Box<dyn std::error::Error>> {
     let transport = Arc::new(ScriptedTransport::new());
     let client = SignifyClient::new(config(PASSCODE)?, transport, clock())?;
 
-    // The unconnected type offers exactly boot and state; building a request is possible, sending
-    // one is not, and the compiler is what enforces that.
     let path = ResourcePath::builder().segment("contacts").build()?;
     let request = ClientRequest::new(Method::Get, path);
     assert_eq!(request.method(), Method::Get);
@@ -319,7 +288,6 @@ fn an_unconnected_client_exposes_no_signed_call() -> Result<(), Box<dyn std::err
     Ok(())
 }
 
-/// Regression: the default boot URL is the reference's, and is used when none is given.
 #[test]
 fn the_default_boot_url_is_the_references() -> Result<(), Box<dyn std::error::Error>> {
     let config = ClientConfig::new(ADMIN, PASSCODE)?;

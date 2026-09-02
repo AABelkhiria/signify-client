@@ -1,13 +1,6 @@
 //! Exact configuration-endpoint vectors recorded from the pinned reference's own `Config`.
 //!
-//! `Config` takes a whole `SignifyClient`, so the generator drives the real client with
-//! `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the
-//! arrangement Roadmap 6.4's fixture established and 6.7's reused.
-//!
-//! The address carries no caller input, so every one of the five recorded answers produces the
-//! same request. What the vectors are really about is the *response*: the reference casts it and
-//! this port decodes it, and one of the five recorded answers is a shape only one of the two
-//! refuses.
+//! One constant address across five recorded answers, and the one shape only this port refuses.
 
 mod support;
 
@@ -27,10 +20,7 @@ use signify_keri::manager::DerivationCost;
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-config/v1.json");
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -143,17 +133,13 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// Returns the path, method, and body of the first endpoint request after connecting.
 fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.first().ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -173,7 +159,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.calls.len(), 5);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
-        // The reference refuses none of the five — including the one whose shape is wrong.
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
     }
     Ok(())
@@ -184,20 +169,16 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // A template literal with nothing interpolated: the only such address in the port.
     assert_eq!(declarations.config_path, "path = `/config`");
     assert!(declarations.config_path.contains(CONFIG_SEGMENT));
     assert!(!declarations.config_path.contains("${"));
     assert_eq!(declarations.config_method, "method = 'GET'");
     assert!(declarations.config_fetch.contains("null"));
 
-    // The cast this port replaces with a decode.
     assert_eq!(declarations.config_return, "await res.json()");
 
-    // The whole class is three members, one of which is the constructor.
     assert_eq!(declarations.config_members, ["client", "<constructor>", "get"]);
 
-    // The response type: one optional field, and nothing else in the schema.
     assert_eq!(declarations.agent_config_schema, "AgentConfig: { iurls?: string[]; };");
     assert_eq!(declarations.agent_config_uses.needle, "AgentConfig");
     assert_eq!(declarations.agent_config_uses.scanned_files, 117);
@@ -246,10 +227,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The call.
-// ---------------------------------------------------------------------------
-
+// --- The call ---
 #[test]
 fn a_configuration_read_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -265,11 +243,9 @@ fn a_configuration_read_addresses_the_recorded_path() -> Result<(), Box<dyn Erro
     assert_eq!(path, "/config");
     assert_eq!(method, request.method);
     assert_eq!(method, "GET");
-    // The reference passes `null` as its data and `fetch` sends no body for a GET either way.
     assert_eq!(body, None);
     assert_eq!(request.body, None);
 
-    // The answer decodes into what the reference returns unchecked.
     assert_eq!(
         config.introduction_urls.as_ref().map(Vec::len),
         recorded.result.get("iurls").and_then(Value::as_array).map(Vec::len)
@@ -280,7 +256,6 @@ fn a_configuration_read_addresses_the_recorded_path() -> Result<(), Box<dyn Erro
 #[test]
 fn every_recorded_answer_produces_the_same_request() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The address carries no caller input, so nothing an agent says can change what was asked.
     for entry in &fixture.calls {
         let request = entry.request.as_ref().ok_or("no recorded request")?;
         assert_eq!(request.path, "/config", "call {} addressed something else", entry.name);
@@ -312,15 +287,12 @@ fn an_absent_list_and_an_empty_one_stay_distinguishable() -> Result<(), Box<dyn 
 fn an_undeclared_field_is_ignored_where_the_reference_keeps_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "config_unknown_fields")?;
-    // The reference hands the caller everything the agent sent, `curls` and `unknown` included.
     assert!(recorded.result.get("curls").is_some());
     assert!(recorded.result.get("unknown").is_some());
 
     let (client, _) = connected(&[&serde_json::to_vec(&recorded.answer)?])?;
     let config = block_on(client.agent_config().get())?;
     assert_eq!(config.introduction_urls, Some(Vec::new()));
-    // Nothing undeclared survives, which is Roadmap 4.1's rule for a schema with no index
-    // signature.
     assert_eq!(serde_json::to_string(&config)?, r#"{"iurls":[]}"#);
     Ok(())
 }
@@ -329,7 +301,6 @@ fn an_undeclared_field_is_ignored_where_the_reference_keeps_it() -> Result<(), B
 fn an_answer_of_the_wrong_shape_is_refused_where_the_reference_casts_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "config_wrong_shape")?;
-    // The reference returned it unchanged, typed as an `AgentConfig` at compile time only.
     assert_eq!(recorded.error, None);
     assert_eq!(recorded.result.get("iurls").and_then(Value::as_str), Some("not-a-list"));
 
@@ -339,7 +310,6 @@ fn an_answer_of_the_wrong_shape_is_refused_where_the_reference_casts_it() -> Res
         matches!(outcome, Err(ClientError::Api { .. })),
         "a wrong-shaped configuration was not refused: {outcome:?}"
     );
-    // The request still went out, so this is a refusal of the answer rather than of the call.
     assert_eq!(sent(&transport)?.0, "/config");
     Ok(())
 }

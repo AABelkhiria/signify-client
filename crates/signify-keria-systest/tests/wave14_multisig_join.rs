@@ -1,26 +1,8 @@
 //! Wave 14 — multisig join: a third member enters a group by rotation.
 //!
-//! The spine of `test-integration/multisig-join.test.ts`, the **Multisig inception/join** row's
-//! second half: two members run a 1-of-1 group; a third member appears; a first group rotation
-//! adds him to **rotation authority** (his digest joins `n` while `k` stays two); everyone
-//! rotates their own keys again; and a second group rotation brings him into the **signing set**
-//! — which he joins not by holding the group but by being shown the proposal.
-//!
-//! The join is where this port deliberately differs from the reference in *how* while agreeing in
-//! *what*: upstream's member3 signs the shown bytes unexamined, which Roadmap 8.4 recorded as the
-//! joining member never reading the rotation it joins. Here member3 **rebuilds** the rotation
-//! from the proposal's member lists and his own queried key states — composing the group keeper
-//! from `KeeperRequest::Group` and driving `rotate_identifier` over the group's prior state —
-//! and compares the SAID he built with the SAID he was shown before `groups().join` submits his
-//! signature. Same wire outcome, checked instead of trusted.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave14_multisig_join -- --ignored --test-threads=1 --nocapture
-//! ```
+//! A third member joins by rebuilding the rotation he was shown and comparing SAIDs before signing.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -47,30 +29,24 @@ use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 use signify_types::api::{KeyState, Role};
 
-/// The group alias, as the upstream case names it.
 const GROUP_NAME: &str = "multisigGroup";
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
     member_prefixes: Vec<String>,
     group_prefix: String,
-    /// The group's signing keys and next digests after the first rotation: two keys, three digests.
     after_first_rotation_keys: Vec<String>,
     after_first_rotation_digests: Vec<String>,
-    /// The SAID the second rotation's proposal showed, and the SAID member3 rebuilt.
     shown_rotation_said: String,
     rebuilt_rotation_said: String,
-    /// The group's state as member3 reads it after joining: three keys, three digests.
     joined_keys: Vec<String>,
     joined_digests: Vec<String>,
     operations_remaining: Vec<usize>,
     member3_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one operation out and deletes it and any dependency.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -87,8 +63,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Creates one unwitnessed identifier with the agent end role, as `multisig-join` creates its
-/// members (`createAID(client, name, [])`).
 async fn plain_identifier(client: &ConnectedClient, alias: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
     progress(&format!("{alias}: creating without witnesses"));
     let created = client
@@ -107,7 +81,6 @@ async fn plain_identifier(client: &ConnectedClient, alias: &str) -> Result<Ident
     Ok(prefix)
 }
 
-/// Resolves one OOBI URL under `alias` and waits the resolution out.
 async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<(), Box<dyn Error>> {
     let resolution = OobiResolution {
         url: RequestUrl::new(url.to_owned())?,
@@ -120,7 +93,6 @@ async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result
     Ok(())
 }
 
-/// Returns the first agent OOBI `alias` publishes.
 async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box<dyn Error>> {
     client
         .oobis()
@@ -132,7 +104,6 @@ async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box
         .ok_or_else(|| format!("{alias} publishes no OOBI").into())
 }
 
-/// Polls until an unread notification carries `route`, marking every match; returns the last SAID.
 async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Said, Box<dyn Error>> {
     progress(&format!("waiting for a notification on {route}"));
     for _ in 0..60 {
@@ -158,7 +129,6 @@ async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Sai
     Err(format!("no notification on {route} arrived in time").into())
 }
 
-/// Queries one identifier's key state at a sequence and returns the state it resolved to.
 async fn query_state(
     client: &ConnectedClient,
     prefix: &IdentifierPrefix,
@@ -173,7 +143,6 @@ async fn query_state(
     Ok(state)
 }
 
-/// Rotates one member's own identifier and waits it out.
 async fn rotate_own(client: &ConnectedClient, alias: &str) -> Result<(), Box<dyn Error>> {
     progress(&format!("{alias}: rotating own keys"));
     let rotated = client
@@ -184,7 +153,6 @@ async fn rotate_own(client: &ConnectedClient, alias: &str) -> Result<(), Box<dyn
     Ok(())
 }
 
-/// One member's group end-role authorisation with its `/multisig/rpy` relay — wave 12's round.
 async fn add_group_end_role(
     client: &ConnectedClient,
     member_alias: &str,
@@ -227,7 +195,6 @@ async fn add_group_end_role(
     Ok(operation_name)
 }
 
-/// Incepts the 1-of-1 two-member group and gives it its agent end roles.
 async fn incept_group(
     member1: &ConnectedClient,
     member2: &ConnectedClient,
@@ -261,7 +228,6 @@ async fn incept_group(
     wait_and_delete(member1, &proposed.creation().operation()?.name).await?;
     wait_and_delete(member2, &accepted.creation().operation()?.name).await?;
 
-    // The group's agent end roles, so it publishes the OOBI member3 will resolve.
     let stamp = signify_keria_systest::now()?;
     let eids = [member1.agent().prefix().clone(), member2.agent().prefix().clone()];
     let mut names = Vec::new();
@@ -290,7 +256,6 @@ async fn incept_group(
     Ok(proposed.group().clone())
 }
 
-/// Member1 proposes one group rotation over the given states and waits his own halves out.
 async fn propose_group_rotation(
     member1: &ConnectedClient,
     signing: &[KeyState],
@@ -316,7 +281,6 @@ async fn propose_group_rotation(
     Ok(())
 }
 
-/// Member3 rebuilds the shown rotation from its member lists and joins the group with it.
 async fn rebuild_and_join(
     member3: &ConnectedClient,
     shown: &Said,
@@ -331,7 +295,6 @@ async fn rebuild_and_join(
         .as_multisig()
         .filter(|proposal| proposal.route == MultisigRoute::Rotation)
         .ok_or("the shown message is not a rotation proposal")?;
-    // The rotation's own SAID — not `proposal.proposed.digest`, which is the embeds *block*'s.
     let shown_said = serde_json::to_value(&proposal.proposed.message)?
         .get("rot")
         .and_then(|rot| rot.get("d"))
@@ -364,14 +327,6 @@ async fn rebuild_and_join(
     let signing_states = pick(&signing_members)?;
     let rotation_states = pick(&rotation_members)?;
 
-    // The rebuild: the group keeper composed from the member's own record and the key states, and
-    // the rotation derived over the group's prior state — then compared with what was shown.
-    //
-    // The keeper's `next_states` supply what a *rotation* signature indexes into: the digests the
-    // **prior** group event committed (`keeper_for` reads them from the stored record's state,
-    // which a joining member does not have). Handing it the new rotation states instead makes the
-    // member's current key `MemberNotPrecommitted` — it is committed by the prior event, not the
-    // proposed one — so each prior commitment is carried in a state shell of its own.
     let prior_commitments: Vec<KeyState> = signing_states
         .iter()
         .zip(&group_prior.next_key_digests)
@@ -410,8 +365,6 @@ async fn rebuild_and_join(
     Ok((shown_said, rebuilt_said))
 }
 
-/// Creates member3 and cross-resolves every OOBI the join needs, including the group's
-/// `/agent/`-truncated one.
 async fn introduce_member3(
     member1: &ConnectedClient,
     member2: &ConnectedClient,
@@ -433,7 +386,6 @@ async fn introduce_member3(
     Ok(aid3)
 }
 
-/// Connects the three member clients, in transcript order.
 async fn three_clients(
     environment: &Environment,
     transcripts: &[std::sync::Arc<signify_keria_systest::Recorder>; 3],
@@ -471,7 +423,6 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
     ];
     let (member1, member2, member3) = Box::pin(three_clients(&environment, &transcripts)).await?;
 
-    // The two-member group, and member3 introduced to everyone.
     let aid1 = plain_identifier(&member1, "member1").await?;
     let aid2 = plain_identifier(&member2, "member2").await?;
     resolve_url(&member1, &agent_oobi(&member2, "member2").await?, "member2").await?;
@@ -481,7 +432,6 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
 
     let aid3 = Box::pin(introduce_member3(&member1, &member2, &member3)).await?;
 
-    // First rotation: members 1 and 2 rotate their own keys; member3's digest joins `n`.
     rotate_own(&member1, "member1").await?;
     rotate_own(&member2, "member2").await?;
     let state2_on_1 = query_state(&member1, &aid2, 1).await?;
@@ -491,16 +441,9 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
     let signing = [(*own1.state).clone(), state2_on_1.clone()];
     let rotation = [(*own1.state).clone(), state2_on_1.clone(), state3_on_1.clone()];
     propose_group_rotation(&member1, &signing, &rotation).await?;
-    // Only member2 hears of this rotation. The port's announcement reaches the **signing** peers,
-    // and member3 holds only rotation authority here — upstream tells him by hand, because its
-    // `send` takes a free-form recipient list (Roadmap 7.7's finding about that list, seen from
-    // the other side). He needs nothing from this message: the second rotation's signing set
-    // includes him, and that announcement is the one his join reads.
     await_notification(&member2, "/multisig/rot").await?;
     let after_first = member1.identifiers().get(GROUP_NAME).await?;
 
-    // Second rotation: everyone rotates again; member3 queries the states he will rebuild from —
-    // including the group's own prior state, fetched before the proposal exists.
     rotate_own(&member1, "member1").await?;
     rotate_own(&member2, "member2").await?;
     rotate_own(&member3, "member3").await?;
@@ -520,7 +463,6 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
     ];
     propose_group_rotation(&member1, &all_states, &all_states).await?;
 
-    // Member3 reads the proposal, rebuilds the rotation, compares, and joins.
     let shown = await_notification(&member3, "/multisig/rot").await?;
     await_notification(&member2, "/multisig/rot").await?;
     let held = [

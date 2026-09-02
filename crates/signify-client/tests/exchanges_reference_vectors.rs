@@ -1,18 +1,6 @@
 //! Exact exchange-endpoint vectors recorded from the pinned reference's own `Exchanges`.
 //!
-//! `Exchanges` takes a whole `SignifyClient`, so the generator drives the real client with
-//! `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would, and the
-//! identifier is the reference's own `mockGetAID` — which is why the sender here is the literal the
-//! pinned `contacting.test.ts` asserts.
-//!
-//! The **clock is pinned**, because `send` passes no timestamp and `exchange(...)` then reads the
-//! system clock. Without that, nothing this class sends is reproducible at all.
-//!
-//! Twelve calls are recorded. What they prove has three parts: the two addresses and the request
-//! body reproduce byte for byte, signatures included; the four inputs this port refuses are each
-//! shown to be refused; and the two behaviours the reference's own integration tests depend on —
-//! the dead loop in `send`, and the alias that need not be the signer — are reproduced only when a
-//! caller says so explicitly.
+//! Twelve calls: two addresses and a body byte for byte, four refusals, and two behaviours only on request.
 
 mod support;
 
@@ -47,10 +35,7 @@ const SECOND_RECIPIENT: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -193,7 +178,6 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-/// The last request one recorded call produced: the submission, after any identifier read.
 fn submission<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedRequest, Box<dyn Error>> {
     call(fixture, name)?
         .requests
@@ -224,27 +208,20 @@ fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>),
     Ok((block_on(client.connect())?, transport))
 }
 
-/// One endpoint request as it left the transport: path, method, and body.
 type SentRequest = (String, String, Option<String>);
 
-/// Returns the path, method, and body of the endpoint request at `index`.
 fn sent(transport: &AgentTransport, index: usize) -> Result<SentRequest, Box<dyn Error>> {
     let endpoint = transport.endpoint_requests()?;
     let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
     Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
-/// The sealing key this client's controller salt derives, so a recorded record can be re-sealed.
 fn sealing_key() -> Result<Encrypter, Box<dyn Error>> {
     let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
     let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
     Ok(Encrypter::from_verification_key(signer.verifier())?)
 }
 
-/// The identifier record every lookup answers with, re-sealed under this client's own key.
-///
-/// The fixture records what the reference's sealed salt *opens to* rather than the blob itself,
-/// because only the reference's controller can open that blob. Roadmap 6.11 established the shape.
 fn identifier_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut record = fixture.mock_shortfall.identifier_record.clone();
     let opens_to = record
@@ -273,7 +250,6 @@ fn stamp() -> Result<Timestamp, Box<dyn Error>> {
     Ok(STAMP.parse()?)
 }
 
-/// The word list the pinned test responds with, taken from the fixture rather than transcribed.
 fn words(fixture: &Fixture) -> Vec<String> {
     fixture.declarations.pinned_words.clone()
 }
@@ -287,10 +263,7 @@ fn words_payload(fixture: &Fixture) -> Result<Sad, Box<dyn Error>> {
     Ok(payload)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -315,7 +288,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
     }
-    // The reference refuses exactly one of the twelve, and only because its loop cannot run.
     let refused: Vec<&str> = fixture
         .calls
         .iter()
@@ -331,7 +303,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Four methods, and this item ports all four.
     assert_eq!(
         declarations.exchanges_members,
         [
@@ -344,17 +315,14 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         ]
     );
 
-    // The composition `create_message` performs: look the keeper up, build, sign.
     assert!(declarations.create_keeper.contains("this.client.manager"));
     assert!(declarations.create_exchange_call.starts_with("exchange("));
     assert!(declarations.create_sign.contains("keeper.sign"));
     assert!(declarations.create_return.contains("sigs"));
-    // Seven parameters, the last two of which `send` never passes.
     assert_eq!(declarations.create_signature.len(), 7);
     assert!(declarations.create_signature.iter().any(|p| p.starts_with("datetime?")));
     assert!(declarations.create_signature.iter().any(|p| p.starts_with("dig?")));
 
-    // The submission: one path, one method, one body of five fields.
     assert_eq!(
         declarations.send_from_events_path,
         "path = `/identifiers/${name}/exchanges`"
@@ -367,12 +335,10 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         );
     }
 
-    // The read: one segment interpolated raw.
     assert_eq!(declarations.get_path, "path = `/exchanges/${said}`");
     assert_eq!(declarations.get_signature, ["said: string"]);
     assert_eq!(declarations.get_return, "await res.json()");
 
-    // `respond` still delegates, which is what made Roadmap 7.4's deferral legitimate.
     assert!(declarations.respond_body.contains("exchanges.send("));
     assert!(declarations.respond_body.contains("'/challenge/response'"));
     assert!(declarations.respond_body.contains("'challenge'"));
@@ -391,7 +357,6 @@ fn the_route_table_is_recorded_and_left_to_roadmap_8_1() -> Result<(), Box<dyn E
         .route_constants
         .as_object()
         .ok_or("the route constants are not an object")?;
-    // Thirteen exported route constants: eight multisig and five IPEX.
     assert_eq!(routes.len(), 13);
     assert_eq!(
         routes.get("MULTISIG_ICP_ROUTE").and_then(Value::as_str),
@@ -401,15 +366,12 @@ fn the_route_table_is_recorded_and_left_to_roadmap_8_1() -> Result<(), Box<dyn E
         routes.get("IPEX_GRANT_ROUTE").and_then(Value::as_str),
         Some("/ipex/grant")
     );
-    // None of them is a challenge route: that constant is Roadmap 7.4's, and stayed there.
     assert!(
         !routes
             .values()
             .any(|route| route.as_str() == Some(CHALLENGE_RESPONSE_ROUTE))
     );
 
-    // The two topics this port publishes are the ones the reference's integration tests use, and
-    // they are *not* route constants — a topic is not a route.
     assert!(!routes.values().any(|route| route.as_str() == Some(MULTISIG_TOPIC)));
     assert!(!routes.values().any(|route| route.as_str() == Some(REGISTRY_TOPIC)));
     Ok(())
@@ -420,14 +382,11 @@ fn the_declared_shapes_are_the_references_own() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // `send` takes seven arguments, two of which are the alias and the identifier that need not
-    // agree, and one of which is the recipient *list* the message can only have one of.
     assert_eq!(declarations.send_signature.len(), 7);
     assert!(declarations.send_signature.iter().any(|p| p.starts_with("name:")));
     assert!(declarations.send_signature.iter().any(|p| p.starts_with("sender:")));
     assert!(declarations.send_signature.iter().any(|p| p.starts_with("recipients:")));
 
-    // The loop that returns on its first pass.
     assert!(
         declarations
             .send_loop
@@ -435,8 +394,6 @@ fn the_declared_shapes_are_the_references_own() -> Result<(), Box<dyn Error>> {
     );
     assert!(declarations.send_loop.contains("return await this.sendFromEvents"));
 
-    // `sendFromEvents` takes the message, its signatures, and its attachment as three separate
-    // arguments, which is what lets them disagree; here they are one `SignedExchange`.
     assert_eq!(declarations.send_from_events_signature.len(), 6);
     for parameter in ["exn: Serder", "sigs: string[]", "atc: string"] {
         assert!(
@@ -448,11 +405,9 @@ fn the_declared_shapes_are_the_references_own() -> Result<(), Box<dyn Error>> {
         );
     }
 
-    // Both reads declare a cast, and `respond` declares the same answer `sendFromEvents` does.
     assert_eq!(declarations.get_return_type, "Promise<ExchangeResourceV1>");
     assert_eq!(declarations.respond_return_type, "Promise<Exn>");
 
-    // The two schema shapes behind those casts.
     assert!(declarations.exn_schema.starts_with("Exn:"));
     assert!(declarations.exchange_resource_schema.contains("exn:"));
     assert!(declarations.exchange_resource_schema.contains("pathed:"));
@@ -464,7 +419,6 @@ fn the_recorded_scans_name_the_files_they_counted() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Every scan reports what it looked for, over the whole pinned tree.
     for scan in [
         &declarations.exchanges_accessor_uses,
         &declarations.send_uses,
@@ -485,10 +439,6 @@ fn the_recorded_scans_name_the_files_they_counted() -> Result<(), Box<dyn Error>
         }));
     }
 
-    // `send` is called from one production file — `contacting.ts`'s `respond` — and otherwise only
-    // from integration tests. That is why `respond` is the only in-tree caller this item can
-    // reproduce, and why the two-recipient shape is evidence from `multisig.test.ts` rather than
-    // from a unit case.
     assert_eq!(declarations.send_uses.needle, ".send(");
     let production: Vec<&str> = declarations
         .send_uses
@@ -506,7 +456,6 @@ fn the_recorded_scans_name_the_files_they_counted() -> Result<(), Box<dyn Error>
             .any(|hit| hit.file.ends_with("multisig.test.ts") && hit.count > 1)
     );
 
-    // `sendFromEvents` is named in its own declaration, in `send`, and in the one unit case.
     assert!(declarations.send_from_events_uses.total >= 3);
     Ok(())
 }
@@ -564,21 +513,16 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
 fn the_mock_shortfall_is_recorded_rather_than_papered_over() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shortfall = &fixture.mock_shortfall;
-    // The reference's own mock omits a field its own generated schema declares required.
     assert_eq!(shortfall.identifier_record_missing, ["icp_dt"]);
     assert_eq!(shortfall.added_inception_stamp, "2023-08-21T22:30:46.473545+00:00");
     assert!(shortfall.identifier_record_fields.contains(&"salty".to_owned()));
     assert!(!shortfall.note.is_empty());
-    // And the record it produces is one this port accepts.
     let record: signify_types::api::Hab = serde_json::from_slice(&identifier_record(&fixture)?)?;
     assert!(matches!(record, signify_types::api::Hab::Accepted(_)));
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The requests.
-// ---------------------------------------------------------------------------
-
+// --- The requests ---
 #[test]
 fn a_challenge_response_reproduces_the_pinned_body_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -593,13 +537,10 @@ fn a_challenge_response_reproduces_the_pinned_body_byte_for_byte() -> Result<(),
     )?;
     let _ = sent_response.response_body();
 
-    // The alias is read first — which is what makes the signer and the resource the same
-    // identifier — and then the message is submitted.
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
     let (path, method, body) = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
-    // Byte for byte, signature included.
     assert_eq!(body.as_deref(), recorded.body.as_deref());
     Ok(())
 }
@@ -615,7 +556,6 @@ fn the_pinned_response_body_carries_what_the_pinned_test_asserts() -> Result<(),
     assert_eq!(exn.get("r").and_then(Value::as_str), Some(CHALLENGE_RESPONSE_ROUTE));
     assert_eq!(exn.get("i").and_then(Value::as_str), Some(SENDER));
     assert_eq!(exn.get("rp").and_then(Value::as_str), Some(RECIPIENT));
-    // The word list reaches the attribute block, in order.
     let sent_words: Vec<String> = exn
         .get("a")
         .and_then(|attributes| attributes.get(CHALLENGE_WORDS_LABEL))
@@ -625,11 +565,9 @@ fn the_pinned_response_body_carries_what_the_pinned_test_asserts() -> Result<(),
         .filter_map(|word| word.as_str().map(ToOwned::to_owned))
         .collect();
     assert_eq!(sent_words, fixture.declarations.pinned_words);
-    // One indexed signature of the length the pinned test asserts.
     let signatures = body.get("sigs").and_then(Value::as_array).ok_or("no signatures")?;
     assert_eq!(signatures.len(), 1);
     assert_eq!(signatures.first().and_then(Value::as_str).map(str::len), Some(88));
-    // A challenge response embeds nothing, so its attachment stream is empty.
     assert_eq!(body.get("atc").and_then(Value::as_str), Some(""));
     assert_eq!(
         body.get("rec").and_then(Value::as_array).map(Vec::len),
@@ -670,9 +608,6 @@ fn the_dead_loop_is_reproduced_only_when_a_caller_says_so() -> Result<(), Box<dy
     let recorded = submission(&fixture, "send_two_recipients")?;
     let record = identifier_record(&fixture)?;
 
-    // Upstream, passing two recipients addresses the message to the first and delivers to both —
-    // the loop returns on its first pass. Here the addressee and the list are separate, so
-    // reproducing those bytes means naming the first recipient as the addressee explicitly.
     let mut payload = Sad::new();
     payload.insert("gid", SadValue::text(SENDER))?;
     let draft = ExchangeDraft::new("/multisig/icp", prefix(RECIPIENT)?, stamp()?).payload(payload);
@@ -689,7 +624,6 @@ fn the_dead_loop_is_reproduced_only_when_a_caller_says_so() -> Result<(), Box<dy
     assert_eq!(path, recorded.path);
     assert_eq!(body.as_deref(), recorded.body.as_deref());
 
-    // And this is what those bytes say: addressed to one, delivered to two.
     let sent_body: Value = serde_json::from_str(body.as_deref().ok_or("no body")?)?;
     let exn = sent_body.get("exn").ok_or("no exn")?;
     assert_eq!(exn.get("rp").and_then(Value::as_str), Some(RECIPIENT));
@@ -710,8 +644,6 @@ fn the_dead_loop_is_reproduced_only_when_a_caller_says_so() -> Result<(), Box<dy
 
 #[test]
 fn addressing_the_second_recipient_is_a_different_message() -> Result<(), Box<dyn Error>> {
-    // The thing the reference cannot express: a message actually addressed to the member it is
-    // being delivered to. Upstream every member but the first receives the first member's message.
     let fixture = fixture()?;
     let record = identifier_record(&fixture)?;
     let recorded = submission(&fixture, "send_two_recipients")?;
@@ -737,7 +669,6 @@ fn addressing_the_second_recipient_is_a_different_message() -> Result<(), Box<dy
             .and_then(Value::as_str),
         Some(SECOND_RECIPIENT)
     );
-    // A different addressee is a different message, so a different SAID and a different signature.
     assert_ne!(body.as_deref(), recorded.body.as_deref());
     Ok(())
 }
@@ -746,7 +677,6 @@ fn addressing_the_second_recipient_is_a_different_message() -> Result<(), Box<dy
 fn an_alias_that_is_not_the_signer_is_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = submission(&fixture, "send_alias_disagrees_with_sender")?;
-    // Upstream posted under one alias a message signed by, and naming, a different identifier.
     assert_eq!(recorded.path, "/identifiers/some-other-alias/exchanges");
     let body: Value = serde_json::from_str(recorded.body.as_deref().ok_or("no recorded body")?)?;
     assert_eq!(
@@ -755,8 +685,6 @@ fn an_alias_that_is_not_the_signer_is_unrepresentable() -> Result<(), Box<dyn Er
         "the recorded message names the identifier that signed it, not the alias it was posted under"
     );
 
-    // Here the alias decides both, so the two can never disagree: posting under another alias
-    // means looking that identifier up, and the agent's answer is what signs.
     let record = identifier_record(&fixture)?;
     let mut payload = Sad::new();
     payload.insert("gid", SadValue::text(SENDER))?;
@@ -768,10 +696,7 @@ fn an_alias_that_is_not_the_signer_is_unrepresentable() -> Result<(), Box<dyn Er
             .exchanges()
             .send("some-other-alias", MULTISIG_TOPIC, &draft, &[prefix(RECIPIENT)?]),
     )?;
-    // The lookup addresses the alias that was named…
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/some-other-alias");
-    // …and the message names whatever identifier that lookup returned. There is no second
-    // argument that could have said anything else.
     let (path, _, body) = sent(&transport, 1)?;
     assert_eq!(path, "/identifiers/some-other-alias/exchanges");
     let sent_body: Value = serde_json::from_str(body.as_deref().ok_or("no body")?)?;
@@ -799,7 +724,6 @@ fn a_read_addresses_the_pinned_path() -> Result<(), Box<dyn Error>> {
     assert_eq!(path, format!("/exchanges/{SAID}"));
     assert_eq!(method, "GET");
     assert_eq!(body, None);
-    // The answer is decoded rather than cast.
     assert_eq!(read.exn.digest, SAID);
     assert!(read.pathed.is_empty());
     Ok(())
@@ -809,7 +733,6 @@ fn a_read_addresses_the_pinned_path() -> Result<(), Box<dyn Error>> {
 fn a_said_that_escapes_its_segment_is_refused() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = submission(&fixture, "get_escaping_said")?;
-    // The reference sent it: three extra segments and a query, on a path Roadmap 3.10 signs.
     assert_eq!(recorded.path, "/exchanges/../identifiers/aid1?x=1");
     assert!(
         "../identifiers/aid1?x=1".parse::<Said>().is_err(),
@@ -818,17 +741,13 @@ fn a_said_that_escapes_its_segment_is_refused() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The inputs this port refuses.
-// ---------------------------------------------------------------------------
-
+// --- The inputs this port refuses ---
 #[test]
 fn the_pinned_unit_calls_three_empty_values_are_each_refused() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = submission(&fixture, "send_from_events_pinned")?;
     let body: Value = serde_json::from_str(recorded.body.as_deref().ok_or("no recorded body")?)?;
 
-    // What the reference sent, unchallenged: no topic, one empty signature, nobody to deliver to.
     assert_eq!(body.get("tpc").and_then(Value::as_str), Some(""));
     assert_eq!(
         body.get("sigs").and_then(Value::as_array).map(Vec::len),
@@ -844,7 +763,6 @@ fn the_pinned_unit_calls_three_empty_values_are_each_refused() -> Result<(), Box
     );
     assert_eq!(body.get("rec").and_then(Value::as_array).map(Vec::len), Some(0));
 
-    // Each is refused here. The signatures are not even an argument: they come from the keeper.
     let record = identifier_record(&fixture)?;
     let draft = ExchangeDraft::new("/multisig/icp", prefix(RECIPIENT)?, stamp()?);
 
@@ -862,9 +780,6 @@ fn the_pinned_unit_calls_three_empty_values_are_each_refused() -> Result<(), Box
 
 #[test]
 fn a_refusal_costs_no_request_at_all() -> Result<(), Box<dyn Error>> {
-    // Both checks run before the identifier is looked up, so a caller mistake never reaches the
-    // agent — where upstream `sendFromEvents` posts the malformed body and `send` throws only
-    // after building nothing.
     let fixture = fixture()?;
     let record = identifier_record(&fixture)?;
     let draft = ExchangeDraft::new("/multisig/icp", prefix(RECIPIENT)?, stamp()?);
@@ -887,12 +802,10 @@ fn the_reference_refuses_only_the_empty_recipient_list_and_only_by_accident() ->
     assert_eq!(refused.error.as_deref(), Some("recipients list was empty"));
     assert!(refused.requests.is_empty(), "the refused call still sent a request");
 
-    // …and `sendFromEvents`, which takes the same list, accepts it.
     let accepted = call(&fixture, "send_from_events_pinned")?;
     assert_eq!(accepted.error, None);
     assert_eq!(accepted.requests.len(), 1);
 
-    // The `throw` is after the loop, so it is reachable only when the loop body never runs.
     assert!(fixture.declarations.send_throw.contains("recipients list was empty"));
     assert!(
         fixture
@@ -906,14 +819,10 @@ fn the_reference_refuses_only_the_empty_recipient_list_and_only_by_accident() ->
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The answer.
-// ---------------------------------------------------------------------------
-
+// --- The answer ---
 #[test]
 fn the_answer_has_two_declared_types_and_neither_is_imposed() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The same shape of POST, to the same agent, declared two incompatible ways.
     assert_eq!(fixture.declarations.send_from_events_return_type, "Promise<Exn>");
     assert_eq!(fixture.declarations.send_return_type, "Promise<Exn>");
     assert_eq!(
@@ -926,7 +835,6 @@ fn the_answer_has_two_declared_types_and_neither_is_imposed() -> Result<(), Box<
     payload.insert("gid", SadValue::text(SENDER))?;
     let draft = ExchangeDraft::new("/multisig/icp", prefix(RECIPIENT)?, stamp()?).payload(payload);
 
-    // Answered as `Ipex.submit*` declares: an operation decodes, an exchange does not.
     let operation = serde_json::to_vec(&call(&fixture, "send_single_recipient")?.result)?;
     let (client, _) = connected(&[&record, &operation])?;
     let sent_operation = block_on(
@@ -937,7 +845,6 @@ fn the_answer_has_two_declared_types_and_neither_is_imposed() -> Result<(), Box<
     assert!(sent_operation.operation().is_ok());
     assert!(sent_operation.exchange().is_err());
 
-    // Answered as `sendFromEvents` declares: the other way round.
     let exchange = serde_json::to_vec(&call(&fixture, "send_answered_with_an_exchange")?.result)?;
     let record = identifier_record(&fixture)?;
     let (client, _) = connected(&[&record, &exchange])?;
@@ -949,7 +856,6 @@ fn the_answer_has_two_declared_types_and_neither_is_imposed() -> Result<(), Box<
     assert!(sent_exchange.exchange().is_ok());
     assert!(sent_exchange.operation().is_err());
 
-    // Both requests were identical: the answer cannot change what was asked.
     assert_eq!(
         submission(&fixture, "send_single_recipient")?.body,
         submission(&fixture, "send_answered_with_an_exchange")?.body
@@ -957,10 +863,7 @@ fn the_answer_has_two_declared_types_and_neither_is_imposed() -> Result<(), Box<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The message itself.
-// ---------------------------------------------------------------------------
-
+// --- The message itself ---
 #[test]
 fn a_created_message_reproduces_the_recorded_bytes_and_signature() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -974,12 +877,10 @@ fn a_created_message_reproduces_the_recorded_bytes_and_signature() -> Result<(),
     let (client, transport) = connected(&[&record])?;
     let message = block_on(client.exchanges().create_message(ALIAS, &draft))?;
 
-    // The raw bytes, exactly.
     assert_eq!(
         core::str::from_utf8(message.message().raw())?,
         expected.get("raw").and_then(Value::as_str).ok_or("no recorded raw")?
     );
-    // The signatures, exactly.
     let expected_signatures: Vec<&str> = expected
         .get("sigs")
         .and_then(Value::as_array)
@@ -988,13 +889,11 @@ fn a_created_message_reproduces_the_recorded_bytes_and_signature() -> Result<(),
         .filter_map(Value::as_str)
         .collect();
     assert_eq!(message.signatures().qb64()?, expected_signatures);
-    // And the attachment stream, which a message with no embeds leaves empty.
     assert_eq!(
         core::str::from_utf8(message.attachments())?,
         expected.get("atc").and_then(Value::as_str).unwrap_or("<missing>")
     );
 
-    // Building a message sends exactly one request — the alias lookup — and posts nothing.
     assert_eq!(transport.requests().len(), 3);
     assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
     Ok(())
@@ -1024,8 +923,6 @@ fn a_created_message_carries_an_explicit_prior_and_timestamp() -> Result<(), Box
         core::str::from_utf8(message.message().raw())?,
         expected.get("raw").and_then(Value::as_str).ok_or("no recorded raw")?
     );
-    // These are the two arguments `send` never passes upstream, so their only reachable use is
-    // through `createExchangeMessage` directly.
     let exn = expected.get("exn").ok_or("no recorded message")?;
     assert_eq!(exn.get("p").and_then(Value::as_str), Some(SAID));
     assert_eq!(
@@ -1040,8 +937,6 @@ fn a_message_with_an_embed_carries_a_transposed_attachment() -> Result<(), Box<d
     let fixture = fixture()?;
     let recorded = call(&fixture, "create_multisig_icp_with_embed")?;
     let expected = recorded.result.as_object().ok_or("no recorded message")?;
-    // Roadmap 3.8 already proved the transposition byte-exact; what matters here is that the
-    // wrapper carries it through to the submission body's `atc` rather than dropping it.
     let attachment = expected.get("atc").and_then(Value::as_str).ok_or("no attachment")?;
     assert!(!attachment.is_empty(), "the recorded embed produced no attachment");
     assert!(attachment.starts_with("-L"), "the attachment is not a pathed group");

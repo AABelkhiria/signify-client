@@ -1,18 +1,6 @@
 //! Invariants of the group endpoint.
 //!
-//! Three things vary: the SAID a request is read by, the alias a write is posted under, and the
-//! member lists a join names.
-//!
-//! The first two are addresses, and the property is the one every family here states — a value
-//! never leaves its own path segment. What is particular to this family is that **the same alias
-//! addresses two different writes**, so the two must agree about everything except their last
-//! segment; and that **a join's body is six fields in a fixed order**, where the reference builds
-//! it from six loose arguments any of which could be anything.
-//!
-//! The answers are the trust boundary, and an unusual one: a group request listing is a set of
-//! proposals *other members* wrote, each asking this member to sign something. Nothing here
-//! verifies them — that is the keeper's job, next — so the property is that a listing decodes whole
-//! or not at all, and that what decodes is exactly what Roadmap 8.1 classifies.
+//! Two writes under one alias agree but for the last segment, and a join's body is six fields in a fixed order.
 
 use std::error::Error;
 
@@ -32,7 +20,6 @@ const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 
-/// The forty-six-character value the pinned unit test reads by.
 const PINNED_SAID: &str = "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose00";
 
 fn read_path(said: &Said) -> Result<ResourcePath, Box<dyn Error>> {
@@ -52,7 +39,6 @@ fn write_path(alias: &str, action: &str) -> Result<ResourcePath, Box<dyn Error>>
         .build()?)
 }
 
-/// The body a join writes, in the reference's field order.
 fn join_body(group: &str, signing: &[String], rotation: &[String]) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut body = Sad::new();
     body.insert("tpc", MULTISIG_TOPIC.to_owned())?;
@@ -70,7 +56,6 @@ fn join_body(group: &str, signing: &[String], rotation: &[String]) -> Result<Vec
     Ok(body.to_json_bytes()?)
 }
 
-/// Aliases of the shape the reference uses, plus the ones that would escape a segment.
 fn aliases() -> impl Strategy<Value = String> {
     prop_oneof![
         Just("aid1".to_owned()),
@@ -84,7 +69,6 @@ fn aliases() -> impl Strategy<Value = String> {
     ]
 }
 
-/// One group request listing entry, of the shape the agent answers with.
 fn listing_entry(route: MultisigRoute, group_name: Option<&str>) -> String {
     let embed = match route {
         MultisigRoute::Inception => {
@@ -107,11 +91,6 @@ fn listing_entry(route: MultisigRoute, group_name: Option<&str>) -> String {
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
 
-    /// A read is always three segments, and the SAID reaches the last one unchanged.
-    ///
-    /// A qualified digest's alphabet is URL-safe Base64, so every SAID that parses survives the
-    /// path builder byte for byte — which is what makes the reference's raw concatenation safe
-    /// *for values that are actually SAIDs*, and only for those.
     #[test]
     fn a_said_never_leaves_its_own_segment(text in "[A-Za-z0-9_-]{44}") {
         let Ok(said) = text.parse::<Said>() else { return Ok(()) };
@@ -124,7 +103,6 @@ proptest! {
         prop_assert_eq!(path.query(), None);
     }
 
-    /// A write is always four segments, whatever the alias holds.
     #[test]
     fn an_alias_never_leaves_its_own_segment(alias in aliases()) {
         for action in [REQUEST_SEGMENT, JOIN_SEGMENT] {
@@ -138,15 +116,10 @@ proptest! {
             prop_assert_eq!(segments.get(2).copied(), Some(MULTISIG_SEGMENT));
             prop_assert_eq!(segments.get(3).copied(), Some(action));
             prop_assert_eq!(path.query(), None);
-            // Roadmap 3.10 signs the path, so what is signed is what is sent.
             prop_assert_eq!(path.path(), path.as_str());
         }
     }
 
-    /// The two writes always agree about everything but their last segment.
-    ///
-    /// They are the same resource asked to do two different things, so a caller that mistyped the
-    /// alias would mistype it identically for both.
     #[test]
     fn the_two_writes_share_everything_but_their_action(alias in aliases()) {
         let request = write_path(&alias, REQUEST_SEGMENT)
@@ -162,7 +135,6 @@ proptest! {
         prop_assert_ne!(request.as_str(), join.as_str());
     }
 
-    /// A join always writes the reference's six fields in its order, whatever the lists hold.
     #[test]
     fn a_join_writes_six_fields_in_order(
         signing in proptest::collection::vec(prop_oneof![Just(MEMBER), Just(SECOND)], 1..6),
@@ -183,8 +155,6 @@ proptest! {
             previous = at;
         }
 
-        // Both lists reach the body at their own length, and the rotation list may be empty where
-        // the signing list may not.
         let decoded: Value = serde_json::from_str(&text)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(
@@ -197,8 +167,6 @@ proptest! {
         );
     }
 
-    /// A proposal's body is always exactly three fields, and never the two the sibling submission
-    /// writes.
     #[test]
     fn a_proposal_writes_three_fields_and_never_a_topic(attachment in "[-A-Za-z0-9_]{0,32}") {
         let mut body = Sad::new();
@@ -220,7 +188,6 @@ proptest! {
         prop_assert_eq!(fields.get("atc").and_then(Value::as_str), Some(attachment.as_str()));
     }
 
-    /// A listing decodes whole or not at all, and each entry keeps its optional local aliases.
     #[test]
     fn a_listing_decodes_whole_or_not_at_all(
         count in 0_usize..4,
@@ -251,14 +218,8 @@ proptest! {
         }
     }
 
-    /// Everything a listing decodes is something Roadmap 8.1 classifies.
-    ///
-    /// This family and that one meet here: `requests` returns exactly the shape those classifiers
-    /// read, which is why neither needs an adapter.
     #[test]
     fn every_decoded_entry_classifies(route in prop::sample::select(MultisigRoute::ALL.to_vec())) {
-        // Only the inception and interaction embeds are built above, so the others are expected to
-        // be refused for carrying the wrong one — which is itself the invariant 8.1 states.
         let document = format!("[{}]", listing_entry(route, Some("multisig")));
         let listing: Vec<MultisigExchangeResource> = serde_json::from_str(&document)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -278,14 +239,11 @@ proptest! {
         }
     }
 
-    /// Arbitrary bytes never panic: a listing either decodes or is refused with a reason.
     #[test]
     fn arbitrary_bytes_decode_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
         match serde_json::from_slice::<Vec<MultisigExchangeResource>>(&bytes) {
             Ok(listing) => {
                 for entry in &listing {
-                    // Anything that decoded is something the classifier will accept or refuse,
-                    // never something it panics on.
                     let _ = ClassifiedExchange::try_from(entry).is_ok();
                 }
             }
@@ -294,7 +252,6 @@ proptest! {
     }
 }
 
-/// Regression: the three addresses the pinned unit test asserts.
 #[test]
 fn the_three_pinned_addresses_reproduce() -> Result<(), Box<dyn Error>> {
     assert_eq!(
@@ -312,11 +269,6 @@ fn the_three_pinned_addresses_reproduce() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: the value the pinned test reads by is two characters too long to be a SAID.
-///
-/// The reference concatenates it into the path and the agent is asked about a resource that cannot
-/// exist. The case that test is actually making — that the address is `/multisig/request/{said}` —
-/// reproduces with a real digest.
 #[test]
 fn the_pinned_read_value_is_not_a_qualified_digest() {
     assert_eq!(PINNED_SAID.len(), 46);
@@ -325,28 +277,21 @@ fn the_pinned_read_value_is_not_a_qualified_digest() {
     assert!(SAID.parse::<Said>().is_ok());
 }
 
-/// Regression: the empty string the reference's own integration helper falls back to.
-///
-/// `waitAndMarkNotification` returns `notes[last]?.a.d ?? ''`, so a member that polled and found
-/// nothing asks for `/multisig/request/` — the whole collection — rather than failing.
 #[test]
 fn the_helpers_empty_fallback_is_not_a_said() {
     assert!("".parse::<Said>().is_err());
 }
 
-/// Regression: a group request listing is exactly what Roadmap 8.1 classifies, aliases and all.
 #[test]
 fn a_listing_entry_carries_both_halves() -> Result<(), Box<dyn Error>> {
     let document = format!("[{}]", listing_entry(MultisigRoute::Inception, Some("multisig")));
     let listing: Vec<MultisigExchangeResource> = serde_json::from_str(&document)?;
     let entry = listing.first().ok_or("empty listing")?;
 
-    // The wrapper: who sent it and what the local aliases are.
     assert_eq!(entry.sender.as_deref(), Some(MEMBER));
     assert_eq!(entry.group_name.as_deref(), Some("multisig"));
     assert_eq!(entry.member_name.as_deref(), Some("member1"));
 
-    // The message: what is actually being proposed.
     let classified = ClassifiedExchange::try_from(entry)?;
     let proposal = classified.as_multisig().ok_or("not a proposal")?;
     assert_eq!(proposal.route, MultisigRoute::Inception);
@@ -354,7 +299,6 @@ fn a_listing_entry_carries_both_halves() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: a body with an unexpected extra field is not what this port writes.
 #[test]
 fn a_join_body_carries_nothing_beyond_the_references_six() -> Result<(), Box<dyn Error>> {
     let rendered = join_body(GROUP, &[MEMBER.to_owned()], &[])?;
@@ -364,7 +308,6 @@ fn a_join_body_carries_nothing_beyond_the_references_six() -> Result<(), Box<dyn
     let mut labels: Vec<&str> = fields.keys().map(String::as_str).collect();
     labels.sort_unstable();
     assert_eq!(labels, ["gid", "rmids", "rot", "sigs", "smids", "tpc"]);
-    // And a body built with an unrelated label is a different body, so nothing silently merges.
     let mut extra = Sad::new();
     extra.insert("tpc", MULTISIG_TOPIC.to_owned())?;
     extra.insert("unexpected", true)?;
@@ -375,10 +318,6 @@ fn a_join_body_carries_nothing_beyond_the_references_six() -> Result<(), Box<dyn
     Ok(())
 }
 
-/// Regression: a proposal on a route the table does not name still reaches a caller.
-///
-/// A group request listing may hold anything the agent stored; classification is 8.1's, and an
-/// unnamed route is a message rather than a failure there.
 #[test]
 fn a_listing_entry_on_an_unnamed_route_still_classifies() -> Result<(), Box<dyn Error>> {
     let exn = json!({

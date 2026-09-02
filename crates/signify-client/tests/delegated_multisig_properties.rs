@@ -1,13 +1,6 @@
 //! Invariants of a group approving a delegation.
 //!
-//! This round is the one place in the port where **a list is the payload**. An inception commits to
-//! members and thresholds, a rotation to keys, an interaction to seals — and here the seals are
-//! delegated identifiers waiting to exist. Drop one and an identifier never comes into being.
-//!
-//! So the properties are about the list surviving: every seal a proposal names is read back, in
-//! order, at any length; the event's digest changes when the list does, which is what makes the
-//! joining half's check meaningful; and a proposal on the interaction route still carries an
-//! interaction, which is what Roadmap 8.4 established and this round inherits.
+//! A seal list survives whole and in order at any length, and the event's digest moves when the list does.
 
 use std::error::Error;
 
@@ -27,7 +20,6 @@ const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";
 const DELEGATEE: &str = "EDNA2EUYd0HbW_4NU1kMv01LK2zqAWK6o7VkIQsK_LyR";
 
-/// The delegatee prefixes a proposal's seals may name.
 const DELEGATEES: [&str; 4] = [
     DELEGATEE,
     "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
@@ -35,13 +27,11 @@ const DELEGATEES: [&str; 4] = [
     PEER,
 ];
 
-/// One delegated inception's seal, written as this port writes it.
 fn seal(delegatee: &str) -> Result<String, Box<dyn Error>> {
     let built = InceptionSeal::new(IdentifierPrefix::from_qb64(delegatee)?, delegatee.parse::<Said>()?);
     Ok(String::from_utf8(built.to_sad()?.to_json_bytes()?)?)
 }
 
-/// One group interaction proposal anchoring `seals`, of the shape the agent answers with.
 fn proposal(seals: &[String], digest: &str) -> String {
     let event = format!(
         r#"{{"v":"KERI10JSON000_","t":"ixn","d":"{digest}","i":"{GROUP}","s":"1","p":"{GROUP}","a":[{seals}]}}"#,
@@ -59,7 +49,6 @@ fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
     Ok(ClassifiedExchange::try_from(entry)?)
 }
 
-/// The seals an embedded interaction anchors, as a joining member reads them.
 fn anchored(classified: &ClassifiedExchange) -> Result<Vec<Value>, TestCaseError> {
     let multisig = classified
         .as_multisig()
@@ -79,10 +68,6 @@ fn anchored(classified: &ClassifiedExchange) -> Result<Vec<Value>, TestCaseError
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
 
-    /// Every seal a proposal names is read back, in order, at any length.
-    ///
-    /// The reference reads `ixn.a[0]` — the first and no other — so a delegator group anchoring
-    /// more than one delegation has the rest silently dropped by every member but the initiator.
     #[test]
     fn every_seal_a_proposal_names_is_read_back(
         delegatees in proptest::collection::vec(prop::sample::select(DELEGATEES.to_vec()), 1..6),
@@ -108,11 +93,9 @@ proptest! {
                 Some("0")
             );
         }
-        // Taking only the first would be a different list whenever there is more than one.
         prop_assert_eq!(read.len() == 1, delegatees.len() == 1);
     }
 
-    /// A seal names one identifier three ways, and the three cannot disagree.
     #[test]
     fn a_seal_names_one_identifier_three_ways(delegatee in prop::sample::select(DELEGATEES.to_vec())) {
         let written = seal(delegatee).map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -121,15 +104,9 @@ proptest! {
         prop_assert_eq!(decoded.get("i").and_then(Value::as_str), Some(delegatee));
         prop_assert_eq!(decoded.get("d").and_then(Value::as_str), Some(delegatee));
         prop_assert_eq!(decoded.get("s").and_then(Value::as_str), Some("0"));
-        // A delegated inception is its own digest, which is what makes the two fields equal.
         prop_assert_eq!(decoded.get("i"), decoded.get("d"));
     }
 
-    /// The digest a proposal carries is what a joining member checks against.
-    ///
-    /// Two proposals differing only in their seal list carry different digests, so a member that
-    /// anchored the wrong seals builds an event that does not match — which is the check this port
-    /// performs and the reference performs after the fact, on the wrong shape.
     #[test]
     fn a_different_seal_list_is_a_different_event(
         first in prop::sample::select(DELEGATEES.to_vec()),
@@ -149,7 +126,6 @@ proptest! {
         prop_assert_eq!(whole_seals.len(), 2);
         prop_assert_eq!(truncated_seals.len(), 1);
         prop_assert_ne!(&whole_seals, &truncated_seals);
-        // The digests differ, which is what makes the comparison a check rather than a formality.
         let digest_of = |classified: &ClassifiedExchange| -> Option<String> {
             let multisig = classified.as_multisig()?;
             let ExchangeEmbed::Interaction(embed) = &multisig.proposed.message else {
@@ -163,7 +139,6 @@ proptest! {
         prop_assert_ne!(digest_of(&whole), digest_of(&truncated));
     }
 
-    /// A delegation approval is announced on the interaction route, carrying an interaction.
     #[test]
     fn an_approval_is_announced_as_the_interaction_it_is(
         count in 1_usize..4,
@@ -182,7 +157,6 @@ proptest! {
         prop_assert_eq!(anchored(&classified)?.len(), seals.len());
     }
 
-    /// Arbitrary bytes never panic: a proposal classifies or is refused with a reason.
     #[test]
     fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
         match core::str::from_utf8(&bytes) {
@@ -197,7 +171,6 @@ proptest! {
     }
 }
 
-/// Regression: the seal the pinned scenario anchors.
 #[test]
 fn the_scenarios_seal_reproduces() -> Result<(), Box<dyn Error>> {
     assert_eq!(
@@ -207,7 +180,6 @@ fn the_scenarios_seal_reproduces() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: two seals in one proposal, which the reference's helper cannot send.
 #[test]
 fn two_seals_in_one_proposal_are_both_read() -> Result<(), Box<dyn Error>> {
     let seals = [seal(DELEGATEE)?, seal(GROUP)?];
@@ -232,13 +204,10 @@ fn two_seals_in_one_proposal_are_both_read() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Regression: an approval carrying no seal at all is still a well-formed interaction.
 #[test]
 fn an_approval_that_anchors_nothing_is_well_formed_and_meaningless() -> Result<(), Box<dyn Error>> {
     let classified = classify(&proposal(&[], "EIXNDIGEST"))?;
     let multisig = classified.as_multisig().ok_or("not a multisig proposal")?;
     assert_eq!(multisig.route, MultisigRoute::Interaction);
-    // It classifies — the event format permits it — which is why the refusal lives in the workflow
-    // rather than in the decoder.
     Ok(())
 }

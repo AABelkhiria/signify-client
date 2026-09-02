@@ -1,13 +1,6 @@
 //! Exact polling vectors recorded from the pinned reference's own `Operations.wait`.
 //!
-//! Roadmap 5.4 already reproduces this function's **delay schedule**, recorded by executing it with
-//! the global timer replaced. What is checked here is everything else the loop does: how many
-//! requests each shape costs and in what order, when the dependency is walked and when it is
-//! skipped, which exits throw, and what the failure carries.
-//!
-//! The pinned `coring.test.ts` has five `wait` cases, four of which assert an **exact request
-//! count**. Every one of those counts is reproduced here, against the same counts driven out of the
-//! reference itself.
+//! What each shape costs in requests and in what order, when the dependency is walked, and which exits throw.
 
 mod support;
 
@@ -32,15 +25,11 @@ use signify_types::api::{KelMetadata, KelResponse, Operation, OperationOutcome, 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-operation-wait/v1.json");
 
-/// The names the generator drives the reference with.
 const NAME: &str = "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0";
 const DEPENDENCY: &str = "witness.EABC.0";
 const REGISTRY: &str = "registry.EREG";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -149,10 +138,8 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-/// A connected client, its scripted agent, and its clock.
 type Harness = (ConnectedClient, Arc<AgentTransport>, Arc<TestClock>);
 
-/// A connected client whose clock is a [`TestClock`], so every sleep is instant and recorded.
 fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
     let configuration = || {
         ClientConfig::new(ADMIN, PASSCODE)
@@ -182,12 +169,9 @@ fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
         Arc::clone(&clock) as Arc<dyn Clock>,
     )?;
     let connected = block_on(client.connect())?;
-    // The lifecycle's own two requests are recorded before any poll, and its signing reads the
-    // clock without sleeping, so the recorded sleeps below are the poll's alone.
     Ok((connected, transport, clock))
 }
 
-/// A poller reproducing the reference's schedule exactly: no jitter, no deadline, plenty of tries.
 fn reference_poller(client: &ConnectedClient) -> Result<Poller<'_>, Box<dyn Error>> {
     let policy = PollPolicy::builder()
         .jitter(Jitter::None)
@@ -200,31 +184,22 @@ fn reference_poller(client: &ConnectedClient) -> Result<Poller<'_>, Box<dyn Erro
         .with_jitter_source(Arc::new(FixedJitter::new(0))))
 }
 
-/// One pending operation body, of the shape the generator queued.
 fn pending(name: &str) -> String {
     format!(r#"{{"name":"{name}","done":false}}"#)
 }
 
-/// One completed operation body. The reference's own queued bodies omit `response`, which
-/// Roadmap 4.1 refuses; `a_finished_operation_with_no_response_is_refused` proves that separately.
 fn done(name: &str) -> String {
     format!(r#"{{"name":"{name}","done":true,"response":{{}}}}"#)
 }
 
-/// One failed operation body.
 fn failed(name: &str, code: i64, message: &str) -> String {
     format!(r#"{{"name":"{name}","done":true,"error":{{"code":{code},"message":"{message}"}}}}"#)
 }
 
-/// One interaction event, which is what a key-event operation completes with.
-///
-/// A `KelResponse` chooses its variant by the `t` field, so a dependency's response cannot be the
-/// empty object the reference's own queued bodies use.
 fn key_event() -> String {
     r#"{"v":"KERI10JSON000000_","t":"ixn","d":"EDIG","i":"EPRE","s":"1","p":"EPRI","a":[]}"#.to_owned()
 }
 
-/// A registry operation whose metadata names the key-event operation it waits on.
 fn registry(dependency_done: bool, done_itself: bool) -> String {
     let depends = if dependency_done {
         format!(
@@ -245,17 +220,13 @@ fn registry(dependency_done: bool, done_itself: bool) -> String {
     }
 }
 
-/// Builds the typed snapshot a caller would hold before waiting.
 fn snapshot<M: serde::de::DeserializeOwned, R: serde::de::DeserializeOwned>(
     body: &str,
 ) -> Result<Operation<M, R>, Box<dyn Error>> {
     Ok(serde_json::from_str(body)?)
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -279,7 +250,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
             "call {} disagrees with its own request count",
             entry.name
         );
-        // Every request a poll makes is a read of one operation.
         for request in &entry.requests {
             assert_eq!(request.method, "GET");
             assert!(
@@ -297,7 +267,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // The three defaults this port's builder carries.
     assert_eq!(
         declarations.wait_defaults.min_sleep,
         "minSleep = options.minSleep ?? 10"
@@ -311,18 +280,15 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         "increaseFactor = options.increaseFactor ?? 50"
     );
 
-    // The formula Roadmap 5.4 reproduces, floor outside the ceiling.
     assert_eq!(
         declarations.wait_delay,
         "delay = Math.max( minSleep, Math.min(maxSleep, 2 ** retries * increaseFactor) )"
     );
 
-    // The unbounded loop, and the abort read after it.
     assert!(declarations.wait_loop.starts_with("while (true)"));
     assert!(!declarations.wait_body.contains("Date.now()"));
     assert!(!declarations.wait_body.contains("maxRetries"));
     assert_eq!(declarations.wait_abort, "options.signal?.throwIfAborted();");
-    // The abort appears *after* the sleep in the source text, which is the whole defect.
     let slept = declarations
         .wait_body
         .find("setTimeout")
@@ -333,7 +299,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         .ok_or("the abort check moved out of the loop")?;
     assert!(slept < aborted, "the abort is no longer read after the sleep");
 
-    // The guard, and the run-time key test behind it.
     assert!(declarations.wait_dependency_guard.contains("!op.metadata.depends.done"));
     assert_eq!(
         declarations.has_depends_body,
@@ -341,10 +306,8 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     );
     assert!(declarations.throw_if_failed_body.contains("op.error !== null"));
 
-    // Sixteen declarations of `wait`: fifteen overloads and the implementation.
     assert_eq!(declarations.wait_overloads, 16);
 
-    // The integration helper, whose timeout becomes this port's default deadline.
     assert!(
         declarations
             .integration_wait_operation
@@ -359,7 +322,6 @@ fn the_dependency_chain_is_one_link_long() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 
-    // Exactly three schema shapes declare `depends`, and this list is exhaustive over the file.
     let mut owners: Vec<&str> = declarations
         .depends_owners
         .iter()
@@ -374,7 +336,6 @@ fn the_dependency_chain_is_one_link_long() -> Result<(), Box<dyn Error>> {
             "RegistryOperationMetadata"
         ]
     );
-    // All three type it as a `KelOperation`…
     for entry in &declarations.depends_owners {
         assert!(
             entry.declaration.contains("['KelOperation']"),
@@ -382,9 +343,7 @@ fn the_dependency_chain_is_one_link_long() -> Result<(), Box<dyn Error>> {
             entry.owner
         );
     }
-    // …and a `KelOperation` declares none of its own, so the recursion cannot go deeper.
     assert!(!declarations.kel_operation_schema.contains("depends"));
-    // Which is exactly what the reference *writes* as recursion.
     assert!(
         declarations
             .wait_dependency_guard
@@ -404,7 +363,6 @@ fn every_request_count_the_pinned_unit_test_asserts_is_reproduced() -> Result<()
     assert!(pinned.integration_timeout.contains("AbortSignal.timeout(30000)"));
     assert!(!pinned.note.is_empty());
 
-    // Every case with an asserted count reproduces it when the reference is driven.
     for entry in &pinned.unit_test_cases {
         if let Some(expected) = entry.expects {
             assert_eq!(
@@ -418,8 +376,6 @@ fn every_request_count_the_pinned_unit_test_asserts_is_reproduced() -> Result<()
         }
     }
 
-    // `wait` itself is called directly only from those five cases and the integration helper;
-    // everything else in the pinned tree goes through `waitOperation`, 262 times.
     assert_eq!(pinned.wait_call_sites.total, 6);
     assert!(pinned.integration_wait_call_sites.total > 200);
     assert!(pinned.wait_call_sites.scanned_files > 100);
@@ -449,10 +405,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The five pinned cases.
-// ---------------------------------------------------------------------------
-
+// --- The five pinned cases ---
 #[test]
 fn an_already_finished_operation_costs_no_request() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -466,7 +419,6 @@ fn an_already_finished_operation_costs_no_request() -> Result<(), Box<dyn Error>
 
     assert!(transport.endpoint_calls().is_empty(), "a finished snapshot was polled");
     assert!(clock.recorded_sleeps().is_empty());
-    // Returned by value, so the caller gets back exactly what it handed in.
     assert_eq!(finished.name(), NAME);
     assert_eq!(*finished.response(), serde_json::json!({}));
     Ok(())
@@ -488,7 +440,6 @@ fn an_operation_done_after_one_poll_makes_one_request() -> Result<(), Box<dyn Er
         transport.endpoint_calls(),
         [("GET".to_owned(), format!("/operations/{NAME}"))]
     );
-    // A poll that finishes never sleeps, which is what the recorded empty schedule says.
     assert!(clock.recorded_sleeps().is_empty());
     Ok(())
 }
@@ -498,7 +449,6 @@ fn an_operation_done_after_two_polls_makes_two_requests_and_sleeps_once() -> Res
     let fixture = fixture()?;
     let recorded = call(&fixture, "done_after_second_poll")?;
     assert_eq!(recorded.request_count, 2);
-    // The pinned case passes `maxSleep: 10`, so its one sleep is the ceiling.
     assert_eq!(recorded.delays_ms, [10]);
 
     let pending_body = pending(NAME);
@@ -523,10 +473,8 @@ fn an_operation_done_after_two_polls_makes_two_requests_and_sleeps_once() -> Res
 fn a_dependency_is_polled_to_completion_before_its_parent() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "dependency_polled_first")?;
-    // The pinned `returns when child operation is also done` case: four requests, two sleeps.
     assert_eq!(recorded.request_count, 4);
     assert_eq!(recorded.delays_ms, [10, 10]);
-    // The dependency's two come first, then the parent's two.
     let paths: Vec<&str> = recorded.requests.iter().map(|request| request.path.as_str()).collect();
     assert_eq!(
         paths,
@@ -595,16 +543,11 @@ fn a_dependency_the_snapshot_reports_finished_is_never_polled() -> Result<(), Bo
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The branches the pinned test does not reach.
-// ---------------------------------------------------------------------------
-
+// --- The branches the pinned test does not reach ---
 #[test]
 fn a_dependency_that_finished_unsuccessfully_is_skipped_in_silence() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "dependency_done_but_failed")?;
-    // One request — the parent's. The failed dependency is passed over entirely, and nothing
-    // upstream reports it.
     assert_eq!(recorded.request_count, 1);
     assert_eq!(recorded.error, None);
 
@@ -617,7 +560,6 @@ fn a_dependency_that_finished_unsuccessfully_is_skipped_in_silence() -> Result<(
     let operation: Operation<RegistryMetadata, Value> = snapshot(&parent)?;
     let finished = block_on(reference_poller(&client)?.wait(operation))?;
 
-    // Reproduced exactly: the guard reads `done`, not success.
     assert_eq!(transport.endpoint_calls().len(), 1);
     assert_eq!(finished.name(), REGISTRY);
     Ok(())
@@ -632,7 +574,6 @@ fn a_dependency_that_fails_while_polled_surfaces_under_its_own_name() -> Result<
         .error
         .as_deref()
         .ok_or("the dependency's failure was not raised")?;
-    // Upstream names the *dependency*, because the throw happens inside the recursive call.
     assert!(message.contains(DEPENDENCY), "{message}");
     assert!(!message.contains(REGISTRY), "{message}");
 
@@ -651,7 +592,6 @@ fn a_dependency_that_fails_while_polled_surfaces_under_its_own_name() -> Result<
         }
         other => return Err(format!("a failed dependency was not raised: {other:?}").into()),
     }
-    // The parent was never asked for.
     assert_eq!(transport.endpoint_calls().len(), 1);
     Ok(())
 }
@@ -682,7 +622,6 @@ fn a_failure_found_by_polling_keeps_its_parts_apart() -> Result<(), Box<dyn Erro
     let fixture = fixture()?;
     let plain = call(&fixture, "fails_while_polling")?;
     let detailed = call(&fixture, "fails_with_details")?;
-    // Upstream interpolates all four values into one sentence, and appends the detail block whole.
     let plain_message = plain.error.as_deref().unwrap_or_default();
     let detailed_message = detailed.error.as_deref().unwrap_or_default();
     assert!(plain_message.starts_with(&format!("Operation '{NAME}' failed [Code 500]:")));
@@ -701,7 +640,6 @@ fn a_failure_found_by_polling_keeps_its_parts_apart() -> Result<(), Box<dyn Erro
             message,
             details,
         }) => {
-            // Four separate values where the reference has one string.
             assert_eq!(name, NAME);
             assert_eq!(code, 500);
             assert_eq!(message, "witness receipts timed out");
@@ -720,7 +658,6 @@ fn a_metadata_block_with_no_dependency_skips_the_guard() -> Result<(), Box<dyn E
         assert_eq!(recorded.request_count, 1, "{name}");
     }
 
-    // An explicit `null` dependency and an absent one are the same value here.
     let body = format!(
         r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":null,"anchor":{{"pre":"EPRE","sn":0,"d":"EA"}}}},"done":false}}"#
     );
@@ -756,13 +693,9 @@ fn the_long_run_reproduces_the_schedule_roadmap_5_4_recorded() -> Result<(), Box
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// What this port does and the reference does not.
-// ---------------------------------------------------------------------------
-
+// --- What this port does and the reference does not ---
 #[test]
 fn an_operation_that_never_finishes_stops_on_the_attempt_bound() -> Result<(), Box<dyn Error>> {
-    // Upstream is `while (true)`: this case does not terminate there at all.
     let answer = pending(NAME);
     let (client, transport, _) = connected(&[answer.as_bytes()])?;
     let policy = PollPolicy::builder()
@@ -807,8 +740,6 @@ fn an_operation_that_never_finishes_stops_on_the_deadline() -> Result<(), Box<dy
             ..
         }) => {
             assert_eq!(limit, PollingLimit::Deadline);
-            // 50 + 100 + 200 = 350 ms of sleeping; the next 400 ms wait would pass the budget, so
-            // the poll stops rather than sleeping into it.
             assert_eq!(attempts, 4);
             assert!(elapsed < Duration::from_millis(400), "{elapsed:?}");
         }
@@ -842,10 +773,6 @@ fn the_default_deadline_is_the_references_own_integration_timeout() -> Result<()
 
 #[test]
 fn a_finished_operation_with_no_response_is_refused() -> Result<(), Box<dyn Error>> {
-    // Three of the reference's own queued bodies are `{name, done: true}` with neither a response
-    // nor an error — a shape Roadmap 4.1 refuses, because it leaves the outcome undecided. The
-    // request counts above are therefore reproduced with well-formed bodies, and the reference's
-    // own literal is proven refused here.
     let fixture = fixture()?;
     let recorded = call(&fixture, "done_after_first_poll")?;
     assert_eq!(
@@ -865,7 +792,6 @@ fn a_finished_operation_with_no_response_is_refused() -> Result<(), Box<dyn Erro
     let operation: Operation<Value, Value> = snapshot(&pending(NAME))?;
     let outcome = block_on(reference_poller(&client)?.wait(operation));
     assert!(matches!(outcome, Err(ClientError::Api { .. })), "{outcome:?}");
-    // The request still went out, so this refuses the answer rather than the poll.
     assert_eq!(transport.endpoint_calls().len(), 1);
     Ok(())
 }
@@ -888,7 +814,6 @@ fn a_completed_operation_carrying_a_null_error_is_not_a_failure() -> Result<(), 
 fn dropping_the_future_stops_the_poll_at_once() -> Result<(), Box<dyn Error>> {
     use core::task::{Context, Poll, Waker};
 
-    /// A clock whose sleeps never complete, so a poll parks in its first wait.
     #[derive(Debug)]
     struct StallingClock {
         inner: TestClock,
@@ -939,12 +864,9 @@ fn dropping_the_future_stops_the_poll_at_once() -> Result<(), Box<dyn Error>> {
     let mut future = Box::pin(poller.wait(operation));
     let mut context = Context::from_waker(Waker::noop());
 
-    // One poll: the agent is asked once, the answer is still pending, and the wait parks.
     assert!(matches!(future.as_mut().poll(&mut context), Poll::Pending));
     assert_eq!(transport.endpoint_calls().len(), 1);
 
-    // Dropping cancels the outstanding sleep immediately. Upstream would have waited out the whole
-    // delay — up to ten seconds — before reading its abort signal.
     drop(future);
     assert_eq!(
         transport.endpoint_calls().len(),
@@ -956,22 +878,18 @@ fn dropping_the_future_stops_the_poll_at_once() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn waiting_by_name_reads_the_operation_first() -> Result<(), Box<dyn Error>> {
-    // The `typeof op === 'string'` branch of the reference's own `waitOperation` helper.
     let first = pending(NAME);
     let second = done(NAME);
     let (client, transport, _) = connected(&[first.as_bytes(), second.as_bytes()])?;
     let finished = block_on(reference_poller(&client)?.wait_named::<Value, Value>(NAME))?;
 
     assert_eq!(finished.name(), NAME);
-    // Two requests: the read that makes the snapshot, and the poll that finishes it.
     assert_eq!(transport.endpoint_calls().len(), 2);
     Ok(())
 }
 
 #[test]
 fn a_typed_dependency_is_always_a_key_event_operation() -> Result<(), Box<dyn Error>> {
-    // Which is what makes the chain one link long, checked here against the Rust types rather than
-    // against the schema text.
     let body = format!(r#"{{"name":"{DEPENDENCY}","done":false}}"#);
     let dependency: Operation<KelMetadata, KelResponse> = serde_json::from_str(&body)?;
     assert!(matches!(dependency.outcome, OperationOutcome::Pending));

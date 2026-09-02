@@ -1,17 +1,6 @@
 //! Roadmap 9.2 — the integration matrix, and the checks that keep it honest.
 //!
-//! The pinned reference's integration suite is 22 files, 35 cases, and 7,070 lines. Roadmap 9.1
-//! audited the *unit* suite by case, one row per case, and that worked because its 139 cases were
-//! each a few lines long. **It would not work here.** Four of these files are a single case each —
-//! `multisig.test.ts` is 1,343 lines, one case, thirteen assertions, and a hundred and thirty-four
-//! API calls. Counting cases would report "35 of 35 answered" while hundreds of behaviours went
-//! unexamined: an audit that passes while certifying almost nothing.
-//!
-//! So the inventory beside this test records a finer unit — every `client.<family>().<method>()`
-//! call site — and this test weighs the matrix by that unit as well as by case. It also requires
-//! every path the ledger names to exist, every unanswered row to name what would settle it from a
-//! closed set of reasons, and every count to be recomputed from the inventory rather than believed.
-//! The equivalent check in 9.1 rejected two numbers that had been written from memory.
+//! The matrix weighed by API call site rather than by case, every count recomputed and every path checked.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
@@ -23,10 +12,7 @@ const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const INVENTORY: &str = include_str!("../../../fixtures/keria-integration/v1.json");
 const LEDGER: &str = include_str!("../../../fixtures/keria-integration/ledger.json");
 
-// ---------------------------------------------------------------------------
-// The generated inventory.
-// ---------------------------------------------------------------------------
-
+// --- The generated inventory ---
 #[derive(Debug, Deserialize)]
 struct Inventory {
     schema_version: u8,
@@ -92,10 +78,6 @@ struct Infrastructure {
     oobis: bool,
 }
 
-/// Whether a scenario needs witnesses, and how it comes to need them.
-///
-/// A scenario may name them, or inherit them from `getOrCreateIdentifier`'s defaults. Counting only
-/// the first under-reports the suite, so both are recorded and `witnesses` is their union.
 #[derive(Debug, Deserialize)]
 struct Witnesses {
     #[serde(rename = "witnesses")]
@@ -133,10 +115,7 @@ struct Case {
     api_calls: Vec<ApiCall>,
 }
 
-// ---------------------------------------------------------------------------
-// The authored ledger.
-// ---------------------------------------------------------------------------
-
+// --- The authored ledger ---
 #[derive(Debug, Deserialize)]
 struct Ledger {
     schema_version: u8,
@@ -212,10 +191,7 @@ fn workspace_root() -> Result<PathBuf, Box<dyn Error>> {
         .ok_or_else(|| "the workspace root is not two levels above the manifest".into())
 }
 
-// ---------------------------------------------------------------------------
-// Provenance and arithmetic.
-// ---------------------------------------------------------------------------
-
+// --- Provenance and arithmetic ---
 #[test]
 fn the_inventory_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
@@ -229,7 +205,6 @@ fn the_inventory_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(inventory.totals.support_files, 6);
     assert_eq!(inventory.totals.cases, 35);
 
-    // Every total is the parts added up, not a number someone wrote down.
     assert_eq!(inventory.files.len(), inventory.totals.files);
     assert_eq!(inventory.cases.len(), inventory.totals.cases);
     assert_eq!(
@@ -262,9 +237,6 @@ fn the_inventory_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
 #[test]
 fn the_suite_is_serial_by_construction() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
-    // `fileParallelism: false` with `bail: 1` — the first failure aborts everything, and nothing is
-    // designed to run in parallel against one agent. A recording run must do the same, which is why
-    // the deployment manifest records the run policy.
     assert_eq!(inventory.runner.file, "vitest.integration.ts");
     assert!(!inventory.runner.file_parallelism);
     assert_eq!(inventory.runner.bail.as_deref(), Some("1"));
@@ -273,15 +245,11 @@ fn the_suite_is_serial_by_construction() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Why the case is the wrong unit here.
-// ---------------------------------------------------------------------------
-
+// --- Why the case is the wrong unit here ---
 #[test]
 fn the_monoliths_are_decomposed_rather_than_counted() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
 
-    // Files that are one enormous case. Counting cases would call each of these "one behaviour".
     let monoliths: Vec<&FileEntry> = inventory
         .files
         .iter()
@@ -298,8 +266,6 @@ fn the_monoliths_are_decomposed_rather_than_counted() -> Result<(), Box<dyn Erro
         );
     }
 
-    // The headline, asserted rather than asserted-about: the largest scenario in the suite performs
-    // far more operations than it checks.
     let largest = inventory
         .files
         .iter()
@@ -319,8 +285,6 @@ fn the_monoliths_are_decomposed_rather_than_counted() -> Result<(), Box<dyn Erro
 fn the_defects_are_recorded_with_a_line_each() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
 
-    // Every claim this port makes about doing better than upstream cites one of these, so each has
-    // to name a file and a line rather than being prose.
     assert!(inventory.defects.len() >= 20);
     for defect in &inventory.defects {
         assert!(defect.file.starts_with("test-integration/"));
@@ -328,8 +292,6 @@ fn the_defects_are_recorded_with_a_line_each() -> Result<(), Box<dyn Error>> {
         assert!(!defect.text.is_empty());
     }
 
-    // The kinds this audit knows how to find. A kind vanishing means either the reference improved
-    // or the detector broke, and both are worth a failing test.
     for kind in [
         "bare_sleep",
         "commented_assertion",
@@ -347,10 +309,7 @@ fn the_defects_are_recorded_with_a_line_each() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The matrix itself.
-// ---------------------------------------------------------------------------
-
+// --- The matrix itself ---
 #[test]
 fn every_scenario_row_is_answered_once_and_names_real_files() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
@@ -360,8 +319,6 @@ fn every_scenario_row_is_answered_once_and_names_real_files() -> Result<(), Box<
     assert_eq!(ledger.authored_on, "2026-08-28");
     assert!(ledger.note.contains("Authored"));
 
-    // `PORTING.md` §7 had nineteen rows and needed twenty: this audit found `challenge.test.ts`
-    // claimed by none of them, so the table omitted a whole capability. The row was added.
     assert_eq!(ledger.scenarios.len(), 20);
     let rows: BTreeSet<&str> = ledger.scenarios.iter().map(|entry| entry.row.as_str()).collect();
     assert_eq!(rows.len(), 20, "two scenario rows share a title");
@@ -390,7 +347,6 @@ fn every_scenario_row_is_answered_once_and_names_real_files() -> Result<(), Box<
         assert!(scenario.note.len() > 60, "{} explains too little", scenario.row);
     }
 
-    // And no scenario file is left unclaimed by every row.
     let unclaimed: Vec<&&str> = known.iter().filter(|file| !claimed.contains(*file)).collect();
     assert!(unclaimed.is_empty(), "upstream scenarios nobody answers: {unclaimed:?}");
     Ok(())
@@ -402,7 +358,6 @@ fn every_scenarios_counts_are_recomputed_from_the_inventory() -> Result<(), Box<
     let ledger = ledger()?;
     let by_file: BTreeMap<&str, &FileEntry> = inventory.files.iter().map(|file| (file.file.as_str(), file)).collect();
 
-    // The check that earned its keep in 9.1: a number in the ledger must be derivable, not written.
     for scenario in &ledger.scenarios {
         let files: Vec<&&FileEntry> = scenario
             .upstream_files
@@ -471,8 +426,6 @@ fn nothing_is_answered_without_evidence_that_exists() -> Result<(), Box<dyn Erro
         );
 
         if scenario.status == "partly_observed" {
-            // A row may be half answered — but then it must name both the evidence and the half
-            // that is missing, or "partly" becomes a way to record a win and drop the shortfall.
             assert!(
                 !scenario.rust_evidence.is_empty(),
                 "{} is partly observed and names no evidence",
@@ -493,8 +446,6 @@ fn nothing_is_answered_without_evidence_that_exists() -> Result<(), Box<dyn Erro
                 }
             }
         } else if scenario.status == "observed" {
-            // A row may only claim to be answered if it names evidence, and the evidence must be
-            // on disk. This is the check that stops a renamed test reading as coverage.
             assert!(
                 !scenario.rust_evidence.is_empty(),
                 "{} claims to be observed and names no evidence",
@@ -506,8 +457,6 @@ fn nothing_is_answered_without_evidence_that_exists() -> Result<(), Box<dyn Erro
                 }
             }
         } else {
-            // And a row that is *not* answered must say why, from a closed set — so "TODO" is
-            // unspellable and a reason cannot be invented per row.
             assert_ne!(
                 scenario.reason, "settled",
                 "{} is unanswered and claims to be settled",
@@ -537,8 +486,6 @@ fn nothing_is_answered_without_evidence_that_exists() -> Result<(), Box<dyn Erro
 fn a_blocked_row_is_blocked_for_a_reason_the_inventory_agrees_with() -> Result<(), Box<dyn Error>> {
     let ledger = ledger()?;
 
-    // A row excused for want of schemas must actually need schemas. Otherwise "vlei_unavailable"
-    // becomes a place to park anything inconvenient.
     for scenario in ledger
         .scenarios
         .iter()
@@ -551,7 +498,6 @@ fn a_blocked_row_is_blocked_for_a_reason_the_inventory_agrees_with() -> Result<(
         );
     }
 
-    // Exactly one row is blocked on this port rather than on infrastructure, and it says so.
     let api_missing: Vec<&Scenario> = ledger
         .scenarios
         .iter()
@@ -567,24 +513,15 @@ fn a_blocked_row_is_blocked_for_a_reason_the_inventory_agrees_with() -> Result<(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The open questions and the collected obligations.
-// ---------------------------------------------------------------------------
-
+// --- The open questions and the collected obligations ---
 #[test]
 fn every_open_question_names_the_experiment_that_would_settle_it() -> Result<(), Box<dyn Error>> {
     let ledger = ledger()?;
 
-    // The four §10 rows owed to 9.2, plus the residual left on a fifth that is already RESOLVED.
     assert_eq!(ledger.open_questions.len(), 5);
     let lines: BTreeSet<usize> = ledger.open_questions.iter().map(|entry| entry.porting_line).collect();
     assert_eq!(lines.len(), 5, "two questions cite one line");
 
-    // Keyed on the topic rather than on the line. `PORTING.md` is excluded from the repository, so
-    // no test can read it to check that a cited line still says what the ledger claims — and the
-    // numbers move whenever anything above them is edited. Asserting them here would pin values
-    // nothing can verify and would fail for a reason that has nothing to do with the matrix.
-    // Topics are stable text, so they are what identifies a row.
     let topics: Vec<&str> = ledger.open_questions.iter().map(|entry| entry.topic.as_str()).collect();
     for expected in [
         "Target KERIA integration version",
@@ -620,10 +557,6 @@ fn every_open_question_names_the_experiment_that_would_settle_it() -> Result<(),
             question.reason
         );
 
-        // `settled` and `observed` mean the same thing and must travel together. Without this an
-        // answered question keeps whatever reason it was pending for, which reads as though the
-        // observation never happened — the state the `Content-Range` row was actually left in
-        // after it was closed.
         assert_eq!(
             question.status == "observed",
             question.reason == "settled",
@@ -633,9 +566,6 @@ fn every_open_question_names_the_experiment_that_would_settle_it() -> Result<(),
             question.reason
         );
 
-        // An outcome exists only once the question has been answered, and a question that is only
-        // *partly* answered must say in its outcome what remains — otherwise "partly" becomes a
-        // place to record a win without recording the shortfall.
         if question.status == "partly_observed" {
             let outcome = question
                 .outcome
@@ -669,7 +599,6 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
     let ledger = ledger()?;
     let statuses: BTreeSet<&str> = ledger.statuses.iter().map(String::as_str).collect();
 
-    // The maintainer decision of 2026-08-28 was to collect these rather than leave them in prose.
     assert!(
         ledger.obligations.len() >= 30,
         "only {} obligations were collected",
@@ -685,7 +614,6 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
         assert!(!obligation.claim.is_empty());
 
         if obligation.status == "out_of_scope" {
-            // Moving work elsewhere is allowed; doing it silently is not.
             assert!(
                 obligation.moves_to.is_some(),
                 "PORTING.md:{} is out of scope and names no destination",
@@ -712,9 +640,6 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
                 obligation.porting_line
             );
 
-            // The same rule the open questions carry: `settled` and `observed` mean one thing and
-            // must travel together, so a settled obligation cannot keep the reason it was pending
-            // for and read as though nothing was ever recorded.
             assert_eq!(
                 obligation.status == "observed",
                 reason == "settled",
@@ -725,8 +650,6 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
         }
     }
 
-    // Not everything a live run touches is an integration question, and pretending otherwise would
-    // make the matrix dishonest. A few are argued out, and the argument is required above.
     let moved = ledger
         .obligations
         .iter()
@@ -743,8 +666,6 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
 fn the_matrix_says_how_much_of_the_item_is_left() -> Result<(), Box<dyn Error>> {
     let ledger = ledger()?;
 
-    // The point of 9.2b: "how much of 9.2 remains" is a number this test prints rather than a
-    // judgement someone makes. While every row is unobserved, that number is all of it.
     let answered = ledger
         .scenarios
         .iter()
@@ -765,7 +686,6 @@ fn the_matrix_says_how_much_of_the_item_is_left() -> Result<(), Box<dyn Error>> 
     assert!(settled <= ledger.open_questions.len());
     assert!(discharged <= ledger.obligations.len());
 
-    // Every row still carries a reason, so nothing is silently pending.
     for scenario in ledger.scenarios.iter().filter(|entry| entry.status == "unobserved") {
         assert!(!scenario.reason.is_empty());
     }
@@ -776,8 +696,6 @@ fn the_matrix_says_how_much_of_the_item_is_left() -> Result<(), Box<dyn Error>> 
 fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
 
-    // The families the suite reaches are the client's, and only the client's — `Date.now()` and
-    // `new Date().toISOString()` are the same `x().y()` shape and must not be counted as endpoints.
     let known: BTreeSet<&str> = [
         "challenges",
         "config",
@@ -809,7 +727,6 @@ fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
         assert!(family.calls > 0);
     }
 
-    // Every call recorded against a file names one of those families and a method.
     for file in &inventory.files {
         for call in &file.api_calls {
             assert!(
@@ -822,7 +739,6 @@ fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
             assert!(call.count > 0);
         }
 
-        // Witness need is the union of naming them and inheriting them from a helper's defaults.
         let infrastructure = &file.infrastructure;
         assert_eq!(
             infrastructure.witnesses.needed,
@@ -839,7 +755,6 @@ fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
             );
         }
 
-        // A file's defect count agrees with the defects recorded against it.
         let counted = inventory
             .defects
             .iter()
@@ -848,8 +763,6 @@ fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
         assert_eq!(counted, file.defects, "{} miscounts its defects", file.file);
     }
 
-    // Shared mutable scope is how state leaks between cases upstream, so it is recorded per file
-    // rather than described. Several files carry a great deal of it.
     let leaky: Vec<&FileEntry> = inventory
         .files
         .iter()
@@ -867,8 +780,6 @@ fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
 fn the_suites_cases_are_recorded_faithfully() -> Result<(), Box<dyn Error>> {
     let inventory = inventory()?;
 
-    // Four of the twenty-two files label their internal steps; the other eighteen narrate with
-    // `console.log` or not at all. That is why steps cannot key the matrix and API calls must.
     let stepped: BTreeSet<&str> = inventory
         .cases
         .iter()
@@ -882,7 +793,6 @@ fn the_suites_cases_are_recorded_faithfully() -> Result<(), Box<dyn Error>> {
         "most of the suite now labels its steps, so the matrix could key on them"
     );
 
-    // Each case knows where it is and what it asserts through.
     for case in &inventory.cases {
         assert!(case.line > 0 && case.lines > 0, "{} has no position", case.title);
         assert!(!case.title.is_empty());
@@ -895,8 +805,6 @@ fn the_suites_cases_are_recorded_faithfully() -> Result<(), Box<dyn Error>> {
         }
         assert!(!case.group.is_empty() || case.file.ends_with(".test.ts"));
 
-        // A case's own calls are a subset of its file's — the rest live in helpers declared
-        // outside the case body, which is why the file-level count is the one the matrix uses.
         let within: usize = case.api_calls.iter().map(|call| call.count).sum();
         let whole: usize = inventory
             .files

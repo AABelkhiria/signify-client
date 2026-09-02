@@ -1,18 +1,6 @@
 //! Exact multisig-inception vectors recorded from the pinned reference's own helpers.
 //!
-//! The ported unit lives only in `test-integration/utils/multisig-utils.ts`, which imports the
-//! package by name and is not built into `dist`. So the generator **transpiles that one file in
-//! memory** with the reference's own pinned TypeScript and runs it against a recording agent —
-//! nothing is written into the submodule, and what produced these requests is the reference's own
-//! code rather than a re-expression of it.
-//!
-//! Six calls are recorded: the pinned scenario's two proposals, one acceptance of the first, and
-//! three acceptances of proposals bent to make a latent defect observable.
-//!
-//! Four of those defects are the item. The initiator addresses its proposal to itself; the joining
-//! member reads the rotation set and relays the signing set in its place; the joining member does
-//! not await the message it sends; and the witness threshold is re-parsed out of a hexadecimal
-//! field with a base-ten `parseInt`, which for `"10"` silently derives a different group.
+//! Six recorded calls and the four defects they make observable, including `parseInt` on a hexadecimal `bt`.
 
 mod support;
 
@@ -31,10 +19,7 @@ const FIXTURE: &str = include_str!("../../../fixtures/client-multisig-inception/
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 
-// ---------------------------------------------------------------------------
-// Fixture model.
-// ---------------------------------------------------------------------------
-
+// --- Fixture model ---
 #[derive(Debug, Deserialize)]
 struct Fixture {
     schema_version: u8,
@@ -138,7 +123,6 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-/// The exchange submission one recorded call produced, parsed.
 fn proposal(fixture: &Fixture, name: &str) -> Result<Value, Box<dyn Error>> {
     let request = call(fixture, name)?
         .requests
@@ -155,10 +139,7 @@ fn quirk<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Value, Box<dyn Erro
         .ok_or_else(|| format!("no recorded divergence {name}").into())
 }
 
-// ---------------------------------------------------------------------------
-// Manifest and provenance.
-// ---------------------------------------------------------------------------
-
+// --- Manifest and provenance ---
 #[test]
 fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -190,14 +171,12 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
         assert!(!entry.requests.is_empty(), "call {} sent nothing", entry.name);
         for request in &entry.requests {
-            // Every read is a `GET` with no body and every write is a `POST` with one.
             match request.method.as_str() {
                 "GET" => assert!(request.body.is_none(), "a read in {} carried a body", entry.name),
                 "POST" => assert!(request.body.is_some(), "a write in {} carried none", entry.name),
                 other => return Err(format!("call {} used {other}", entry.name).into()),
             }
         }
-        // Five of the six succeed; the one that fails carries its message instead of an answer.
         assert_eq!(
             entry.result.is_null(),
             entry.error.is_some(),
@@ -205,8 +184,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
             entry.name
         );
     }
-    // The identifier record is the reference's own mock, with its sealed salt recorded as what it
-    // opens to rather than as a blob only that controller can open.
     assert_eq!(
         fixture
             .identifier_record
@@ -228,7 +205,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
 #[test]
 fn there_is_no_upstream_source_file() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // Neither helper exists under `src`: this is a Rust-only module, `PORTING.md` §4.5.
     assert!(fixture.declarations.no_source_file);
     assert_eq!(fixture.declarations.start_uses.scanned_files, 117);
     for scan in [&fixture.declarations.start_uses, &fixture.declarations.accept_uses] {
@@ -245,7 +221,6 @@ fn there_is_no_upstream_source_file() -> Result<(), Box<dyn Error>> {
             scan.needle
         );
     }
-    // And both helpers are real code rather than declarations.
     assert!(
         fixture
             .declarations
@@ -269,7 +244,6 @@ fn there_is_no_upstream_source_file() -> Result<(), Box<dyn Error>> {
 fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let confirmations = &fixture.pinned_confirmations;
-    // The scenario names two groups, two members, one route, and three witnesses.
     assert!(confirmations.scenario_group_names.iter().any(|name| name == "multisig"));
     assert!(
         confirmations
@@ -282,7 +256,6 @@ fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.declarations.scenario_witnesses.len(), 3);
     assert!(!confirmations.note.is_empty());
 
-    // And the workflow's shape: read the member, read each participant's key state, create, propose.
     assert_eq!(
         confirmations.initiator_paths,
         [
@@ -293,7 +266,6 @@ fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
             "POST /identifiers/member1/exchanges",
         ]
     );
-    // And that summary is the recording rather than a restatement of it.
     let recorded: Vec<String> = call(&fixture, "start_multisig_incept")?
         .requests
         .iter()
@@ -305,21 +277,16 @@ fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The four findings.
-// ---------------------------------------------------------------------------
-
+// --- The four findings ---
 #[test]
 fn the_initiator_addresses_its_proposal_to_itself() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let confirmations = &fixture.pinned_confirmations;
 
-    // Driven: the message's `rp` is its own `i`, and its delivery list includes the sender.
     assert_eq!(confirmations.proposal_sender, LOCAL);
     assert_eq!(confirmations.proposal_addressed_to, LOCAL);
     assert_eq!(confirmations.proposal_delivered_to, [LOCAL, PEER]);
 
-    // The recorded body says the same thing.
     let body = proposal(&fixture, "start_multisig_incept")?;
     let exn = body.get("exn").ok_or("no exn")?;
     assert_eq!(exn.get("i").and_then(Value::as_str), Some(LOCAL));
@@ -330,7 +297,6 @@ fn the_initiator_addresses_its_proposal_to_itself() -> Result<(), Box<dyn Error>
         "the attribute block names the sender too"
     );
 
-    // The accepting helper already filters itself out, which is the asymmetry.
     let accepted = proposal(&fixture, "accept_multisig_incept")?;
     assert_eq!(
         accepted.get("rec").and_then(Value::as_array).map(Vec::len),
@@ -353,7 +319,6 @@ fn the_joining_member_relays_the_signing_set_where_the_rotation_set_belongs() ->
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "the_accepting_member_discards_the_rotation_set")?;
 
-    // The proposal it read named one rotation member and two signing members.
     let read: Vec<&str> = recorded
         .get("read_rmids")
         .and_then(Value::as_array)
@@ -363,7 +328,6 @@ fn the_joining_member_relays_the_signing_set_where_the_rotation_set_belongs() ->
         .collect();
     assert_eq!(read, [PEER]);
 
-    // What it relayed is the signing set instead.
     let relayed: Vec<&str> = recorded
         .get("relayed_rmids")
         .and_then(Value::as_array)
@@ -387,7 +351,6 @@ fn the_joining_member_relays_the_signing_set_where_the_rotation_set_belongs() ->
 #[test]
 fn the_joining_member_does_not_await_the_message_it_sends() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // One `send` per helper, and exactly one of them is awaited.
     let sends: Vec<&SendCall> = fixture
         .declarations
         .send_calls
@@ -411,8 +374,6 @@ fn the_joining_member_does_not_await_the_message_it_sends() -> Result<(), Box<dy
     );
     assert!(accepting.text.contains("send("));
 
-    // The message still leaves — the fixture gives the microtask queue a turn — which is why this
-    // is a defect about *reporting* rather than about delivery.
     assert!(
         call(&fixture, "accept_multisig_incept")?
             .requests
@@ -427,7 +388,6 @@ fn a_hexadecimal_witness_threshold_derives_a_different_group() -> Result<(), Box
     let fixture = fixture()?;
     let recorded = quirk(&fixture, "the_witness_threshold_is_read_in_the_wrong_base")?;
 
-    // `"a"` is ten and `parseInt` gives `NaN`, which throws — loudly, at least.
     assert_eq!(
         recorded.get("loud_failure").and_then(Value::as_str),
         Some("Invalid num = NaN, too large to encode.")
@@ -437,7 +397,6 @@ fn a_hexadecimal_witness_threshold_derives_a_different_group() -> Result<(), Box
         Some("Invalid num = NaN, too large to encode.".to_owned())
     );
 
-    // `"10"` is sixteen and `parseInt` gives ten, which throws nothing at all.
     let silent = recorded.get("silent").ok_or("no silent case")?;
     assert_eq!(silent.get("proposed_bt").and_then(Value::as_str), Some("10"));
     assert_eq!(silent.get("proposed_bt_means").and_then(Value::as_u64), Some(16));
@@ -456,8 +415,6 @@ fn a_hexadecimal_witness_threshold_derives_a_different_group() -> Result<(), Box
             .is_some_and(|group| !group.is_empty())
     );
 
-    // Here the threshold is read in the base the protocol writes it in, so the two agree at every
-    // value rather than only below ten.
     for (written, means) in [("0", 0_u32), ("9", 9), ("a", 10), ("10", 16), ("ff", 255)] {
         assert_eq!(u32::from_str_radix(written, 16).ok(), Some(means), "{written}");
     }
@@ -465,23 +422,18 @@ fn a_hexadecimal_witness_threshold_derives_a_different_group() -> Result<(), Box
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// The proposal itself.
-// ---------------------------------------------------------------------------
-
+// --- The proposal itself ---
 #[test]
 fn the_proposal_is_a_group_inception_this_port_classifies() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let body = proposal(&fixture, "start_multisig_incept")?;
     let exn = body.get("exn").ok_or("no exn")?.clone();
 
-    // What Roadmap 8.2 would answer a joining member with, built from what the initiator sent.
     let listing = serde_json::json!([{ "exn": exn, "paths": {}, "groupName": "multisig",
         "memberName": "member1", "sender": LOCAL }]);
     let decoded: Vec<MultisigExchangeResource> = serde_json::from_value(listing)?;
     let entry = decoded.first().ok_or("empty listing")?;
 
-    // And Roadmap 8.1 classifies it as the inception proposal it is.
     let classified = ClassifiedExchange::try_from(entry)?;
     let multisig = classified.as_multisig().ok_or("not a multisig proposal")?;
     assert_eq!(multisig.route, MultisigRoute::Inception);
@@ -503,7 +455,6 @@ fn the_proposal_embeds_the_event_it_proposes_with_its_attachment() -> Result<(),
     let fixture = fixture()?;
     let body = proposal(&fixture, "start_multisig_incept")?;
 
-    // The embed slot is the one Roadmap 8.1's table expects for this route.
     let embeds = body
         .get("exn")
         .and_then(|exn| exn.get("e"))
@@ -512,7 +463,6 @@ fn the_proposal_embeds_the_event_it_proposes_with_its_attachment() -> Result<(),
     assert!(embeds.contains_key(INCEPTION_SLOT));
     assert!(embeds.contains_key("d"), "the embed block carries its own SAID");
 
-    // The event embedded is the one the creation submitted, and its identifier is the group's.
     let created = call(&fixture, "start_multisig_incept")?
         .requests
         .iter()
@@ -528,7 +478,6 @@ fn the_proposal_embeds_the_event_it_proposes_with_its_attachment() -> Result<(),
         Some(fixture.pinned_confirmations.group_prefix.as_str())
     );
 
-    // And the transposed attachment carries the member's signature over it.
     let attachment = body.get("atc").and_then(Value::as_str).ok_or("no attachment")?;
     assert!(!attachment.is_empty());
     assert!(attachment.starts_with("-L"), "the attachment is not a pathed group");
@@ -538,8 +487,6 @@ fn the_proposal_embeds_the_event_it_proposes_with_its_attachment() -> Result<(),
 #[test]
 fn the_topic_is_the_groups_local_alias() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The reference passes `groupName` as the topic, so a peer's notification is filed under the
-    // *sender's* local name for a group nobody else has named yet.
     assert_eq!(
         proposal(&fixture, "start_multisig_incept")?
             .get("tpc")
@@ -559,7 +506,6 @@ fn the_topic_is_the_groups_local_alias() -> Result<(), Box<dyn Error>> {
 #[test]
 fn a_witnessless_group_writes_no_witnesses_and_a_zero_threshold() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The scenario's second group, which is the same proposal with the witnesses removed.
     let created = call(&fixture, "start_multisig_incept_no_witnesses")?
         .requests
         .iter()
@@ -570,7 +516,6 @@ fn a_witnessless_group_writes_no_witnesses_and_a_zero_threshold() -> Result<(), 
     assert_eq!(event.get("b").and_then(Value::as_array).map(Vec::len), Some(0));
     assert_eq!(event.get("bt").and_then(Value::as_str), Some("0"));
 
-    // And the witnessed group carries all three, with a threshold of two.
     let witnessed = call(&fixture, "start_multisig_incept")?
         .requests
         .iter()
@@ -583,7 +528,6 @@ fn a_witnessless_group_writes_no_witnesses_and_a_zero_threshold() -> Result<(), 
         Some(3)
     );
     assert_eq!(witnessed_event.get("bt").and_then(Value::as_str), Some("2"));
-    // Two of two, which is what the scenario asks for.
     assert_eq!(witnessed_event.get("kt").and_then(Value::as_str), Some("2"));
     assert_eq!(witnessed_event.get("nt").and_then(Value::as_str), Some("2"));
     Ok(())
@@ -592,7 +536,6 @@ fn a_witnessless_group_writes_no_witnesses_and_a_zero_threshold() -> Result<(), 
 #[test]
 fn the_two_members_converge_on_one_group_when_nothing_is_bent() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    // The happy path: the joining member rebuilds the same event and derives the same identifier.
     let proposed = fixture.pinned_confirmations.group_prefix.as_str();
     let accepted = call(&fixture, "accept_multisig_incept")?
         .requests
@@ -608,7 +551,6 @@ fn the_two_members_converge_on_one_group_when_nothing_is_bent() -> Result<(), Bo
         Some(proposed),
         "the two members derived different groups on the happy path"
     );
-    // Which is the fact the whole workflow rests on, and the one the base-ten threshold breaks.
     assert!(IdentifierPrefix::from_qb64(proposed).is_ok());
     Ok(())
 }
@@ -636,15 +578,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Driving this port against the same inputs.
-//
-// A group identifier is a digest over the event every member must build independently, so the
-// claim that matters is not that two request bodies look alike — it is that both implementations
-// derive **the same group** from the same participants, thresholds, and witnesses. That is what
-// this half proves, and it is the fact the reference's base-ten witness threshold destroys.
-// ---------------------------------------------------------------------------
-
+// --- Driving this port against the same inputs ---
 mod driven {
     use super::{Fixture, LOCAL, PEER, call, fixture};
 
@@ -697,10 +631,8 @@ mod driven {
         Ok((block_on(client.connect())?, transport))
     }
 
-    /// One endpoint request as it left the transport: path, method, and body.
     type SentRequest = (String, String, Option<String>);
 
-    /// Returns every request past the two the connection itself makes.
     fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
         transport
             .requests()
@@ -710,17 +642,12 @@ mod driven {
             .collect()
     }
 
-    /// The sealing key this client's controller salt derives, so a recorded record can be re-sealed.
     fn sealing_key() -> Result<Encrypter, Box<dyn Error>> {
         let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
         let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
         Ok(Encrypter::from_verification_key(signer.verifier())?)
     }
 
-    /// The member record the alias lookup answers with, re-sealed under this client's own key.
-    ///
-    /// The fixture records what the reference's sealed salt *opens to* rather than the blob itself,
-    /// because only the reference's controller can open that blob. Roadmap 6.11 established this.
     fn identifier_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
         let mut record = fixture.identifier_record.clone();
         let opens_to = record
@@ -741,7 +668,6 @@ mod driven {
         Ok(serde_json::to_vec(&record)?)
     }
 
-    /// The key state the agent answers each participant read with, taken from the fixture.
     fn key_state(fixture: &Fixture, member: &str) -> Result<Vec<u8>, Box<dyn Error>> {
         let state = fixture
             .key_states
@@ -763,7 +689,6 @@ mod driven {
             .collect()
     }
 
-    /// The pinned scenario's own proposal, as this port's request.
     fn scenario<'a>(
         participants: &'a [IdentifierPrefix],
         witnesses: &'a [IdentifierPrefix],
@@ -781,13 +706,6 @@ mod driven {
         })
     }
 
-    /// The answers a proposal reads, in the order this port asks for them.
-    ///
-    /// The member record is answered **twice**. Roadmap 7.7's `send` resolves its own sender from
-    /// the alias rather than taking a record the caller already has — which is what keeps a
-    /// message's `i` field and the key that signed it the same identifier — so this port reads the
-    /// member once to build the group and once to sign the proposal, where the reference passes the
-    /// hab it is already holding. One extra read, and no behaviour rests on it.
     fn answers(fixture: &Fixture) -> Result<Answers, Box<dyn Error>> {
         Ok(Answers {
             member: identifier_record(fixture)?,
@@ -796,7 +714,6 @@ mod driven {
         })
     }
 
-    /// The three recorded answers a proposal reads.
     struct Answers {
         member: Vec<u8>,
         local: Vec<u8>,
@@ -804,13 +721,11 @@ mod driven {
     }
 
     impl Answers {
-        /// Scripts them in the order this port asks, with `{}` for the two writes.
         fn scripted(&self) -> [&[u8]; 6] {
             [&self.member, &self.local, &self.peer, b"{}", &self.member, b"{}"]
         }
     }
 
-    /// The recorded body of one request of one recorded call.
     fn recorded_body(fixture: &Fixture, name: &str, path: &str) -> Result<Value, Box<dyn Error>> {
         let request = call(fixture, name)?
             .requests
@@ -834,11 +749,8 @@ mod driven {
                 .propose_inception(&scenario(&participants, &witnesses)?),
         )?;
 
-        // The whole point of the workflow: both implementations, given the same participants,
-        // thresholds, and witnesses, derive the same group.
         assert_eq!(proposal.group().qb64()?, fixture.pinned_confirmations.group_prefix);
 
-        // And the event they derived it from is the same bytes, field for field.
         let recorded = recorded_body(&fixture, "start_multisig_incept", "/identifiers")?;
         let sent = sent(&transport)?;
         let creation = sent
@@ -872,8 +784,6 @@ mod driven {
             .map(|(path, method, _)| format!("{method} {path}"))
             .collect();
 
-        // The reference's five, in its order — the member, each participant's key state, the
-        // creation, the proposal — plus one.
         assert_eq!(
             addresses,
             [
@@ -881,16 +791,11 @@ mod driven {
                 &format!("GET /states?pre={LOCAL}"),
                 &format!("GET /states?pre={PEER}"),
                 "POST /identifiers",
-                // Roadmap 7.7's `send` resolves its own sender from the alias rather than taking a
-                // record the caller is already holding, which is what keeps a message's `i` and
-                // the key that signed it one identifier. So the member is read twice here and once
-                // upstream: one extra read, no behaviour resting on it.
                 "GET /identifiers/member1",
                 "POST /identifiers/member1/exchanges",
             ]
         );
 
-        // The reference's five are these six in order, with that one read removed.
         let mut recorded = fixture.pinned_confirmations.initiator_paths.iter();
         let mut matched = 0;
         for address in &addresses {
@@ -926,7 +831,6 @@ mod driven {
         let body: Value = serde_json::from_str(submission.2.as_deref().ok_or("no body")?)?;
         let recorded = recorded_body(&fixture, "start_multisig_incept", "/identifiers/member1/exchanges")?;
 
-        // The divergence, driven on both sides: the reference addresses and delivers to itself.
         assert_eq!(
             recorded
                 .get("exn")
@@ -944,8 +848,6 @@ mod driven {
         );
         assert_eq!(recorded.get("rec").and_then(Value::as_array).map(Vec::len), Some(2));
 
-        // Everything the addressee does not decide is the same: the topic, the route, the sender,
-        // the attribute block's group and members, and the embedded event with its own SAID.
         assert_eq!(body.get("tpc"), recorded.get("tpc"));
         for label in ["i", "r"] {
             assert_eq!(
@@ -979,8 +881,6 @@ mod driven {
         let answers = answers(&fixture)?;
         let (client, transport) = connected(&answers.scripted())?;
 
-        // The reference reads `participants[0]` as the addressee and never checks that the local
-        // member is among them, so a member can propose a group it is not in.
         let participants = [prefix(PEER)?, prefix(THIRD)?];
         let witnesses = witnesses(&fixture)?;
         let refused = matches!(
@@ -993,7 +893,6 @@ mod driven {
         );
         assert!(refused, "a group the proposer is not in was accepted");
 
-        // And nothing was created: the only request is the member lookup that found the mismatch.
         assert_eq!(sent(&transport)?.len(), 1);
         Ok(())
     }
@@ -1004,8 +903,6 @@ mod driven {
         let answers = answers(&fixture)?;
         let (client, transport) = connected(&answers.scripted())?;
 
-        // One participant leaves no peer to address, which the reference reaches by sending a
-        // message to itself.
         let participants = [prefix(LOCAL)?];
         let witnesses = witnesses(&fixture)?;
         let refused = matches!(

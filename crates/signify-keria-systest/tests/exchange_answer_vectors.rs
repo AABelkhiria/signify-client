@@ -1,16 +1,6 @@
 //! Hermetic assertions over which shape an agent answered an exchange submission with.
 //!
-//! `PORTING.md` §10 carried this as an open question owed to Roadmap 9.2. Upstream declares the two
-//! submission paths differently — `Exchanges.sendFromEvents` as `Promise<Exn>`,
-//! `Ipex.submit*` as `Promise<ExchangeOperation>` — for the same shape of POST to the same agent,
-//! and both are unchecked `res.json()` casts, so at most one can be right and neither is checked.
-//!
-//! **Both paths answer with an operation.** So `sendFromEvents`'s `Promise<Exn>` is wrong: a caller
-//! who believed it would read an operation as an exchange message. The port never had to guess —
-//! `SentExchange` keeps the body and offers both decoders — and this file records which one a
-//! deployment actually justifies.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! Both submission paths answer with an operation, so `sendFromEvents`'s declared `Promise<Exn>` is wrong.
 
 use std::error::Error;
 use std::fs;
@@ -59,8 +49,6 @@ fn both_submission_paths_were_actually_reached() -> Result<(), Box<dyn Error>> {
     assert!(!captured.preset.is_empty());
     assert_eq!(captured.submissions.len(), 2);
 
-    // The comparison is only worth anything if both halves happened. A path that never reached the
-    // agent says nothing about what the agent answers with.
     for submission in &captured.submissions {
         assert!(
             submission.sent,
@@ -72,7 +60,6 @@ fn both_submission_paths_were_actually_reached() -> Result<(), Box<dyn Error>> {
         assert!(submission.answer.is_some(), "{} recorded no answer", submission.path);
     }
 
-    // And they must be the two different paths, not the same one twice.
     let exchanges = captured
         .submissions
         .iter()
@@ -94,8 +81,6 @@ fn every_answer_is_an_operation_and_none_is_an_exchange_message() -> Result<(), 
         return Ok(());
     };
 
-    // The finding. Decoded here again from the recorded bytes rather than trusting the flags the
-    // scenario wrote: a recording that merely reports its own conclusion proves nothing.
     for submission in &captured.submissions {
         let answer = submission
             .answer
@@ -106,8 +91,6 @@ fn every_answer_is_an_operation_and_none_is_an_exchange_message() -> Result<(), 
             .map_err(|error| format!("{}'s answer is not an operation: {error}", submission.path))?;
         assert!(submission.decodes_as_operation);
 
-        // The two shapes are proven disjoint by a property in `signify-client`. Here is the other
-        // half of that claim, against real bytes: the answer is not an exchange message.
         assert!(
             serde_json::from_str::<ExchangeRecord>(answer).is_err(),
             "{}'s answer decodes as both shapes, which contradicts the disjointness property",
@@ -115,8 +98,6 @@ fn every_answer_is_an_operation_and_none_is_an_exchange_message() -> Result<(), 
         );
         assert!(!submission.decodes_as_exchange);
 
-        // A completed operation whose result names the message that was submitted, which is what
-        // `Operation<ExchangeMetadata, ExchangeMetadata>` says it is.
         let OperationOutcome::Completed(result) = &operation.outcome else {
             return Err(format!("{}'s answer is not a completed operation", submission.path).into());
         };
@@ -143,10 +124,6 @@ fn the_reference_declared_one_of_the_two_paths_wrongly() -> Result<(), Box<dyn E
         return Ok(());
     };
 
-    // `/ipex` was declared `ExchangeOperation` and answers with one; `/exchanges` was declared
-    // `Exn` and answers with an operation too. So the reference is right about one path and wrong
-    // about the other, and a port that had believed either declaration in isolation would have had
-    // a 50% chance of typing a caller's answer as something it is not.
     let exchanges = captured
         .submissions
         .iter()

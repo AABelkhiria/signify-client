@@ -1,24 +1,8 @@
 //! Wave 11 — challenge and response: proving control of an identifier out of band.
 //!
-//! `test-integration/challenge.test.ts` is the §7 row for Roadmap 7.4's family driven whole, with
-//! the `respond` that Roadmap 7.7 delivered: Alice generates BIP39 words, Bob signs them in an
-//! exchange message addressed to her, Alice's agent **verifies** the signed answer (a
-//! long-running operation whose result carries the exchange message), Alice marks it
-//! **responded**, and Bob's contact record then shows the challenge `authenticated`.
-//!
-//! One shaping decision is visible on the wire: a strength is an entropy size here —
-//! [`ChallengeStrength`]'s five BIP39 values are all that exist — where upstream stringifies any
-//! number into the query. Both generations, the response's route and topic, the verification, and
-//! the acknowledgement travel exactly as Roadmap 7.4/7.7 recorded them; what this wave adds is a
-//! live deployment agreeing end to end, including the contact ledger the round leaves behind.
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave11_challenge -- --ignored --test-threads=1 --nocapture
-//! ```
+//! Generates words, signs them as an exchange, verifies them, and marks the contact authenticated.
 
-// After the docs: a false `#![cfg]` strips everything below it, docs included, and an
-// undocumented empty crate trips `missing_docs`.
+// The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
@@ -35,27 +19,19 @@ use signify_keri::said::Said;
 use signify_keria_systest::{Environment, connect, progress, record, recorder};
 use signify_types::api::Role;
 
-/// Everything the run observed, written as the fixture.
 #[derive(Debug, Serialize)]
 struct Captured {
     scenario: &'static str,
     preset: String,
-    /// Word counts the two generations answered with; BIP39 pins 12 and 24.
     words_at_128: usize,
     words_at_256: usize,
-    /// The witnessed identifiers.
     alice_prefix: String,
     bob_prefix: String,
-    /// Bob's contact record on Alice's client before the round: the challenge list as answered.
     challenges_before: Option<usize>,
-    /// The exchange message Bob's response sent, exactly as his client serialized it.
     response_exn: String,
     response_said: String,
-    /// Whether the response submission's operation was already done when it was created.
     response_operation_born_done: bool,
-    /// The SAID of the exchange message Alice's verification answered with.
     verified_said: String,
-    /// Bob's challenge entry on Alice's client after the acknowledgement.
     challenge_after_words: usize,
     challenge_after_authenticated: Option<bool>,
     challenge_after_said: Option<String>,
@@ -65,7 +41,6 @@ struct Captured {
     bob_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-/// Waits one operation out and deletes it and any dependency.
 async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
     let operation = client.operations().get(name).await?;
     let completed = client.poller().wait(operation).await?;
@@ -82,7 +57,6 @@ async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, 
     Ok(response)
 }
 
-/// Creates one identifier witnessed by the whole triple, with the agent end role.
 async fn witnessed_identifier(
     client: &ConnectedClient,
     alias: &str,
@@ -109,7 +83,6 @@ async fn witnessed_identifier(
     Ok(prefix)
 }
 
-/// Resolves `alias`'s agent OOBI from `owner` on `resolver`, under `contact_alias`.
 async fn introduce(
     owner: &ConnectedClient,
     alias: &str,
@@ -134,7 +107,6 @@ async fn introduce(
     Ok(())
 }
 
-/// Finds Bob's contact on Alice's client, by alias.
 async fn bob_contact(client: &ConnectedClient) -> Result<signify_types::api::Contact, Box<dyn Error>> {
     client
         .contacts()
@@ -166,7 +138,6 @@ async fn a_challenge_is_answered_verified_and_recorded_on_the_contact() -> Resul
     )
     .await?;
 
-    // The two generations the upstream case makes: BIP39 pins the word counts.
     progress("generating challenge words at both strengths");
     let words = alice.challenges().generate(ChallengeStrength::BITS_128).await?.words;
     let words_at_128 = words.len();
@@ -177,22 +148,17 @@ async fn a_challenge_is_answered_verified_and_recorded_on_the_contact() -> Resul
         .words
         .len();
 
-    // Witnessed identifiers, cross-resolved as contacts.
     let alice_prefix = witnessed_identifier(&alice, "alice", &environment).await?;
     let bob_prefix = witnessed_identifier(&bob, "bob", &environment).await?;
     introduce(&bob, "bob", &alice, "bob").await?;
     introduce(&alice, "alice", &bob, "alice").await?;
     let challenges_before = bob_contact(&alice).await?.challenges.as_ref().map(Vec::len);
 
-    // Bob answers the challenge: an exchange message carrying the words, addressed to Alice.
     progress("bob: responding to the challenge");
     let sent = bob
         .challenges()
         .respond("bob", &alice_prefix, &words, signify_keria_systest::now()?)
         .await?;
-    // The submission answers with an operation — wave 2's finding — and it is born `done`, yet
-    // stays listed until deleted. Upstream's case never waits its respond, which would leave its
-    // own `assertOperations` a message behind; the cleanup discipline is applied here explicitly.
     let response_operation = sent.operation()?;
     let message = response_operation
         .metadata
@@ -202,7 +168,6 @@ async fn a_challenge_is_answered_verified_and_recorded_on_the_contact() -> Resul
     let response_operation_born_done = response_operation.outcome.is_done();
     wait_and_delete(&bob, &response_operation.name).await?;
 
-    // Alice verifies the signed answer; the completed operation carries the exchange message.
     progress("alice: verifying the response");
     let verifying = alice.challenges().verify(&bob_prefix, &words).await?;
     let completed = alice.poller().wait(verifying).await?;
@@ -212,7 +177,6 @@ async fn a_challenge_is_answered_verified_and_recorded_on_the_contact() -> Resul
     let verified_said = response.exn.digest.clone();
     let response_exn = serde_json::to_string(&response.exn)?;
 
-    // Alice acknowledges it, and Bob's contact record carries the authenticated challenge.
     progress("alice: marking the response accepted");
     alice
         .challenges()

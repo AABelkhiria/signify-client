@@ -1,32 +1,7 @@
 //! Test-only doubles for a KERIA agent.
 //!
-//! Nineteen test files in `signify-client` each carried their own copy of the same scripted agent —
-//! roughly two thousand lines, byte-identical in the parts that mattered and quietly divergent in
-//! the parts that did not. This module is that harness, once. It began life as the
-//! `signify-testkit` workspace package (Roadmap 9.2a) and was folded into this crate's `tests/`
-//! directory on 2026-08-30, every one of its consumers having proven to live here;
-//! `ARCHITECTURE.md` §11 records both homes.
-//!
-//! # Why this exists rather than [`signify_http::transport::ScriptedTransport`]
-//!
-//! [`signify_http::transport::ScriptedTransport`] pre-scripts complete responses, which is enough
-//! whenever the answer does not depend on the question. A connected client authenticates the
-//! agent's response signature, and that signature covers the request's method and path — so the
-//! answer has to be *computed per request*. [`AgentTransport`] closes exactly that gap and nothing
-//! else. Where response authentication is not what a test is about,
-//! `ConnectedClient::with_freshness(Freshness::Ignore)` and a plain `ScriptedTransport` remain the
-//! lighter choice.
-//!
-//! # What this module must never become
-//!
-//! It holds no protocol logic. Everything here is a fixture, a constant, or plumbing; anything that
-//! decides what a correct KERI artifact looks like belongs in the crate under test, where it is
-//! subject to the real gates. `ARCHITECTURE.md` §11 says the same in one line: test support
-//! "may not contain production protocol logic".
+//! A scripted KERIA agent signing its answers per request, a pinned clock, and a minimal executor.
 
-// Compiled once per test binary that declares `mod support;`, and not every binary uses every
-// helper — which is why this is `allow` rather than `expect`: whether each item is dead varies
-// per binary, so no single expectation could be fulfilled everywhere.
 #![allow(
     dead_code,
     reason = "compiled once per test binary; not every binary uses every helper"
@@ -47,62 +22,34 @@ use signify_http::signature::input::{RequestTarget, default_components};
 use signify_http::signature::timestamp::SignifyTimestamp;
 use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
 
-/// Administrative URL every scripted client is configured against.
 pub(crate) const ADMIN: &str = "http://127.0.0.1:3901";
 
-/// Boot URL every scripted client is configured against.
 pub(crate) const BOOT: &str = "http://127.0.0.1:3903";
 
-/// The twenty-one character passcode the pinned reference's own tests use.
-///
-/// `PUBLIC TEST MATERIAL`: this is the reference's published test passcode, not a secret.
+/// The pinned reference's own test passcode. PUBLIC TEST MATERIAL, not a secret.
 pub(crate) const PASSCODE: &str = "0123456789abcdefghijk";
 
-/// Prefix of the agent every scripted answer claims to come from.
 pub(crate) const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
 
-/// The instant every scripted answer is stamped with, in milliseconds since the Unix epoch.
 pub(crate) const FIXED_MILLIS: u64 = 1_700_000_000_123;
 
-/// How many requests connecting a client makes before any endpoint call.
-///
-/// `ConnectedClient::connect` reads the agent's state and then approves its delegation, so the
-/// first two recorded requests are never the ones a test is asking about.
-/// [`AgentTransport::endpoint_requests`] skips exactly these — and checks that it skipped the right
-/// ones, so this constant cannot silently drift out of step with the client.
+/// Requests `connect` makes before any endpoint call; `endpoint_requests` skips exactly these.
 pub(crate) const LIFECYCLE_REQUESTS: usize = 2;
 
-/// The agent's signing seed, so a scripted answer verifies as that agent's.
-///
-/// This is the seed Roadmap 6.4's fixture pinned and the one every `tools/reference-vectors`
-/// generator signs its recorded answers with, so a Rust test and the generator that produced its
-/// fixture agree about who the agent is. `PUBLIC TEST MATERIAL`.
+/// The agent's signing seed, so a scripted answer verifies as that agent's. PUBLIC TEST MATERIAL.
 const AGENT_SEED: [u8; 32] = [
     187, 140, 234, 145, 219, 254, 20, 194, 16, 18, 97, 194, 140, 192, 61, 145, 222, 110, 59, 160, 152, 2, 72, 122, 87,
     143, 109, 39, 98, 153, 192, 148,
 ];
 
-/// Status a scripted answer carries unless a test asks for another.
 const DEFAULT_STATUS: u16 = 202;
 
-/// One request as it left the client, in the shape a test wants to read it.
-///
-/// The nineteen copies this module replaces returned seven different tuples between them — a path
-/// and a method here, a path and a body there, a fourth element bolted on somewhere else. A view
-/// with named accessors lets each caller read the two or three things it cares about, and lets a
-/// later caller want a fourth without disturbing anyone.
 #[derive(Clone, Debug)]
 pub(crate) struct Recorded {
     request: Request,
 }
 
 impl Recorded {
-    /// Returns the resource the request addressed: its path, and its query when it had one.
-    ///
-    /// The query is part of the address, and a test that asserts on `/challenges` when the client
-    /// sent `/challenges?strength=128` is asserting about a request that was never made. The
-    /// nineteen copies this module replaces got this right by stripping the base URL from the whole
-    /// address; dropping the query here reintroduced the bug, and their assertions caught it.
     #[must_use]
     pub(crate) fn resource(&self) -> String {
         let url = self.request.url();
@@ -112,19 +59,16 @@ impl Recorded {
         }
     }
 
-    /// Returns the path the request was sent to, without the host or the query.
     #[must_use]
     pub(crate) fn path(&self) -> &str {
         self.request.url().path()
     }
 
-    /// Returns the request's method.
     #[must_use]
     pub(crate) fn method(&self) -> &'static str {
         self.request.method().as_str()
     }
 
-    /// Returns the request's body as text, when it carried one that is UTF-8.
     #[must_use]
     pub(crate) fn body_text(&self) -> Option<String> {
         self.request
@@ -133,30 +77,22 @@ impl Recorded {
             .map(ToOwned::to_owned)
     }
 
-    /// Returns the request's body bytes, when it carried one.
     #[must_use]
     pub(crate) fn body(&self) -> Option<&[u8]> {
         self.request.body()
     }
 
-    /// Returns one request header's value, when it was sent.
     #[must_use]
     pub(crate) fn header(&self, name: &str) -> Option<&str> {
         self.request.headers().get(name)
     }
 
-    /// Returns the underlying request, for the rare test that needs more than the accessors give.
     #[must_use]
     pub(crate) const fn request(&self) -> &Request {
         &self.request
     }
 }
 
-/// A scripted KERIA agent that signs its answers.
-///
-/// Answers are consumed in the order they were supplied; once they run out every further request
-/// is answered `{}`, or — under [`Self::repeating_last`] — with the last answer again, which is
-/// what a test that polls an operation until it completes needs.
 #[derive(Debug)]
 pub(crate) struct AgentTransport {
     answers: Mutex<Vec<Vec<u8>>>,
@@ -167,7 +103,6 @@ pub(crate) struct AgentTransport {
 }
 
 impl AgentTransport {
-    /// Builds a transport that answers with `answers`, in order.
     #[must_use]
     pub(crate) fn new(answers: &[&[u8]]) -> Arc<Self> {
         Arc::new(Self {
@@ -179,45 +114,28 @@ impl AgentTransport {
         })
     }
 
-    /// Adds a `Content-Range` header to every answer.
-    ///
-    /// A listing endpoint reports its window in that header, and a test about paging needs to say
-    /// what the agent claimed.
     pub(crate) fn with_content_range(&self, range: &str) {
         if let Ok(mut guard) = self.content_range.lock() {
             *guard = Some(range.to_owned());
         }
     }
 
-    /// Answers everything from here on with `status`.
-    ///
-    /// Use it to observe what a client does when the agent refuses — that a rotation is not
-    /// adopted, that nothing is left half-applied.
     pub(crate) fn with_status(&self, status: u16) {
         if let Ok(mut guard) = self.status.lock() {
             *guard = status;
         }
     }
 
-    /// Answers everything from here on with `400`.
-    ///
-    /// The common case of [`Self::with_status`], named for what a test is actually saying.
     pub(crate) fn refuse(&self) {
         self.with_status(400);
     }
 
-    /// Keeps answering with the final scripted answer instead of consuming it.
-    ///
-    /// A caller that polls an operation until it finishes makes an unknown number of requests, so
-    /// its last answer has to survive being read. Without this an exhausted script answers `{}`,
-    /// which the caller reads as a malformed operation rather than as one still running.
     pub(crate) fn repeating_last(&self) {
         if let Ok(mut guard) = self.repeat_last.lock() {
             *guard = true;
         }
     }
 
-    /// Returns every request the client made, in order.
     #[must_use]
     pub(crate) fn requests(&self) -> Vec<Recorded> {
         self.recorded.lock().map_or_else(
@@ -226,14 +144,6 @@ impl AgentTransport {
         )
     }
 
-    /// Returns the requests made after connecting, in order.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the leading requests are not the two `ConnectedClient::connect` makes
-    /// against `/agent/`. Every copy this module replaces skipped a hardcoded two without checking;
-    /// had `connect` ever grown a third request, all nineteen would have gone on asserting about
-    /// the wrong one.
     pub(crate) fn endpoint_requests(&self) -> Result<Vec<Recorded>, Box<dyn Error>> {
         let all = self.requests();
         let lifecycle = all.get(..LIFECYCLE_REQUESTS).ok_or_else(|| {
@@ -254,10 +164,6 @@ impl AgentTransport {
         Ok(all.into_iter().skip(LIFECYCLE_REQUESTS).collect())
     }
 
-    /// Returns the method and path of each request made after connecting, in order.
-    ///
-    /// The shape a test asserting on a *sequence* of calls wants — that a poller asked about the
-    /// operation and then deleted it, in that order — without unpacking a whole request each time.
     #[must_use]
     pub(crate) fn endpoint_calls(&self) -> Vec<(String, String)> {
         self.requests()
@@ -267,7 +173,6 @@ impl AgentTransport {
             .collect()
     }
 
-    /// Answers one request, signing the answer as the agent.
     fn answer(&self, request: &Request) -> Result<Response, TransportError> {
         let repeat = self.repeat_last.lock().is_ok_and(|guard| *guard);
         let body = {
@@ -304,17 +209,10 @@ impl Transport for AgentTransport {
     }
 }
 
-/// Returns the agent's signer.
-///
-/// # Errors
-///
-/// Returns an error when the pinned seed does not derive a signer, which would mean the crypto
-/// layer had changed underneath this module.
 pub(crate) fn agent_signer() -> Result<Signer, Box<dyn Error>> {
     Ok(Signer::from_seed(&AGENT_SEED, KeyTransferability::NonTransferable)?)
 }
 
-/// Returns the agent's verification key, or the empty string if it cannot be derived.
 #[must_use]
 pub(crate) fn agent_verification_key() -> String {
     agent_signer()
@@ -322,7 +220,6 @@ pub(crate) fn agent_verification_key() -> String {
         .unwrap_or_default()
 }
 
-/// Returns the state document an agent reports for `controller`, whose inception is `inception`.
 #[must_use]
 pub(crate) fn agent_state(controller: &str, inception: &str) -> String {
     let agent = format!(
@@ -332,11 +229,6 @@ pub(crate) fn agent_state(controller: &str, inception: &str) -> String {
     format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":0,"pidx":0}}"#)
 }
 
-/// Builds one answer, signed as the agent over `method` and `path`.
-///
-/// # Errors
-///
-/// Returns an error when the headers, the signature, or the status cannot be built.
 pub(crate) fn signed_response(
     method: Method,
     path: &str,
@@ -358,7 +250,6 @@ pub(crate) fn signed_response(
     Ok(Response::new(StatusCode::new(status)?, headers, body)?)
 }
 
-/// Returns a clock pinned to [`FIXED_MILLIS`], so every stamp a test produces is reproducible.
 #[must_use]
 pub(crate) fn clock() -> Arc<dyn Clock> {
     Arc::new(TestClock::with_wall_clock(
@@ -366,10 +257,6 @@ pub(crate) fn clock() -> Arc<dyn Clock> {
     ))
 }
 
-/// Drives `future` to completion on the current thread.
-///
-/// The client's futures never yield to a reactor — every await in a test resolves against this
-/// module's own transport — so a full runtime would be machinery with nothing to do.
 pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
     use core::task::{Context, Poll, Waker};
     let mut future = Box::pin(future);

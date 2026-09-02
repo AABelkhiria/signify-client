@@ -1,25 +1,6 @@
 //! Wave 0 — what deployment is this, exactly?
 //!
-//! `PORTING.md` §7 refuses "passes against latest" as evidence and asks a system test to record six
-//! things: the KERIA image or version, the witness configuration, the schema source, the
-//! environment variables, the startup command, and the timeout policy. §10's `Target KERIA
-//! integration version` row asks for the same in different words.
-//!
-//! This scenario captures what a deployment can be asked about itself, before any identifier
-//! exists. It is the cheapest thing to run and the first thing every later wave depends on.
-//!
-//! **A localhost run cannot close §10's version row.** That row asks for an image *digest*, and a
-//! KERIA running on the host has no image. What it does have is the `OpenAPI` document it serves,
-//! which is captured verbatim with its hash — the strongest identity available, and enough to close
-//! a different obligation: §10:9799's residual, "confirm the schema's required fields against a live
-//! deployment".
-//!
-//! Run with:
-//!
-//! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
-//!     --features live --test wave0_deployment -- --ignored --test-threads=1
-//! ```
+//! Records the deployment's identity, its witnesses, and its schema source before any identifier exists.
 
 #![cfg(feature = "live")]
 
@@ -31,23 +12,14 @@ use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_http::transport::{HttpTransport, Method, Request, RequestUrl, Transport};
 use signify_keria_systest::{Environment, Preset, record};
 
-/// The six things `PORTING.md` §7 requires a system test to record about its deployment.
 #[derive(Debug, Serialize)]
 struct Manifest {
-    /// How the deployment is identified. On `docker` this is an image digest; on `local` there is
-    /// no image, so it is the hash of the `OpenAPI` document the agent itself serves.
     keria: Identity,
-    /// The witnesses, and the prefixes they were observed to serve.
     witnesses: Vec<Witness>,
-    /// Where schemas come from, and whether it answered.
     schema_source: SchemaSource,
-    /// The environment variables this run actually used.
     environment_variables: Vec<(String, String)>,
-    /// How the deployment was started, as far as this run can know.
     startup_command: String,
-    /// What this run waited for, and for how long.
     timeout_policy: String,
-    /// Why a `local` run cannot close §10's version row.
     note: String,
 }
 
@@ -58,15 +30,11 @@ struct Identity {
     admin_url: String,
     spec_version: Option<String>,
     spec_openapi: Option<String>,
-    /// BLAKE3-256 of the served document, qb64, which is this deployment's only stable identity.
     spec_digest: String,
     spec_bytes: usize,
     spec_line_of_version: Option<usize>,
-    /// The top-level keys that open a block, in the order the document writes them.
     spec_sections: Vec<String>,
-    /// How many `required:` arrays the document declares, all of them inline under `paths`.
     spec_required_arrays: usize,
-    /// Whether the document defines the named schemas the reference's generated types index into.
     spec_defines_components: bool,
 }
 
@@ -84,20 +52,10 @@ struct SchemaSource {
     note: &'static str,
 }
 
-/// A hash of the served document, so a deployment change is visible as a diff.
-///
-/// Not a cryptographic requirement — this is an identity for a thing that has no version of its
-/// own — so a small dependency-free digest is enough, and is recorded as what it is.
 fn digest(text: &str) -> Result<String, Box<dyn Error>> {
-    // BLAKE3-256, qb64, through the port's own primitive rather than a hand-rolled one: a
-    // localhost deployment has no image to pin, so this document *is* its identity, and an
-    // identity worth recording has to be a cryptographic digest. An earlier draft used a
-    // hand-written 64-bit FNV-1a under a field named `spec_sha256` — neither the algorithm the
-    // name claimed nor strong enough to be evidence.
     Ok(Digest::derive(DigestAlgorithm::Blake3_256, text.as_bytes()).qb64()?)
 }
 
-/// Fetches one URL and returns its status and body.
 async fn fetch(transport: &Arc<HttpTransport>, url: &str) -> Result<(u16, String), Box<dyn Error>> {
     let request = Request::builder(Method::Get, RequestUrl::new(url)?).build()?;
     let response = transport.execute(request).await?;
@@ -105,9 +63,6 @@ async fn fetch(transport: &Arc<HttpTransport>, url: &str) -> Result<(u16, String
     Ok((response.status().as_u16(), body))
 }
 
-/// Reads the served `OpenAPI` document's identity and shape.
-///
-/// Split out of the scenario so the reading is one thing and the recording another.
 fn keria_identity(spec: &str) -> Result<Identity, Box<dyn Error>> {
     Ok(Identity {
         kind: "",
@@ -121,9 +76,6 @@ fn keria_identity(spec: &str) -> Result<Identity, Box<dyn Error>> {
             .lines()
             .position(|line| line.trim().starts_with("version: "))
             .map(|index| index + 1),
-        // What the document is made of. This matters more than it looks: the reference's
-        // `keria-api-schema.ts` indexes into `components['schemas'][…]` for 150 named
-        // schemas, and a document with no `components:` section cannot have produced them.
         spec_sections: spec
             .lines()
             .filter_map(|line| {
@@ -143,9 +95,6 @@ async fn the_deployment_identifies_itself() -> Result<(), Box<dyn Error>> {
     let environment = Environment::from_environment()?;
     let transport = Arc::new(HttpTransport::new()?);
 
-    // The agent's own OpenAPI document. On a localhost deployment this is its only reproducible
-    // identity, and §10:9799 says the reference's generator "carries no version" — a claim made
-    // without a deployment to check it against.
     let (status, spec) = fetch(&transport, &environment.spec_url).await?;
     assert_eq!(status, 200, "the agent served no `OpenAPI` document");
     assert!(
@@ -164,13 +113,8 @@ async fn the_deployment_identifies_itself() -> Result<(), Box<dyn Error>> {
          would then confirm rather than correct"
     );
 
-    // The witnesses this deployment actually serves, checked against the prefixes the environment
-    // claims. The reference inlines this triple in nine files and never checks it against a
-    // deployment at all.
     let mut witnesses = Vec::new();
     for (url, expected) in environment.witness_urls.iter().zip(&environment.witness_prefixes) {
-        // A `docker` preset names hosts only KERIA can resolve, so a witness is only reachable
-        // from here under `local`.
         let observed = if environment.preset == Preset::Local {
             let (status, body) = fetch(&transport, &format!("{url}/oobi")).await?;
             assert_eq!(status, 200, "{url} served no OOBI");
@@ -257,8 +201,6 @@ async fn the_schema_server_is_reachable_or_says_it_is_not() -> Result<(), Box<dy
     }
     let transport = Arc::new(HttpTransport::new()?);
 
-    // Five of the twenty-two scenarios need schemas. This is the one check that says whether those
-    // five can run at all, and it fails loudly rather than letting them fail obscurely later.
     let qvi = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
     let reachable = fetch(&transport, &format!("{}/oobi/{qvi}", environment.schema_url)).await;
     assert!(

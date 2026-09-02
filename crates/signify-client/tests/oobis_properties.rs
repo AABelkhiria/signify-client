@@ -1,14 +1,6 @@
 //! Invariants of the OOBI endpoint family.
 //!
-//! Four dynamic values reach a path here — an identifier alias, a role in a query, an AID, and a
-//! role filter in a segment — and the reference interpolates all four raw. The properties that
-//! matter are that none of them can ever reshape an address: an alias and a role filter stay in
-//! one segment whatever they hold, a role adds exactly one query parameter, and an AID is a
-//! validated prefix that carries no delimiter to escape with.
-//!
-//! The fifth untrusted value is the one that does *not* reach a path: the OOBI itself, which is a
-//! URL somebody else will fetch. What matters there is that it is preserved byte for byte and that
-//! an absent alias stays distinguishable from an empty one.
+//! Four raw-interpolated values that can never reshape an address, and an OOBI preserved byte for byte.
 
 use std::error::Error;
 
@@ -25,14 +17,12 @@ use signify_types::api::{EndRole, Oobi, Role};
 
 const GROUP_AID: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
-/// Syntactically valid Blake3-256 identifier prefixes.
 fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
     "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
         IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
     })
 }
 
-/// Text that would reshape a path or a query if it ever reached one unencoded.
 fn hostile_text() -> impl Strategy<Value = String> {
     prop_oneof![
         "[\\PC]{0,48}",
@@ -46,7 +36,6 @@ fn hostile_text() -> impl Strategy<Value = String> {
     ]
 }
 
-/// Every role this crate names, plus arbitrary unnamed ones.
 fn roles() -> impl Strategy<Value = Role> {
     prop_oneof![
         proptest::sample::select(Role::DECLARED.to_vec()),
@@ -54,7 +43,6 @@ fn roles() -> impl Strategy<Value = Role> {
     ]
 }
 
-/// URLs the reference could plausibly be handed as an OOBI.
 fn oobi_urls() -> impl Strategy<Value = RequestUrl> {
     (
         prop_oneof![Just("http"), Just("https")],
@@ -89,15 +77,11 @@ fn end_role_path(identifier: &IdentifierPrefix, role: Option<&Role>) -> Result<R
     Ok(builder.build()?)
 }
 
-/// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];
 
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
 
-    /// An alias is always exactly one path segment, whatever it holds.
-    ///
-    /// Upstream `get('a/b?c=d', …)` addresses a different identifier *and* signs a different path.
     #[test]
     fn an_alias_is_always_exactly_one_path_segment(alias in hostile_text(), role in roles()) {
         let path = publication_path(&alias, &role).map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -106,7 +90,6 @@ proptest! {
         let closing = format!("/{OOBIS_SEGMENT}");
         prop_assert!(route.starts_with(&opening));
         prop_assert!(route.ends_with(&closing));
-        // Exactly three segments after the leading `/`, however many delimiters the alias held.
         prop_assert_eq!(route.split('/').count(), 4);
         let middle = route.split('/').nth(2).unwrap_or_default();
         for delimiter in PATH_DELIMITERS {
@@ -114,9 +97,6 @@ proptest! {
         }
     }
 
-    /// A role always writes exactly one query parameter, and never changes the signed path.
-    ///
-    /// Upstream interpolates it into the query string, so a role holding `&` chooses a second.
     #[test]
     fn a_role_writes_exactly_one_query_parameter(alias in "[a-z0-9]{1,12}", role in roles()) {
         let path = publication_path(&alias, &role).map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -125,14 +105,9 @@ proptest! {
         prop_assert!(query.starts_with(&opening));
         prop_assert_eq!(query.matches('&').count(), 0);
         prop_assert_eq!(query.matches('=').count(), 1);
-        // Roadmap 3.10 strips the query, so every role signs the identical path.
         prop_assert_eq!(path.path(), format!("/{IDENTIFIERS_SEGMENT}/{alias}/{OOBIS_SEGMENT}"));
     }
 
-    /// A prefix reaches the path byte-identically to what the reference interpolates raw.
-    ///
-    /// A qualified prefix's alphabet is URL-safe Base64, so encoding it changes nothing — which is
-    /// what makes taking a validated type a refusal of hostile input rather than a divergence.
     #[test]
     fn a_prefix_reaches_the_path_unchanged(identifier in prefixes()) {
         let text = identifier.qb64().map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -142,9 +117,6 @@ proptest! {
         prop_assert_eq!(path.path().split('/').count(), 3);
     }
 
-    /// A role filter is always the third segment and never a fourth.
-    ///
-    /// Upstream `endroles(aid, '../identifiers')` addresses a resource two levels up.
     #[test]
     fn a_role_filter_never_leaves_its_segment(identifier in prefixes(), role in roles()) {
         let filtered = end_role_path(&identifier, Some(&role))
@@ -160,10 +132,6 @@ proptest! {
         }
     }
 
-    /// A resolution body always writes its URL byte for byte, and its alias exactly when it has one.
-    ///
-    /// The URL is what somebody else will fetch, so a normalized or re-encoded one would resolve a
-    /// different resource; the alias distinction is the reference's own `undefined` test.
     #[test]
     fn a_resolution_body_preserves_its_url_and_tells_an_absent_alias_from_an_empty_one(
         url in oobi_urls(),
@@ -186,7 +154,6 @@ proptest! {
             decoded.as_object().map(serde_json::Map::len),
             Some(if alias.is_some() { 2 } else { 1 })
         );
-        // The path never depends on the resolution, so every OOBI is posted to one address.
         let path = ResourcePath::builder()
             .segment(RESOLUTIONS_SEGMENT)
             .build()
@@ -194,7 +161,6 @@ proptest! {
         prop_assert_eq!(path.as_str(), "/oobis");
     }
 
-    /// An OOBI listing round-trips its role, named or not.
     #[test]
     fn an_oobi_listing_round_trips_its_role(role in roles(), urls in proptest::collection::vec("[a-z:/.]{0,32}", 0..4)) {
         let document = json!({ "role": role.as_str(), "oobis": urls }).to_string();
@@ -209,10 +175,6 @@ proptest! {
         prop_assert_eq!(again, decoded);
     }
 
-    /// An end-role record needs all three of its declared fields, and keeps them.
-    ///
-    /// Upstream casts the answer, so a record missing two of three reaches a caller as an
-    /// authorization.
     #[test]
     fn an_end_role_needs_every_declared_field(
         cid in prefixes(),
@@ -239,11 +201,6 @@ proptest! {
     }
 }
 
-/// The one call site in the pinned tree that omits the role sends the role this names.
-///
-/// Found by reading the reference rather than by a generator: `oobis().get('delegate')` in
-/// `test-integration/delegation.test.ts` is the only one of fifty-nine that takes the default, and
-/// the request it makes is indistinguishable from naming `agent` outright.
 #[test]
 fn the_default_role_produces_the_same_request_as_naming_it() -> Result<(), Box<dyn Error>> {
     let defaulted = publication_path("delegate", &DEFAULT_ROLE)?;
@@ -253,10 +210,6 @@ fn the_default_role_produces_the_same_request_as_naming_it() -> Result<(), Box<d
     Ok(())
 }
 
-/// A role holding `&` cannot introduce a second query parameter.
-///
-/// The named regression for the injection the reference has: upstream this sends
-/// `?role=agent&extra=1`.
 #[test]
 fn a_role_holding_an_ampersand_stays_one_parameter() -> Result<(), Box<dyn Error>> {
     let role = Role::Other("agent&extra=1".to_owned());
@@ -266,12 +219,6 @@ fn a_role_holding_an_ampersand_stays_one_parameter() -> Result<(), Box<dyn Error
     Ok(())
 }
 
-/// A role filter of exactly `..` stays a segment rather than climbing out of one.
-///
-/// The counterpart of Roadmap 6.5's `..` regression, and the opposite decision: an operation name
-/// of `..` is deliberately *kept* because `.` is unreserved, while here the whole component is
-/// still exactly one segment either way — `/endroles/{aid}/..` addresses a role literally named
-/// `..`, which is what the reference would address as the identifier itself.
 #[test]
 fn a_role_filter_of_two_dots_stays_one_segment() -> Result<(), Box<dyn Error>> {
     let identifier = IdentifierPrefix::from_qb64(GROUP_AID)?;
@@ -282,9 +229,6 @@ fn a_role_filter_of_two_dots_stays_one_segment() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// An OOBI holding a control byte is refused rather than sent.
-///
-/// The named regression for the reference's recorded `{"url":"http://oobiurl.com/\n\r x"}`.
 #[test]
 fn an_oobi_holding_a_control_byte_is_refused() {
     for hostile in [
@@ -302,11 +246,6 @@ fn an_oobi_holding_a_control_byte_is_refused() {
     }
 }
 
-/// An OOBI is never rewritten on its way into the body.
-///
-/// Found while writing the generator: the reference's own integration test splits a `get` answer's
-/// OOBI on `/agent/` and resolves the prefix of it, so a normalizing URL type would change which
-/// resource the agent fetches.
 #[test]
 fn an_oobi_reaches_the_body_exactly_as_supplied() -> Result<(), Box<dyn Error>> {
     for text in [

@@ -1,18 +1,6 @@
 //! Hermetic assertions over the recorded client setup.
 //!
-//! Wave 4 drove the **Client setup** row's two upstream files against a live deployment:
-//! `test-setup-single-client.test.ts` (a pinned passcode deriving a pinned controller prefix, a
-//! witnessed identifier's OOBI shapes, and the agent configuration) and
-//! `test-setup-clients.test.ts` (two clients cross-resolving each other's agent OOBIs). This file
-//! re-checks the recording from its own bytes; the pinned literals are declared here.
-//!
-//! Two findings live in this recording. The pinned passcode upstream passes is 24 characters, of
-//! which the reference silently derives from the first 21 — the port refuses to truncate, so the
-//! recording carries both spellings. And the deployment serves **six** introduction URLs where the
-//! upstream case's local branch deep-equals exactly three, so the reference's own `validate
-//! config` assertion would refuse the very deployment its suite runs against.
-//!
-//! Not ignored: it reads a checked-in recording and never touches a network.
+//! A pinned passcode's controller prefix, the OOBI shapes, and two clients meeting: six URLs, not three.
 
 use std::error::Error;
 use std::fs;
@@ -23,12 +11,8 @@ use serde_json::Value;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::preset::WITNESS_PREFIXES;
 
-/// The passcode as `test-setup-single-client.test.ts` writes it. A published test constant.
 const PINNED_PASSCODE_UPSTREAM: &str = "0ADF2TpptgqcDE5IQUF1HeTp";
-/// The controller prefix upstream pins for it.
 const PINNED_CONTROLLER_PREFIX: &str = "EB3UGWwIMq7ppzcQ697ImQIuXlBG5jzh-baSx-YG3-tY";
-/// How many introduction URLs the deployment actually serves; upstream's local branch deep-equals
-/// a three-element list, so its own assertion would refuse this deployment.
 const SERVED_INTRODUCTION_URLS: usize = 6;
 
 #[derive(Debug, Deserialize)]
@@ -100,7 +84,6 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         assert!(!transcript.is_empty(), "the {name} client kept no transcript");
     }
 
-    // The upstream postcondition, for all three clients: every operation waited out and deleted.
     assert_eq!(captured.pinned.operations_remaining, 0);
     assert_eq!(captured.cross.a_operations_remaining, 0);
     assert_eq!(captured.cross.b_operations_remaining, 0);
@@ -114,15 +97,10 @@ fn the_pinned_passcode_derives_the_pinned_controller_prefix() -> Result<(), Box<
     };
     let pinned = &captured.pinned;
 
-    // The passcode's two spellings: upstream's 24 characters, and the 21 the reference silently
-    // derives from — passed explicitly here, because the port refuses to truncate.
     assert_eq!(pinned.passcode_upstream, PINNED_PASSCODE_UPSTREAM);
     assert_eq!(pinned.passcode_used.len(), 21);
     assert!(PINNED_PASSCODE_UPSTREAM.starts_with(&pinned.passcode_used));
 
-    // The one place a live run confirms the port's controller derivation against a real agent:
-    // the derived prefix is the pinned literal, and the agent accepted a client whose requests it
-    // could verify under that controller.
     assert_eq!(pinned.derived_controller_prefix, PINNED_CONTROLLER_PREFIX);
     assert_eq!(pinned.pinned_controller_prefix, PINNED_CONTROLLER_PREFIX);
     IdentifierPrefix::from_qb64(&pinned.derived_controller_prefix)?;
@@ -135,8 +113,6 @@ fn the_oobi_urls_have_the_shape_upstream_asserts() -> Result<(), Box<dyn Error>>
         return Ok(());
     };
     if captured.preset != "local" {
-        // The URL literals below are the upstream case's `local` branch; a docker recording would
-        // assert its other branch, and no such recording exists yet.
         return Ok(());
     }
     let pinned = &captured.pinned;
@@ -149,8 +125,6 @@ fn the_oobi_urls_have_the_shape_upstream_asserts() -> Result<(), Box<dyn Error>>
         )
     );
 
-    // Exactly three witness OOBIs, each naming the demo witness the configuration claims, on the
-    // port upstream pins for it.
     assert_eq!(pinned.witness_oobis.len(), 3);
     for (index, (oobi, prefix)) in pinned.witness_oobis.iter().zip(WITNESS_PREFIXES).enumerate() {
         assert_eq!(
@@ -179,13 +153,8 @@ fn the_agent_serves_more_introductions_than_upstream_pins() -> Result<(), Box<dy
         .as_ref()
         .ok_or("the agent reported no introduction URLs at all")?;
 
-    // The finding: upstream's `validate config` deep-equals a three-element list for the local
-    // preset, and the deployment its own suite targets serves six — the running triple plus three
-    // more witnesses nothing else references. If this count changes, the finding is stale and the
-    // records citing it need updating, which is why it is asserted rather than described.
     assert_eq!(urls.len(), SERVED_INTRODUCTION_URLS);
 
-    // The stable half: the first three introductions name the running witness triple, in order.
     for (url, prefix) in urls.iter().zip(WITNESS_PREFIXES) {
         assert!(
             url.contains(&format!("/oobi/{prefix}/controller")),
@@ -202,8 +171,6 @@ fn each_client_resolved_the_others_prefix() -> Result<(), Box<dyn Error>> {
     };
     let cross = &captured.cross;
 
-    // The upstream case's two assertions: resolving the other's agent OOBI answers with the
-    // other's identifier prefix — the contact learned is the identifier published.
     assert_eq!(cross.a_resolved_b, cross.b_prefix);
     assert_eq!(cross.b_resolved_a, cross.a_prefix);
     assert_ne!(cross.a_prefix, cross.b_prefix);
@@ -218,10 +185,6 @@ fn a_live_witnessed_record_spells_its_indexes_as_numbers() -> Result<(), Box<dyn
         return Ok(());
     };
 
-    // The defect this wave found, re-read from the verbatim bytes: the reference's generated
-    // schema declares `windexes` a `string[]`, and the deployment writes numbers. This recording
-    // is what justified widening `HabCommon.witness_indexes`; if the spelling ever changes, this
-    // fails and the widening's documentation needs revisiting.
     let record = captured
         .a_transcript
         .iter()
