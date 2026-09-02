@@ -1,6 +1,11 @@
 //! Wave 1 — what `Content-Range` does a real KERIA actually send?
 //!
 //! Asks both listing endpoints for empty, partial, complete, and past-the-end pages.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave1_content_range -- --ignored --test-threads=1
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]

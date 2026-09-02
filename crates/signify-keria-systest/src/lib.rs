@@ -41,6 +41,12 @@
 //! Add `SIGNIFY_RECORD=1` to write what the run observed back into
 //! `fixtures/keria-integration/`, which is what makes a run evidence rather than a green tick.
 //!
+//! The credential and IPEX scenarios additionally need a schema source — any host answering
+//! `/oobi/{said}`, named by `SIGNIFY_KERIA_SCHEMA_URL`. The preset defaults to the vLEI container
+//! the reference's compose file uses; `SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001` points at a
+//! Veridian credential server instead. Which schemas a source serves decides which scenarios can
+//! run, and `fixtures/keria-integration/README.md` carries that table.
+//!
 //! `--test-threads=1` is not decoration. The reference runs its own suite with
 //! `fileParallelism: false` and `bail: 1` because scenarios share one agent's contacts and
 //! notifications; a recording that raced is not evidence, and the manifest records the policy.
@@ -48,10 +54,25 @@
 pub mod preset;
 pub mod recorder;
 
+/// Operation and notification plumbing. Live-only: it reaches a deployment.
+#[cfg(feature = "live")]
+pub mod operation;
+
+/// The credential lifecycle driven by one identifier.
+#[cfg(feature = "live")]
+pub mod singlesig;
+
+/// The same lifecycle driven by a multisig group, one propose/accept round per step.
+#[cfg(feature = "live")]
+pub mod group;
+
 use std::error::Error;
 
 pub use preset::{Environment, Preset};
 pub use recorder::{Observation, Recorder};
+
+#[cfg(feature = "live")]
+pub use operation::{agent_oobi, await_notification, resolve_oobi, resolve_schema, wait_and_delete, witness_prefixes};
 
 /// Environment variable that turns a run into a recording run.
 pub const RECORD_VARIABLE: &str = "SIGNIFY_RECORD";

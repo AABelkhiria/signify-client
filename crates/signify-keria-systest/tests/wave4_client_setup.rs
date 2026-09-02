@@ -1,6 +1,11 @@
 //! Wave 4 — client setup, single and multiple: the §7 row's remaining halves.
 //!
 //! Drives both setup files: a pinned passcode, a witnessed identifier's OOBIs, and two clients meeting.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave4_client_setup -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -16,7 +21,7 @@ use signify_http::retry::TokioClock;
 use signify_http::transport::{HttpTransport, RequestUrl, Transport};
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
-use signify_keria_systest::{Environment, Recorder, progress, record};
+use signify_keria_systest::{Environment, Recorder, progress, record, wait_and_delete};
 use signify_types::api::Role;
 
 const PINNED_PASSCODE_UPSTREAM: &str = "0ADF2TpptgqcDE5IQUF1HeTp";
@@ -79,13 +84,6 @@ async fn connect_or_boot(
 
 fn recorder(scenario: &str) -> Result<Arc<Recorder>, Box<dyn Error>> {
     Ok(Recorder::new(scenario, Arc::new(HttpTransport::new()?)))
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<(), Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    client.operations().delete(completed.name()).await?;
-    Ok(())
 }
 
 async fn witnessed_identifier(

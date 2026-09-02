@@ -1,6 +1,11 @@
 //! Wave 2 — which shape does an agent answer an exchange submission with?
 //!
 //! Posts one exchange to each submission path and runs both decoders over both answers.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave2_exchange_answer -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]

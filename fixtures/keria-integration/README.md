@@ -167,9 +167,34 @@ sequence-number base, and the exchange answer's two declared types. A question t
 is not must not — the audit checks the two agree, because an answered row that kept the reason it
 was pending for reads as though the observation never happened.
 
-Seventeen of the twenty-two scenarios are runnable against a KERIA today; five need the vLEI schema
-server, which is one container: `docker run -p 7723:7723 gleif/vlei:1.0.3 vLEI-server -s
-/vLEI/schema -c /vLEI/credentials -o /vLEI/oobis`.
+Seventeen of the twenty-two scenarios are runnable against a KERIA today; five need a schema source.
+
+## The schema source
+
+Any host that serves `/oobi/{said}` will do — KERIA resolves a schema by fetching that path, and
+nothing about the rest of the server matters. `SIGNIFY_KERIA_SCHEMA_URL` names it; the preset's
+default is the vLEI container the reference's own compose file uses:
+
+```bash
+docker run -p 7723:7723 gleif/vlei:1.0.3 vLEI-server -s /vLEI/schema -c /vLEI/credentials -o /vLEI/oobis
+```
+
+A deployment may serve them from elsewhere. The Veridian credential server does, on port 3001, by
+static-serving its `src/schemas/` directory under `/oobi` — so
+`SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001` is enough, with no other change.
+
+**Which schemas a source serves decides which scenarios can run.** The SAID of an ACDC schema is a
+digest of the schema itself, so two sources serving the same SAID serve byte-identical schemas:
+
+| scenario | schemas | vLEI server | Veridian server |
+|---|---|---|---|
+| Credential/IPEX flows | QVI, LE | yes | yes |
+| Multisig holder flow | QVI | yes | yes |
+| Multisig vLEI issuance | + ECR | yes | **no** |
+| Single-signature vLEI issuance | + ECR, ECR_AUTH, OOR, OOR_AUTH | yes | **no** |
+
+The two issuance rows therefore keep `vlei_unavailable` against a Veridian source and would need
+those four schemas added to it. The other two are blocked only on a recording run.
 
 ## Determinism
 

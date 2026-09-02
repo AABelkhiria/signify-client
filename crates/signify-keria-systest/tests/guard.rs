@@ -105,3 +105,21 @@ fn the_crate_documents_how_to_run_its_tests() -> Result<(), Box<dyn Error>> {
     );
     Ok(())
 }
+
+#[test]
+fn every_scenario_says_how_to_run_itself() -> Result<(), Box<dyn Error>> {
+    // A scenario is run one file at a time, so the crate-level invocation is not enough: a reader
+    // opening one needs the `--test` target that runs *it*. These were lost once to a comment
+    // sweep and restored, which is why the convention is checked rather than remembered.
+    let mut wrong = Vec::new();
+    for (name, source) in scenario_sources()? {
+        let stem = name.strip_suffix(".rs").unwrap_or(&name);
+        if !source.contains("```text") {
+            wrong.push(format!("{name} does not say how to run itself"));
+        } else if !source.contains(&format!("--test {stem}")) {
+            wrong.push(format!("{name} names a --test target that is not its own"));
+        }
+    }
+    assert!(wrong.is_empty(), "{wrong:#?}");
+    Ok(())
+}

@@ -1,6 +1,11 @@
 //! Wave 12 — end roles by AID: a third party reading a group's authorisations.
 //!
 //! Incepts a two-member group, runs the end-role round, and has a third party read it back.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave12_endroles_by_aid -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -9,23 +14,22 @@ use std::error::Error;
 use std::time::Duration;
 
 use serde::Serialize;
-use serde_json::Value;
 use signify_cesr::sequence::SequenceNumber;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::exchanges::ExchangeDraft;
-use signify_client::endpoint::oobis::OobiResolution;
 use signify_client::multisig::GroupInceptionRequest;
 use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_http::request::ItemRange;
-use signify_http::transport::RequestUrl;
 use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::exchange::ExchangeEmbed;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::ManagedSignatures;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::threshold::SigningThreshold;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::singlesig::create_identifier;
+use signify_keria_systest::{
+    Environment, agent_oobi, connect, progress, record, recorder, resolve_oobi, wait_and_delete, witness_prefixes,
+};
 use signify_types::api::{Notification, Role};
 
 const GROUP_NAME: &str = "endroles-byaid-group";
@@ -56,72 +60,6 @@ struct Captured {
     member2_operations_remaining: usize,
     alice_operations_remaining: usize,
     alice_transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    if let Some(depends) = metadata
-        .as_ref()
-        .and_then(|metadata| metadata.get("depends"))
-        .and_then(|depends| depends.get("name"))
-        .and_then(Value::as_str)
-    {
-        client.operations().delete(depends).await?;
-    }
-    Ok(response)
-}
-
-async fn witnessed_identifier(
-    client: &ConnectedClient,
-    alias: &str,
-    environment: &Environment,
-) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    let mut request = CreateIdentifierRequest::new(CreateAlgorithm::salty(None));
-    request.witnesses = environment
-        .witness_prefixes
-        .iter()
-        .map(|prefix| IdentifierPrefix::from_qb64(prefix))
-        .collect::<Result<Vec<_>, _>>()?;
-    request.witness_threshold = u32::try_from(environment.witness_prefixes.len())?;
-    progress(&format!("{alias}: creating with the witness triple"));
-    let created = client.identifiers().create(alias, &request).await?;
-    wait_and_delete(client, &created.operation()?.name).await?;
-    let prefix = created.artifact().event.identifier().clone();
-
-    let agent = client.agent().prefix().clone();
-    let authorised = client
-        .identifiers()
-        .add_end_role(alias, &Role::Agent, Some(&agent), signify_keria_systest::now()?)
-        .await?;
-    wait_and_delete(client, &authorised.operation()?.name).await?;
-    Ok(prefix)
-}
-
-async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<(), Box<dyn Error>> {
-    progress(&format!("resolving {alias}'s OOBI"));
-    let resolution = OobiResolution {
-        url: RequestUrl::new(url.to_owned())?,
-        alias: Some(alias.to_owned()),
-    };
-    let submitted = client.oobis().resolve(&resolution).await?;
-    let completed = client.poller().wait(submitted).await?;
-    let name = completed.name().to_owned();
-    client.operations().delete(&name).await?;
-    Ok(())
-}
-
-async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box<dyn Error>> {
-    client
-        .oobis()
-        .get(alias, &Role::Agent)
-        .await?
-        .oobis
-        .first()
-        .cloned()
-        .ok_or_else(|| format!("{alias} publishes no OOBI").into())
 }
 
 async fn await_notifications(
@@ -297,11 +235,11 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
     let transcripts = [recorder("member1")?, recorder("member2")?, recorder("alice")?];
     let (member1, member2, alice) = Box::pin(three_clients(&environment, &transcripts)).await?;
 
-    let aid1 = witnessed_identifier(&member1, "member1", &environment).await?;
-    let aid2 = witnessed_identifier(&member2, "member2", &environment).await?;
-    let alice_prefix = witnessed_identifier(&alice, "alice", &environment).await?;
-    resolve_url(&member1, &agent_oobi(&member2, "member2").await?, "member2").await?;
-    resolve_url(&member2, &agent_oobi(&member1, "member1").await?, "member1").await?;
+    let aid1 = create_identifier(&member1, "member1", &witness_prefixes(&environment)?).await?;
+    let aid2 = create_identifier(&member2, "member2", &witness_prefixes(&environment)?).await?;
+    let alice_prefix = create_identifier(&alice, "alice", &witness_prefixes(&environment)?).await?;
+    resolve_oobi(&member1, &agent_oobi(&member2, "member2").await?, "member2").await?;
+    resolve_oobi(&member2, &agent_oobi(&member1, "member1").await?, "member1").await?;
 
     let group = incept_group(&member1, &member2, &aid1, &aid2, &environment).await?;
     progress(&format!("group incepted as {}", group.qb64()?));
@@ -335,7 +273,7 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
         .next()
         .map(ToOwned::to_owned)
         .ok_or("the group OOBI has no /agent/ segment")?;
-    resolve_url(&alice, &truncated, GROUP_NAME).await?;
+    resolve_oobi(&alice, &truncated, GROUP_NAME).await?;
 
     let all_roles = roles(&alice, &group, None).await?;
     let agent_roles = roles(&alice, &group, Some(&Role::Agent)).await?;

@@ -1,6 +1,11 @@
 //! Wave 5 — endpoint smoke coverage: end roles and a self-controlled mailbox.
 //!
 //! Grants the agent role, grants a mailbox to itself, and reads back the OOBI the agent derives.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave5_endpoint_smoke -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -12,7 +17,7 @@ use signify_client::client::ConnectedClient;
 use signify_client::endpoint::identifiers::LocationSchemeRequest;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 use signify_types::api::Role;
 
 const MAILBOX_URL: &str = "https://mymailbox.com";
@@ -36,13 +41,6 @@ struct Captured {
     mailbox_oobi: String,
     operations_remaining: usize,
     transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<(), Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    client.operations().delete(completed.name()).await?;
-    Ok(())
 }
 
 async fn roles(

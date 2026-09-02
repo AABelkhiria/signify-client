@@ -1,6 +1,11 @@
 //! Wave 1 — which base does a KERIA agent read a query's sequence number in?
 //!
 //! Builds an eleven-event log with a second client and asks for event ten in both bases.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave1_sequence_base -- --ignored --test-threads=1
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]

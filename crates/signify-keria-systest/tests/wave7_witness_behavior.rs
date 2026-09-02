@@ -1,6 +1,11 @@
 //! Wave 7 — witness behavior: incept witnessed, rotate, cut the witness, add it back.
 //!
 //! Incepts witnessed, rotates, cuts the witness, and adds it back: four receipted establishments.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave7_witness_behavior -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -8,14 +13,13 @@
 use std::error::Error;
 
 use serde::Serialize;
-use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::preset::WITNESS_PREFIXES;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 
 #[derive(Debug, Serialize)]
 struct Step {
@@ -37,14 +41,6 @@ struct Captured {
     steps: Vec<Step>,
     operations_remaining: usize,
     transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, _metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    Ok(response)
 }
 
 async fn state_triple(client: &ConnectedClient, alias: &str) -> Result<(Vec<String>, String, String), Box<dyn Error>> {

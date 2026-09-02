@@ -1,6 +1,11 @@
 //! Wave 9 — single-signature delegation: an inception that exists only once it is anchored.
 //!
 //! Creates a delegated identifier, proves it pending, then anchors its seal at the delegation address.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave9_delegation -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -12,12 +17,10 @@ use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::delegations::InceptionSeal;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
-use signify_client::endpoint::oobis::OobiResolution;
-use signify_http::transport::RequestUrl;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{Environment, connect, progress, record, recorder, resolve_oobi, wait_and_delete};
 use signify_types::api::Role;
 
 #[derive(Debug, Serialize)]
@@ -40,22 +43,6 @@ struct Captured {
     delegate_operations_remaining: usize,
     delegator_transcript: Vec<signify_keria_systest::Observation>,
     delegate_transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    if let Some(depends) = metadata
-        .as_ref()
-        .and_then(|metadata| metadata.get("depends"))
-        .and_then(|depends| depends.get("name"))
-        .and_then(Value::as_str)
-    {
-        client.operations().delete(depends).await?;
-    }
-    Ok(response)
 }
 
 async fn witnessed_delegator(
@@ -84,20 +71,6 @@ async fn witnessed_delegator(
     Ok(prefix)
 }
 
-async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<String, Box<dyn Error>> {
-    progress(&format!("resolving {alias}'s OOBI"));
-    let resolution = OobiResolution {
-        url: RequestUrl::new(url.to_owned())?,
-        alias: Some(alias.to_owned()),
-    };
-    let resolved = client.oobis().resolve(&resolution).await?;
-    let completed = client.poller().wait(resolved).await?;
-    let name = completed.name().to_owned();
-    let state = completed.into_response();
-    client.operations().delete(&name).await?;
-    Ok(state.identifier)
-}
-
 async fn introduced_delegator(
     delegator_client: &ConnectedClient,
     delegate_client: &ConnectedClient,
@@ -111,7 +84,7 @@ async fn introduced_delegator(
         .first()
         .cloned()
         .ok_or("the delegator publishes no OOBI")?;
-    let learned = resolve_url(delegate_client, &delegator_oobi, "delegator").await?;
+    let learned = resolve_oobi(delegate_client, &delegator_oobi, "delegator").await?;
     if learned != delegator_prefix.qb64()? {
         mismatches.push("the delegate learned a different delegator prefix".to_owned());
     }
@@ -154,7 +127,7 @@ async fn truncated_contact_tail(
         .next()
         .map(ToOwned::to_owned)
         .ok_or("the agent OOBI has no /agent/ segment")?;
-    let contact_resolved = resolve_url(delegator_client, &truncated_oobi, "delegate").await?;
+    let contact_resolved = resolve_oobi(delegator_client, &truncated_oobi, "delegate").await?;
     Ok((truncated_oobi, contact_resolved))
 }
 

@@ -1,6 +1,11 @@
 //! Wave 8 — single-signature rotation and interaction: the local/remote key-state divergence.
 //!
 //! Advances a witnessed log by one event and watches a second client's observer catch up.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave8_singlesig_events -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -12,10 +17,13 @@ use signify_client::client::ConnectedClient;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
+use signify_keri::identifier::RotateIdentifierRequest;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::Sad;
-use signify_keria_systest::{Environment, Recorder, connect, progress, record, recorder};
+use signify_keria_systest::singlesig::create_identifier;
+use signify_keria_systest::{
+    Environment, Recorder, connect, progress, record, recorder, wait_and_delete, witness_prefixes,
+};
 use signify_types::api::Role;
 
 #[derive(Debug, Serialize)]
@@ -44,41 +52,6 @@ struct Captured {
     observer_operations_remaining: usize,
     owner_transcript: Vec<signify_keria_systest::Observation>,
     observer_transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<serde_json::Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, _metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    Ok(response)
-}
-
-async fn witnessed_identifier(
-    client: &ConnectedClient,
-    alias: &str,
-    environment: &Environment,
-) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    let mut request = CreateIdentifierRequest::new(CreateAlgorithm::salty(None));
-    request.witnesses = environment
-        .witness_prefixes
-        .iter()
-        .map(|prefix| IdentifierPrefix::from_qb64(prefix))
-        .collect::<Result<Vec<_>, _>>()?;
-    request.witness_threshold = u32::try_from(environment.witness_prefixes.len())?;
-    progress(&format!("{alias}: creating with the witness triple"));
-    let created = client.identifiers().create(alias, &request).await?;
-    wait_and_delete(client, &created.operation()?.name).await?;
-    let prefix = created.artifact().event.identifier().clone();
-
-    progress(&format!("{alias}: authorising the agent end role"));
-    let agent = client.agent().prefix().clone();
-    let authorised = client
-        .identifiers()
-        .add_end_role(alias, &Role::Agent, Some(&agent), signify_keria_systest::now()?)
-        .await?;
-    wait_and_delete(client, &authorised.operation()?.name).await?;
-    Ok(prefix)
 }
 
 async fn resolve_contact(
@@ -146,7 +119,7 @@ async fn run_twin(advance: Advance) -> Result<(Captured, Vec<String>), Box<dyn E
     )
     .await?;
 
-    let prefix = witnessed_identifier(&owner, "name1", &environment).await?;
+    let prefix = create_identifier(&owner, "name1", &witness_prefixes(&environment)?).await?;
     let contact_resolved = resolve_contact(&owner, "name1", &observer).await?;
 
     let mut mismatches = Vec::new();

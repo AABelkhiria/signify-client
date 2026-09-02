@@ -403,8 +403,8 @@
       "rust_evidence": [],
       "status": "unobserved",
       "outcome": null,
-      "reason": "vlei_unavailable",
-      "note": "The most complete IPEX matrix: registry, issue, grant/admit, the apply-offer-agree-grant-admit presentation, a chained credential, revoke, and delete."
+      "reason": "not_yet_recorded",
+      "note": "The most complete IPEX matrix: registry, issue, grant/admit, the apply-offer-agree-grant-admit presentation, a chained credential, revoke, and delete. The scenario now exists as `wave15_credential_ipex`, and its two schemas (QVI and LE) are served by the deployment's schema source, so this row is no longer blocked on infrastructure — only on a recording run."
     },
     {
       "row": "Multisig holder flow",
@@ -424,8 +424,8 @@
       "rust_evidence": [],
       "status": "unobserved",
       "outcome": null,
-      "reason": "vlei_unavailable",
-      "note": "A group acting as credential holder, admitting a grant from a single-signature issuer over `/multisig/exn`."
+      "reason": "not_yet_recorded",
+      "note": "A group acting as credential holder, admitting a grant from a single-signature issuer over `/multisig/exn`. The scenario now exists as `wave16_multisig_credentials`, and the QVI schema it needs is served, so this row is no longer blocked on infrastructure — only on a recording run."
     },
     {
       "row": "Challenge and response",

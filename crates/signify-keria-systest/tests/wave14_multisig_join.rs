@@ -1,12 +1,16 @@
 //! Wave 14 — multisig join: a third member enters a group by rotation.
 //!
 //! A third member joins by rebuilding the rotation he was shown and comparing SAIDs before signing.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave14_multisig_join -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
 
 use std::error::Error;
-use std::time::Duration;
 
 use serde::Serialize;
 use serde_json::Value;
@@ -15,10 +19,7 @@ use signify_client::client::ConnectedClient;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, ExchangeDraft, MultisigRoute};
 use signify_client::endpoint::groups::GroupJoin;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
-use signify_client::endpoint::oobis::OobiResolution;
 use signify_client::multisig::{GroupInceptionRequest, GroupRotationRequest};
-use signify_http::request::ItemRange;
-use signify_http::transport::RequestUrl;
 use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::exchange::ExchangeEmbed;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest, rotate_identifier};
@@ -26,7 +27,9 @@ use signify_keri::manager::{KeeperRequest, ManagedSignatures};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::threshold::SigningThreshold;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{
+    Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,
+};
 use signify_types::api::{KeyState, Role};
 
 const GROUP_NAME: &str = "multisigGroup";
@@ -47,22 +50,6 @@ struct Captured {
     member3_transcript: Vec<signify_keria_systest::Observation>,
 }
 
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    if let Some(depends) = metadata
-        .as_ref()
-        .and_then(|metadata| metadata.get("depends"))
-        .and_then(|depends| depends.get("name"))
-        .and_then(Value::as_str)
-    {
-        client.operations().delete(depends).await?;
-    }
-    Ok(response)
-}
-
 async fn plain_identifier(client: &ConnectedClient, alias: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
     progress(&format!("{alias}: creating without witnesses"));
     let created = client
@@ -79,54 +66,6 @@ async fn plain_identifier(client: &ConnectedClient, alias: &str) -> Result<Ident
         .await?;
     wait_and_delete(client, &authorised.operation()?.name).await?;
     Ok(prefix)
-}
-
-async fn resolve_url(client: &ConnectedClient, url: &str, alias: &str) -> Result<(), Box<dyn Error>> {
-    let resolution = OobiResolution {
-        url: RequestUrl::new(url.to_owned())?,
-        alias: Some(alias.to_owned()),
-    };
-    let submitted = client.oobis().resolve(&resolution).await?;
-    let completed = client.poller().wait(submitted).await?;
-    let name = completed.name().to_owned();
-    client.operations().delete(&name).await?;
-    Ok(())
-}
-
-async fn agent_oobi(client: &ConnectedClient, alias: &str) -> Result<String, Box<dyn Error>> {
-    client
-        .oobis()
-        .get(alias, &Role::Agent)
-        .await?
-        .oobis
-        .first()
-        .cloned()
-        .ok_or_else(|| format!("{alias} publishes no OOBI").into())
-}
-
-async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Said, Box<dyn Error>> {
-    progress(&format!("waiting for a notification on {route}"));
-    for _ in 0..60 {
-        let listing = client.notifications().list(ItemRange::DEFAULT).await?;
-        let matching: Vec<_> = listing
-            .unread()
-            .filter(|notification| notification.attributes.route.as_deref() == Some(route))
-            .cloned()
-            .collect();
-        if let Some(last) = matching.last() {
-            let said = last
-                .attributes
-                .digest
-                .clone()
-                .ok_or("the notification names no message")?;
-            for notification in &matching {
-                client.notifications().mark(&notification.id).await?;
-            }
-            return Ok(Said::from_qb64(&said)?);
-        }
-        tokio::time::sleep(Duration::from_millis(500)).await;
-    }
-    Err(format!("no notification on {route} arrived in time").into())
 }
 
 async fn query_state(
@@ -372,17 +311,17 @@ async fn introduce_member3(
 ) -> Result<IdentifierPrefix, Box<dyn Error>> {
     let aid3 = plain_identifier(member3, "member3").await?;
     let oobi3 = agent_oobi(member3, "member3").await?;
-    resolve_url(member1, &oobi3, "member3").await?;
-    resolve_url(member2, &oobi3, "member3").await?;
-    resolve_url(member3, &agent_oobi(member1, "member1").await?, "member1").await?;
-    resolve_url(member3, &agent_oobi(member2, "member2").await?, "member2").await?;
+    resolve_oobi(member1, &oobi3, "member3").await?;
+    resolve_oobi(member2, &oobi3, "member3").await?;
+    resolve_oobi(member3, &agent_oobi(member1, "member1").await?, "member1").await?;
+    resolve_oobi(member3, &agent_oobi(member2, "member2").await?, "member2").await?;
     let group_oobi = agent_oobi(member1, GROUP_NAME).await?;
     let truncated = group_oobi
         .split("/agent/")
         .next()
         .map(ToOwned::to_owned)
         .ok_or("the group OOBI has no /agent/ segment")?;
-    resolve_url(member3, &truncated, GROUP_NAME).await?;
+    resolve_oobi(member3, &truncated, GROUP_NAME).await?;
     Ok(aid3)
 }
 
@@ -425,8 +364,8 @@ async fn a_third_member_joins_a_group_by_rotation() -> Result<(), Box<dyn Error>
 
     let aid1 = plain_identifier(&member1, "member1").await?;
     let aid2 = plain_identifier(&member2, "member2").await?;
-    resolve_url(&member1, &agent_oobi(&member2, "member2").await?, "member2").await?;
-    resolve_url(&member2, &agent_oobi(&member1, "member1").await?, "member1").await?;
+    resolve_oobi(&member1, &agent_oobi(&member2, "member2").await?, "member2").await?;
+    resolve_oobi(&member2, &agent_oobi(&member1, "member1").await?, "member1").await?;
     let group = incept_group(&member1, &member2, &aid1, &aid2).await?;
     progress(&format!("group incepted as {}", group.qb64()?));
 

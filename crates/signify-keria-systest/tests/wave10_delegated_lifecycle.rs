@@ -1,6 +1,11 @@
 //! Wave 10 — the delegated lifecycle: two inceptions, a rotation, and both refresh modes.
 //!
 //! Two delegated inceptions and a delegated rotation, seen through both refresh modes.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave10_delegated_lifecycle -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -16,7 +21,7 @@ use signify_http::transport::RequestUrl;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 use signify_types::api::{Role, Seal};
 
 #[derive(Debug, Serialize)]
@@ -44,22 +49,6 @@ struct Captured {
     delegate_operations_remaining: usize,
     delegator_transcript: Vec<signify_keria_systest::Observation>,
     delegate_transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    if let Some(depends) = metadata
-        .as_ref()
-        .and_then(|metadata| metadata.get("depends"))
-        .and_then(|depends| depends.get("name"))
-        .and_then(Value::as_str)
-    {
-        client.operations().delete(depends).await?;
-    }
-    Ok(response)
 }
 
 async fn introduced_delegator(

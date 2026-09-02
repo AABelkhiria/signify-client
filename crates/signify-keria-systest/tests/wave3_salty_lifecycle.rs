@@ -1,6 +1,11 @@
 //! Wave 3 — the salty identifier lifecycle, driven whole against a live deployment.
 //!
 //! Drives `salty.test.ts` whole: three creations, the listing ladder, a rotation, an interaction, a rename.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave3_salty_lifecycle -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -17,7 +22,7 @@ use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateI
 use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::{Sad, SadValue};
 use signify_keri::threshold::SigningThreshold;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 use signify_types::api::KeyManagerState;
 
 const AID1_PASSCODE: &str = "0123456789abcdefghijk";
@@ -102,14 +107,6 @@ fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {
         .and_then(Value::as_str)
         .map(ToOwned::to_owned)
         .ok_or_else(|| format!("the document carries no text field {label}").into())
-}
-
-async fn wait_and_delete(client: &ConnectedClient, submission_name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(submission_name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, _metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    Ok(response)
 }
 
 async fn create_identifier(

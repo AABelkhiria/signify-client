@@ -1,6 +1,11 @@
 //! Wave 0 — what deployment is this, exactly?
 //!
 //! Records the deployment's identity, its witnesses, and its schema source before any identifier exists.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave0_deployment -- --ignored --test-threads=1
+//! ```
 
 #![cfg(feature = "live")]
 
@@ -205,8 +210,9 @@ async fn the_schema_server_is_reachable_or_says_it_is_not() -> Result<(), Box<dy
     let reachable = fetch(&transport, &format!("{}/oobi/{qvi}", environment.schema_url)).await;
     assert!(
         reachable.is_ok(),
-        "the vLEI schema server at {} is unreachable, so the five credential scenarios cannot run. \
-         Start it with: docker run -p 7723:7723 gleif/vlei:1.0.3 vLEI-server -s /vLEI/schema \
+        "the schema source at {} serves no QVI schema, so the credential scenarios cannot run. Any \
+         host that answers /oobi/{{said}} will do, named by SIGNIFY_KERIA_SCHEMA_URL. The \
+         reference's own is: docker run -p 7723:7723 gleif/vlei:1.0.3 vLEI-server -s /vLEI/schema \
          -c /vLEI/credentials -o /vLEI/oobis",
         environment.schema_url
     );

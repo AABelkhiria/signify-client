@@ -1,6 +1,11 @@
 //! Wave 6 — the randy identifier lifecycle: fresh-entropy keys against a live agent.
 //!
 //! Incepts, anchors, and rotates a fresh-entropy identifier so the key commitment can be recomputed.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave6_randy_lifecycle -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -14,7 +19,7 @@ use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_http::request::ItemRange;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::serialization::{Sad, SadValue};
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 
 #[derive(Debug, Serialize)]
 struct EventCapture {
@@ -43,14 +48,6 @@ struct Captured {
     log_lengths: Vec<usize>,
     operations_remaining: usize,
     transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, _metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    Ok(response)
 }
 
 fn text_field(document: &Value, label: &str) -> Result<String, Box<dyn Error>> {

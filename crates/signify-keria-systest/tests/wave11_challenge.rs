@@ -1,6 +1,11 @@
 //! Wave 11 — challenge and response: proving control of an identifier out of band.
 //!
 //! Generates words, signs them as an exchange, verifies them, and marks the contact authenticated.
+//!
+//! ```text
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 cargo test -p signify-keria-systest \
+//!     --features live --test wave11_challenge -- --ignored --test-threads=1 --nocapture
+//! ```
 
 // The //! header must stay above this cfg: a false cfg strips it and trips missing_docs.
 #![cfg(feature = "live")]
@@ -8,15 +13,13 @@
 use std::error::Error;
 
 use serde::Serialize;
-use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::challenges::ChallengeStrength;
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
-use signify_keria_systest::{Environment, connect, progress, record, recorder};
+use signify_keria_systest::singlesig::create_identifier;
+use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete, witness_prefixes};
 use signify_types::api::Role;
 
 #[derive(Debug, Serialize)]
@@ -39,48 +42,6 @@ struct Captured {
     bob_operations_remaining: usize,
     alice_transcript: Vec<signify_keria_systest::Observation>,
     bob_transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Value, Box<dyn Error>> {
-    let operation = client.operations().get(name).await?;
-    let completed = client.poller().wait(operation).await?;
-    let (name, metadata, response) = completed.into_parts();
-    client.operations().delete(&name).await?;
-    if let Some(depends) = metadata
-        .as_ref()
-        .and_then(|metadata| metadata.get("depends"))
-        .and_then(|depends| depends.get("name"))
-        .and_then(Value::as_str)
-    {
-        client.operations().delete(depends).await?;
-    }
-    Ok(response)
-}
-
-async fn witnessed_identifier(
-    client: &ConnectedClient,
-    alias: &str,
-    environment: &Environment,
-) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    let mut request = CreateIdentifierRequest::new(CreateAlgorithm::salty(None));
-    request.witnesses = environment
-        .witness_prefixes
-        .iter()
-        .map(|prefix| IdentifierPrefix::from_qb64(prefix))
-        .collect::<Result<Vec<_>, _>>()?;
-    request.witness_threshold = u32::try_from(environment.witness_prefixes.len())?;
-    progress(&format!("{alias}: creating with the witness triple"));
-    let created = client.identifiers().create(alias, &request).await?;
-    wait_and_delete(client, &created.operation()?.name).await?;
-    let prefix = created.artifact().event.identifier().clone();
-
-    let agent = client.agent().prefix().clone();
-    let authorised = client
-        .identifiers()
-        .add_end_role(alias, &Role::Agent, Some(&agent), signify_keria_systest::now()?)
-        .await?;
-    wait_and_delete(client, &authorised.operation()?.name).await?;
-    Ok(prefix)
 }
 
 async fn introduce(
@@ -148,8 +109,8 @@ async fn a_challenge_is_answered_verified_and_recorded_on_the_contact() -> Resul
         .words
         .len();
 
-    let alice_prefix = witnessed_identifier(&alice, "alice", &environment).await?;
-    let bob_prefix = witnessed_identifier(&bob, "bob", &environment).await?;
+    let alice_prefix = create_identifier(&alice, "alice", &witness_prefixes(&environment)?).await?;
+    let bob_prefix = create_identifier(&bob, "bob", &witness_prefixes(&environment)?).await?;
     introduce(&bob, "bob", &alice, "bob").await?;
     introduce(&alice, "alice", &bob, "alice").await?;
     let challenges_before = bob_contact(&alice).await?.challenges.as_ref().map(Vec::len);
