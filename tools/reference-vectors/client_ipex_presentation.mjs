@@ -101,6 +101,24 @@ const holder = parse("test-integration/multisig-holder.test.ts");
 const credentials = parse("test-integration/credentials.test.ts");
 const testUtil = parse("test-integration/utils/test-util.ts");
 const credentialing = parse("src/keri/app/credentialing.ts");
+const exchanging = parse("src/keri/app/exchanging.ts");
+const multisigTest = parse("test-integration/multisig.test.ts");
+
+/** The whole text of one type alias, whitespace collapsed. */
+function typeText(source, name) {
+  let found = null;
+  const visit = (node) => {
+    if (found === null && ts.isTypeAliasDeclaration(node) && node.name.getText() === name) {
+      found = node.getText().replace(/\s+/g, " ");
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  if (found === null) {
+    throw new Error(`no type alias named ${name}`);
+  }
+  return found;
+}
 
 /** The whole text of one function declaration, wherever it is declared. */
 function functionText(source, name) {
@@ -1060,6 +1078,16 @@ const quirks = {
     rust_decision:
       "Roadmap 6.11 refused that branch: a `Disclosure` carries its own three attachments, derived from the issuance artifacts or read off the credential. `presentation::disclosure_of` assembles them from a credential in hand, and re-serializes each of the three events to check its bytes still reproduce the SAID that names it.",
   },
+  an_announcement_names_only_the_group: {
+    declaration: typeText(exchanging.source, "MultisigExnExchange"),
+    announcement_attributes: Object.keys(announcement.exn.a),
+    helpers_take_recipients_from_caller: ["grantMultisig", "admitMultisig"],
+    recipients_source: functionText(multisigTest.source, "multisigIssue").match(/const recipients = [^;]+;/)?.[0] ?? null,
+    members_endpoint_uses: scan("client.identifiers().members("),
+    note: "a `/multisig/exn` proposal carries `{ gid }` and nothing else — `MultisigExnExchange` declares no `smids` — and both group IPEX helpers take the peers as an argument, so a joining member is told who to answer by its caller rather than by the message. Where the reference's own tests derive the members themselves (`multisigIssue`, `multisigRevoke`) they ask the agent's members endpoint for `signing[].aid`; the group record's `keys` are the members' signing keys and never stand in for them.",
+    rust_decision:
+      "the IPEX rounds announce `smids` and `rmids` exactly as the six event rounds do, so a joining member reads its peers from the proposal it was shown; a proposal that names nobody — the reference's — is answered by `identifiers().members(group)`, never by the record's keys. The classifier accepts both shapes on `/multisig/exn`. PORTING.md §10.",
+  },
 };
 
 const pinnedConfirmations = {
@@ -1097,7 +1125,7 @@ const fixture = {
   schema_version: 1,
   upstream: "https://github.com/WebOfTrust/signify-ts.git",
   reference_sha: referenceSha,
-  generated_on: "2026-08-27",
+  generated_on: "2026-09-16",
   sources: [
     "test-integration/credentials.test.ts",
     "test-integration/multisig-holder.test.ts",
@@ -1105,6 +1133,8 @@ const fixture = {
     "test-integration/utils/test-util.ts",
     "src/keri/app/credentialing.ts",
     "test/app/test-utils.ts",
+    "src/keri/app/exchanging.ts",
+    "test-integration/multisig.test.ts",
   ],
   provenance: {
     bran: BRAN,

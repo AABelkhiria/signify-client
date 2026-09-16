@@ -61,6 +61,13 @@
 //! is built under the group's alias and announced under the member's, and the announcement carries
 //! it whole in [`EXCHANGE_SLOT`] with the group's establishment seal over the member's signature.
 //!
+//! The announcement also names the members in `smids` and `rmids`, as every event round's does.
+//! The reference's `grantMultisig` and `admitMultisig` write `{ gid }` alone and hand the peers to
+//! the helper as an argument; a joining member here has no such argument, and the group's record
+//! cannot supply one — its `keys` are signing keys, not identifiers. So the members travel in the
+//! proposal, and a proposal that names none (the reference's) is answered by asking the agent for
+//! its listing of them, exactly as `multisigIssue` and `multisigRevoke` do. `PORTING.md` §10.
+//!
 //! An IPEX message's SAID covers **its timestamp**, so two members stamping their own clocks build
 //! two different messages. The reference's helpers take the stamp as an argument and its holder test
 //! reads a module-level `TIME` constant, so both members agree only because one process handed them
@@ -139,7 +146,7 @@ use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
 use signify_keri::threshold::SigningThreshold;
 use signify_types::api::{
-    AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, Hab, KeyEvent, KeyManagerState, KeyState,
+    AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
     RegistryInceptionRecord, Threshold,
 };
 
@@ -1005,14 +1012,7 @@ impl<'client> Multisig<'client> {
             });
         };
 
-        let signing = proposed.attributes.signing_members.clone().unwrap_or_default();
-        let members = if signing.is_empty() {
-            // A registry proposal names only the group, so the members come from the record when
-            // the message does not name them.
-            group_members(&self.client.identifiers().get(group_name).await?)?
-        } else {
-            signing
-        };
+        let members = self.members_of(&proposed, group_name).await?;
         let recipients = peers(&member, &members)?;
 
         let created = self
@@ -1255,11 +1255,18 @@ impl<'client> Multisig<'client> {
         .await
     }
 
-    /// The members a transaction proposal is agreed by.
+    /// The members a proposal is agreed by.
     ///
-    /// A registry, issuance, or revocation proposal names only the group — the reference writes
-    /// `{ gid }` and nothing else — so the members come from the group's own record when the
-    /// message does not name them.
+    /// A proposal this port sent names them in `smids`. One the reference sent names only the
+    /// group — it writes `{ gid }` and nothing else on every route but inception, rotation, and
+    /// interaction — so when the message names nobody the members are read from the agent's own
+    /// listing of them, which is also where the reference reads them: `multisigIssue` and
+    /// `multisigRevoke` in `test-integration/multisig.test.ts` call `identifiers().members` and
+    /// take `signing[].aid`.
+    ///
+    /// The group's *record* is not a source. Its `keys` are the members' current signing keys,
+    /// not their identifiers, and reading them as prefixes finds nobody — which is how a joining
+    /// member once answered every grant with [`ClientError::LocalMemberNotAParticipant`].
     async fn members_of(
         &self,
         proposed: &MultisigProposal,
@@ -1267,10 +1274,22 @@ impl<'client> Multisig<'client> {
     ) -> Result<Vec<IdentifierPrefix>, ClientError> {
         let named = proposed.attributes.signing_members.clone().unwrap_or_default();
         if named.is_empty() {
-            group_members(&self.client.identifiers().get(group_name).await?)
+            self.recorded_members(group_name).await
         } else {
             Ok(named)
         }
+    }
+
+    /// The members the agent lists for a group, in its signing order.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NoRecordedMembers`] when the agent lists no signing member,
+    /// [`ClientError::Identifier`] when a listed member is not a qualified prefix, and whatever
+    /// [`Identifiers::members`](crate::endpoint::identifiers::Identifiers::members) returns.
+    async fn recorded_members(&self, group_name: &str) -> Result<Vec<IdentifierPrefix>, ClientError> {
+        let listing = self.client.identifiers().members(group_name).await?;
+        signing_prefixes(group_name, &listing)
     }
 
     /// Announces an event this member submitted to the peers that must match it.
@@ -1310,14 +1329,7 @@ impl<'client> Multisig<'client> {
         } = announcement;
         let group = submission.artifact().event.identifier().clone();
 
-        let mut payload = Sad::new();
-        payload.insert(GROUP_LABEL, group.qb64()?).map_err(sad_error)?;
-        payload
-            .insert(SIGNING_MEMBERS_LABEL, text_array(qb64_all(signing)?))
-            .map_err(sad_error)?;
-        payload
-            .insert(ROTATION_MEMBERS_LABEL, text_array(qb64_all(rotation)?))
-            .map_err(sad_error)?;
+        let payload = group_payload(&group.qb64()?, signing, rotation)?;
 
         let addressee = recipients.first().ok_or(ClientError::LonelyGroup)?.clone();
         let draft = ExchangeDraft::new(*route, addressee, (*timestamp).clone())
@@ -1354,14 +1366,7 @@ impl<'client> Multisig<'client> {
 
         let embed = signed_embed(INCEPTION_SLOT, submission.artifact())?;
 
-        let mut payload = Sad::new();
-        payload.insert(GROUP_LABEL, group.qb64()?).map_err(sad_error)?;
-        payload
-            .insert(SIGNING_MEMBERS_LABEL, text_array(qb64_all(signing)?))
-            .map_err(sad_error)?;
-        payload
-            .insert(ROTATION_MEMBERS_LABEL, text_array(qb64_all(rotation)?))
-            .map_err(sad_error)?;
+        let payload = group_payload(&group.qb64()?, signing, rotation)?;
 
         let addressee = recipients.first().ok_or(ClientError::LonelyGroup)?.clone();
         let draft = ExchangeDraft::new(INCEPTION_ROUTE, addressee, timestamp.clone())
@@ -1524,22 +1529,47 @@ fn revocation_announcement(
     Ok((Submission::from_parts(artifacts.anchor, response), embeds))
 }
 
-/// The members a group's own record names.
+/// The signing members of an agent's group listing, in the order the agent lists them.
 ///
-/// A transaction proposal writes only `{ gid }`, so the members are read from the record rather
-/// than from the message — which is also where the reference gets them, via `identifiers().members`
-/// in the revocation half and via its caller's arguments everywhere else.
-fn group_members(record: &AcceptedHab) -> Result<Vec<IdentifierPrefix>, ClientError> {
-    let KeyManagerState::Group(group) = &record.common.key_manager else {
-        return Err(ClientError::NotAGroupIdentifier {
-            identifier: record.common.prefix.clone(),
+/// The listing is `GET /identifiers/{name}/members`, whose `signing[].aid` are the members'
+/// identifiers — where the group *record*'s `keys` are their current signing keys, which look like
+/// prefixes and are not. The local member stays in the list; [`delivery_list`] takes it out and
+/// says so when it is missing.
+///
+/// # Errors
+///
+/// Returns [`ClientError::NoRecordedMembers`] when the listing names no signing member, and
+/// [`ClientError::Identifier`] when one of them is not a qualified prefix.
+fn signing_prefixes(group_name: &str, listing: &GroupMember) -> Result<Vec<IdentifierPrefix>, ClientError> {
+    if listing.signing.is_empty() {
+        return Err(ClientError::NoRecordedMembers {
+            group: group_name.to_owned(),
         });
-    };
-    group
-        .keys
+    }
+    listing
+        .signing
         .iter()
-        .map(|key| Ok(IdentifierPrefix::from_qb64(key)?))
+        .map(|member| Ok(IdentifierPrefix::from_qb64(&member.aid)?))
         .collect()
+}
+
+/// The attribute block every announcement here carries: the group, then who signs, then who may
+/// rotate — `gid`, `smids`, `rmids`, in the reference's own order.
+///
+/// The reference writes the two member lists on inception, rotation, and interaction and the
+/// group alone everywhere else. Here every round writes all three, so a joining member reads its
+/// peers from the message it was shown rather than looking them up; a message that names nobody
+/// is still read, see [`Multisig::members_of`].
+fn group_payload(group: &str, signing: &[IdentifierPrefix], rotation: &[IdentifierPrefix]) -> Result<Sad, ClientError> {
+    let mut payload = Sad::new();
+    payload.insert(GROUP_LABEL, group.to_owned()).map_err(sad_error)?;
+    payload
+        .insert(SIGNING_MEMBERS_LABEL, text_array(qb64_all(signing)?))
+        .map_err(sad_error)?;
+    payload
+        .insert(ROTATION_MEMBERS_LABEL, text_array(qb64_all(rotation)?))
+        .map_err(sad_error)?;
+    Ok(payload)
 }
 
 /// How a proposed registry is witnessed, read from the inception it proposes.
@@ -2073,14 +2103,69 @@ mod tests {
         Ok(())
     }
 
+    /// The agent's listing of a group's members, as `GET /identifiers/{name}/members` answers it.
+    fn listing(signing: &[&str]) -> Result<GroupMember, Box<dyn Error>> {
+        let entries: Vec<String> = signing
+            .iter()
+            .map(|aid| format!(r#"{{"aid":"{aid}","ends":{{}}}}"#))
+            .collect();
+        let document = format!(r#"{{"signing":[{}],"rotation":[]}}"#, entries.join(","));
+        Ok(serde_json::from_str(&document)?)
+    }
+
     #[test]
-    fn a_group_names_its_members_in_its_own_record() -> Result<(), Box<dyn Error>> {
-        // A transaction proposal writes only `{ gid }`, so the members come from the record.
+    fn signing_members_are_read_from_the_listing_in_order() -> Result<(), Box<dyn Error>> {
+        // The listing's `aid` fields are the members' identifiers, in the agent's order, and the
+        // local member stays in — `peers` is what takes it out.
+        let members = signing_prefixes("board", &listing(&[LOCAL, PEER, THIRD])?)?;
+        assert_eq!(members, [prefix(LOCAL)?, prefix(PEER)?, prefix(THIRD)?]);
+        assert_eq!(peers(&record(PEER)?, &members)?, [prefix(LOCAL)?, prefix(THIRD)?]);
+        Ok(())
+    }
+
+    #[test]
+    fn a_groups_keys_are_not_its_members() -> Result<(), Box<dyn Error>> {
+        // The defect this replaces: the group record's `keys` parse as prefixes and name nobody.
+        let key = "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9";
+        let as_prefix = prefix(key)?;
+        assert_ne!(as_prefix, prefix(LOCAL)?);
+        assert!(matches!(
+            peers(&record(LOCAL)?, &[as_prefix]),
+            Err(ClientError::LocalMemberNotAParticipant { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn a_listing_with_no_signing_member_is_refused() -> Result<(), Box<dyn Error>> {
         let refused = matches!(
-            group_members(&record(LOCAL)?),
-            Err(ClientError::NotAGroupIdentifier { .. })
+            signing_prefixes("board", &listing(&[])?),
+            Err(ClientError::NoRecordedMembers { group }) if group == "board"
         );
-        assert!(refused, "a salty identifier answered as a group");
+        assert!(refused, "an empty listing answered as a group");
+        Ok(())
+    }
+
+    #[test]
+    fn a_listing_naming_a_non_prefix_is_refused() -> Result<(), Box<dyn Error>> {
+        let refused = matches!(
+            signing_prefixes("board", &listing(&[LOCAL, "not-a-prefix"])?),
+            Err(ClientError::Identifier { .. })
+        );
+        assert!(refused, "a malformed member was accepted");
+        Ok(())
+    }
+
+    #[test]
+    fn an_announcement_names_the_group_and_both_member_lists() -> Result<(), Box<dyn Error>> {
+        // Every round's block, the IPEX rounds included — where the reference's grant and admit
+        // helpers write `{ gid }` alone.
+        let members = [prefix(LOCAL)?, prefix(PEER)?];
+        let rendered = String::from_utf8(group_payload("EGRP", &members, &members)?.to_json_bytes()?)?;
+        assert_eq!(
+            rendered,
+            format!(r#"{{"gid":"EGRP","smids":["{LOCAL}","{PEER}"],"rmids":["{LOCAL}","{PEER}"]}}"#)
+        );
         Ok(())
     }
 
@@ -2196,10 +2281,7 @@ mod tests {
 
     #[test]
     fn the_payload_writes_the_three_labels_in_the_references_order() -> Result<(), Box<dyn Error>> {
-        let mut payload = Sad::new();
-        payload.insert(GROUP_LABEL, "EGRP".to_owned())?;
-        payload.insert(SIGNING_MEMBERS_LABEL, text_array(vec![LOCAL.to_owned()]))?;
-        payload.insert(ROTATION_MEMBERS_LABEL, text_array(vec![PEER.to_owned()]))?;
+        let payload = group_payload("EGRP", &[prefix(LOCAL)?], &[prefix(PEER)?])?;
         let rendered = String::from_utf8(payload.to_json_bytes()?)?;
         assert!(rendered.starts_with(r#"{"gid":"EGRP","smids":["#), "{rendered}");
         assert!(rendered.contains(r#""rmids":["#));
@@ -2344,6 +2426,7 @@ impl Multisig<'_> {
         self.run_ipex_round(
             request.group_name,
             request.local_member,
+            request.members,
             &recipients,
             grant,
             &request.recipient,
@@ -2388,7 +2471,7 @@ impl Multisig<'_> {
             .await?;
         require_same(&embedded.digest, &grant)?;
 
-        self.run_ipex_round(group_name, local_member, &recipients, grant, &step.recipient)
+        self.run_ipex_round(group_name, local_member, &members, &recipients, grant, &step.recipient)
             .await
     }
 
@@ -2417,6 +2500,7 @@ impl Multisig<'_> {
         self.run_ipex_round(
             request.group_name,
             request.local_member,
+            request.members,
             &recipients,
             admit,
             &request.discloser,
@@ -2457,7 +2541,7 @@ impl Multisig<'_> {
             .await?;
         require_same(&embedded.digest, &admit)?;
 
-        self.run_ipex_round(group_name, local_member, &recipients, admit, &step.recipient)
+        self.run_ipex_round(group_name, local_member, &members, &recipients, admit, &step.recipient)
             .await
     }
 
@@ -2507,10 +2591,17 @@ impl Multisig<'_> {
     }
 
     /// Submits the message to its recipient, then announces it to the group's other members.
+    ///
+    /// `members` is the whole group, this member included; `recipients` are its peers. The
+    /// announcement names the members in `smids` and `rmids` as every event round's does, where
+    /// the reference's `grantMultisig` and `admitMultisig` write `{ gid }` alone — a deliberate
+    /// divergence, recorded in `PORTING.md` §10, so that a joining member reads its peers from the
+    /// proposal rather than from a lookup.
     async fn run_ipex_round(
         &self,
         group_name: &str,
         local_member: &str,
+        members: &[IdentifierPrefix],
         recipients: &[IdentifierPrefix],
         message: IpexMessage,
         addressee: &IdentifierPrefix,
@@ -2524,11 +2615,8 @@ impl Multisig<'_> {
             .submit(group_name, &message, std::slice::from_ref(addressee))
             .await?;
 
-        let mut payload = Sad::new();
         let group = self.client.identifiers().get(group_name).await?;
-        payload
-            .insert(GROUP_LABEL, group.common.prefix.clone())
-            .map_err(sad_error)?;
+        let payload = group_payload(&group.common.prefix, members, members)?;
 
         let peer = recipients.first().ok_or(ClientError::LonelyGroup)?.clone();
         let draft = ExchangeDraft::new(EXCHANGE_ROUTE, peer, message_stamp(&message)?)

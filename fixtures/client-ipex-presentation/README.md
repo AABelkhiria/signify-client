@@ -3,10 +3,11 @@
 - Fixture schema: `v1`
 - Upstream: `https://github.com/WebOfTrust/signify-ts.git`
 - Commit: `91a04a5edd804425f42be75ffbf034f8d14e5cb2`
-- Generated: 2026-08-27
+- Generated: 2026-09-16 (first generated 2026-08-27; the sixth divergence was added on regeneration)
 - Sources: `test-integration/credentials.test.ts`, `test-integration/multisig-holder.test.ts`,
   `test-integration/utils/multisig-utils.ts`, `test-integration/utils/test-util.ts`,
-  `src/keri/app/credentialing.ts`, `test/app/test-utils.ts`
+  `src/keri/app/credentialing.ts`, `test/app/test-utils.ts`, `src/keri/app/exchanging.ts`,
+  `test-integration/multisig.test.ts`
 - Binary fields: none. The paths and bodies are exact text; the answers are exact JSON.
 
 Generate and verify from the repository root after building the pinned checkout:
@@ -109,6 +110,18 @@ reached in the tree where it is not. Roadmap 6.11 refused that branch; `presenta
 assembles the three attachments from a credential in hand, and re-serializes each of the three
 events to check its bytes still reproduce the SAID that names it.
 
+## A third, found live: the announcement names only the group
+
+`MultisigExnExchange` declares the `/multisig/exn` attribute block as `{ gid }` and nothing else, and
+the recorded announcement carries exactly `["i", "gid"]`. Both group helpers take the peers as an
+argument, so a joining member is told who to answer by its caller. Where the reference's own tests
+derive the members themselves — `multisigIssue` and `multisigRevoke` — they ask the agent's members
+endpoint for `signing[].aid`; the group record's `keys` are the members' *signing keys* and never
+stand in for their identifiers. This port once read them as if they did, and a joining member
+answered every grant with `LocalMemberNotAParticipant` against a live agent (2026-09-16). Now the
+IPEX rounds announce `smids` and `rmids` as the six event rounds do, a proposal that names nobody is
+answered by `identifiers().members`, and the classifier reads both shapes. `PORTING.md` §10.
+
 ## The chain, which is what makes any of this checkable
 
 | step | embeds | answers |
@@ -130,7 +143,7 @@ Every link is pinned by SAID in `pinned_confirmations.chain`, and the Rust tests
   it names, `Ipex.grant`'s default-attachment branches, and scans over all pinned files.
 - `held_credential` is the credential as a holder reads it back, with the three attachments it
   arrived with — the input to `disclosure_of`.
-- `reference_quirks` pins five behaviours, each with what the reference does and what this port
+- `reference_quirks` pins six behaviours, each with what the reference does and what this port
   does instead.
 
 ## Determinism

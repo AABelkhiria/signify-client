@@ -79,7 +79,9 @@ impl MultisigRoute {
     ///
     /// Inception, rotation, and interaction carry `smids` — the reference declares it required on
     /// exactly those three, and every call site in `test-integration/multisig.test.ts` sends it
-    /// together with `rmids`. The other five carry the group identifier alone.
+    /// together with `rmids`. The other five carry the group identifier alone there. This port
+    /// *sends* both lists on every route but *requires* them only where the reference does, so
+    /// a reference proposal carrying `{ gid }` alone is still read.
     #[must_use]
     pub const fn names_members(self) -> bool {
         matches!(self, Self::Inception | Self::Rotation | Self::Interaction)

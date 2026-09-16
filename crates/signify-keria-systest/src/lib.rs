@@ -228,13 +228,43 @@ mod live {
     ///
     /// Returns whatever building the transport returns.
     pub fn recorder(scenario: &str) -> Result<Arc<Recorder>, Box<dyn Error>> {
-        let transport = HttpTransport::new()?;
+        // On macOS the first read of the platform trust store in a fresh process has failed with
+        // `errSecIO` (-36) while every later read in the same process succeeded — observed on
+        // 2026-09-16 across three wave-16 runs, the first test of each binary failing at connect
+        // and the second passing. One retry is the harness's answer; the deployment is plain HTTP
+        // and never presents a certificate.
+        let transport = match HttpTransport::new() {
+            Ok(transport) => transport,
+            Err(first) => {
+                crate::progress(&format!("the transport failed to build once ({first}); retrying"));
+                HttpTransport::new()?
+            }
+        };
         Ok(Recorder::new(scenario, Arc::new(transport)))
+    }
+
+    /// Prints the tail of every recorder's transcript, for a scenario that failed mid-way.
+    ///
+    /// A live failure's error names a decoder or a status and nothing else; the exchange that
+    /// produced it is in the transcript, which a failed run never writes out.
+    pub fn dump_tails(recorders: &[&Recorder], count: usize) {
+        for recorder in recorders {
+            let observations = recorder.observations();
+            let start = observations.len().saturating_sub(count);
+            for observation in observations.iter().skip(start) {
+                let body = observation.response_body.as_deref().unwrap_or_default();
+                let shown: String = body.chars().take(600).collect();
+                crate::progress(&format!(
+                    "{} {} -> {} {shown}",
+                    observation.method, observation.resource, observation.status
+                ));
+            }
+        }
     }
 }
 
 #[cfg(feature = "live")]
-pub use live::{connect, introduce, ready_identifier, recorder};
+pub use live::{connect, dump_tails, introduce, ready_identifier, recorder};
 
 /// Returns the current instant as a KERI timestamp.
 ///

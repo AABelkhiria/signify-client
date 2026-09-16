@@ -2,6 +2,8 @@
 //!
 //! The five-step conversation and two group rounds, and the shared clock a group's agreement depends on.
 
+mod support;
+
 use std::error::Error;
 
 use serde::Deserialize;
@@ -200,7 +202,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
-    assert_eq!(fixture.generated_on, "2026-08-27");
+    assert_eq!(fixture.generated_on, "2026-09-16");
     assert!(
         fixture
             .sources
@@ -585,7 +587,29 @@ fn a_group_announcement_carries_the_whole_message() -> Result<(), Box<dyn Error>
     assert_eq!(pinned.announcement_route, EXCHANGE_ROUTE);
     assert_eq!(pinned.announcement_topic, "multisig");
     assert_eq!(pinned.announcement_slots, ["exn"]);
-    assert!(pinned.announcement_attributes.contains(&"gid".to_owned()));
+    // The reference's block is `{ i, gid }`: no member lists. This port writes `smids` and
+    // `rmids` beside the group, which `driven::the_group_announcement_names_its_members` pins.
+    assert_eq!(pinned.announcement_attributes, ["i", "gid"]);
+    assert!(!pinned.announcement_attributes.contains(&"smids".to_owned()));
+    let recorded = quirk(&fixture, "an_announcement_names_only_the_group")?;
+    assert_eq!(
+        recorded.get("announcement_attributes"),
+        Some(&serde_json::json!(["i", "gid"]))
+    );
+    assert!(
+        recorded
+            .get("declaration")
+            .and_then(Value::as_str)
+            .is_some_and(|text| text.contains("gid: string") && !text.contains("smids")),
+        "the reference's declaration names members"
+    );
+    assert!(
+        recorded
+            .get("recipients_source")
+            .and_then(Value::as_str)
+            .is_some_and(|text| text.contains("members.signing")),
+        "the reference derives members from somewhere other than the members endpoint"
+    );
     assert_eq!(pinned.group.len(), 44);
 
     let posted = body(&fixture, "group_proposes_the_admittance", "/exchanges")?;
@@ -605,7 +629,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
         .reference_quirks
         .as_object()
         .ok_or("the divergences are not an object")?;
-    assert_eq!(quirks.len(), 5);
+    assert_eq!(quirks.len(), 6);
     for (name, recorded) in quirks {
         let note = recorded.get("note").and_then(Value::as_str).unwrap_or_default();
         let decision = recorded
@@ -637,4 +661,361 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
     }
     assert!(fixture.declarations.notes.get("waiter").is_some());
     Ok(())
+}
+
+/// The two group rounds driven through this port against a scripted agent.
+///
+/// The fixture records the reference's helpers, which take the peers as an argument. A joining
+/// member here has no such argument: it reads them from the proposal, or asks the agent. Both are
+/// driven, and so is the defect this replaced — a joining member that read the group's *keys* as
+/// its members and never found itself.
+mod driven {
+    use super::*;
+    use std::sync::Arc;
+
+    use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+    use signify_acdc::ipex::Disclosure;
+    use signify_client::client::{ConnectedClient, SignifyClient};
+    use signify_client::config::ClientConfig;
+    use signify_client::multisig::GroupDisclosureRequest;
+    use signify_crypto::cipher::Encrypter;
+    use signify_crypto::salt::{Salt, SecurityTier};
+    use signify_crypto::verifier::KeyTransferability;
+    use signify_http::transport::Transport;
+    use signify_keri::event::Timestamp;
+    use signify_keri::manager::DerivationCost;
+    use signify_keri::prefix::IdentifierPrefix;
+    use signify_keri::said::Said;
+
+    const ALIAS: &str = "member1";
+    const GROUP_NAME: &str = "multisig";
+    const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
+    const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
+    const THIRD: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
+    const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
+
+    fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
+        let configuration = || {
+            ClientConfig::new(ADMIN, PASSCODE)
+                .and_then(|config| config.with_boot_url(BOOT))
+                .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
+        };
+        let probe = SignifyClient::new(
+            configuration()?,
+            AgentTransport::new(&[]) as Arc<dyn Transport>,
+            clock(),
+        )?;
+        let prefix = probe.controller().prefix().qb64()?;
+        let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
+
+        let state = agent_state(&prefix, &inception);
+        let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
+        answers.extend_from_slice(bodies);
+        let transport = AgentTransport::new(&answers);
+
+        let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
+        Ok((block_on(client.connect())?, transport))
+    }
+
+    type SentRequest = (String, String, Option<String>);
+
+    fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
+        transport
+            .requests()
+            .into_iter()
+            .skip(2)
+            .map(|request| Ok((request.resource(), request.method().to_owned(), request.body_text())))
+            .collect()
+    }
+
+    fn sealing_key() -> Result<Encrypter, Box<dyn Error>> {
+        let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
+        let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
+        Ok(Encrypter::from_verification_key(signer.verifier())?)
+    }
+
+    /// Seals the salt a recorded `salty` block says it opens to, under the test passcode's key.
+    fn seal(salty: &mut Value) -> Result<(), Box<dyn Error>> {
+        let opens_to = salty
+            .get("sxlt_opens_to")
+            .and_then(Value::as_str)
+            .ok_or("the recorded key-manager block carries no sealed salt")?
+            .to_owned();
+        let sealed = sealing_key()?
+            .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
+            .qb64()?;
+        let block = salty.as_object_mut().ok_or("the key-manager block is not an object")?;
+        block.remove("sxlt_opens_to");
+        block.insert("sxlt".to_owned(), Value::String(sealed));
+        Ok(())
+    }
+
+    fn identifier_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut record = fixture.identifier_record.clone();
+        seal(
+            record
+                .get_mut("salty")
+                .ok_or("the recorded member has no key-manager block")?,
+        )?;
+        Ok(serde_json::to_vec(&record)?)
+    }
+
+    fn group_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut record = fixture.group_record.clone();
+        let member = record
+            .get_mut("group")
+            .and_then(|group| group.get_mut("mhab"))
+            .and_then(|member| member.get_mut("salty"))
+            .ok_or("the recorded group has no member key-manager block")?;
+        seal(member)?;
+        Ok(serde_json::to_vec(&record)?)
+    }
+
+    /// The agent's listing of the group's members.
+    fn members(signing: &[&str]) -> Vec<u8> {
+        let entries: Vec<String> = signing
+            .iter()
+            .map(|aid| format!(r#"{{"aid":"{aid}","ends":{{}}}}"#))
+            .collect();
+        format!(r#"{{"signing":[{}],"rotation":[]}}"#, entries.join(",")).into_bytes()
+    }
+
+    /// One of the reference's own proposals, as `GET /multisig/request/{said}` lists it.
+    ///
+    /// Its attribute block is the reference's `{ i, gid }`; `named` adds the member lists this
+    /// port writes.
+    fn proposal(fixture: &Fixture, name: &str, named: Option<&[&str]>) -> Result<(Said, Vec<u8>), Box<dyn Error>> {
+        let posted = body(fixture, name, "/exchanges")?;
+        let mut exn = posted.get("exn").cloned().ok_or("the announcement carries no exn")?;
+        if let Some(members) = named {
+            let list = Value::Array(members.iter().map(|m| Value::String((*m).to_owned())).collect());
+            let attributes = exn
+                .get_mut("a")
+                .and_then(Value::as_object_mut)
+                .ok_or("the announcement has no attribute block")?;
+            attributes.insert("smids".to_owned(), list.clone());
+            attributes.insert("rmids".to_owned(), list);
+        }
+        let said = Said::from_qb64(exn.get("d").and_then(Value::as_str).ok_or("no SAID")?)?;
+        let listing = serde_json::json!([{ "exn": exn, "paths": {} }]);
+        Ok((said, serde_json::to_vec(&listing)?))
+    }
+
+    fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
+        Ok(IdentifierPrefix::from_qb64(text)?)
+    }
+
+    fn disclosure(fixture: &Fixture) -> Result<Disclosure, Box<dyn Error>> {
+        Ok(disclosure_of(&fixture.held_credential)?)
+    }
+
+    /// The proposer's round, scripted whole: the member, the group twice, the grant's answer, the
+    /// group, the member again, and the announcement's answer.
+    #[test]
+    fn the_group_announcement_names_its_members() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let member = identifier_record(&fixture)?;
+        let group = group_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &group, &group, b"{}", &group, &member, b"{}"])?;
+
+        let members = [prefix(LOCAL)?, prefix(PEER)?];
+        let disclosed = block_on(client.multisig().propose_disclosure(&GroupDisclosureRequest {
+            group_name: GROUP_NAME,
+            local_member: ALIAS,
+            members: &members,
+            recipient: prefix(THIRD)?,
+            disclosure: disclosure(&fixture)?,
+            message: "from the group".to_owned(),
+            timestamp: STAMP.parse::<Timestamp>()?,
+        }))?;
+        assert_eq!(disclosed.said().qb64()?.len(), 44);
+
+        let requests = sent(&transport)?;
+        let (path, method, body) = requests.last().ok_or("nothing was sent")?;
+        assert_eq!(
+            (path.as_str(), method.as_str()),
+            ("/identifiers/member1/exchanges", "POST")
+        );
+        let posted: Value = serde_json::from_str(body.as_deref().ok_or("the announcement has no body")?)?;
+        let exn = posted.get("exn").ok_or("no exn")?;
+        assert_eq!(exn.get("r").and_then(Value::as_str), Some("/multisig/exn"));
+        assert_eq!(exn.get("rp").and_then(Value::as_str), Some(PEER));
+        let attributes = exn.get("a").ok_or("no attribute block")?;
+        assert_eq!(
+            attributes.get("gid").and_then(Value::as_str),
+            Some(fixture.pinned_confirmations.group.as_str())
+        );
+        let both = Value::Array(vec![Value::String(LOCAL.to_owned()), Value::String(PEER.to_owned())]);
+        assert_eq!(
+            attributes.get("smids"),
+            Some(&both),
+            "the announcement does not name who signs"
+        );
+        assert_eq!(
+            attributes.get("rmids"),
+            Some(&both),
+            "the announcement does not name who rotates"
+        );
+        // The reference's shape, pinned beside it: `{ i, gid }` and nothing else.
+        assert_eq!(fixture.pinned_confirmations.announcement_attributes, ["i", "gid"]);
+        assert_eq!(
+            posted.get("rec"),
+            Some(&Value::Array(vec![Value::String(PEER.to_owned())]))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_joining_member_resolves_its_peers_through_the_members_endpoint() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", None)?;
+        let member = identifier_record(&fixture)?;
+        let group = group_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &listing, &members(&[LOCAL, PEER]), &group])?;
+
+        let outcome = block_on(
+            client
+                .multisig()
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+        );
+
+        // The reference's proposal names nobody, so the agent is asked — and the answer names this
+        // member, so the round goes on to build the grant under the group's alias.
+        let requests = sent(&transport)?;
+        let paths: Vec<&str> = requests.iter().map(|(path, _, _)| path.as_str()).collect();
+        assert_eq!(
+            paths.get(..4),
+            Some(
+                &[
+                    "/identifiers/member1",
+                    &format!("/multisig/request/{}", said.qb64()?)[..],
+                    "/identifiers/multisig/members",
+                    "/identifiers/multisig",
+                ][..]
+            ),
+            "{paths:?}"
+        );
+        assert!(
+            !matches!(outcome, Err(ClientError::LocalMemberNotAParticipant { .. })),
+            "the joining member did not find itself: {outcome:?}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_joining_member_acknowledging_resolves_its_peers_the_same_way() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (said, listing) = proposal(&fixture, "group_proposes_the_admittance", None)?;
+        let member = identifier_record(&fixture)?;
+        let group = group_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &listing, &members(&[LOCAL, PEER]), &group])?;
+
+        let outcome = block_on(client.multisig().accept_admittance(GROUP_NAME, ALIAS, &said));
+
+        let requests = sent(&transport)?;
+        assert_eq!(
+            requests
+                .get(2)
+                .map(|(path, method, _)| (path.as_str(), method.as_str())),
+            Some(("/identifiers/multisig/members", "GET"))
+        );
+        assert!(
+            !matches!(outcome, Err(ClientError::LocalMemberNotAParticipant { .. })),
+            "the joining member did not find itself: {outcome:?}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_members_listing_without_the_local_member_is_refused() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", None)?;
+        let member = identifier_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &listing, &members(&[PEER, THIRD])])?;
+
+        let outcome = block_on(
+            client
+                .multisig()
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+        );
+        assert!(
+            matches!(&outcome, Err(ClientError::LocalMemberNotAParticipant { member }) if member == LOCAL),
+            "{outcome:?}"
+        );
+        // Nothing is built or sent once the member knows it is not in the group.
+        assert_eq!(sent(&transport)?.len(), 3);
+        Ok(())
+    }
+
+    #[test]
+    fn a_members_listing_with_nobody_is_refused() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", None)?;
+        let member = identifier_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &listing, &members(&[])])?;
+
+        let outcome = block_on(
+            client
+                .multisig()
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+        );
+        assert!(
+            matches!(&outcome, Err(ClientError::NoRecordedMembers { group }) if group == GROUP_NAME),
+            "{outcome:?}"
+        );
+        assert_eq!(sent(&transport)?.len(), 3);
+        Ok(())
+    }
+
+    #[test]
+    fn a_proposal_that_names_its_members_is_not_looked_up() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", Some(&[LOCAL, PEER]))?;
+        let member = identifier_record(&fixture)?;
+        let group = group_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &listing, &group])?;
+
+        let outcome = block_on(
+            client
+                .multisig()
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+        );
+
+        // This port's own proposal carries `smids`, so the members are read from it and the agent
+        // is never asked who they are.
+        let requests = sent(&transport)?;
+        assert!(
+            requests.iter().all(|(path, _, _)| !path.ends_with("/members")),
+            "the members were looked up although the proposal named them: {requests:?}"
+        );
+        assert_eq!(
+            requests.get(2).map(|(path, _, _)| path.as_str()),
+            Some("/identifiers/multisig")
+        );
+        assert!(
+            !matches!(outcome, Err(ClientError::LocalMemberNotAParticipant { .. })),
+            "{outcome:?}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_proposal_that_names_members_this_member_is_not_among_is_refused() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", Some(&[PEER, THIRD]))?;
+        let member = identifier_record(&fixture)?;
+        let (client, transport) = connected(&[&member, &listing])?;
+
+        let outcome = block_on(
+            client
+                .multisig()
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+        );
+        assert!(
+            matches!(&outcome, Err(ClientError::LocalMemberNotAParticipant { member }) if member == LOCAL),
+            "{outcome:?}"
+        );
+        assert_eq!(sent(&transport)?.len(), 2);
+        Ok(())
+    }
 }

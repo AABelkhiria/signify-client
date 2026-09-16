@@ -570,6 +570,40 @@ mod tests {
     }
 
     #[test]
+    fn an_exchange_step_may_name_its_members_but_need_not() -> Result<(), Box<dyn Error>> {
+        // The reference writes `{ gid }` on `/multisig/exn`; this port writes the member lists
+        // too. Both are read, and a malformed list is refused rather than read as absent.
+        let exn = r#"{"v":"KERI10JSON000_","t":"exn","d":"EEXN","i":"EGRP","rp":"EPEER","p":"","dt":"2023-11-14T22:13:20.123000+00:00","r":"/ipex/grant","q":{},"a":{"m":""},"e":{}}"#;
+        let embeds = format!(r#"{{"d":"E","exn":{exn}}}"#);
+
+        let bare = format!(r#"{{"{GROUP_LABEL}":"{GROUP}"}}"#);
+        let classified = ClassifiedExchange::classify(&message("/multisig/exn", &bare, &embeds)?)?;
+        let proposal = classified.as_multisig().ok_or("not a proposal")?;
+        assert_eq!(proposal.route, MultisigRoute::Exchange);
+        assert_eq!(proposal.attributes.signing_members, None);
+
+        let named = format!(r#"{{"{GROUP_LABEL}":"{GROUP}","smids":["{GROUP}"],"rmids":["{GROUP}"]}}"#);
+        let classified = ClassifiedExchange::classify(&message("/multisig/exn", &named, &embeds)?)?;
+        let proposal = classified.as_multisig().ok_or("not a proposal")?;
+        assert_eq!(proposal.attributes.signing_members.as_ref().map(Vec::len), Some(1));
+        assert_eq!(proposal.attributes.rotation_members.as_ref().map(Vec::len), Some(1));
+
+        let malformed = format!(r#"{{"{GROUP_LABEL}":"{GROUP}","smids":"{GROUP}"}}"#);
+        let outcome = ClassifiedExchange::classify(&message("/multisig/exn", &malformed, &embeds)?);
+        assert!(
+            matches!(
+                outcome,
+                Err(ClientError::MissingGroupAttribute {
+                    route: "/multisig/exn",
+                    label: "smids"
+                })
+            ),
+            "{outcome:?}"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn a_proposal_with_no_group_is_refused() -> Result<(), Box<dyn Error>> {
         let embeds = format!(r#"{{"d":"EEMB","icp":{INCEPTION}}}"#);
         for block in ["{}", r#"{"smids":[]}"#, "[]", "null", r#""text""#] {

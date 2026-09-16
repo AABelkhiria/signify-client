@@ -374,6 +374,15 @@ pub enum ClientError {
     /// There is nobody to propose to and no signature but this one, which is an identifier rather
     /// than a group. The reference sends the proposal to itself.
     LonelyGroup,
+    /// The agent lists no signing member for a group.
+    ///
+    /// A proposal that names no members is answered by asking the agent who they are, and an
+    /// empty answer leaves nobody to sign. The reference reads `members.signing.map(…)` and would
+    /// send the proposal to an empty list.
+    NoRecordedMembers {
+        /// The group's local alias.
+        group: String,
+    },
     /// A group inception named a member the agent knows no key state for.
     ///
     /// The reference reads `states[0]` without checking there is one, so an unknown participant
@@ -615,6 +624,9 @@ impl fmt::Display for ClientError {
                 "the local member {member} is not among the group's participants"
             ),
             Self::LonelyGroup => formatter.write_str("a multisig group must name a member besides the local one"),
+            Self::NoRecordedMembers { group } => {
+                write!(formatter, "the agent lists no signing member for the group {group}")
+            }
             Self::UnknownGroupMember { member } => {
                 write!(formatter, "the agent knows no key state for the group member {member}")
             }
@@ -762,6 +774,7 @@ impl Error for ClientError {
             | Self::ProposalMismatch { .. }
             | Self::LocalMemberNotAParticipant { .. }
             | Self::LonelyGroup
+            | Self::NoRecordedMembers { .. }
             | Self::UnknownGroupMember { .. }
             | Self::NotAnInceptionProposal { .. }
             | Self::UnsignedGroupRequest

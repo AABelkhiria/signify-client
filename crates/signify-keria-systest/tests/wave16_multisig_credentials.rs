@@ -31,7 +31,7 @@ use signify_keria_systest::singlesig::{
     grant_credential, issue_credential, list_credentials,
 };
 use signify_keria_systest::{
-    Environment, Recorder, agent_oobi, connect, record, recorder, resolve_oobi, resolve_schema,
+    Environment, Recorder, agent_oobi, connect, dump_tails, record, recorder, resolve_oobi, resolve_schema,
 };
 
 /// The Qualified vLEI Issuer schema, served under this SAID by the vLEI server and by the Veridian
@@ -60,6 +60,7 @@ struct IssuedByGroup {
     state_after_revoke: String,
     operations_remaining: Vec<usize>,
     member1_transcript: Vec<signify_keria_systest::Observation>,
+    member2_transcript: Vec<signify_keria_systest::Observation>,
 }
 
 /// What the group-as-holder round observed.
@@ -114,15 +115,12 @@ async fn two_member_group(
     resolve_schema(member2, environment, schema).await?;
 
     let participants = vec![aid1, aid2];
-    let group_prefix = group::incept_group(
-        &[(member1, "member1"), (member2, "member2")],
-        GROUP,
-        &participants,
-        Some(SigningThreshold::numeric(2)),
-        &[],
-        0,
-    )
-    .await?;
+    let pair = [(member1, "member1"), (member2, "member2")];
+    let group_prefix =
+        group::incept_group(&pair, GROUP, &participants, Some(SigningThreshold::numeric(2)), &[], 0).await?;
+    // A group that has not authorised its agents publishes no OOBI, so nobody could be
+    // introduced to it — wave 12's lesson.
+    group::authorise_agents(&pair, GROUP, &participants).await?;
     Ok((group_prefix, participants))
 }
 
@@ -133,54 +131,23 @@ async fn a_group_issues_grants_and_revokes_a_credential() -> Result<(), Box<dyn 
     let schema = Said::from_qb64(QVI_SCHEMA)?;
 
     let (member1, member1_recorder) = party(&environment, "member1").await?;
-    let (member2, _member2_recorder) = party(&environment, "member2").await?;
-    let (holder, _holder_recorder) = party(&environment, "holder").await?;
+    let (member2, member2_recorder) = party(&environment, "member2").await?;
+    let (holder, holder_recorder) = party(&environment, "holder").await?;
 
-    let (group_prefix, participants) = two_member_group(&environment, &member1, &member2, &schema).await?;
-    let holder_prefix = create_identifier(&holder, "holder", &[]).await?;
-    resolve_schema(&holder, &environment, &schema).await?;
-    introduce(&member1, GROUP, &holder).await?;
-    introduce(&holder, "holder", &member1).await?;
-    introduce(&holder, "holder", &member2).await?;
-
-    let pair = [(&member1, "member1"), (&member2, "member2")];
-    let registry = group::create_registry(
-        &pair,
-        GROUP,
-        &participants,
-        "group-registry",
-        "0AA_group_registry_nonce",
-    )
-    .await?;
-    let credential = build_credential(&group_prefix, &registry, &schema, &holder_prefix, &[("LEI", LEI)])?;
-    let credential_said = group::issue_credential(&pair, GROUP, &participants, &credential).await?;
-
-    let state_after_issue = credential_state(&member1, &registry, &credential_said)
-        .await?
-        .status()
-        .to_owned();
-
-    let record_read = get_credential(&member1, &credential_said).await?;
-    let disclosure = disclosure_of(&record_read)?;
-    group::grant_credential(
-        &pair,
-        GROUP,
-        &participants,
-        &holder_prefix,
-        &disclosure,
-        "from the group",
-    )
-    .await?;
-
-    let grant = await_ipex_step(&holder, IpexRoute::Grant).await?;
-    admit_credential(&holder, "holder", &grant, "thank you").await?;
-    let holder_admitted = !list_credentials(&holder, &CredentialFilter::new()).await?.is_empty();
-
-    group::revoke_credential(&pair, GROUP, &participants, &registry, &credential_said).await?;
-    let state_after_revoke = credential_state(&member1, &registry, &credential_said)
-        .await?
-        .status()
-        .to_owned();
+    let outcome = issued_by_group(&environment, &schema, (&member1, &member2, &holder)).await;
+    if outcome.is_err() {
+        dump_tails(&[&member1_recorder, &member2_recorder, &holder_recorder], 3);
+    }
+    let (
+        group_prefix,
+        participants,
+        holder_prefix,
+        registry,
+        credential_said,
+        state_after_issue,
+        state_after_revoke,
+        holder_admitted,
+    ) = outcome?;
 
     let captured = IssuedByGroup {
         scenario: "multisig_credentials",
@@ -202,6 +169,7 @@ async fn a_group_issues_grants_and_revokes_a_credential() -> Result<(), Box<dyn 
             remaining(&holder).await?,
         ],
         member1_transcript: member1_recorder.observations(),
+        member2_transcript: member2_recorder.observations(),
     };
 
     assert_eq!(captured.state_after_issue, "iss");
@@ -209,6 +177,81 @@ async fn a_group_issues_grants_and_revokes_a_credential() -> Result<(), Box<dyn 
     assert!(captured.holder_admitted);
     record("observations/multisig_credentials.json", &captured)?;
     Ok(())
+}
+
+type IssuedByGroupOutcome = (
+    IdentifierPrefix,
+    Vec<IdentifierPrefix>,
+    IdentifierPrefix,
+    RegistryIdentifier,
+    Said,
+    String,
+    String,
+    bool,
+);
+
+/// The group-as-issuer round, up to what is captured; split out so a failure can show its transcript.
+async fn issued_by_group(
+    environment: &Environment,
+    schema: &Said,
+    (member1, member2, holder): (&ConnectedClient, &ConnectedClient, &ConnectedClient),
+) -> Result<IssuedByGroupOutcome, Box<dyn Error>> {
+    let (group_prefix, participants) = two_member_group(environment, member1, member2, schema).await?;
+    let holder_prefix = create_identifier(holder, "holder", &[]).await?;
+    resolve_schema(holder, environment, schema).await?;
+    introduce(member1, GROUP, holder).await?;
+    introduce(holder, "holder", member1).await?;
+    introduce(holder, "holder", member2).await?;
+
+    let pair = [(member1, "member1"), (member2, "member2")];
+    let registry = group::create_registry(
+        &pair,
+        GROUP,
+        &participants,
+        "group-registry",
+        "0AA_group_registry_nonce",
+    )
+    .await?;
+    let credential = build_credential(&group_prefix, &registry, schema, &holder_prefix, &[("LEI", LEI)])?;
+    let credential_said = group::issue_credential(&pair, GROUP, &participants, &credential).await?;
+
+    let state_after_issue = credential_state(member1, &registry, &credential_said)
+        .await?
+        .status()
+        .to_owned();
+
+    let record_read = get_credential(member1, &credential_said).await?;
+    let disclosure = disclosure_of(&record_read)?;
+    group::grant_credential(
+        &pair,
+        GROUP,
+        &participants,
+        &holder_prefix,
+        &disclosure,
+        "from the group",
+    )
+    .await?;
+
+    let grant = await_ipex_step(holder, IpexRoute::Grant).await?;
+    admit_credential(holder, "holder", &grant, "thank you").await?;
+    let holder_admitted = !list_credentials(holder, &CredentialFilter::new()).await?.is_empty();
+
+    group::revoke_credential(&pair, GROUP, &participants, &registry, &credential_said).await?;
+    let state_after_revoke = credential_state(member1, &registry, &credential_said)
+        .await?
+        .status()
+        .to_owned();
+
+    Ok((
+        group_prefix,
+        participants,
+        holder_prefix,
+        registry,
+        credential_said,
+        state_after_issue,
+        state_after_revoke,
+        holder_admitted,
+    ))
 }
 
 #[tokio::test]

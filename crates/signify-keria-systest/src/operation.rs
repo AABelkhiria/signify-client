@@ -6,10 +6,11 @@ use core::time::Duration;
 use std::error::Error;
 
 use serde_json::Value;
-use signify_client::client::ConnectedClient;
-use signify_client::endpoint::oobis::OobiResolution;
-use signify_http::request::ItemRange;
+use signify_client::client::{ClientRequest, ConnectedClient};
+use signify_client::endpoint::oobis::{OobiResolution, RESOLUTIONS_SEGMENT};
+use signify_http::request::{ItemRange, ResourcePath};
 use signify_http::retry::{Clock, TokioClock};
+use signify_http::transport::Method;
 use signify_http::transport::RequestUrl;
 use signify_keri::said::Said;
 use signify_types::api::Role;
@@ -52,7 +53,7 @@ pub async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Val
 ///
 /// # Errors
 ///
-/// Returns an error when no notification arrives within [`POLL_ATTEMPTS`] polls, when the one that
+/// Returns an error when no notification arrives within `POLL_ATTEMPTS` polls, when the one that
 /// does names no message, and whatever listing or marking returns.
 pub async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Said, Box<dyn Error>> {
     crate::progress(&format!("waiting for a notification on {route}"));
@@ -136,7 +137,20 @@ pub async fn resolve_schema(
 ) -> Result<(), Box<dyn Error>> {
     let said = schema.qb64()?;
     let url = format!("{}/oobi/{said}", environment.schema_url);
-    resolve_oobi(client, &url, &said).await?;
+    crate::progress(&format!("resolving the schema OOBI {said}"));
+    // A schema resolution's operation answers with the schema, not a key state, which the typed
+    // `oobis().resolve` cannot read (a live KERIA answers `missing field i`). The harness posts
+    // the same body and waits on the operation untyped; the typed decoder is a separate defect.
+    let resolution = OobiResolution {
+        url: RequestUrl::new(url)?,
+        alias: Some(said.clone()),
+    };
+    let path = ResourcePath::builder().segment(RESOLUTIONS_SEGMENT).build()?;
+    let response = client
+        .fetch(ClientRequest::new(Method::Post, path).body(resolution.body()?))
+        .await?;
+    let submitted: signify_types::api::UntypedOperation = serde_json::from_slice(response.body())?;
+    wait_and_delete(client, &submitted.name).await?;
     Ok(())
 }
 

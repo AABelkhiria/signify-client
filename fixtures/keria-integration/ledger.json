@@ -425,7 +425,7 @@
       "status": "unobserved",
       "outcome": null,
       "reason": "not_yet_recorded",
-      "note": "A group acting as credential holder, admitting a grant from a single-signature issuer over `/multisig/exn`. The scenario now exists as `wave16_multisig_credentials`, and the QVI schema it needs is served, so this row is no longer blocked on infrastructure — only on a recording run."
+      "note": "A group acting as credential holder, admitting a grant from a single-signature issuer over `/multisig/exn`. The scenario exists as `wave16_multisig_credentials` and the QVI schema it needs is served. Driven four times on 2026-09-16 to record the correction of the joining member's peer resolution (PORTING.md §10, `Group IPEX announcements carry member lists`): it now runs through the group's registry and issuance rounds and stops on four live-only decode defects ahead of the grant and admit — an integer anchor-seal sequence in the credential state, a registry operation without `pre`, the schema OOBI's operation shape, and a read credential that does not re-serialize to its SAID — each an open §10 row. Blocked on those, not on infrastructure."
     },
     {
       "row": "Challenge and response",
