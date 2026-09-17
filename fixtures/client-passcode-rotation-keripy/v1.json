@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/keripy.git",
+  "reference_sha": "4ce4cc79e06653f77342be1bf604086b89b1f090",
+  "reference_version": "1.3.6",
+  "generated_on": "2026-09-16",
+  "sources": [
+    "src/keri/core/eventing.py (Kevery.processEvent, Kever.update, Kever.rotate)",
+    "fixtures/client-passcode-rotation/v1.json (kel)"
+  ],
+  "generator": "tools/reference-vectors/client_passcode_rotation_keripy.py",
+  "input": {
+    "fixture": "fixtures/client-passcode-rotation/v1.json",
+    "signify_ts_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+    "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "inception_said": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+    "interaction_said": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8"
+  },
+  "verdicts": [
+    {
+      "description": "the reference's request: `s = 1` over the interaction at sequence one",
+      "name": "reference_rotation",
+      "rotation_sequence": "1",
+      "rotation_prior": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8",
+      "rotation_said": "ELjIbIdqca5hDX5AkROuwv0I9cew8HYR7KPZqfK5Bi5q",
+      "log_before": {
+        "sn": 1,
+        "ilk": "ixn",
+        "said": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8"
+      },
+      "verdict": "refused",
+      "error_class": "ValidationError",
+      "error_message": "Invalid recovery attempt:Mismatch recovery event prior dig= EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8 with dig = ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose of event sn = 0 evt = {'v': 'KERI10JSON000195_', 't': 'rot', 'd': 'ELjIbIdqca5hDX5AkROuwv0I9cew8HYR7KPZqfK5Bi5q', 'i': 'ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose', 's': '1', 'p': 'EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8', 'kt': ['1', '0'], 'k': ['DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v', 'DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs'], 'nt': '1', 'n': ['EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7'], 'bt': '0', 'br': [], 'ba': [], 'a': []}.",
+      "log_after": {
+        "sn": 1,
+        "ilk": "ixn",
+        "said": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8",
+        "keys": [
+          "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+        ],
+        "next_digests": [
+          "EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"
+        ]
+      }
+    },
+    {
+      "description": "this port's rotation: the next sequence number over the current event",
+      "name": "corrected_rotation",
+      "rotation_sequence": "2",
+      "rotation_prior": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8",
+      "rotation_said": "ECSI_iFvsQpjp151LjXQlh4xIC7XnXOe7jpal3s0jww4",
+      "log_before": {
+        "sn": 1,
+        "ilk": "ixn",
+        "said": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8"
+      },
+      "verdict": "accepted",
+      "error_class": null,
+      "error_message": null,
+      "log_after": {
+        "sn": 2,
+        "ilk": "rot",
+        "said": "ECSI_iFvsQpjp151LjXQlh4xIC7XnXOe7jpal3s0jww4",
+        "keys": [
+          "DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v",
+          "DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs"
+        ],
+        "next_digests": [
+          "EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7"
+        ]
+      }
+    },
+    {
+      "description": "the next sequence number, naming the inception rather than the current event",
+      "name": "inception_prior_rotation",
+      "rotation_sequence": "2",
+      "rotation_prior": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
+      "rotation_said": "EA7TapcXkgDqvf44XnqhdOfPR9FwYo1lBtq1X4MXZ7jN",
+      "log_before": {
+        "sn": 1,
+        "ilk": "ixn",
+        "said": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8"
+      },
+      "verdict": "refused",
+      "error_class": "ValidationError",
+      "error_message": "Mismatch event dig = ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose with state dig = EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8 for evt = {'v': 'KERI10JSON000195_', 't': 'rot', 'd': 'EA7TapcXkgDqvf44XnqhdOfPR9FwYo1lBtq1X4MXZ7jN', 'i': 'ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose', 's': '2', 'p': 'ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose', 'kt': ['1', '0'], 'k': ['DO0TZ2UVdaay7ReQpiK7s0JTi85za79bKR1p2mMbXL_v', 'DHMAZEksiqGxlNKnm0pSAyMRPK1ZKyBfGV8q_B9r6pLs'], 'nt': '1', 'n': ['EKIMNgjUP7_U2LpC-Ui0VfGnnYeVaEE5grJIupVEWEm7'], 'bt': '0', 'br': [], 'ba': [], 'a': []}.",
+      "log_after": {
+        "sn": 1,
+        "ilk": "ixn",
+        "said": "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8",
+        "keys": [
+          "DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"
+        ],
+        "next_digests": [
+          "EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"
+        ]
+      }
+    }
+  ],
+  "note": "Each candidate is processed by a fresh keripy Kevery that has accepted the recorded inception and interaction. KERIA calls the same validation through SignifyHab.processEvent, which re-raises any failure as ConfigurationError ('Improper Habitat event type=rot'), and its AgentResourceEnd.on_put leaves that unhandled, so a refused rotation reaches a client as 500."
+}

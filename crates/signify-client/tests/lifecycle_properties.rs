@@ -252,9 +252,16 @@ fn a_connected_controller_past_zero_does_not_reapprove() -> Result<(), Box<dyn s
     let transport = Arc::new(ScriptedTransport::new());
     let client = SignifyClient::new(config(PASSCODE)?, Arc::clone(&transport) as Arc<_>, clock())?;
     let prefix = client.controller().prefix().qb64()?;
+    // The passcode's own key: connecting refuses an established key the passcode does not derive.
+    let key = client
+        .controller()
+        .current_keys()
+        .first()
+        .cloned()
+        .ok_or("the controller has no key")?;
 
     let rotation = format!(
-        r#"{{"v":"KERI10JSON000160_","t":"rot","d":"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C","i":"{prefix}","s":"1","p":"{prefix}","kt":"1","k":["DAbWjobbaLqRB94KiAutAHb_qzPpOHm3LURA_ksxetVc"],"nt":"1","n":["EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"],"bt":"0","br":[],"ba":[],"a":[]}}"#
+        r#"{{"v":"KERI10JSON000160_","t":"rot","d":"EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C","i":"{prefix}","s":"1","p":"{prefix}","kt":"1","k":["{key}"],"nt":"1","n":["EIFG_uqfr1yN560LoHYHfvPAhxQ5sN6xZZT_E3h7d2tL"],"bt":"0","br":[],"ba":[],"a":[]}}"#
     );
     let sized = signify_keri::serialization::SerializedEvent::from_sad(Sad::from_json_bytes(rotation.as_bytes())?)?;
     let adopted = core::str::from_utf8(sized.raw())?.to_owned();

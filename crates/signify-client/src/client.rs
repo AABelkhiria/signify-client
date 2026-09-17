@@ -288,7 +288,14 @@ impl SignifyClient {
     /// parses as if it were state, and [`ClientError::IncompleteAgentState`] for a body missing
     /// either half.
     pub async fn state(&self) -> Result<AgentState, ClientError> {
-        let controller = self.controller.prefix().qb64().map_err(prefix_error)?;
+        // A rotated controller keeps the prefix its first passcode incepted, which the current
+        // passcode no longer derives; the caller names it through the configuration.
+        let controller = self
+            .config
+            .controller_prefix()
+            .unwrap_or_else(|| self.controller.prefix())
+            .qb64()
+            .map_err(prefix_error)?;
         let path = ResourcePath::builder()
             .segment(AGENT_SEGMENT)
             .segment(&controller)
@@ -305,11 +312,27 @@ impl SignifyClient {
     /// Connects: reads the state, rebuilds the controller against it, validates the agent, and
     /// approves the delegation when the controller is still at sequence zero.
     ///
+    /// A controller that has rotated its passcode is reported by its agent with the rotation as its
+    /// latest establishment event and no rotation index, so it is restored at that event and derives
+    /// its keys at index zero from the passcode configured here — the key that rotation put first.
+    /// Its prefix is still the one its **first** passcode incepted, which the current passcode no
+    /// longer derives, so a client reconnecting after a rotation must be configured with it:
+    /// [`ClientConfig::with_controller_prefix`]. The connected client's configuration always
+    /// carries the prefix, so it can be persisted from there.
+    ///
+    /// Two checks the reference does not make: the reported controller must be the configured one,
+    /// and the passcode must derive the first signing key of its latest establishment event. Without
+    /// the second, a stale passcode — the one a rotation replaced — connects without complaint and
+    /// fails on its first signed request.
+    ///
     /// The client is consumed, so a caller cannot hold an unconnected handle that looks usable.
     ///
     /// # Errors
     ///
     /// Returns whatever [`Self::state`] returns,
+    /// [`ClientError::ControllerPrefixMismatch`] when the agent reports a controller other than the
+    /// configured one, [`ClientError::ControllerKeyMismatch`] when the passcode does not derive
+    /// that controller's current signing key,
     /// [`ClientError::AgentNotDelegatedToController`] when the agent's inception anchors a
     /// different controller, and layered controller, manager, and authentication failures.
     pub async fn connect(self) -> Result<ConnectedClient, ClientError> {
@@ -329,6 +352,46 @@ impl SignifyClient {
         )?;
 
         let expected = controller.prefix().qb64().map_err(prefix_error)?;
+        if let Some(configured) = self.config.controller_prefix() {
+            let configured = configured.qb64().map_err(prefix_error)?;
+            if configured != expected {
+                return Err(ClientError::ControllerPrefixMismatch {
+                    configured,
+                    reported: expected,
+                });
+            }
+        }
+
+        // `restore` adopts a later establishment event as reported, so the event's keys and this
+        // passcode's keys can disagree; refuse here rather than on the first signed request.
+        let established = state
+            .controller_event()
+            .sad()
+            .get("k")
+            .and_then(|keys| match keys {
+                SadValue::Array(keys) => keys.first(),
+                _ => None,
+            })
+            .and_then(|key| match key {
+                SadValue::Text(key) => Some(key.clone()),
+                _ => None,
+            })
+            .ok_or(ClientError::IncompleteAgentState {
+                missing: "controller keys",
+            })?;
+        let derived = controller
+            .expose_signer()
+            .verifier()
+            .qb64()
+            .map_err(ClientError::from)?;
+        if established != derived {
+            return Err(ClientError::ControllerKeyMismatch {
+                controller: expected,
+                established,
+                derived,
+            });
+        }
+
         let anchored = agent.anchor().qb64().map_err(prefix_error)?;
         if anchored != expected {
             return Err(ClientError::AgentNotDelegatedToController {
@@ -337,8 +400,9 @@ impl SignifyClient {
             });
         }
 
+        let config = self.config.with_controller_prefix(controller.prefix().clone());
         let mut connected = ConnectedClient::assemble(
-            self.config,
+            config,
             controller,
             agent,
             self.transport,
@@ -729,14 +793,30 @@ impl ConnectedClient {
     /// caller may retry. The reference advances its controller before it sends, so a failed
     /// rotation there leaves a client signing with a key the agent has never seen.
     ///
+    /// **Persist the controller prefix with the new passcode.** The controller keeps the prefix its
+    /// first passcode incepted, and the new passcode derives a different one, so a client started
+    /// later from the new passcode alone asks for an agent that does not exist. The prefix is in
+    /// this client's configuration after the rotation — `self.config().controller_prefix()` — and
+    /// a later client passes it to [`ClientConfig::with_controller_prefix`]. The reference has no
+    /// way to reconnect at all.
+    ///
     /// An identifier left out of `identifiers` keeps material sealed to the old passcode, which
     /// the new one cannot open. The list is the caller's — the agent is the only party that knows
     /// the whole set, and the reference passes whatever its caller passes — so this method cannot
     /// check it; pass every managed identifier.
     ///
-    /// **Unsigned**, as upstream: the reference bypasses its own signed path here and calls the
-    /// global `fetch` directly, so the `PUT` carries no HTTP signature. Reproduced, because a
-    /// signed request is not what KERIA expects at this endpoint.
+    /// The rotation is built at the sequence number after the controller's current event — the
+    /// reference always writes one, which an agent whose log holds the connection's delegation
+    /// approval refuses with `500` — and a rotation the agent accepts becomes the controller's
+    /// current event, so the next one chains on it. ADR `0034`.
+    ///
+    /// **Signed with the key the rotation introduces.** The reference bypasses its signed path and
+    /// sends the `PUT` unsigned. A KERIA agent applies the rotation *first* and checks the request's
+    /// signature *afterwards*, against the controller's keys as they now stand: upstream KERIA
+    /// refuses an unsigned request there with `403` after it has already rotated, leaving the agent
+    /// one event ahead of a client that believes the rotation failed. Signing with the new key
+    /// satisfies both that check and a deployment that verifies only signed requests. On success
+    /// this client signs every later request with the new key too.
     ///
     /// # Errors
     ///
@@ -764,16 +844,31 @@ impl ConnectedClient {
             .body(body)
             .build()?;
 
-        let response = self.unsigned.execute(request).await?;
+        // The agent verifies this request against the controller's keys after applying the
+        // rotation it carries, so it is signed with the key the rotation introduces. The same
+        // transport signs everything this client sends once the rotation is accepted.
+        let rotated = SigningTransport::new(
+            Arc::clone(&self.unsigned),
+            RequestSigner::new(planned.derive_signing_key()?),
+            self.resource.clone(),
+        )?
+        .with_clock(Arc::clone(&self.clock));
+        let response = rotated.execute(request).await?;
         require_success(&response)?;
 
-        // Accepted. Now the client's own secrets move: the controller onto its new chain, and the
-        // keeper factory and configuration onto the new passcode — without which this client would
-        // go on trying to open its identifiers with a key that no longer seals them.
+        // Accepted. Now the client's own secrets move: the controller onto its new chain and its
+        // new place in the log, the request signer onto the new key, and the keeper factory and
+        // configuration onto the new passcode — without which this client would go on trying to
+        // open its identifiers with a key that no longer seals them.
         let keepers = KeeperFactory::new(salt_from_passcode(new_passcode.expose(), self.config.tier())?);
         self.controller.apply_passcode_rotation(planned);
+        self.signing = rotated;
         self.keepers = keepers;
-        self.config = self.config.clone().with_passcode(new_passcode.clone());
+        self.config = self
+            .config
+            .clone()
+            .with_passcode(new_passcode.clone())
+            .with_controller_prefix(self.controller.prefix().clone());
         Ok(response)
     }
 

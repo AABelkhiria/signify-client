@@ -64,6 +64,29 @@ pub enum ClientError {
         /// The controller the agent's inception anchors.
         actual: String,
     },
+    /// The agent reported a controller other than the one this client was configured for.
+    ///
+    /// The state was fetched by the configured prefix, so this means the agent answered for a
+    /// different controller than it was asked about.
+    ControllerPrefixMismatch {
+        /// The prefix this client was configured with.
+        configured: String,
+        /// The prefix of the controller event the agent reported.
+        reported: String,
+    },
+    /// The passcode does not derive the signing key of the controller the agent reports.
+    ///
+    /// Either the passcode is not the one in force — an old passcode after a rotation, or a
+    /// mistyped one — or the configured controller prefix names somebody else's controller. The
+    /// reference adopts the reported event unchecked and fails only on the first signed request.
+    ControllerKeyMismatch {
+        /// The controller the agent reports.
+        controller: String,
+        /// The first signing key of its latest establishment event.
+        established: String,
+        /// The key this passcode derives.
+        derived: String,
+    },
     /// The agent state response did not carry an agent, or did not carry a controller.
     IncompleteAgentState {
         /// Which half was missing.
@@ -527,6 +550,18 @@ impl fmt::Display for ClientError {
                 formatter,
                 "the agent's inception anchors {actual}, not this controller {expected}"
             ),
+            Self::ControllerPrefixMismatch { configured, reported } => write!(
+                formatter,
+                "the agent reported controller {reported}, not the configured controller {configured}"
+            ),
+            Self::ControllerKeyMismatch {
+                controller,
+                established,
+                derived,
+            } => write!(
+                formatter,
+                "the passcode derives {derived}, but controller {controller} signs with {established}"
+            ),
             Self::IncompleteAgentState { missing } => {
                 write!(formatter, "the agent state carried no {missing}")
             }
@@ -746,6 +781,8 @@ impl Error for ClientError {
             | Self::PasscodeNotBase64 { .. }
             | Self::AgentNotFound { .. }
             | Self::AgentNotDelegatedToController { .. }
+            | Self::ControllerPrefixMismatch { .. }
+            | Self::ControllerKeyMismatch { .. }
             | Self::IncompleteAgentState { .. }
             | Self::Status { .. }
             | Self::OperationPending { .. }

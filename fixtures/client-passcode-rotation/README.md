@@ -5,9 +5,9 @@
 - Commit: `91a04a5edd804425f42be75ffbf034f8d14e5cb2`
 - Secondary reference: `https://github.com/WebOfTrust/keripy.git`
   at `4ce4cc79e06653f77342be1bf604086b89b1f090`
-- Generated: 2026-08-27
+- Generated: 2026-09-16 (first generated 2026-08-27; `kel` and the sixth divergence added on regeneration)
 - Sources: `src/keri/app/clienting.ts`, `src/keri/app/controller.ts`,
-  `test/app/clienting.test.ts`, and keripy's `src/keri/app/keeping.py`
+  `test/app/clienting.test.ts`, `src/keri/core/eventing.ts`, and keripy's `src/keri/app/keeping.py`
 - Binary fields: none. Sealed boxes draw a fresh ephemeral key per call, so no ciphertext can be
   compared byte for byte; this fixture records **what each sealed value opens to and under which
   passcode**, which is the property the finding is about.
@@ -103,11 +103,20 @@ Four assertions cover the rotation event and nothing else.
 - `declarations` holds both methods' text, the three `n`-prefixed declarations side by side, every
   `Encrypter`/`Decrypter` construction with the argument it is given, the pinned test's one call,
   and keripy's contrasting lines read from its own checkout.
-- `request` pins the exact `PUT`: its path, that it is unsigned, its four body fields in order, and
-  the per-identifier shapes.
+- `request` pins the exact `PUT`: its path, that the reference sends it unsigned (this port signs
+  it with the key the rotation introduces, ADR `0034`), its four body fields in order, and the
+  per-identifier shapes.
 - `sealing` records what each of the three sealed values opens to, under each passcode.
-- `reference_quirks` pins five behaviours, each with what the reference does and what this port
-  does instead.
+- `kel` holds the connected client's log as raw events with their signatures — the inception and
+  the delegation-approval interaction the connection sent — and three rotations over it: the
+  recorded request's (`s = 1`, prior the interaction), and two rebuilt by the reference's own
+  `rotate` with the same keys and signers, at `s = 2` over the interaction and at `s = 2` over the
+  inception. The generator first rebuilds the recorded rotation at `s = 1` and refuses to write
+  unless it reproduces the recorded bytes and signatures, so the rebuilt ones are the reference's
+  own construction. `fixtures/client-passcode-rotation-keripy/` records keripy's verdict on each.
+- `reference_quirks` pins six behaviours, each with what the reference does and what this port
+  does instead. The sixth, `the_rotation_always_claims_sequence_one`, is why a live KERIA answers
+  the reference's rotation with `500` (ADR `0034`).
 
 ## Determinism
 

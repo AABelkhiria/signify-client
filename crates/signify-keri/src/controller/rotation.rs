@@ -19,26 +19,42 @@
 //! This module follows keripy. The encrypter derives from the new salt, `sealed_salt` carries the
 //! **new** salt, and the controller's stored salt moves with its keys — which the fix requires,
 //! since material sealed to the new passcode cannot be opened by the old one a second time round.
-//! Everything else is the reference's byte for byte: the always-`s="1"` event, the `["1","0"]`
-//! weighted threshold, the signature order and placements, and the payload's field names. See
-//! ADR `0033`, which supersedes ADR `0016`'s decision to reproduce this, and `PORTING.md` §9.
+//! See ADR `0033`, which supersedes ADR `0016`'s decision to reproduce this, and `PORTING.md` §9.
+//!
+//! # The rotation follows the log, as keripy requires
+//!
+//! **The reference always claims sequence number one.** `Controller.rotate` calls `rotate()`
+//! without an `sn`, so the builder's default of `1` is written whatever the log holds, while the
+//! prior digest is the controller's *current* event. Connecting a client approves its agent's
+//! delegation with an interaction at sequence one, so every connected client's rotation is a `rot`
+//! at sequence one whose prior is that interaction. keripy's `Kever.rotate` reads a rotation at the
+//! log's current sequence number as a **recovery** that supersedes the interaction, requires its
+//! prior to be the event *before* it — the inception — and refuses it: `Invalid recovery attempt:
+//! Mismatch recovery event prior dig`. A live KERIA answers `500`. Nothing upstream notices,
+//! because the one test that rotates mocks the agent.
+//!
+//! Here the rotation is built at the **current sequence number plus one**, with the current event's
+//! digest as its prior — keripy's ordinary rotation — and a rotation the agent accepts becomes the
+//! controller's current event, so a second rotation chains on the first. Everything else is the
+//! reference's byte for byte: the `["1","0"]` weighted threshold, the key order, the signature
+//! placements, and the payload's field names. See ADR `0034`.
 
 use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::Salt;
+use signify_crypto::salt::{Salt, SecurityTier};
 use signify_crypto::signature::IndexedSignature;
 use signify_crypto::signer::SignaturePlacement;
 use signify_crypto::signer::Signer;
 use signify_crypto::verifier::KeyTransferability;
 use signify_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 
-use crate::controller::client::{CONTROLLER_STEM, Controller, single_signer};
+use crate::controller::client::{CONTROLLER_STEM, Controller, CurrentEvent, single_signer};
 use crate::controller::error::ControllerError;
 use crate::event::KeyEvent;
 use crate::event::rotation::RotationBuilder;
 use crate::manager::keeper::security_tier;
 use crate::manager::key_manager::salt_from_passcode;
-use crate::manager::{KeyIndices, SaltyKeyCreator, Stem};
+use crate::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
 use crate::threshold::SigningThreshold;
 
 /// One identifier's key material, re-sealed for the rotation payload.
@@ -65,8 +81,9 @@ pub enum ReEncryptedKeyState {
 /// The complete artifact set one passcode rotation produces; the reference's `rotate` return.
 #[derive(Debug)]
 pub struct PasscodeRotation {
-    /// The rotation event, always at sequence number one — the reference never passes a sequence
-    /// number, so a controller that has moved past its inception still emits `s = "1"`.
+    /// The rotation event, at the sequence number after the controller's current event and with
+    /// that event's digest as its prior. The reference always writes `s = "1"`, which a KERI log
+    /// that has moved past its inception refuses; see the module documentation and ADR `0034`.
     pub rotation: KeyEvent,
     /// The two indexed signatures, in the reference's order: the old committed-to key signing at
     /// position one with prior position zero, then the new key signing at position zero.
@@ -91,6 +108,10 @@ pub struct PlannedPasscodeRotation {
     next_signer: Signer,
     keys: Vec<String>,
     next_digests: Vec<String>,
+    current: CurrentEvent,
+    rotation_index: u32,
+    tier: SecurityTier,
+    cost: DerivationCost,
 }
 
 impl PlannedPasscodeRotation {
@@ -98,6 +119,27 @@ impl PlannedPasscodeRotation {
     #[must_use]
     pub const fn artifacts(&self) -> &PasscodeRotation {
         &self.artifacts
+    }
+
+    /// Derives a second copy of the signing key this rotation moves the controller to.
+    ///
+    /// The key at the rotation's first position, from the new passcode at the controller's rotation
+    /// index. An agent checks a request's signature against the controller's keys **after** it has
+    /// applied the rotation the request carries, so the request that submits a rotation has to be
+    /// signed with the key it introduces — which the client needs owned, and which
+    /// [`Signer`] deliberately cannot be cloned into. Re-deriving goes through the same salt, stem,
+    /// and index as the planned signer, so the two always agree.
+    ///
+    /// This costs one key derivation, at the controller's profile.
+    ///
+    /// # Errors
+    ///
+    /// Returns layered [`ControllerError::Crypto`] or [`ControllerError::Manager`] failures when
+    /// the key cannot be derived.
+    pub fn derive_signing_key(&self) -> Result<Signer, ControllerError> {
+        let stem = Stem::new(CONTROLLER_STEM)?;
+        let creator = SaltyKeyCreator::new(&self.salt, stem);
+        single_signer(&creator, self.rotation_index, self.cost.profile(self.tier))
     }
 }
 
@@ -113,8 +155,11 @@ impl Controller {
     /// On success the controller's signer, next signer, keys, next digests, **and stored salt**
     /// move to the new passcode. Moving the salt is what the sealing fix requires: material sealed
     /// to the new passcode cannot be opened by the old one, so a controller that kept its old salt
-    /// could rotate exactly once. The current event and rotation index still do not move, because
-    /// the reference leaves them untouched and nothing here depends on their moving.
+    /// could rotate exactly once. The rotation also becomes the controller's **current event**, so
+    /// a second rotation is built after it; the reference leaves its event behind and would rebuild
+    /// the same sequence number again. The rotation index does not move: an agent reports none,
+    /// so a reconnecting client derives at index zero from the new passcode, which is exactly the
+    /// key the rotation put first.
     ///
     /// # Errors
     ///
@@ -193,20 +238,29 @@ impl Controller {
         let keys = vec![new_signer.verifier().qb64()?, old_committed.verifier().qb64()?];
         let next_digest = Digest::derive(DigestAlgorithm::Blake3_256, &new_next_signer.verifier().qb64_bytes()?);
 
-        // The reference's exact event: the new key carries the whole weight, the old committed-to
-        // key carries none, and the sequence number is the builder default of one. The threshold
-        // is spelled exactly as the reference's `isith: ['1', '0']`.
+        // The reference's event but for its sequence number: the new key carries the whole weight,
+        // the old committed-to key carries none, and the threshold is spelled exactly as the
+        // reference's `isith: ['1', '0']`. The reference writes the builder's default `s` of one
+        // whatever the log holds; keripy reads a rotation at the current sequence number as a
+        // recovery and refuses it unless its prior is the event before, so this one follows the
+        // log — the next sequence number, after the event its prior names. ADR `0034`.
+        let sequence_number = self
+            .current_sequence_number()
+            .checked_add(1)
+            .ok_or(ControllerError::SequenceNumberOverflow)?;
         let threshold = SigningThreshold::from_sith(r#"["1","0"]"#)?;
         let rotation = RotationBuilder::new(
             self.prefix().clone(),
             self.current_said(),
-            1,
+            sequence_number,
             vec![new_signer.verifier().clone(), old_committed.verifier().clone()],
         )
         .signing_threshold(threshold)
         .next_key_digests(vec![next_digest])
         .next_threshold(SigningThreshold::numeric(1))
         .build()?;
+        // Validated now, so adopting it cannot fail once the agent has accepted it.
+        let current = CurrentEvent::from_serialized(rotation.clone().into_serialized())?;
 
         let signatures = vec![
             old_committed.sign_indexed(rotation.raw(), SignaturePlacement::both_lists_with_prior(1, 0))?,
@@ -242,14 +296,19 @@ impl Controller {
             next_signer: new_next_signer,
             keys,
             next_digests: vec![next_digest.qb64()?],
+            current,
+            rotation_index: self.rotation_index,
+            tier: self.tier,
+            cost: self.cost,
         })
     }
 
     /// Moves this controller onto a planned rotation and returns the artifacts to send.
     ///
-    /// The reference replaces the signers, keys, and digests and leaves its salt behind, so its
-    /// controller's salt and its keys disagree from there on. Here they move together, which the
-    /// sealing fix requires.
+    /// The reference replaces the signers, keys, and digests and leaves its salt and its event
+    /// behind, so its controller's salt and its keys disagree from there on, and its next rotation
+    /// is built at the same place in the log. Here all of them move together: the salt because the
+    /// sealing fix requires it, and the rotation becomes the current event so the log goes on.
     pub fn apply_passcode_rotation(&mut self, planned: PlannedPasscodeRotation) -> PasscodeRotation {
         let PlannedPasscodeRotation {
             artifacts,
@@ -258,12 +317,17 @@ impl Controller {
             next_signer,
             keys,
             next_digests,
+            current,
+            rotation_index: _,
+            tier: _,
+            cost: _,
         } = planned;
         self.salt = salt;
         self.signer = signer;
         self.next_signer = next_signer;
         self.keys = keys;
         self.next_digests = next_digests;
+        self.current = current;
         artifacts
     }
 
@@ -481,7 +545,8 @@ mod tests {
         let rotation = controller.rotate_passcode(NEW_PASSCODE, &[])?;
         let sad = rotation.rotation.sad();
         assert_eq!(rotation.rotation.kind(), EventKind::Rotation);
-        // The reference never passes a sequence number, so the event always claims one.
+        // A fresh controller sits at its inception, so the next sequence number is one — the same
+        // value the reference always writes, which is why its one mocked test never noticed.
         assert_eq!(sad.get_text("s"), Some("1"));
         assert_eq!(sad.get_text("p"), Some(inception_said.qb64()?.as_str()));
         assert_eq!(
@@ -547,19 +612,24 @@ mod tests {
     }
 
     #[test]
-    fn the_controller_state_moves_exactly_as_the_reference_mutates() -> Result<(), Box<dyn Error>> {
+    fn the_controller_moves_onto_the_rotation_it_applied() -> Result<(), Box<dyn Error>> {
         let mut controller = ephemeral()?;
-        let inception_raw = controller.current_event().raw().to_vec();
         let old_keys = controller.current_keys().to_vec();
         let old_digests = controller.next_digests().to_vec();
 
         let rotation = controller.rotate_passcode(NEW_PASSCODE, &[])?;
 
-        // Keys and digests move to the new passcode's chain; the event and index do not.
+        // Keys and digests move to the new passcode's chain, and the rotation becomes the current
+        // event — the reference leaves its event behind. The rotation index does not move.
         assert_eq!(controller.current_keys().len(), 2);
         assert_ne!(controller.current_keys(), old_keys.as_slice());
         assert_ne!(controller.next_digests(), old_digests.as_slice());
-        assert_eq!(controller.current_event().raw(), inception_raw.as_slice());
+        assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
+        assert_eq!(controller.current_sequence_number(), 1);
+        assert_eq!(
+            controller.current_said().qb64()?,
+            rotation.rotation.sad().get_text("d").unwrap_or_default()
+        );
         assert_eq!(controller.rotation_index(), 0);
 
         // The signer is now the new key: a signed event verifies against the rotation's first key.
@@ -572,6 +642,134 @@ mod tests {
         let (event, signature) = controller.signed_event()?;
         let verifier = signify_crypto::verifier::VerificationKey::from_qb64(new_key)?;
         assert!(verifier.verify(signature.raw(), event.raw()).is_ok());
+        Ok(())
+    }
+
+    /// An agent whose inception a controller can anchor.
+    fn agent() -> Result<crate::controller::Agent, Box<dyn Error>> {
+        let state: signify_types::api::KeyState = serde_json::from_value(serde_json::json!({
+            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "s": "0",
+            "p": "",
+            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+            "f": "0",
+            "dt": "2023-12-01T10:05:25.062609+00:00",
+            "et": "dip",
+            "kt": "1",
+            "k": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
+            "nt": "1",
+            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
+            "bt": "0",
+            "b": [],
+            "c": [],
+            "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
+            "di": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+        }))?;
+        Ok(crate::controller::Agent::from_key_state(state)?)
+    }
+
+    fn text(event: &KeyEvent, label: &str) -> String {
+        event.sad().get_text(label).map(ToOwned::to_owned).unwrap_or_default()
+    }
+
+    #[test]
+    fn a_rotation_follows_the_log_after_a_delegation_approval() -> Result<(), Box<dyn Error>> {
+        // Connecting a client approves its agent with an interaction at sequence one. The
+        // reference's rotation then claims sequence one with that interaction as its prior, which
+        // keripy reads as a recovery and refuses. This one is the next event instead.
+        let mut controller = ephemeral()?;
+        controller.approve_delegation(&agent()?)?;
+        let interaction = controller.current_said().qb64()?;
+        assert_eq!(controller.current_sequence_number(), 1);
+
+        let first = controller.rotate_passcode(NEW_PASSCODE, &[])?;
+        assert_eq!(text(&first.rotation, "s"), "2");
+        assert_eq!(text(&first.rotation, "p"), interaction);
+
+        // And a second rotation chains on the first, revealing the key the first committed to.
+        let second = controller.rotate_passcode(PASSCODE, &[])?;
+        assert_eq!(text(&second.rotation, "s"), "3");
+        assert_eq!(text(&second.rotation, "p"), text(&first.rotation, "d"));
+        let Some(SadValue::Array(keys)) = second.rotation.sad().get("k") else {
+            return Err("the second rotation carries no keys".into());
+        };
+        let Some(SadValue::Text(revealed)) = keys.get(1) else {
+            return Err("the second rotation reveals no committed key".into());
+        };
+        let Some(SadValue::Array(committed)) = first.rotation.sad().get("n") else {
+            return Err("the first rotation commits to nothing".into());
+        };
+        let digest = Digest::derive(DigestAlgorithm::Blake3_256, revealed.as_bytes());
+        assert_eq!(committed.first(), Some(&SadValue::Text(digest.qb64()?)));
+        Ok(())
+    }
+
+    #[test]
+    fn sequence_numbers_past_nine_are_written_in_hexadecimal() -> Result<(), Box<dyn Error>> {
+        let mut controller = ephemeral()?;
+        for _ in 0..10 {
+            controller.approve_delegation(&agent()?)?;
+        }
+        let rotation = controller.rotate_passcode(NEW_PASSCODE, &[])?;
+        assert_eq!(text(&rotation.rotation, "s"), "b");
+        Ok(())
+    }
+
+    #[test]
+    fn a_planned_rotation_left_unapplied_leaves_the_log_where_it_was() -> Result<(), Box<dyn Error>> {
+        let mut controller = ephemeral()?;
+        controller.approve_delegation(&agent()?)?;
+        let said = controller.current_said();
+        let raw = controller.current_event().raw().to_vec();
+
+        let planned = controller.plan_passcode_rotation(NEW_PASSCODE, &[])?;
+        assert_eq!(text(&planned.artifacts().rotation, "s"), "2");
+        drop(planned);
+
+        assert_eq!(controller.current_said(), said);
+        assert_eq!(controller.current_sequence_number(), 1);
+        assert_eq!(controller.current_event().raw(), raw.as_slice());
+        // Planned again, it is the same event: nothing moved.
+        let again = controller.plan_passcode_rotation(NEW_PASSCODE, &[])?;
+        assert_eq!(text(&again.artifacts().rotation, "p"), said.qb64()?);
+        Ok(())
+    }
+
+    #[test]
+    fn a_log_at_the_last_sequence_number_cannot_rotate() -> Result<(), Box<dyn Error>> {
+        let fresh = ephemeral()?;
+        let last =
+            crate::event::interaction::InteractionBuilder::new(fresh.prefix().clone(), fresh.current_said(), u128::MAX)
+                .build()?;
+        let options = ControllerOptions {
+            derivation_cost: DerivationCost::Ephemeral,
+            ..ControllerOptions::default()
+        };
+        let restored = Controller::restore(PASSCODE, SecurityTier::Low, options, last.into_serialized())?;
+        assert_eq!(restored.current_sequence_number(), u128::MAX);
+        assert!(matches!(
+            restored.plan_passcode_rotation(NEW_PASSCODE, &[]),
+            Err(ControllerError::SequenceNumberOverflow)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn the_planned_signing_key_is_the_rotations_first_key() -> Result<(), Box<dyn Error>> {
+        // The request that submits a rotation is checked against the keys it introduces, so the
+        // client signs it with this key before the controller has moved.
+        let controller = ephemeral()?;
+        let planned = controller.plan_passcode_rotation(NEW_PASSCODE, &[])?;
+        let Some(SadValue::Array(keys)) = planned.artifacts().rotation.sad().get("k") else {
+            return Err("the rotation carries no keys".into());
+        };
+        let signer = planned.derive_signing_key()?;
+        assert_eq!(keys.first(), Some(&SadValue::Text(signer.verifier().qb64()?)));
+        assert_ne!(
+            signer.verifier().qb64()?,
+            controller.derive_signing_key()?.verifier().qb64()?,
+            "the planned key is the key being replaced"
+        );
         Ok(())
     }
 

@@ -148,6 +148,32 @@ mod live {
         Ok(connected)
     }
 
+    /// Connects to an agent that already exists, without booting it.
+    ///
+    /// What a client does the second time it starts — and the only way to prove a passcode rotation
+    /// took, since the new passcode has to derive the controller the agent now holds. `controller`
+    /// is the prefix a client must persist with its passcode: a rotated controller keeps the prefix
+    /// its first passcode incepted, which the new passcode does not derive. `None` connects by the
+    /// prefix the passcode incepts, as a client that never rotated does.
+    ///
+    /// # Errors
+    ///
+    /// Returns whatever building the configuration, the client, or the connection returns.
+    pub async fn reconnect(
+        environment: &Environment,
+        passcode: &str,
+        controller: Option<&IdentifierPrefix>,
+        recorder: &Arc<Recorder>,
+    ) -> Result<ConnectedClient, Box<dyn Error>> {
+        let mut config = ClientConfig::new(&environment.admin_url, passcode)?.with_boot_url(&environment.boot_url)?;
+        if let Some(controller) = controller {
+            config = config.with_controller_prefix(controller.clone());
+        }
+        let transport = Arc::clone(recorder) as Arc<dyn Transport>;
+        let client = SignifyClient::new(config, transport, Arc::new(TokioClock))?;
+        Ok(client.connect().await?)
+    }
+
     /// Creates a single-signature identifier and authorises the agent to speak for it.
     ///
     /// Two steps, always together. An identifier that has not authorised its agent **publishes no
@@ -258,13 +284,20 @@ mod live {
                     "{} {} -> {} {shown}",
                     observation.method, observation.resource, observation.status
                 ));
+                if observation.status >= 400 {
+                    for (name, value) in &observation.request_headers {
+                        crate::progress(&format!("  > {name}: {value}"));
+                    }
+                    let sent = observation.request_body.as_deref().unwrap_or_default();
+                    crate::progress(&format!("  > body: {}", sent.chars().take(900).collect::<String>()));
+                }
             }
         }
     }
 }
 
 #[cfg(feature = "live")]
-pub use live::{connect, dump_tails, introduce, ready_identifier, recorder};
+pub use live::{connect, dump_tails, introduce, ready_identifier, reconnect, recorder};
 
 /// Returns the current instant as a KERI timestamp.
 ///

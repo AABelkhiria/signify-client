@@ -37,7 +37,7 @@ pub struct ControllerOptions {
 
 /// The current establishment or interaction event, with the fields the controller reads cached.
 #[derive(Clone, Debug)]
-struct CurrentEvent {
+pub(crate) struct CurrentEvent {
     event: SerializedEvent,
     prefix: IdentifierPrefix,
     said: Said,
@@ -46,7 +46,7 @@ struct CurrentEvent {
 
 impl CurrentEvent {
     /// Validates that an event carries everything the controller must read from it.
-    fn from_serialized(event: SerializedEvent) -> Result<Self, ControllerError> {
+    pub(crate) fn from_serialized(event: SerializedEvent) -> Result<Self, ControllerError> {
         let prefix = match event.identifier_prefix() {
             Some(prefix) => IdentifierPrefix::from_qb64(prefix)?,
             None => return Err(ControllerError::RestoredEventIncomplete { label: "i" }),
@@ -154,7 +154,7 @@ pub struct Controller {
     pub(crate) next_signer: Signer,
     pub(crate) keys: Vec<String>,
     pub(crate) next_digests: Vec<String>,
-    current: CurrentEvent,
+    pub(crate) current: CurrentEvent,
 }
 
 impl Controller {

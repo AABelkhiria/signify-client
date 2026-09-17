@@ -53,6 +53,40 @@ fn agent_state(sequence_hex: &str, delegator: &str) -> Result<Agent, TestCaseErr
 }
 
 proptest! {
+    #![proptest_config(ProptestConfig::with_cases(24))]
+
+    #[test]
+    fn rotations_follow_the_log_after_any_number_of_approvals(
+        first in ALPHABET,
+        second in ALPHABET,
+        approvals in 0_u8..5,
+    ) {
+        prop_assume!(first != second);
+        let mut controller = ephemeral(&first)?;
+        let delegator = controller
+            .prefix()
+            .qb64()
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        for _ in 0..approvals {
+            controller
+                .approve_delegation(&agent_state("0", &delegator)?)
+                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        }
+        let before = controller.current_said();
+
+        let rotation = controller
+            .rotate_passcode(&second, &[])
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let expected = format!("{:x}", u128::from(approvals) + 1);
+        let prior = before.qb64().map_err(|error| TestCaseError::fail(error.to_string()))?;
+        prop_assert_eq!(rotation.rotation.sad().get_text("s"), Some(expected.as_str()));
+        prop_assert_eq!(rotation.rotation.sad().get_text("p"), Some(prior.as_str()));
+        prop_assert_eq!(controller.current_sequence_number(), u128::from(approvals) + 1);
+        prop_assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
+    }
+}
+
+proptest! {
     /// The same passcode always derives the same controller, and different passcodes different
     /// ones — the pinned unit test's own property, over arbitrary passcodes.
     #[test]
@@ -180,6 +214,7 @@ proptest! {
             .rotate_passcode(&second, &[])
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let sad = rotation.rotation.sad();
+        // A fresh controller is at its inception, so its first rotation is sequence one.
         prop_assert_eq!(sad.get_text("s"), Some("1"));
         let Some(SadValue::Array(keys)) = sad.get("k") else {
             return Err(TestCaseError::fail("the rotation carries no keys"));
@@ -240,7 +275,9 @@ proptest! {
             "the old passcode still opens the rotated payload"
         );
         prop_assert_eq!(controller.current_keys().len(), 2);
-        prop_assert_eq!(controller.current_sequence_number(), 0);
+        // The rotation became the current event (ADR `0034`); the reference leaves it at zero.
+        prop_assert_eq!(controller.current_sequence_number(), 1);
+        prop_assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
     }
 
     /// Sealed material round-trips through a rotation: whatever the prior key sealed, the **new**

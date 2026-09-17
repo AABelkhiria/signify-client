@@ -33,6 +33,7 @@ import { Cipher } from "../../reference/signify-ts/dist/keri/core/cipher.js";
 import { Controller } from "../../reference/signify-ts/dist/keri/app/controller.js";
 import { Decrypter } from "../../reference/signify-ts/dist/keri/core/decrypter.js";
 import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
+import { rotate } from "../../reference/signify-ts/dist/keri/core/eventing.js";
 import { Encrypter } from "../../reference/signify-ts/dist/keri/core/encrypter.js";
 import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
 import { SaltyCreator } from "../../reference/signify-ts/dist/keri/core/manager.js";
@@ -347,6 +348,66 @@ if (requests.length !== 1) {
 const [sent] = requests;
 const payload = JSON.parse(sent.body);
 
+// ---------------------------------------------------------------------------
+// 3b. The log the rotation lands on, and the rotation keripy accepts there.
+// ---------------------------------------------------------------------------
+//
+// Connecting approves the agent's delegation with an interaction at sequence one, so the
+// reference's rotation — always `s = "1"`, prior the current event — names that interaction as
+// its prior at its own sequence number. keripy reads a `rot` at the log's current sequence number
+// as a recovery and requires the prior to be the event before it. The corrected rotation is the
+// same event at the next sequence number, built by the reference's own `rotate` and signed by the
+// same two keys in the same placements; a third, at the next sequence number but naming the
+// inception as prior, is refused for the other reason. `client_passcode_rotation_keripy.py` feeds
+// all of them to keripy; this port's rotation must equal the corrected one byte for byte.
+
+const bootRequest = recorded.find((request) => request.path === "/boot");
+const approval = recorded.find((request) => request.path.includes("?type=ixn"));
+if (bootRequest === undefined || approval === undefined) {
+  throw new Error("the connection did not record its inception and its approval");
+}
+const booted = JSON.parse(bootRequest.body);
+const approved = JSON.parse(approval.body);
+
+const original = new Controller(PASSCODE, Tier.low);
+const replacement = new Controller(SECOND_PASSCODE, Tier.low);
+const oldCommitted = original.nsigner;
+const newSigner = replacement.signer;
+if (newSigner.verfer.qb64 !== payload.rot.k[0] || oldCommitted.verfer.qb64 !== payload.rot.k[1]) {
+  throw new Error("the recorded rotation's keys are no longer the two controllers' keys");
+}
+
+const rebuilt = (sn, dig) => {
+  const event = rotate({
+    pre: controllerPrefix,
+    keys: payload.rot.k,
+    dig,
+    sn,
+    isith: ["1", "0"],
+    nsith: "1",
+    ndigs: payload.rot.n,
+  });
+  return {
+    raw: event.raw,
+    sigs: [oldCommitted.sign(b(event.raw), 1, false, 0).qb64, newSigner.sign(event.raw, 0).qb64],
+  };
+};
+
+const referenceRotation = { raw: JSON.stringify(payload.rot), sigs: payload.sigs };
+const sameAsRecorded = rebuilt(1, approved.ixn.d);
+if (sameAsRecorded.raw !== referenceRotation.raw || sameAsRecorded.sigs.join() !== payload.sigs.join()) {
+  throw new Error("rebuilding the recorded rotation no longer reproduces it; the comparison is stale");
+}
+
+const kel = {
+  note: "Every event as raw text, signatures as qualified Base64. `inception` and `interaction` are what the connection sent; `reference_rotation` is the recorded request's; `corrected_rotation` and `inception_prior_rotation` are rebuilt by the reference's own `rotate` and signed by the same keys, the first of them proven to reproduce the recorded one at `s = 1`.",
+  inception: { raw: JSON.stringify(booted.icp), sigs: [booted.sig] },
+  interaction: { raw: JSON.stringify(approved.ixn), sigs: approved.sigs },
+  reference_rotation: referenceRotation,
+  corrected_rotation: rebuilt(2, approved.ixn.d),
+  inception_prior_rotation: rebuilt(2, booted.icp.d),
+};
+
 // The same call again, with the empty list the pinned test passes: the loop never runs.
 const emptyBefore = recorded.length;
 await client.rotate(SECOND_PASSCODE, []);
@@ -444,8 +505,21 @@ const quirks = {
     signed: sent.signed,
     path: sent.path,
     method: sent.method,
-    note: "`rotate` calls the global `fetch` directly rather than the client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature — the same bypass Roadmap 6.4 recorded for the delegation approval and both passcode calls.",
-    rust_decision: "reproduced, because a signed request is not what KERIA expects here; the method says so.",
+    note: "`rotate` calls the global `fetch` directly rather than the client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature — the same bypass Roadmap 6.4 recorded for the delegation approval and both passcode calls. A KERIA agent applies the rotation and only then checks the request's signature against the controller's keys as they now stand: WebOfTrust KERIA 0.4.0 refuses an unsigned request there with 403 after it has already rotated.",
+    rust_decision:
+      "the request is signed with the key the rotation introduces, and the client signs everything afterwards with it. ADR `0034`; `fixtures/client-passcode-rotation-keripy/`.",
+  },
+  the_rotation_always_claims_sequence_one: {
+    declaration: "export function rotate({ ..., sn = 1, ... })",
+    rotate_call: "rotate({ pre: this.pre, keys: this.keys, dig: this.serder.sad['d'], isith: ['1', '0'], nsith: '1', ndigs: this.ndigs })",
+    controller_sequence_before: approved.ixn.s,
+    rotation_sequence: payload.rot.s,
+    rotation_prior: payload.rot.p,
+    prior_is_interaction_said: payload.rot.p === approved.ixn.d,
+    keripy_verdicts: "fixtures/client-passcode-rotation-keripy/v1.json",
+    note: "`Controller.rotate` never passes `sn`, so the builder's default of one is written whatever the log holds, and the prior is the controller's current event. A connected client's log holds the delegation-approval interaction at sequence one, so the rotation is a `rot` at sequence one over that interaction — which keripy's `Kever.rotate` reads as a recovery whose prior must be the inception, and refuses. A live KERIA answers 500. The only upstream test mocks the agent.",
+    rust_decision:
+      "built at the current sequence number plus one with the current event as prior — keripy's ordinary rotation — and the accepted rotation becomes the controller's current event so the next one chains. ADR `0034`.",
   },
 };
 
@@ -458,12 +532,13 @@ const fixture = {
   upstream: "https://github.com/WebOfTrust/signify-ts.git",
   reference_sha: referenceSha,
   secondary_reference: { upstream: "https://github.com/WebOfTrust/keripy.git", commit: keripySha },
-  generated_on: "2026-08-27",
+  generated_on: "2026-09-16",
   sources: [
     "src/keri/app/clienting.ts",
     "src/keri/app/controller.ts",
     "test/app/clienting.test.ts",
     "keripy: src/keri/app/keeping.py",
+    "src/keri/core/eventing.ts",
   ],
   provenance: {
     passcode: PASSCODE,
@@ -492,6 +567,7 @@ const fixture = {
     randy: { prefix: randy.record.prefix, seeds: randy.seeds, next_seed: randy.next_seed, state_keys: randy.record.state.k },
   },
   sealing,
+  kel,
   reference_quirks: quirks,
 };
 

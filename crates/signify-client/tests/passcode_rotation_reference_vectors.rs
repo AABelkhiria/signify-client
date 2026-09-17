@@ -153,7 +153,7 @@ fn the_manifest_matches_both_pinned_references() -> Result<(), Box<dyn Error>> {
         fixture.secondary_reference.upstream,
         "https://github.com/WebOfTrust/keripy.git"
     );
-    assert_eq!(fixture.generated_on, "2026-08-27");
+    assert_eq!(fixture.generated_on, "2026-09-16");
     assert!(fixture.sources.iter().any(|source| source.starts_with("keripy:")));
 
     assert_eq!(fixture.provenance.passcode.len(), 21);
@@ -351,13 +351,20 @@ fn the_rotation_is_one_unsigned_put_to_the_agent() -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
+/// The delegation-approval interaction a connected client's log holds at sequence one, as the
+/// pinned `client-lifecycle` fixture records it.
+const CONNECTED_INTERACTION: &str = "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8";
+
 #[test]
-fn the_rotation_event_is_the_shape_the_reference_sends() -> Result<(), Box<dyn Error>> {
+fn the_reference_rotates_a_connected_client_at_sequence_one_over_its_interaction() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let rotation = &fixture.request.rotation;
 
     assert_eq!(rotation.get("t").and_then(Value::as_str), Some("rot"));
+    // The defect: the interaction the prior names is itself at sequence one, so keripy reads this
+    // `rot` as a recovery whose prior must be the inception, and refuses it. ADR `0034`.
     assert_eq!(rotation.get("s").and_then(Value::as_str), Some("1"));
+    assert_eq!(rotation.get("p").and_then(Value::as_str), Some(CONNECTED_INTERACTION));
     assert_eq!(
         rotation.get("i").and_then(Value::as_str),
         Some(fixture.provenance.controller_prefix.as_str())
@@ -379,7 +386,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
         .reference_quirks
         .as_object()
         .ok_or("the divergences are not an object")?;
-    assert_eq!(quirks.len(), 5);
+    assert_eq!(quirks.len(), 6);
     for (name, recorded) in quirks {
         let note = recorded.get("note").and_then(Value::as_str).unwrap_or_default();
         let decision = recorded
@@ -416,11 +423,14 @@ mod driven {
     use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
     use signify_crypto::salt::{Salt, SecurityTier};
     use signify_crypto::signer::Signer;
-    use signify_crypto::verifier::KeyTransferability;
+    use signify_crypto::verifier::{KeyTransferability, VerificationKey};
+    use signify_http::signature::authentication::ResponseVerifier;
+    use signify_http::signature::input::RequestTarget;
 
     use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, agent_state, block_on, clock};
     use signify_http::transport::Transport;
     use signify_keri::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
+    use signify_keri::prefix::IdentifierPrefix;
     use signify_types::api::AcceptedHab;
 
     fn connected(passcode: &str, bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
@@ -543,7 +553,6 @@ mod driven {
         let expected = format!("/agent/{}", client.controller().prefix().qb64()?);
         assert!(last.path().ends_with(&expected), "{}", last.path());
         assert!(fixture.request.path.starts_with("/agent/"));
-        assert!(last.header("signature").is_none(), "the rotation was signed");
 
         let written = core::str::from_utf8(last.body().ok_or("the request carried no body")?)?.to_owned();
         let body = last_body(&transport)?;
@@ -559,6 +568,282 @@ mod driven {
         let randy = keys.get(&fixture.identifiers.randy.prefix).ok_or("no randy entry")?;
         assert!(salty.get("sxlt").is_some() && salty.get("prxs").is_none());
         assert!(randy.get("prxs").is_some() && randy.get("nxts").is_some());
+        Ok(())
+    }
+
+    /// The rotation event a request carried.
+    fn sent_rotation(transport: &AgentTransport) -> Result<Value, Box<dyn Error>> {
+        last_body(transport)?
+            .get("rot")
+            .cloned()
+            .ok_or_else(|| "the request carried no rotation".into())
+    }
+
+    fn text<'a>(document: &'a Value, label: &str) -> &'a str {
+        document.get(label).and_then(Value::as_str).unwrap_or_default()
+    }
+
+    fn first_key(rotation: &Value) -> Result<VerificationKey, Box<dyn Error>> {
+        let key = rotation
+            .get("k")
+            .and_then(Value::as_array)
+            .and_then(|keys| keys.first())
+            .and_then(Value::as_str)
+            .ok_or("the rotation names no key")?;
+        Ok(VerificationKey::from_qb64(key)?)
+    }
+
+    /// Whether a recorded request's HTTP signature verifies under `key`.
+    fn signed_by(request: &crate::support::Recorded, key: VerificationKey) -> Result<bool, Box<dyn Error>> {
+        let target = RequestTarget::new(request.method(), request.path())?;
+        Ok(ResponseVerifier::new(key)
+            .verify(&target, request.request().headers())
+            .is_ok())
+    }
+
+    #[test]
+    fn the_rotation_follows_the_log_and_is_signed_with_the_key_it_introduces() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (encrypter, _) = encryption(&fixture.provenance.passcode)?;
+        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        let records = identifiers(&fixture, &encrypter)?;
+
+        // Connecting approved the delegation, so the log is at the interaction, sequence one.
+        assert_eq!(client.controller().current_sequence_number(), 1);
+        let interaction = client.controller().current_said().qb64()?;
+        let old_key = VerificationKey::from_qb64(
+            client
+                .controller()
+                .current_keys()
+                .first()
+                .ok_or("the controller has no key")?,
+        )?;
+
+        let new_passcode = Passcode::new(fixture.provenance.second_passcode.clone())?;
+        block_on(client.rotate_passcode(&new_passcode, &records))?;
+
+        // The next event after the interaction, where the reference writes one again.
+        let rotation = sent_rotation(&transport)?;
+        assert_eq!(text(&rotation, "s"), "2");
+        assert_eq!(text(&rotation, "p"), interaction);
+
+        // An agent checks this request against the controller's keys after applying the rotation,
+        // so it is signed with the rotation's first key — and not with the key being replaced.
+        let requests = transport.requests();
+        let sent = requests.last().ok_or("no request was made")?;
+        assert!(sent.header("signature-input").is_some(), "the rotation was not signed");
+        assert!(
+            signed_by(sent, first_key(&rotation)?)?,
+            "the rotation is not signed with its new key"
+        );
+        assert!(
+            !signed_by(sent, old_key)?,
+            "the rotation is signed with the key it replaces"
+        );
+
+        // And the controller moved onto it.
+        assert_eq!(client.controller().current_sequence_number(), 2);
+        assert_eq!(client.controller().current_said().qb64()?, text(&rotation, "d"));
+        Ok(())
+    }
+
+    #[test]
+    fn a_rotated_client_signs_what_it_sends_next_with_its_new_key() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}", b"{}"])?;
+        let new_passcode = Passcode::new(fixture.provenance.second_passcode.clone())?;
+        block_on(client.rotate_passcode(&new_passcode, &[]))?;
+        let rotation = sent_rotation(&transport)?;
+
+        // Whatever the agent answers, the request was made and signed.
+        let _ = block_on(client.identifiers().get("aid1"));
+        let requests = transport.requests();
+        let next = requests.last().ok_or("no request was made")?;
+        assert!(next.path().starts_with("/identifiers/"), "{}", next.path());
+        assert!(
+            signed_by(next, first_key(&rotation)?)?,
+            "the session still signs with the key it rotated away from"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_second_rotation_chains_on_the_first() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}", b"{}"])?;
+
+        block_on(client.rotate_passcode(&Passcode::new(fixture.provenance.second_passcode.clone())?, &[]))?;
+        let first = sent_rotation(&transport)?;
+        block_on(client.rotate_passcode(&Passcode::new(fixture.provenance.passcode.clone())?, &[]))?;
+        let second = sent_rotation(&transport)?;
+
+        assert_eq!(text(&second, "s"), "3");
+        assert_eq!(text(&second, "p"), text(&first, "d"));
+        // The second reveals the key the first committed to, and is signed with its own new key.
+        let revealed = second
+            .get("k")
+            .and_then(Value::as_array)
+            .and_then(|keys| keys.get(1))
+            .and_then(Value::as_str)
+            .ok_or("the second rotation reveals nothing")?;
+        let digest = signify_crypto::digest::Digest::derive(
+            signify_crypto::digest::DigestAlgorithm::Blake3_256,
+            revealed.as_bytes(),
+        );
+        assert_eq!(
+            first
+                .get("n")
+                .and_then(Value::as_array)
+                .and_then(|n| n.first())
+                .and_then(Value::as_str),
+            Some(digest.qb64()?.as_str())
+        );
+        let requests = transport.requests();
+        let sent = requests.last().ok_or("no request was made")?;
+        assert!(signed_by(sent, first_key(&second)?)?);
+        Ok(())
+    }
+
+    /// A rotated client, and what its agent reports afterwards: the rotation as the latest
+    /// establishment event, from the event's own bytes — a JSON value would re-sort its labels and
+    /// lose the version-first order a KERI event requires.
+    fn rotated(fixture: &Fixture) -> Result<(ConnectedClient, String, String), Box<dyn Error>> {
+        let (mut client, _) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        block_on(client.rotate_passcode(&Passcode::new(fixture.provenance.second_passcode.clone())?, &[]))?;
+        let prefix = client.controller().prefix().qb64()?;
+        let raw = core::str::from_utf8(client.controller().current_event().raw())?.to_owned();
+        let state = agent_state(&prefix, &raw);
+        Ok((client, prefix, state))
+    }
+
+    fn fresh_config(passcode: &str) -> Result<ClientConfig, Box<dyn Error>> {
+        Ok(ClientConfig::new(ADMIN, passcode)?
+            .with_boot_url(BOOT)?
+            .with_derivation_cost(DerivationCost::Ephemeral))
+    }
+
+    #[test]
+    fn a_rotated_client_reconnects_with_its_new_passcode_and_its_prefix() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (client, prefix, state) = rotated(&fixture)?;
+
+        // The rotated client's configuration carries the value to persist.
+        let persisted = client
+            .config()
+            .controller_prefix()
+            .ok_or("the rotated client's configuration names no controller")?
+            .clone();
+        assert_eq!(persisted.qb64()?, prefix);
+        let first_key = client
+            .controller()
+            .current_keys()
+            .first()
+            .cloned()
+            .ok_or("the rotated controller has no key")?;
+
+        let fresh = AgentTransport::new(&[state.as_bytes()]);
+        let configuration = fresh_config(&fixture.provenance.second_passcode)?.with_controller_prefix(persisted);
+        let reconnected =
+            block_on(SignifyClient::new(configuration, Arc::clone(&fresh) as Arc<dyn Transport>, clock())?.connect())?;
+
+        // The agent is asked about the controller by its own prefix — the one the first passcode
+        // incepted — and not by the prefix the new passcode would incept.
+        let requests = fresh.requests();
+        assert_eq!(requests.len(), 1, "reconnecting approved the delegation again");
+        let asked = requests.first().ok_or("nothing was asked")?;
+        assert_eq!(asked.path(), format!("/agent/{prefix}"));
+
+        // Restored at the rotation, holding the key the rotation put first.
+        assert_eq!(reconnected.controller().current_sequence_number(), 2);
+        assert_eq!(reconnected.controller().prefix().qb64()?, prefix);
+        assert_eq!(
+            reconnected.controller().derive_signing_key()?.verifier().qb64()?,
+            first_key
+        );
+        assert_eq!(
+            reconnected
+                .config()
+                .controller_prefix()
+                .map(IdentifierPrefix::qb64)
+                .transpose()?,
+            Some(prefix)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn the_new_passcode_alone_asks_for_an_agent_that_does_not_exist() -> Result<(), Box<dyn Error>> {
+        // The gap the prefix closes, and the reference's too: a controller keeps the prefix its
+        // first passcode incepted, and the new passcode incepts another.
+        let fixture = fixture()?;
+        let (_, prefix, state) = rotated(&fixture)?;
+        let fresh = AgentTransport::new(&[state.as_bytes()]);
+        let client = SignifyClient::new(
+            fresh_config(&fixture.provenance.second_passcode)?,
+            Arc::clone(&fresh) as Arc<dyn Transport>,
+            clock(),
+        )?;
+        let incepted = client.controller().prefix().qb64()?;
+        assert_ne!(incepted, prefix);
+
+        let _ = block_on(client.state());
+        let requests = fresh.requests();
+        let asked = requests.first().ok_or("nothing was asked")?;
+        assert_eq!(asked.path(), format!("/agent/{incepted}"));
+        Ok(())
+    }
+
+    #[test]
+    fn the_passcode_a_rotation_replaced_is_refused_at_connect() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (_, prefix, state) = rotated(&fixture)?;
+        let fresh = AgentTransport::new(&[state.as_bytes()]);
+        let configuration =
+            fresh_config(&fixture.provenance.passcode)?.with_controller_prefix(IdentifierPrefix::from_qb64(&prefix)?);
+
+        let outcome =
+            block_on(SignifyClient::new(configuration, Arc::clone(&fresh) as Arc<dyn Transport>, clock())?.connect());
+        assert!(
+            matches!(&outcome, Err(ClientError::ControllerKeyMismatch { controller, .. }) if *controller == prefix),
+            "{outcome:?}"
+        );
+        // Refused before anything but the state read was sent.
+        assert_eq!(fresh.requests().len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn an_agent_reporting_another_controller_is_refused() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (_, prefix, state) = rotated(&fixture)?;
+        let fresh = AgentTransport::new(&[state.as_bytes()]);
+        // Configured for a different controller than the one the agent reports.
+        let other = IdentifierPrefix::from_qb64(crate::support::AGENT)?;
+        let configuration = fresh_config(&fixture.provenance.second_passcode)?.with_controller_prefix(other.clone());
+
+        let outcome =
+            block_on(SignifyClient::new(configuration, Arc::clone(&fresh) as Arc<dyn Transport>, clock())?.connect());
+        let expected = other.qb64()?;
+        assert!(
+            matches!(&outcome, Err(ClientError::ControllerPrefixMismatch { configured, reported })
+                if *configured == expected && *reported == prefix),
+            "{outcome:?}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn connecting_records_the_controller_prefix() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (client, _) = connected(&fixture.provenance.passcode, &[])?;
+        assert_eq!(
+            client
+                .config()
+                .controller_prefix()
+                .map(IdentifierPrefix::qb64)
+                .transpose()?,
+            Some(client.controller().prefix().qb64()?)
+        );
         Ok(())
     }
 

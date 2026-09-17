@@ -10,6 +10,7 @@ use core::fmt;
 use signify_crypto::salt::SecurityTier;
 use signify_http::request::BaseUrl;
 use signify_keri::manager::DerivationCost;
+use signify_keri::prefix::IdentifierPrefix;
 
 use crate::error::ClientError;
 
@@ -95,6 +96,7 @@ pub struct ClientConfig {
     passcode: Passcode,
     tier: SecurityTier,
     derivation_cost: DerivationCost,
+    controller_prefix: Option<IdentifierPrefix>,
 }
 
 impl ClientConfig {
@@ -111,6 +113,7 @@ impl ClientConfig {
             passcode: Passcode::new(passcode)?,
             tier: SecurityTier::Low,
             derivation_cost: DerivationCost::Production,
+            controller_prefix: None,
         })
     }
 
@@ -180,6 +183,33 @@ impl ClientConfig {
     #[must_use]
     pub const fn derivation_cost(&self) -> DerivationCost {
         self.derivation_cost
+    }
+
+    /// Names the controller this client connects as, rather than the one its passcode incepts.
+    ///
+    /// A controller's prefix is the digest of its inception event, and that event derives from
+    /// the passcode it was **booted** with. After a passcode rotation the controller keeps that
+    /// prefix, but the new passcode incepts a different one, so a client that knows only the new
+    /// passcode asks for an agent that does not exist. The reference has the same gap and no way
+    /// around it. A caller that has rotated must keep this prefix with the new passcode and pass
+    /// it here; [`ConnectedClient::rotate_passcode`](crate::client::ConnectedClient::rotate_passcode)
+    /// records it in the rotated client's configuration.
+    ///
+    /// Supplying a prefix confers nothing: connecting still requires the agent to be delegated to
+    /// that controller and the passcode to derive that controller's current signing key.
+    #[must_use]
+    pub fn with_controller_prefix(mut self, prefix: IdentifierPrefix) -> Self {
+        self.controller_prefix = Some(prefix);
+        self
+    }
+
+    /// Returns the controller prefix set with [`Self::with_controller_prefix`], if any.
+    ///
+    /// A connected or rotated client's configuration always carries it, so this is the value to
+    /// persist beside the passcode.
+    #[must_use]
+    pub const fn controller_prefix(&self) -> Option<&IdentifierPrefix> {
+        self.controller_prefix.as_ref()
     }
 }
 

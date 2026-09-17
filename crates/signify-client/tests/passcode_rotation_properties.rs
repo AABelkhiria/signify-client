@@ -185,6 +185,11 @@ proptest! {
             })
         };
 
+        // Each rotation is the next event, naming the one before it.
+        prop_assert_eq!(one.rotation.sad().get_text("s"), Some("1"));
+        prop_assert_eq!(two.rotation.sad().get_text("s"), Some("2"));
+        prop_assert_eq!(two.rotation.sad().get_text("p"), one.rotation.sad().get_text("d"));
+
         let Some(key) = revealed(&two.rotation) else {
             return Err(TestCaseError::fail("the second rotation reveals no old key"));
         };

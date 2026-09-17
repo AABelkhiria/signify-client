@@ -604,7 +604,20 @@ fn the_passcode_rotation_matches() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    assert_controller_matches(&controller, &fixture.rotation.controller_after)?;
+    // The keys, the next digests, and the signer are the reference's. The current event is not:
+    // the reference leaves its inception in place, and this controller adopts the rotation it
+    // applied, so a second rotation follows it in the log (ADR `0034`).
+    let after = &fixture.rotation.controller_after;
+    assert_eq!(
+        after.raw, fixture.rotation.controller_before.raw,
+        "the reference now moves its event"
+    );
+    assert_eq!(controller.prefix().qb64()?, after.pre);
+    assert_eq!(controller.next_digests(), after.next_digests.as_slice());
+    assert_eq!(controller.expose_signer().verifier().qb64()?, after.signer_verfer);
+    assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
+    assert_eq!(format!("{:x}", controller.current_sequence_number()), "1");
+    assert_ne!(controller.current_said().qb64()?, after.said);
     Ok(())
 }
 
@@ -688,7 +701,14 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     controller.approve_delegation(&Agent::from_key_state(state)?)?;
     let interaction_said = controller.current_said().qb64()?;
     let rotation = controller.rotate_passcode(&fixture.provenance.second_passcode, &[])?;
-    assert_eq!(rotation.rotation.sad().get_text("s"), Some("1"));
+    // The port follows the log (ADR `0034`): the same prior as the reference — the interaction —
+    // at the sequence number after it, which keripy accepts as an ordinary rotation, where the
+    // reference's `s = "1"` over that prior is a recovery keripy refuses.
+    assert_eq!(rotation.rotation.sad().get_text("s"), Some("2"));
+    assert_ne!(
+        rotation.rotation.sad().get_text("s"),
+        Some(quirks.rotation_always_claims_sequence_one.rotation_sequence.as_str())
+    );
     assert_eq!(
         rotation.rotation.sad().get_text("p"),
         Some(quirks.rotation_always_claims_sequence_one.rotation_prior.as_str())
@@ -716,6 +736,10 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     let mut controller = Controller::new(&fixture.provenance.passcode, SecurityTier::Low)?;
     let first = controller.rotate_passcode(&fixture.provenance.second_passcode, &[])?;
     let second = controller.rotate_passcode("zyxwvutsrq9876543210k", &[])?;
+    // Each rotation is the next event: the second names the first as its prior.
+    assert_eq!(first.rotation.sad().get_text("s"), Some("1"));
+    assert_eq!(second.rotation.sad().get_text("s"), Some("2"));
+    assert_eq!(second.rotation.sad().get_text("p"), first.rotation.sad().get_text("d"));
     let old_key = |rotation: &signify_keri::event::KeyEvent| {
         rotation.sad().get("k").and_then(|keys| match keys {
             SadValue::Array(keys) => keys.get(1).cloned(),
