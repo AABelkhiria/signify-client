@@ -1,5 +1,5 @@
 [package]
-name = "signify-cesr-fuzz"
+name = "signify-fuzz"
 version = "0.0.0"
 publish = false
 edition = "2024"
@@ -18,69 +18,6 @@ signify-types = { path = "../crates/signify-types" }
 serde_json = "1.0.151"
 
 [[bin]]
-name = "foundations"
-path = "fuzz_targets/foundations.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "code_tables"
-path = "fuzz_targets/code_tables.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "matter"
-path = "fuzz_targets/matter.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "indexer"
-path = "fuzz_targets/indexer.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "counter"
-path = "fuzz_targets/counter.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "number"
-path = "fuzz_targets/number.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "sequence"
-path = "fuzz_targets/sequence.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "bexter"
-path = "fuzz_targets/bexter.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "path"
-path = "fuzz_targets/path.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
 name = "threshold"
 path = "fuzz_targets/threshold.rs"
 test = false
@@ -88,57 +25,8 @@ doc = false
 bench = false
 
 [[bin]]
-name = "digest"
-path = "fuzz_targets/digest.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "verifier"
-path = "fuzz_targets/verifier.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "signature"
-path = "fuzz_targets/signature.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "signer"
-path = "fuzz_targets/signer.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "salt"
-path = "fuzz_targets/salt.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "cipher"
-path = "fuzz_targets/cipher.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
 name = "version"
 path = "fuzz_targets/version.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "decrypter"
-path = "fuzz_targets/decrypter.rs"
 test = false
 doc = false
 bench = false

@@ -660,20 +660,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "signify-cesr-fuzz"
-version = "0.0.0"
-dependencies = [
- "keri-cesr",
- "libfuzzer-sys",
- "serde_json",
- "signify-acdc",
- "signify-client",
- "signify-http",
- "signify-keri",
- "signify-types",
-]
-
-[[package]]
 name = "signify-client"
 version = "0.0.0"
 dependencies = [
@@ -682,6 +668,20 @@ dependencies = [
  "serde",
  "serde_json",
  "signify-acdc",
+ "signify-http",
+ "signify-keri",
+ "signify-types",
+]
+
+[[package]]
+name = "signify-fuzz"
+version = "0.0.0"
+dependencies = [
+ "keri-cesr",
+ "libfuzzer-sys",
+ "serde_json",
+ "signify-acdc",
+ "signify-client",
  "signify-http",
  "signify-keri",
  "signify-types",
