@@ -70,8 +70,17 @@ struct Ledger {
     reference_sha: String,
     authored_on: String,
     note: String,
+    moved: Moved,
     entries: Vec<LedgerEntry>,
     findings: Vec<Finding>,
+}
+
+/// Upstream test files whose cases are answered by another crate, not by this ledger.
+#[derive(Debug, Deserialize)]
+struct Moved {
+    to: String,
+    note: String,
+    files: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -159,9 +168,29 @@ fn every_upstream_case_is_answered_exactly_once() -> Result<(), Box<dyn Error>> 
             .or_default() += 1;
     }
 
+    assert_eq!(ledger.moved.to, "keri-cesr");
+    assert!(ledger.moved.note.contains("keri-cesr"));
+    let moved: BTreeSet<&str> = ledger.moved.files.iter().map(String::as_str).collect();
+    assert_eq!(moved.len(), ledger.moved.files.len(), "a moved file is listed twice");
+    for file in &moved {
+        assert!(
+            inventory.files.iter().any(|entry| entry.file == *file),
+            "{file} is listed as moved but the reference does not declare it"
+        );
+    }
+
     let mut unanswered = Vec::new();
+    let mut moved_cases = 0;
     for case in &inventory.cases {
         let case_key = key(&case.file, &case.group, &case.title);
+        if moved.contains(case.file.as_str()) {
+            assert!(
+                !answered.contains_key(&case_key),
+                "{case_key} is moved but still answered here"
+            );
+            moved_cases += 1;
+            continue;
+        }
         match answered.get(&case_key) {
             None => unanswered.push(case_key),
             Some(1) => {}
@@ -181,7 +210,7 @@ fn every_upstream_case_is_answered_exactly_once() -> Result<(), Box<dyn Error>> 
         "the ledger answers cases the reference does not declare: {orphans:?}"
     );
 
-    assert_eq!(ledger.entries.len(), inventory.totals.cases);
+    assert_eq!(ledger.entries.len() + moved_cases, inventory.totals.cases);
     Ok(())
 }
 
@@ -349,9 +378,13 @@ fn the_audit_covers_the_whole_suite_by_weight_too() -> Result<(), Box<dyn Error>
     );
 
     let answered_files: BTreeSet<&str> = ledger.entries.iter().map(|entry| entry.file.as_str()).collect();
-    assert_eq!(answered_files.len(), inventory.totals.files);
+    assert_eq!(answered_files.len() + ledger.moved.files.len(), inventory.totals.files);
 
-    for case in inventory.cases.iter().filter(|case| case.assertions >= 40) {
+    for case in inventory
+        .cases
+        .iter()
+        .filter(|case| case.assertions >= 40 && !ledger.moved.files.contains(&case.file))
+    {
         let case_key = key(&case.file, &case.group, &case.title);
         let entry = ledger
             .entries
