@@ -2,8 +2,8 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::bytes::utf8_text;
-use signify_crypto::{
+use keri_cesr::bytes::utf8_text;
+use keri_cesr::crypto::{
     signer::{SignaturePlacement, Signer},
     verifier::KeyTransferability,
 };

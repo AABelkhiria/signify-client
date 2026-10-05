@@ -9,10 +9,10 @@
 
 use std::error::Error;
 
+use keri_cesr::sequence::SequenceNumber;
 use signify_acdc::credential::{Credential, RegistryIdentifier};
 use signify_acdc::ipex::Disclosure;
 use signify_acdc::revocation::RevocationEventBuilder;
-use signify_cesr::sequence::SequenceNumber;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::exchanges::ExchangeDraft;
 use signify_client::endpoint::exchanges::MultisigRoute;

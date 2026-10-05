@@ -1,7 +1,7 @@
 //! Property and invalid-near-miss coverage for self-addressing identifiers.
 
+use keri_cesr::crypto::digest::DigestAlgorithm;
 use proptest::{prelude::*, test_runner::TestCaseError};
-use signify_crypto::digest::DigestAlgorithm;
 use signify_keri::said::{DEFAULT_SAID_LABEL, DUMMY_CHARACTER, Said, SaidError, SaidVerification};
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 

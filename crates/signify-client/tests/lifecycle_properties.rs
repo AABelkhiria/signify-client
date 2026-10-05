@@ -5,12 +5,12 @@
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
+use keri_cesr::crypto::salt::SecurityTier;
 use proptest::prelude::*;
 use signify_client::client::{BOOT_PREFIX_INDEX, ClientRequest, SignifyClient};
 use signify_client::config::{ClientConfig, DEFAULT_BOOT_URL, PASSCODE_LENGTH, Passcode};
 use signify_client::error::ClientError;
 use signify_client::random::{random_nonce, random_passcode};
-use signify_crypto::salt::SecurityTier;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::ResourcePath;
 use signify_http::retry::{Clock, TestClock};

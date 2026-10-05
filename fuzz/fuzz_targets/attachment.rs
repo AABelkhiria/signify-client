@@ -2,9 +2,9 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::sequence::SequenceNumber;
+use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
+use keri_cesr::crypto::verifier::VerificationKey;
 use signify_keri::attachment::{
     AttachmentError, AttachmentFraming, ReceiptCouple, SealSourceCouple, SealSourceTriple, SignatureSeal,
     SignedMessageBuilder,

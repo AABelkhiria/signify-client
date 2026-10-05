@@ -3,7 +3,7 @@
 use core::fmt;
 use std::error::Error;
 
-use signify_crypto::CryptoError;
+use keri_cesr::crypto::CryptoError;
 
 use super::algorithm::KeyAlgorithm;
 
@@ -280,9 +280,12 @@ mod tests {
     #[test]
     fn errors_carry_readable_text_and_preserve_their_source() -> Result<(), Box<dyn Error>> {
         let crypto = ManagerError::from(
-            signify_crypto::signer::Signer::from_seed(&[], signify_crypto::verifier::KeyTransferability::Transferable)
-                .err()
-                .ok_or("an empty seed must not build a signer")?,
+            keri_cesr::crypto::signer::Signer::from_seed(
+                &[],
+                keri_cesr::crypto::verifier::KeyTransferability::Transferable,
+            )
+            .err()
+            .ok_or("an empty seed must not build a signer")?,
         );
         assert!(crypto.source().is_some());
 

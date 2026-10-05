@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::{bytes::utf8_text, sequence::SequenceNumber};
+use keri_cesr::{bytes::utf8_text, sequence::SequenceNumber};
 
 fuzz_target!(|data: &[u8]| {
     let _ = SequenceNumber::parse_raw_prefix(data);

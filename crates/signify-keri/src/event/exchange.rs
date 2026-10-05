@@ -16,9 +16,9 @@
 //! `Exchanges` class around it is transport, and belongs to Roadmap 7.7; the typed route table is
 //! Roadmap 8.1.
 
-use signify_cesr::counter::{Counter, CounterCode};
-use signify_cesr::path::{PathComponent, SadPath};
-use signify_crypto::digest::DigestAlgorithm;
+use keri_cesr::counter::{Counter, CounterCode};
+use keri_cesr::crypto::digest::DigestAlgorithm;
+use keri_cesr::path::{PathComponent, SadPath};
 
 use crate::event::error::{EventError, bounded_label};
 use crate::event::inception::ANCHORS_LABEL;

@@ -12,10 +12,10 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_http::request::ItemRange;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::serialization::{Sad, SadValue};

@@ -4,7 +4,7 @@
 use std::str::FromStr;
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::bytes::utf8_text;
+use keri_cesr::bytes::utf8_text;
 use signify_keri::event::kind::EventKind;
 use signify_keri::serialization::{Protocol, SerializationKind, VersionString};
 

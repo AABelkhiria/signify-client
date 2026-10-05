@@ -10,8 +10,7 @@ categories.workspace = true
 
 [dependencies]
 serde_json.workspace = true
-signify-cesr = { path = "../signify-cesr" }
-signify-crypto = { path = "../signify-crypto" }
+keri-cesr.workspace = true
 signify-types = { path = "../signify-types" }
 
 [dev-dependencies]

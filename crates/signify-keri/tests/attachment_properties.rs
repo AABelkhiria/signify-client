@@ -1,9 +1,9 @@
 //! Property and invalid-near-miss coverage for CESR attachments.
 
+use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
+use keri_cesr::crypto::verifier::VerificationKey;
+use keri_cesr::sequence::SequenceNumber;
 use proptest::{prelude::*, test_runner::TestCaseError};
-use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
-use signify_crypto::verifier::VerificationKey;
 use signify_keri::attachment::{
     AttachmentError, AttachmentFraming, ReceiptCouple, SealSourceCouple, SealSourceTriple, SignatureSeal,
     SignedMessageBuilder,

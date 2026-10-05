@@ -20,7 +20,7 @@
 
 use std::collections::BTreeMap;
 
-use signify_crypto::salt::{KeyDerivationProfile, SecurityTier};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, SecurityTier};
 
 use super::algorithm::KeyAlgorithm;
 use super::creator::{DerivationPath, Stem};

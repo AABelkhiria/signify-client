@@ -22,12 +22,12 @@
 //! `-C` (`NonTransReceiptCouples`) followed by verification-key/signature couples, and a
 //! transferable key in either is refused.
 
-use signify_cesr::CesrError;
-use signify_cesr::counter::{Counter, CounterCode};
-use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::CryptoError;
-use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::CesrError;
+use keri_cesr::counter::{Counter, CounterCode};
+use keri_cesr::crypto::CryptoError;
+use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
+use keri_cesr::crypto::verifier::VerificationKey;
+use keri_cesr::sequence::SequenceNumber;
 
 use crate::prefix::{IdentifierPrefix, PrefixError};
 use crate::said::{Said, SaidError};
@@ -295,9 +295,9 @@ impl SignedMessage {
 /// Attaches signatures and seals to a serialized event.
 ///
 /// ```
-/// use signify_crypto::digest::Digest;
-/// use signify_crypto::signature::IndexedSignature;
-/// use signify_crypto::verifier::VerificationKey;
+/// use keri_cesr::crypto::digest::Digest;
+/// use keri_cesr::crypto::signature::IndexedSignature;
+/// use keri_cesr::crypto::verifier::VerificationKey;
 /// use signify_keri::attachment::SignedMessageBuilder;
 /// use signify_keri::event::inception::InceptionBuilder;
 ///

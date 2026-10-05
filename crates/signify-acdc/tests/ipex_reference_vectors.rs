@@ -14,13 +14,13 @@
 use std::collections::BTreeMap;
 use std::error::Error;
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use serde::Deserialize;
 use signify_acdc::credential::{Credential, RegistryIdentifier};
 use signify_acdc::ipex::{
     ANCHOR_EMBED, ATTRIBUTES_LABEL, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexRoute,
     MESSAGE_LABEL, SCHEMA_LABEL, admit, agree, apply, grant, offer,
 };
-use signify_crypto::salt::{Salt, SecurityTier};
 use signify_keri::event::Timestamp;
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 use signify_keri::prefix::IdentifierPrefix;

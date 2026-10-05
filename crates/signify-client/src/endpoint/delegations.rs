@@ -237,7 +237,7 @@ mod tests {
     }
 
     fn artifact(delegator: Option<&str>) -> Result<IdentifierArtifact, Box<dyn Error>> {
-        use signify_crypto::salt::{Salt, SecurityTier};
+        use keri_cesr::crypto::salt::{Salt, SecurityTier};
         use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
         use signify_keri::manager::{DerivationCost, KeeperFactory};
 

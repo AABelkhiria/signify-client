@@ -13,8 +13,8 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, TestClock};
 use signify_http::signature::authentication::RequestSigner;

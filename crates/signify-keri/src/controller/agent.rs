@@ -1,7 +1,7 @@
 //! The KERIA agent's identity, validated from its key state.
 
-use signify_cesr::number::CesrNumber;
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::verifier::VerificationKey;
+use keri_cesr::number::CesrNumber;
 use signify_types::api::{KeyState, Threshold};
 
 use crate::controller::error::ControllerError;
@@ -78,7 +78,7 @@ impl Agent {
             [only] => {
                 // The reference parses the digest and then discards it; the validation is what
                 // matters, so it is kept without the value.
-                signify_crypto::digest::Digest::from_qb64(only)?;
+                keri_cesr::crypto::digest::Digest::from_qb64(only)?;
             }
             digests => {
                 return Err(ControllerError::AgentNextDigestCount { count: digests.len() });

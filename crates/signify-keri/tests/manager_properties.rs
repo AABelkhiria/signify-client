@@ -5,10 +5,10 @@
 //! machine under test do not depend on the profile, and the cross-language vectors cover the
 //! production one.
 
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::signer::{SignaturePlacement, Signer};
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::manager::{
     DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, MAX_KEYS_PER_SET, MAX_STEM_BYTES,
     ManagedSignatures, ManagerError, RetiredKeyPolicy, RotationKey, RotationRequest, SaltyKeyCreator, SignatureForm,
@@ -219,7 +219,7 @@ proptest! {
         let public_keys: Vec<String> = incepted
             .verifiers
             .iter()
-            .map(signify_crypto::verifier::VerificationKey::qb64)
+            .map(keri_cesr::crypto::verifier::VerificationKey::qb64)
             .collect::<Result<_, _>>()
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
 

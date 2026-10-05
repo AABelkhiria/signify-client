@@ -16,7 +16,7 @@ use crate::said::{DEFAULT_SAID_LABEL, Said};
 use crate::serialization::{
     IDENTIFIER_LABEL, KIND_LABEL, SAID_LABEL, SEQUENCE_LABEL, Sad, SadValue, SerializedEvent, VERSION_LABEL,
 };
-use signify_crypto::digest::DigestAlgorithm;
+use keri_cesr::crypto::digest::DigestAlgorithm;
 
 /// Builds an interaction (`ixn`) event.
 ///

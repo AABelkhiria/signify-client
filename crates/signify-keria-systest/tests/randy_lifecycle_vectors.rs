@@ -6,9 +6,9 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_keri::prefix::{IdentifierPrefix, PrefixVerification};
 use signify_keri::said::{Said, SaidVerification};
 use signify_keri::serialization::Sad;

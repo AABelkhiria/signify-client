@@ -5,10 +5,10 @@
 //! arithmetic and the state machine under test do not depend on the profile, and the
 //! cross-language vectors cover the production one exactly.
 
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::signer::SignaturePlacement;
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use proptest::prelude::*;
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::signer::SignaturePlacement;
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
 use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
 use signify_keri::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, KeyAlgorithm,
@@ -117,8 +117,8 @@ proptest! {
             .iter()
             .map(|key| {
                 let verifier = VerificationKey::from_qb64(key)?;
-                let digest = signify_crypto::digest::Digest::derive(
-                    signify_crypto::digest::DigestAlgorithm::Blake3_256,
+                let digest = keri_cesr::crypto::digest::Digest::derive(
+                    keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
                     &verifier.qb64_bytes()?,
                 );
                 digest.qb64()
@@ -241,8 +241,8 @@ proptest! {
             .iter()
             .map(|key| {
                 let verifier = VerificationKey::from_qb64(key)?;
-                signify_crypto::digest::Digest::derive(
-                    signify_crypto::digest::DigestAlgorithm::Blake3_256,
+                keri_cesr::crypto::digest::Digest::derive(
+                    keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
                     &verifier.qb64_bytes()?,
                 )
                 .qb64()

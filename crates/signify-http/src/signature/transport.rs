@@ -128,8 +128,8 @@ impl Freshness {
 ///
 /// ```
 /// use std::sync::Arc;
-/// use signify_crypto::signer::Signer;
-/// use signify_crypto::verifier::KeyTransferability;
+/// use keri_cesr::crypto::signer::Signer;
+/// use keri_cesr::crypto::verifier::KeyTransferability;
 /// use signify_http::header::HeaderValue;
 /// use signify_http::retry::TestClock;
 /// use signify_http::signature::authentication::RequestSigner;
@@ -529,8 +529,8 @@ mod tests {
     use crate::retry::TestClock;
     use crate::signature::input::SIGNATURE_INPUT_HEADER_NAME;
     use crate::transport::{Method, RequestUrl, Response, ScriptedTransport, StatusCode};
-    use signify_crypto::signer::Signer;
-    use signify_crypto::verifier::KeyTransferability;
+    use keri_cesr::crypto::signer::Signer;
+    use keri_cesr::crypto::verifier::KeyTransferability;
     use std::error::Error;
 
     /// A minimal executor; every future on this path is ready on its first poll.

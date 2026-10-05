@@ -7,10 +7,11 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::signer::SignaturePlacement;
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use serde::Deserialize;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
 use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
 use signify_keri::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, KeyAlgorithm,
@@ -302,7 +303,7 @@ fn the_salty_keeper_reproduces_the_pinned_walk() -> Result<(), Box<dyn Error>> {
         keeper
             .sign(
                 serialization,
-                &SignatureForm::Indexed(vec![signify_crypto::signer::SignaturePlacement::both_lists(3)]),
+                &SignatureForm::Indexed(vec![SignaturePlacement::both_lists(3)]),
                 SigningPurpose::Current,
             )?
             .qb64()?,
@@ -326,9 +327,7 @@ fn the_salty_keeper_reproduces_the_pinned_walk() -> Result<(), Box<dyn Error>> {
         keeper
             .sign(
                 serialization,
-                &SignatureForm::Indexed(vec![signify_crypto::signer::SignaturePlacement::current_list(
-                    current_only.index,
-                )]),
+                &SignatureForm::Indexed(vec![SignaturePlacement::current_list(current_only.index,)]),
                 SigningPurpose::Current,
             )?
             .qb64()?,
@@ -344,7 +343,7 @@ fn the_salty_keeper_reproduces_the_pinned_walk() -> Result<(), Box<dyn Error>> {
         keeper
             .sign(
                 serialization,
-                &SignatureForm::Indexed(vec![signify_crypto::signer::SignaturePlacement::both_lists_with_prior(
+                &SignatureForm::Indexed(vec![SignaturePlacement::both_lists_with_prior(
                     both_lists.index,
                     both_lists.ondex.unwrap_or_default(),
                 ),]),
@@ -471,9 +470,7 @@ fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     // A current-only placement survives the randy path too.
     let signatures = keeper.sign(
         fixture.provenance.serialization.as_bytes(),
-        &SignatureForm::Indexed(vec![signify_crypto::signer::SignaturePlacement::current_list(
-            shape.current_only_index,
-        )]),
+        &SignatureForm::Indexed(vec![SignaturePlacement::current_list(shape.current_only_index)]),
         SigningPurpose::Current,
     )?;
     let signify_keri::manager::ManagedSignatures::Indexed(indexed) = &signatures else {

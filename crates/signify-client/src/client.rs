@@ -35,8 +35,8 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
 
-use signify_crypto::salt::SecurityTier;
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::salt::SecurityTier;
+use keri_cesr::crypto::verifier::VerificationKey;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::{BaseUrl, MediaType, ResourcePath};
 use signify_http::retry::Clock;
@@ -1077,7 +1077,7 @@ fn rotation_body(rotation: &PasscodeRotation) -> Result<Vec<u8>, ClientError> {
 }
 
 /// Renders a list of sealed values as the wire's array of qualified ciphertexts.
-fn sealed_array(sealed: &[signify_crypto::cipher::Ciphertext]) -> Result<SadValue, ClientError> {
+fn sealed_array(sealed: &[keri_cesr::crypto::cipher::Ciphertext]) -> Result<SadValue, ClientError> {
     Ok(SadValue::Array(
         sealed
             .iter()

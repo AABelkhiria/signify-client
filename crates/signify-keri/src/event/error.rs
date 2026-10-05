@@ -3,8 +3,8 @@
 use core::fmt;
 use std::error::Error;
 
-use signify_cesr::CesrError;
-use signify_crypto::CryptoError;
+use keri_cesr::CesrError;
+use keri_cesr::crypto::CryptoError;
 
 use crate::prefix::PrefixError;
 use crate::said::SaidError;

@@ -7,8 +7,8 @@
 
 use std::{error::Error, fmt, num::NonZeroU128, str::FromStr};
 
+use keri_cesr::{CesrError, number::CesrNumber};
 use serde_json::Value;
-use signify_cesr::{CesrError, number::CesrNumber};
 
 /// Maximum accepted byte length of a serialized signing-threshold expression.
 pub const MAX_THRESHOLD_EXPRESSION_BYTES: usize = 512 * 1_024;

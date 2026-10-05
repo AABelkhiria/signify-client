@@ -7,10 +7,10 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::signer::{SignaturePlacement, Signer};
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::manager::{
     DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError, RotationKey,
     RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
@@ -594,7 +594,7 @@ fn the_encrypted_manager_reproduces_the_pinned_walk() -> Result<(), Box<dyn Erro
         incepted
             .verifiers
             .iter()
-            .map(signify_crypto::verifier::VerificationKey::qb64)
+            .map(keri_cesr::crypto::verifier::VerificationKey::qb64)
             .collect::<Result<Vec<_>, _>>()?,
         expected.inception.public_keys
     );
@@ -622,7 +622,7 @@ fn the_encrypted_manager_reproduces_the_pinned_walk() -> Result<(), Box<dyn Erro
             rotated
                 .verifiers
                 .iter()
-                .map(signify_crypto::verifier::VerificationKey::qb64)
+                .map(keri_cesr::crypto::verifier::VerificationKey::qb64)
                 .collect::<Result<Vec<_>, _>>()?,
             rotation.public_keys,
             "rotation {}",

@@ -9,14 +9,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
-name = "argon2"
-version = "0.6.0-rc.8"
+name = "argon2id-p1"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7af50940b73bf4e16c15c448a2b121c63f2d68e3e54b6a8731673cb4aa0cdff5"
+checksum = "4277e134b96481d4504f6ef4d124dc3e4b8a2ebd3aabe54c791719bb94f87059"
 dependencies = [
- "base64ct",
- "blake2",
- "cpufeatures",
+ "blake2b-192",
  "zeroize",
 ]
 
@@ -51,25 +49,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9"
 
 [[package]]
-name = "base64ct"
-version = "1.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
-
-[[package]]
-name = "blake2"
-version = "0.11.0-rc.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "061f1a09225e328e1ffbb378d2d49923c0ca5fee19fb5ac1cc9c1e9d52b93690"
-dependencies = [
- "digest",
-]
-
-[[package]]
 name = "blake2b-192"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6238455a3295dff43902d92de6ffcd558287a4e638aabb4685ce0c3c7015c7e3"
+checksum = "80353d6317ec2d2202449b7c8282bb5e477218bc1fac8174a88ed46d44e05a83"
 
 [[package]]
 name = "blake3"
@@ -399,6 +382,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "keri-cesr"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c208bf16cf73a702ce07e5e2f94823642031846bf4dfc3be90ea7cb15ecbe3bb"
+dependencies = [
+ "argon2id-p1",
+ "base64",
+ "blake3",
+ "ed25519-dalek",
+ "getrandom 0.3.4",
+ "nacl-sealed-box",
+ "p256",
+ "rand_core",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -653,30 +654,20 @@ dependencies = [
 name = "signify-acdc"
 version = "0.0.0"
 dependencies = [
- "signify-cesr",
- "signify-crypto",
+ "keri-cesr",
  "signify-keri",
  "signify-types",
-]
-
-[[package]]
-name = "signify-cesr"
-version = "0.0.0"
-dependencies = [
- "base64",
- "zeroize",
 ]
 
 [[package]]
 name = "signify-cesr-fuzz"
 version = "0.0.0"
 dependencies = [
+ "keri-cesr",
  "libfuzzer-sys",
  "serde_json",
  "signify-acdc",
- "signify-cesr",
  "signify-client",
- "signify-crypto",
  "signify-http",
  "signify-keri",
  "signify-types",
@@ -687,30 +678,13 @@ name = "signify-client"
 version = "0.0.0"
 dependencies = [
  "getrandom 0.3.4",
+ "keri-cesr",
  "serde",
  "serde_json",
  "signify-acdc",
- "signify-cesr",
- "signify-crypto",
  "signify-http",
  "signify-keri",
  "signify-types",
-]
-
-[[package]]
-name = "signify-crypto"
-version = "0.0.0"
-dependencies = [
- "argon2",
- "blake3",
- "ed25519-dalek",
- "getrandom 0.3.4",
- "nacl-sealed-box",
- "p256",
- "rand_core",
- "signify-cesr",
- "subtle",
- "zeroize",
 ]
 
 [[package]]
@@ -718,16 +692,15 @@ name = "signify-http"
 version = "0.0.0"
 dependencies = [
  "getrandom 0.3.4",
- "signify-crypto",
+ "keri-cesr",
 ]
 
 [[package]]
 name = "signify-keri"
 version = "0.0.0"
 dependencies = [
+ "keri-cesr",
  "serde_json",
- "signify-cesr",
- "signify-crypto",
  "signify-types",
 ]
 

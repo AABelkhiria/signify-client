@@ -8,7 +8,7 @@
 //! builder the pinned reference exports; receipt, query, and key-state messages have no
 //! implementation there at all, which `PORTING.md` §5.3 records as `N/A` for this item.
 
-use signify_crypto::digest::DigestAlgorithm;
+use keri_cesr::crypto::digest::DigestAlgorithm;
 
 use crate::event::error::EventError;
 use crate::event::inception::ANCHORS_LABEL;

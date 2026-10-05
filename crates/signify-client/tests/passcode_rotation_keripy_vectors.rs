@@ -7,9 +7,9 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::salt::SecurityTier;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_crypto::salt::SecurityTier;
 use signify_keri::controller::{Controller, ControllerOptions};
 use signify_keri::serialization::SerializedEvent;
 
@@ -250,7 +250,7 @@ fn this_ports_rotation_is_the_one_keripy_accepted() -> Result<(), Box<dyn Error>
     let signatures = artifacts
         .signatures
         .iter()
-        .map(signify_crypto::signature::IndexedSignature::qb64)
+        .map(keri_cesr::crypto::signature::IndexedSignature::qb64)
         .collect::<Result<Vec<_>, _>>()?;
     assert_eq!(signatures, corrected.sigs);
 

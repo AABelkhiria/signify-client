@@ -2,10 +2,10 @@
 
 use std::collections::BTreeMap;
 
+use keri_cesr::crypto::digest::DigestAlgorithm;
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde_json::{Map, Value};
-use signify_crypto::digest::DigestAlgorithm;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_types::api::{Hab, KeyManagerState, KeyState};
 
 use super::super::algorithm::KeyAlgorithm;
@@ -404,7 +404,7 @@ mod tests {
             Ok(ManagedSignatures::Indexed(Vec::new()))
         }
 
-        fn expose_signers(&self) -> Result<Vec<signify_crypto::signer::Signer>, ManagerError> {
+        fn expose_signers(&self) -> Result<Vec<keri_cesr::crypto::signer::Signer>, ManagerError> {
             // Externally held keys never leave their store, which is the point of the module.
             Ok(Vec::new())
         }

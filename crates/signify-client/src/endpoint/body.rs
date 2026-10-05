@@ -11,7 +11,7 @@
 //! request and the other a response. See `fixtures/client-identifiers/` and
 //! `fixtures/client-registries/`.
 
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::manager::IdentifierKeeper;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadError, SadValue};

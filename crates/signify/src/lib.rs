@@ -2,14 +2,14 @@
 
 #![forbid(unsafe_code)]
 
+/// CESR primitives.
+pub use keri_cesr as cesr;
+/// Cryptographic operations.
+pub use keri_cesr::crypto;
 /// ACDC credential protocol support.
 pub use signify_acdc as acdc;
-/// CESR primitives.
-pub use signify_cesr as cesr;
 /// High-level Signify client.
 pub use signify_client as client;
-/// Cryptographic operations.
-pub use signify_crypto as crypto;
 /// HTTP transport and authentication.
 pub use signify_http as http;
 /// KERI protocol support.

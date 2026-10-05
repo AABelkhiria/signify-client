@@ -416,14 +416,14 @@ mod driven {
 
     use std::sync::Arc;
 
+    use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+    use keri_cesr::crypto::salt::{Salt, SecurityTier};
+    use keri_cesr::crypto::signer::Signer;
+    use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
     use serde_json::Value;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::{ClientConfig, Passcode};
     use signify_client::error::ClientError;
-    use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-    use signify_crypto::salt::{Salt, SecurityTier};
-    use signify_crypto::signer::Signer;
-    use signify_crypto::verifier::{KeyTransferability, VerificationKey};
     use signify_http::signature::authentication::ResponseVerifier;
     use signify_http::signature::input::RequestTarget;
 
@@ -686,8 +686,8 @@ mod driven {
             .and_then(|keys| keys.get(1))
             .and_then(Value::as_str)
             .ok_or("the second rotation reveals nothing")?;
-        let digest = signify_crypto::digest::Digest::derive(
-            signify_crypto::digest::DigestAlgorithm::Blake3_256,
+        let digest = keri_cesr::crypto::digest::Digest::derive(
+            keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
             revealed.as_bytes(),
         );
         assert_eq!(

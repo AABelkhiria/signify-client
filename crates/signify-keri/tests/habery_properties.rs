@@ -4,9 +4,9 @@
 //! key, which a property test would multiply by its case count; the composition under test does
 //! not depend on the profile, and the cross-language vectors cover the production one exactly.
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
 use signify_keri::manager::DerivationCost;

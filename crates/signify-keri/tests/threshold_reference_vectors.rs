@@ -266,7 +266,7 @@ fn threshold_error_category(error: &ThresholdError) -> &'static str {
         ThresholdError::InvalidWeight { .. } => "InvalidWeight",
         ThresholdError::IndexOutOfRange { .. } => "IndexOutOfRange",
         ThresholdError::Cesr { source } => match source.as_ref() {
-            signify_cesr::CesrError::InvalidHexCharacter { .. } => "InvalidHexCharacter",
+            keri_cesr::CesrError::InvalidHexCharacter { .. } => "InvalidHexCharacter",
             _ => "Cesr",
         },
         _ => "Other",

@@ -11,8 +11,8 @@
 //! but its member's own position, and that a keeper only ever signs with keys it actually holds.
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
 use signify_keri::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, ManagedSignatures,
@@ -140,8 +140,8 @@ fuzz_target!(|data: &[u8]| {
             };
             let Ok(key) = member_key.verifier().qb64() else { return };
             let Ok(encoded) = member_key.verifier().qb64_bytes() else { return };
-            let digest = signify_crypto::digest::Digest::derive(
-                signify_crypto::digest::DigestAlgorithm::Blake3_256,
+            let digest = keri_cesr::crypto::digest::Digest::derive(
+                keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
                 &encoded,
             );
             let Ok(digest) = digest.qb64() else { return };

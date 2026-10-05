@@ -18,9 +18,9 @@
 //! source of positions for this one. [`SigningPurpose`] selects between the two, which is the
 //! reference's `rotated` flag.
 
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::signer::{SignaturePlacement, Signer};
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use signify_types::api::{AcceptedHab, GroupState, KeyManagerState};
 
 use super::super::algorithm::KeyAlgorithm;
@@ -218,7 +218,7 @@ impl IdentifierKeeper for GroupKeeper {
 mod tests {
     use super::*;
     use crate::manager::keeper::salty::{SaltyKeeper, SaltyKeeperConfig, SaltySource};
-    use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+    use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
     use std::error::Error;
 
     /// Builds the member set the pinned `keeping.test.ts` builds: four keys derived at
@@ -257,7 +257,7 @@ mod tests {
         let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?;
         let sealing_key =
             salt.derive_signer_with_profile("", KeyTransferability::Transferable, KeyDerivationProfile::Temporary)?;
-        let encrypter = signify_crypto::cipher::Encrypter::from_verification_key(sealing_key.verifier())?;
+        let encrypter = keri_cesr::crypto::cipher::Encrypter::from_verification_key(sealing_key.verifier())?;
         let identifier_salt = Salt::from_raw(b"fedcba9876543210", SecurityTier::Low)?;
         let sealed = encrypter.encrypt_salt(&identifier_salt)?.qb64()?;
 
@@ -439,7 +439,7 @@ mod tests {
         assert_eq!(
             indexed
                 .first()
-                .and_then(signify_crypto::signature::IndexedSignature::other_index),
+                .and_then(keri_cesr::crypto::signature::IndexedSignature::other_index),
             Some(0)
         );
         Ok(())

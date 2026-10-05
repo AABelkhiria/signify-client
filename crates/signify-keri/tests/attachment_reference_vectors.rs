@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::signature::IndexedSignature;
+use keri_cesr::sequence::SequenceNumber;
 use serde::Deserialize;
-use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::signature::IndexedSignature;
 use signify_keri::attachment::{
     AttachmentError, AttachmentFraming, SealSourceCouple, SealSourceTriple, SignatureSeal, SignedMessageBuilder,
 };

@@ -1,10 +1,10 @@
 //! The randy keeper: one identifier whose keys are random and therefore have to be kept.
 
-use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::Salt;
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::Salt;
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_types::api::{KeyManagerState, RandyState};
 
 use super::super::algorithm::KeyAlgorithm;
@@ -219,7 +219,7 @@ pub(crate) fn transferability_of(prefix: &str) -> Result<KeyTransferability, Man
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_crypto::salt::SecurityTier;
+    use keri_cesr::crypto::salt::SecurityTier;
     use std::error::Error;
 
     fn passcode_salt() -> Result<Salt, Box<dyn Error>> {
@@ -273,7 +273,7 @@ mod tests {
         assert_ne!(keeper.sealed_next_keys, committed);
 
         // And the digests the inception published commit to exactly those keys.
-        let verifier = signify_crypto::verifier::VerificationKey::from_qb64(
+        let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(
             rotated.public_keys.first().ok_or("no key was rotated to")?,
         )?;
         let digest = Digest::derive(DigestAlgorithm::Blake3_256, &verifier.qb64_bytes()?).qb64()?;
@@ -311,7 +311,7 @@ mod tests {
         keeper.incept(KeyTransferability::Transferable)?;
         let signatures = keeper.sign(
             b"current-only-randy",
-            &SignatureForm::Indexed(vec![signify_crypto::signer::SignaturePlacement::current_list(0)]),
+            &SignatureForm::Indexed(vec![keri_cesr::crypto::signer::SignaturePlacement::current_list(0)]),
             SigningPurpose::Current,
         )?;
         let ManagedSignatures::Indexed(indexed) = &signatures else {

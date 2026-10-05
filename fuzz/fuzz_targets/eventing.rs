@@ -2,8 +2,8 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::digest::Digest;
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::digest::Digest;
+use keri_cesr::crypto::verifier::VerificationKey;
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::rotation::{RotationBuilder, RotationKind};

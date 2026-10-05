@@ -4,11 +4,11 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
-use signify_crypto::cipher::{Decrypter, Encrypter};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::controller::{Controller, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_types::api::{AcceptedHab, Hab};
@@ -193,8 +193,8 @@ proptest! {
         let Some(key) = revealed(&two.rotation) else {
             return Err(TestCaseError::fail("the second rotation reveals no old key"));
         };
-        let digest = signify_crypto::digest::Digest::derive(
-            signify_crypto::digest::DigestAlgorithm::Blake3_256,
+        let digest = keri_cesr::crypto::digest::Digest::derive(
+            keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
             key.as_bytes(),
         );
         prop_assert_eq!(committed(&one.rotation), digest.qb64().ok());

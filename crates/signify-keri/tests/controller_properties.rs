@@ -4,10 +4,10 @@
 //! which a property test would multiply by its case count; the state machine under test does not
 //! depend on the profile, and the cross-language vectors cover the production one exactly.
 
+use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
+use keri_cesr::crypto::salt::SecurityTier;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
-use signify_crypto::cipher::{Decrypter, Encrypter};
-use signify_crypto::salt::SecurityTier;
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::controller::{Agent, Controller, ControllerOptions};
 use signify_keri::event::kind::EventKind;
 use signify_keri::manager::DerivationCost;
@@ -145,8 +145,8 @@ proptest! {
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let committed = current.next_digests().first().cloned();
         let arrived = next.current_keys().first().cloned().unwrap_or_default();
-        let digest = signify_crypto::digest::Digest::derive(
-            signify_crypto::digest::DigestAlgorithm::Blake3_256,
+        let digest = keri_cesr::crypto::digest::Digest::derive(
+            keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
             arrived.as_bytes(),
         );
         prop_assert_eq!(committed, digest.qb64().ok());
@@ -223,8 +223,8 @@ proptest! {
         let Some(SadValue::Text(old_key)) = keys.get(1) else {
             return Err(TestCaseError::fail("the second key is not text"));
         };
-        let digest = signify_crypto::digest::Digest::derive(
-            signify_crypto::digest::DigestAlgorithm::Blake3_256,
+        let digest = keri_cesr::crypto::digest::Digest::derive(
+            keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
             old_key.as_bytes(),
         );
         prop_assert_eq!(committed, digest.qb64().ok());
@@ -235,7 +235,7 @@ proptest! {
             let Some(SadValue::Text(key)) = keys.get(position) else {
                 return Err(TestCaseError::fail("a signature indexes a missing key"));
             };
-            let verifier = signify_crypto::verifier::VerificationKey::from_qb64(key)
+            let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)
                 .map_err(|error| TestCaseError::fail(error.to_string()))?;
             prop_assert!(verifier.verify(signature.raw(), rotation.rotation.raw()).is_ok());
         }
@@ -298,7 +298,7 @@ proptest! {
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let decrypter = Decrypter::from_signer(&prior_signer);
 
-        let signer = signify_crypto::signer::Signer::from_seed(&seed, KeyTransferability::Transferable)
+        let signer = keri_cesr::crypto::signer::Signer::from_seed(&seed, KeyTransferability::Transferable)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let public = signer
             .verifier()

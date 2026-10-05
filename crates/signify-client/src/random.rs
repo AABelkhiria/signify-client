@@ -5,9 +5,9 @@
 //! protocol crate: everything below `signify-client` takes its randomness as an argument so its
 //! output is reproducible.
 
-use signify_cesr::code::DerivationCode;
-use signify_cesr::matter::QualifiedMaterial;
-use signify_crypto::salt::{Salt, SecurityTier};
+use keri_cesr::code::DerivationCode;
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::matter::QualifiedMaterial;
 
 use crate::config::{PASSCODE_LENGTH, Passcode};
 use crate::error::ClientError;

@@ -13,8 +13,8 @@
 //! does not hold.
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::manager::{
     DerivationPath, InceptionRequest, KeyIndices, KeyManager, MAX_KEYS_PER_SET, MAX_STEM_BYTES, ManagerError,
     RotationKey, SaltyKeyCreator, SignatureForm, Stem,

@@ -586,15 +586,15 @@ mod driven {
 
     use std::sync::Arc;
 
+    use keri_cesr::crypto::cipher::Encrypter;
+    use keri_cesr::crypto::salt::{Salt, SecurityTier};
     use serde_json::Value;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::error::ClientError;
     use signify_client::multisig::GroupInceptionRequest;
-    use signify_crypto::cipher::Encrypter;
-    use signify_crypto::salt::{Salt, SecurityTier};
 
-    use signify_crypto::verifier::KeyTransferability;
+    use keri_cesr::crypto::verifier::KeyTransferability;
 
     use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
     use signify_http::transport::Transport;

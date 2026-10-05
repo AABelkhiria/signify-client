@@ -15,8 +15,8 @@
 //! cross-language vectors.
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,

@@ -8,6 +8,9 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
@@ -18,9 +21,6 @@ use signify_client::endpoint::credentials::{
     CREDENTIAL_QUERY_SEGMENT, CREDENTIALS_SEGMENT, CredentialFilter, DEFAULT_CREDENTIAL_LIMIT,
 };
 use signify_client::error::ClientError;
-use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;

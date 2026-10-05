@@ -14,10 +14,10 @@
 //! a rotation its agent rejected.
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::cipher::{Decrypter, Encrypter};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::controller::{Controller, ControllerOptions, ReEncryptedKeyState};
 use signify_keri::manager::DerivationCost;
 use signify_types::api::{AcceptedHab, Hab};

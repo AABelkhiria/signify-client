@@ -2,9 +2,9 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::bytes::utf8_text;
-use signify_cesr::indexer::IndexerCode;
-use signify_crypto::signature::{IndexedSignature, SignatureAlgorithm, UnindexedSignature};
+use keri_cesr::bytes::utf8_text;
+use keri_cesr::indexer::IndexerCode;
+use keri_cesr::crypto::signature::{IndexedSignature, SignatureAlgorithm, UnindexedSignature};
 
 fuzz_target!(|data: &[u8]| {
     for algorithm in [

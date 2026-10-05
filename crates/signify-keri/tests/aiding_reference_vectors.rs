@@ -7,11 +7,11 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::event::Timestamp;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, IdentifierError, RotateIdentifierRequest,
@@ -434,7 +434,7 @@ fn a_randy_creation_reproduces_the_recorded_shape() -> Result<(), Box<dyn Error>
     assert_eq!(keys.len(), shape.key_count);
     let first = keys
         .first()
-        .map(signify_crypto::verifier::VerificationKey::qb64)
+        .map(keri_cesr::crypto::verifier::VerificationKey::qb64)
         .transpose()?
         .unwrap_or_default();
     assert!(first.starts_with(&shape.key_code));

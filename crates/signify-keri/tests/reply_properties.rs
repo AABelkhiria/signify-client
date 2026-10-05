@@ -1,7 +1,7 @@
 //! Property and invalid-near-miss coverage for reply messages and their timestamps.
 
+use keri_cesr::crypto::digest::DigestAlgorithm;
 use proptest::{prelude::*, test_runner::TestCaseError};
-use signify_crypto::digest::DigestAlgorithm;
 use signify_keri::event::EventError;
 use signify_keri::event::reply::{MAX_ROUTE_BYTES, ReplyBuilder};
 use signify_keri::event::timestamp::Timestamp;

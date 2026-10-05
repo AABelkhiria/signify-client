@@ -22,9 +22,9 @@
 
 use core::fmt;
 
-use signify_crypto::salt::{KeyDerivationProfile, Salt};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 
 use super::error::ManagerError;
 
@@ -38,7 +38,7 @@ pub const MAX_STEM_BYTES: usize = 256;
 /// Largest derivation path this module produces, in bytes.
 ///
 /// This is `signify-crypto`'s own bound, restated because a path is assembled here.
-pub const MAX_DERIVATION_PATH_BYTES: usize = signify_crypto::salt::MAX_DERIVATION_PATH_BYTES;
+pub const MAX_DERIVATION_PATH_BYTES: usize = keri_cesr::crypto::salt::MAX_DERIVATION_PATH_BYTES;
 
 /// Largest number of keys one creator call produces.
 ///
@@ -363,8 +363,8 @@ impl RandyKeyCreator {
 /// chosen rather than the point where a key is needed.
 ///
 /// ```
-/// use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-/// use signify_crypto::verifier::KeyTransferability;
+/// use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+/// use keri_cesr::crypto::verifier::KeyTransferability;
 /// use signify_keri::manager::{KeyCreator, KeyIndices, SaltyKeyCreator, Stem};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -425,7 +425,7 @@ impl KeyCreator<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_crypto::salt::SecurityTier;
+    use keri_cesr::crypto::salt::SecurityTier;
     use std::error::Error;
 
     fn salt() -> Result<Salt, Box<dyn Error>> {

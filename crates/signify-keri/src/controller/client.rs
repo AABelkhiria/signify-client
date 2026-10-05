@@ -1,10 +1,10 @@
 //! The client's own signing identity, derived from a passcode.
 
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::signature::IndexedSignature;
-use signify_crypto::signer::{SignaturePlacement, Signer};
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::signature::IndexedSignature;
+use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
+use keri_cesr::crypto::verifier::KeyTransferability;
 
 use crate::controller::agent::Agent;
 use crate::controller::error::ControllerError;
@@ -126,7 +126,7 @@ impl DerivedKeys {
 /// branch. Both are pinned in `PORTING.md` §9.
 ///
 /// ```
-/// use signify_crypto::salt::SecurityTier;
+/// use keri_cesr::crypto::salt::SecurityTier;
 /// use signify_keri::controller::{Controller, ControllerOptions};
 /// use signify_keri::manager::DerivationCost;
 ///

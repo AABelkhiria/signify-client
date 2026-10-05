@@ -13,12 +13,12 @@
 use std::error::Error;
 use std::time::Duration;
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::sequence::SequenceNumber;
 use serde::Serialize;
-use signify_cesr::sequence::SequenceNumber;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::exchanges::ExchangeDraft;
 use signify_client::multisig::GroupInceptionRequest;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_http::request::ItemRange;
 use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::exchange::ExchangeEmbed;

@@ -8,11 +8,10 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
+keri-cesr = { version = "0.1.0", features = ["crypto"] }
 libfuzzer-sys = "0.4.13"
 signify-acdc = { path = "../crates/signify-acdc" }
 signify-client = { path = "../crates/signify-client" }
-signify-cesr = { path = "../crates/signify-cesr" }
-signify-crypto = { path = "../crates/signify-crypto" }
 signify-http = { path = "../crates/signify-http" }
 signify-keri = { path = "../crates/signify-keri" }
 signify-types = { path = "../crates/signify-types" }

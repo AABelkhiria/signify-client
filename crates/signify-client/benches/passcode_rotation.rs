@@ -13,10 +13,10 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use signify_crypto::cipher::Encrypter;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::cipher::Encrypter;
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::controller::{Controller, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_types::api::{AcceptedHab, Hab};

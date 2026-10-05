@@ -8,14 +8,14 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AgentTransport, BOOT, LIFECYCLE_REQUESTS, PASSCODE, agent_state, block_on, clock};
+use keri_cesr::crypto::salt::SecurityTier;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
 use signify_client::endpoint::identifiers::{IdentifierUpdate, LocationSchemeRequest};
 use signify_client::error::ClientError;
-use signify_crypto::salt::SecurityTier;
-use signify_crypto::verifier::KeyTransferability;
 use signify_http::request::ItemRange;
 use signify_http::transport::Transport;
 use signify_keri::event::Timestamp;
@@ -26,8 +26,8 @@ use signify_types::api::Role;
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
 
 fn sealed_salt() -> Result<&'static str, Box<dyn Error>> {
-    use signify_crypto::cipher::Encrypter;
-    use signify_crypto::salt::Salt;
+    use keri_cesr::crypto::cipher::Encrypter;
+    use keri_cesr::crypto::salt::Salt;
     static SEALED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     if let Some(sealed) = SEALED.get() {
         return Ok(sealed);

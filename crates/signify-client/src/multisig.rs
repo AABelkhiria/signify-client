@@ -133,10 +133,10 @@
 //! makes six requests here where the reference — passing the hab it already has — makes five. The
 //! group's keys come from the participants' key states either way, so nothing rests on it.
 
+use keri_cesr::sequence::SequenceNumber;
 use signify_acdc::credential::Credential;
 use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_acdc::revocation::RevocationEvent;
-use signify_cesr::sequence::SequenceNumber;
 use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::Timestamp;
 use signify_keri::event::exchange::ExchangeEmbed;
@@ -1746,7 +1746,7 @@ fn qb64_all(members: &[IdentifierPrefix]) -> Result<Vec<String>, ClientError> {
 /// Demands the indexed signatures a group proposal must attach.
 fn indexed(
     signatures: &signify_keri::manager::ManagedSignatures,
-) -> Result<Vec<signify_crypto::signature::IndexedSignature>, ClientError> {
+) -> Result<Vec<keri_cesr::crypto::signature::IndexedSignature>, ClientError> {
     match signatures {
         signify_keri::manager::ManagedSignatures::Indexed(indexed) if !indexed.is_empty() => Ok(indexed.clone()),
         _ => Err(ClientError::UnsignedGroupRequest),

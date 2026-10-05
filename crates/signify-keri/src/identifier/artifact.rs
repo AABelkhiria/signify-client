@@ -12,11 +12,11 @@
 //! [`Timestamp`] here, continuing Roadmap 3.6's decision that a protocol crate never reads the
 //! clock.
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::SecurityTier;
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
+use keri_cesr::number::CesrNumber;
 use serde_json::{Map, Value};
-use signify_cesr::number::CesrNumber;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::SecurityTier;
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
 use signify_types::api::{AcceptedHab, KeyState, Role, Threshold};
 
 use crate::event::inception::InceptionBuilder;
@@ -449,7 +449,7 @@ impl RotateIdentifierRequest {
 /// reference passes `cnfg: []` and `intive: false`.
 ///
 /// ```
-/// use signify_crypto::salt::{Salt, SecurityTier};
+/// use keri_cesr::crypto::salt::{Salt, SecurityTier};
 /// use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
 /// use signify_keri::manager::{DerivationCost, KeeperFactory};
 ///
@@ -721,7 +721,7 @@ mod tests {
     use super::*;
     use std::error::Error;
 
-    use signify_crypto::salt::Salt;
+    use keri_cesr::crypto::salt::Salt;
 
     use crate::event::kind::EventKind;
     use crate::manager::KeeperFactory;

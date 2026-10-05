@@ -16,9 +16,9 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, TestClock};
 use signify_http::signature::authentication::{RequestSigner, ResponseVerifier};

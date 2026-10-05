@@ -6,7 +6,7 @@
 //! Argon2 cost is separated from the composition around it.
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use signify_crypto::salt::SecurityTier;
+use keri_cesr::crypto::salt::SecurityTier;
 use signify_keri::controller::{Agent, Controller, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_types::api::KeyState;

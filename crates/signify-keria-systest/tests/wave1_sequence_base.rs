@@ -12,10 +12,10 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::salt::SecurityTier;
 use serde::Serialize;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::endpoint::oobis::OobiResolution;
-use signify_crypto::salt::SecurityTier;
 use signify_http::transport::RequestUrl;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::DerivationCost;

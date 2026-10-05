@@ -732,6 +732,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "keri-cesr"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c208bf16cf73a702ce07e5e2f94823642031846bf4dfc3be90ea7cb15ecbe3bb"
+dependencies = [
+ "argon2id-p1",
+ "base64",
+ "blake3",
+ "ed25519-dalek",
+ "getrandom 0.3.4",
+ "nacl-sealed-box",
+ "p256",
+ "rand_core 0.10.1",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1207,10 +1225,9 @@ dependencies = [
 name = "signify"
 version = "0.0.0"
 dependencies = [
+ "keri-cesr",
  "signify-acdc",
- "signify-cesr",
  "signify-client",
- "signify-crypto",
  "signify-http",
  "signify-keri",
  "signify-types",
@@ -1221,25 +1238,12 @@ name = "signify-acdc"
 version = "0.0.0"
 dependencies = [
  "criterion",
+ "keri-cesr",
  "proptest",
  "serde",
  "serde_json",
- "signify-cesr",
- "signify-crypto",
  "signify-keri",
  "signify-types",
-]
-
-[[package]]
-name = "signify-cesr"
-version = "0.0.0"
-dependencies = [
- "base64",
- "criterion",
- "proptest",
- "serde",
- "serde_json",
- "zeroize",
 ]
 
 [[package]]
@@ -1248,36 +1252,15 @@ version = "0.0.0"
 dependencies = [
  "criterion",
  "getrandom 0.3.4",
+ "keri-cesr",
  "proptest",
  "serde",
  "serde_json",
  "signify-acdc",
- "signify-cesr",
- "signify-crypto",
  "signify-http",
  "signify-keri",
  "signify-types",
  "tokio",
-]
-
-[[package]]
-name = "signify-crypto"
-version = "0.0.0"
-dependencies = [
- "argon2id-p1",
- "blake3",
- "criterion",
- "ed25519-dalek",
- "getrandom 0.3.4",
- "nacl-sealed-box",
- "p256",
- "proptest",
- "rand_core 0.10.1",
- "serde",
- "serde_json",
- "signify-cesr",
- "subtle",
- "zeroize",
 ]
 
 [[package]]
@@ -1291,10 +1274,10 @@ dependencies = [
  "hyper",
  "hyper-rustls",
  "hyper-util",
+ "keri-cesr",
  "proptest",
  "serde",
  "serde_json",
- "signify-crypto",
  "tokio",
 ]
 
@@ -1303,11 +1286,10 @@ name = "signify-keri"
 version = "0.0.0"
 dependencies = [
  "criterion",
+ "keri-cesr",
  "proptest",
  "serde",
  "serde_json",
- "signify-cesr",
- "signify-crypto",
  "signify-types",
 ]
 
@@ -1315,12 +1297,11 @@ dependencies = [
 name = "signify-keria-systest"
 version = "0.0.0"
 dependencies = [
+ "keri-cesr",
  "serde",
  "serde_json",
  "signify-acdc",
- "signify-cesr",
  "signify-client",
- "signify-crypto",
  "signify-http",
  "signify-keri",
  "signify-types",

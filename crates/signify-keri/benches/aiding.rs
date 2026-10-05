@@ -6,7 +6,7 @@
 //! cost is separated from the composition around it.
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use signify_crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,

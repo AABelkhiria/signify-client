@@ -23,7 +23,7 @@ use signify_acdc::ipex::{
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, admit, agree, apply, grant, offer,
 };
 use signify_acdc::issuance::issue_credential;
-use signify_crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};

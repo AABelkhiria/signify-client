@@ -1,8 +1,8 @@
 //! The finished key event shared by every builder, and the field encodings they agree on.
 
-use signify_cesr::number::CesrNumber;
-use signify_crypto::digest::Digest;
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::digest::Digest;
+use keri_cesr::crypto::verifier::VerificationKey;
+use keri_cesr::number::CesrNumber;
 
 use crate::event::config::ConfigurationTrait;
 use crate::event::error::EventError;

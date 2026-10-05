@@ -5,8 +5,8 @@
 //!
 //! This module ports the `rotate` half of `src/keri/core/eventing.ts`.
 
-use signify_crypto::digest::Digest;
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::digest::Digest;
+use keri_cesr::crypto::verifier::VerificationKey;
 
 use crate::event::error::EventError;
 use crate::event::inception::{ANCHORS_LABEL, NEXT_THRESHOLD_LABEL, SIGNING_THRESHOLD_LABEL, WITNESS_THRESHOLD_LABEL};
@@ -24,7 +24,7 @@ use crate::serialization::{
     SerializedEvent, VERSION_LABEL,
 };
 use crate::threshold::SigningThreshold;
-use signify_crypto::digest::DigestAlgorithm;
+use keri_cesr::crypto::digest::DigestAlgorithm;
 
 /// Field label carrying the prior event's digest.
 pub const PRIOR_LABEL: &str = "p";
@@ -57,7 +57,7 @@ impl RotationKind {
 /// Builds a rotation (`rot`) or delegated-rotation (`drt`) event.
 ///
 /// ```
-/// use signify_crypto::verifier::VerificationKey;
+/// use keri_cesr::crypto::verifier::VerificationKey;
 /// use signify_keri::event::rotation::RotationBuilder;
 /// use signify_keri::prefix::IdentifierPrefix;
 /// use signify_keri::said::Said;

@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::bytes::utf8_text;
+use keri_cesr::bytes::utf8_text;
 use signify_keri::threshold::{RationalWeight, SigningThreshold};
 
 fuzz_target!(|data: &[u8]| {

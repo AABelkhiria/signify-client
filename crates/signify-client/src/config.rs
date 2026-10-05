@@ -7,7 +7,7 @@
 
 use core::fmt;
 
-use signify_crypto::salt::SecurityTier;
+use keri_cesr::crypto::salt::SecurityTier;
 use signify_http::request::BaseUrl;
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;

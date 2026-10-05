@@ -12,11 +12,11 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_client::endpoint::identifiers::{
     EVENTS_SEGMENT, IDENTIFIER_RANGE_UNIT, IDENTIFIERS_SEGMENT, IdentifierUpdate,
 };
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
 use signify_keri::manager::{DerivationCost, KeeperFactory};

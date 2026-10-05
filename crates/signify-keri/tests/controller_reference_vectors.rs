@@ -8,12 +8,12 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
-use signify_crypto::cipher::{Decrypter, Encrypter};
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions, ReEncryptedKeyState};
 use signify_keri::serialization::{SadValue, SerializedEvent};
 use signify_types::api::{Hab, KeyState};
@@ -529,7 +529,7 @@ fn the_passcode_rotation_matches() -> Result<(), Box<dyn Error>> {
     let signatures = rotation
         .signatures
         .iter()
-        .map(signify_crypto::signature::IndexedSignature::qb64)
+        .map(keri_cesr::crypto::signature::IndexedSignature::qb64)
         .collect::<Result<Vec<_>, _>>()?;
     assert_eq!(signatures, fixture.rotation.signatures);
 

@@ -4,6 +4,7 @@
 //! key, which a property test would multiply by its case count; nothing under test depends on the
 //! profile, and the cross-language vectors cover the production one exactly — signatures included.
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use proptest::prelude::*;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::error::IpexError;
@@ -12,7 +13,6 @@ use signify_acdc::ipex::{
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, SCHEMA_LABEL, admit, agree, apply, grant, offer,
 };
 use signify_acdc::issuance::{IssuanceEvent, issue_credential};
-use signify_crypto::salt::{Salt, SecurityTier};
 use signify_keri::event::Timestamp;
 use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};

@@ -2,8 +2,8 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::digest::DigestAlgorithm;
 use serde::Deserialize;
-use signify_crypto::digest::DigestAlgorithm;
 use signify_keri::said::{DUMMY_CHARACTER, Said, SaidError, SaidVerification};
 use signify_keri::serialization::{Sad, SadValue};
 

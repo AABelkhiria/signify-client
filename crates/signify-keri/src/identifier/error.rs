@@ -3,7 +3,7 @@
 use core::fmt;
 use std::error::Error;
 
-use signify_cesr::CesrError;
+use keri_cesr::CesrError;
 
 use crate::event::EventError;
 use crate::manager::ManagerError;

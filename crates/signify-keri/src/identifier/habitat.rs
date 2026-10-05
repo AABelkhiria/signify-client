@@ -20,10 +20,10 @@
 //! wrong one for a test suite, so [`HaberyBuilder::derivation_cost`] accepts Roadmap 4.3's
 //! [`DerivationCost`], defaulting to production.
 
-use signify_crypto::digest::DigestAlgorithm;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::digest::DigestAlgorithm;
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 
 use crate::event::inception::InceptionBuilder;
 use crate::event::{
@@ -260,7 +260,7 @@ impl HaberyBuilder {
 /// A named collection of local identifiers sharing one key manager.
 ///
 /// ```
-/// use signify_crypto::salt::{Salt, SecurityTier};
+/// use keri_cesr::crypto::salt::{Salt, SecurityTier};
 /// use signify_keri::event::kind::EventKind;
 /// use signify_keri::identifier::{Habery, HabitatRequest};
 /// use signify_keri::manager::DerivationCost;

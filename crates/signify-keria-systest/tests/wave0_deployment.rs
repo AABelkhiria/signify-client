@@ -12,8 +12,8 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use serde::Serialize;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
 use signify_http::transport::{HttpTransport, Method, Request, RequestUrl, Transport};
 use signify_keria_systest::{Environment, Preset, record};
 

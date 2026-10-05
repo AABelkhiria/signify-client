@@ -6,10 +6,10 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
+use keri_cesr::crypto::verifier::VerificationKey;
+use keri_cesr::sequence::SequenceNumber;
 use serde::Deserialize;
-use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
-use signify_crypto::verifier::VerificationKey;
 use signify_keri::attachment::{
     AttachmentError, AttachmentFraming, ReceiptCouple, SignatureSeal, SignedMessageBuilder,
 };

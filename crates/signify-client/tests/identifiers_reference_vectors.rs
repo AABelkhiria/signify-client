@@ -8,6 +8,9 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -17,9 +20,6 @@ use signify_client::endpoint::identifiers::{
     LocationSchemeRequest, MEMBERS_SEGMENT,
 };
 use signify_client::error::ClientError;
-use signify_crypto::cipher::{Ciphertext, Decrypter};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_http::request::ItemRange;
 use signify_http::transport::{Method, Request, Transport};
 use signify_keri::event::Timestamp;
@@ -273,7 +273,7 @@ fn record_document(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
 }
 
 fn reseal(record: &Value, passcode: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-    use signify_crypto::cipher::Encrypter;
+    use keri_cesr::crypto::cipher::Encrypter;
     let mut document = record.clone();
     let signer = Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?
         .derive_signer("", KeyTransferability::NonTransferable)?;
@@ -282,7 +282,10 @@ fn reseal(record: &Value, passcode: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&document)?)
 }
 
-fn reseal_in_place(document: &mut Value, encrypter: &signify_crypto::cipher::Encrypter) -> Result<(), Box<dyn Error>> {
+fn reseal_in_place(
+    document: &mut Value,
+    encrypter: &keri_cesr::crypto::cipher::Encrypter,
+) -> Result<(), Box<dyn Error>> {
     match document {
         Value::Object(fields) => {
             if let Some(Value::String(opens_to)) = fields.get("sxlt_opens_to").cloned() {

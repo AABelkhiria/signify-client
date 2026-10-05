@@ -6,8 +6,8 @@
 //!
 //! This module ports the `incept` half of `src/keri/core/eventing.ts`.
 
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::verifier::VerificationKey;
 
 use crate::event::config::ConfigurationTrait;
 use crate::event::error::EventError;
@@ -47,7 +47,7 @@ pub const DELEGATOR_LABEL: &str = "di";
 /// [`Self::build`] runs.
 ///
 /// ```
-/// use signify_crypto::verifier::VerificationKey;
+/// use keri_cesr::crypto::verifier::VerificationKey;
 /// use signify_keri::event::inception::InceptionBuilder;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

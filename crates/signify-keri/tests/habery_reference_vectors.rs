@@ -7,9 +7,9 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::event::ConfigurationTrait;
 use signify_keri::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
 use signify_keri::manager::ManagerError;

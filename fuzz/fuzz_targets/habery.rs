@@ -13,8 +13,8 @@
 //! cross-language vectors, and the composition under test does not depend on it.
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::identifier::{Habery, HabitatRequest, IdentifierError};
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;

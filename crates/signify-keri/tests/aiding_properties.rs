@@ -4,9 +4,9 @@
 //! which a property test would multiply by its case count; the composition under test does not
 //! depend on the profile, and the cross-language vectors cover the production one exactly.
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::verifier::KeyTransferability;
 use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
@@ -193,8 +193,8 @@ proptest! {
         let digests: Vec<SadValue> = keys
             .iter()
             .filter_map(|key| match key {
-                SadValue::Text(key) => signify_crypto::digest::Digest::derive(
-                    signify_crypto::digest::DigestAlgorithm::Blake3_256,
+                SadValue::Text(key) => keri_cesr::crypto::digest::Digest::derive(
+                    keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
                     key.as_bytes(),
                 )
                 .qb64()

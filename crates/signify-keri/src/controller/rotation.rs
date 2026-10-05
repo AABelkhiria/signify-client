@@ -39,13 +39,13 @@
 //! reference's byte for byte: the `["1","0"]` weighted threshold, the key order, the signature
 //! placements, and the payload's field names. See ADR `0034`.
 
-use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signature::IndexedSignature;
-use signify_crypto::signer::SignaturePlacement;
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signature::IndexedSignature;
+use keri_cesr::crypto::signer::SignaturePlacement;
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 
 use crate::controller::client::{CONTROLLER_STEM, Controller, CurrentEvent, single_signer};
@@ -410,7 +410,7 @@ mod tests {
     use super::*;
     use std::error::Error;
 
-    use signify_crypto::salt::{Salt, SecurityTier};
+    use keri_cesr::crypto::salt::{Salt, SecurityTier};
     use signify_types::api::Hab;
 
     use crate::controller::{Controller, ControllerOptions};
@@ -494,11 +494,11 @@ mod tests {
         let mut sealed = Vec::new();
         let mut public = Vec::new();
         for seed in &seeds {
-            let signer = signify_crypto::signer::Signer::from_seed(seed, KeyTransferability::Transferable)?;
+            let signer = keri_cesr::crypto::signer::Signer::from_seed(seed, KeyTransferability::Transferable)?;
             public.push(signer.verifier().qb64()?);
             sealed.push(encrypter.encrypt_signer(&signer)?.qb64()?);
         }
-        let next_signer = signify_crypto::signer::Signer::from_seed(&[13; 32], KeyTransferability::Transferable)?;
+        let next_signer = keri_cesr::crypto::signer::Signer::from_seed(&[13; 32], KeyTransferability::Transferable)?;
         let next_sealed = encrypter.encrypt_signer(&next_signer)?.qb64()?;
         let keys = keys_override.unwrap_or_else(|| public.clone());
         let first = keys.first().cloned().unwrap_or_default();
@@ -578,7 +578,7 @@ mod tests {
             let Some(SadValue::Text(key)) = keys.get(position) else {
                 return Err("a signature indexes a missing key".into());
             };
-            let verifier = signify_crypto::verifier::VerificationKey::from_qb64(key)?;
+            let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)?;
             assert!(verifier.verify(signature.raw(), rotation.rotation.raw()).is_ok());
         }
         Ok(())
@@ -640,7 +640,7 @@ mod tests {
             return Err("the first key is not text".into());
         };
         let (event, signature) = controller.signed_event()?;
-        let verifier = signify_crypto::verifier::VerificationKey::from_qb64(new_key)?;
+        let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(new_key)?;
         assert!(verifier.verify(signature.raw(), event.raw()).is_ok());
         Ok(())
     }

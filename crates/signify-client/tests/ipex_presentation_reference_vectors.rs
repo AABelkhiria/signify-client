@@ -674,13 +674,13 @@ mod driven {
     use std::sync::Arc;
 
     use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+    use keri_cesr::crypto::cipher::Encrypter;
+    use keri_cesr::crypto::salt::{Salt, SecurityTier};
+    use keri_cesr::crypto::verifier::KeyTransferability;
     use signify_acdc::ipex::Disclosure;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::multisig::GroupDisclosureRequest;
-    use signify_crypto::cipher::Encrypter;
-    use signify_crypto::salt::{Salt, SecurityTier};
-    use signify_crypto::verifier::KeyTransferability;
     use signify_http::transport::Transport;
     use signify_keri::event::Timestamp;
     use signify_keri::manager::DerivationCost;

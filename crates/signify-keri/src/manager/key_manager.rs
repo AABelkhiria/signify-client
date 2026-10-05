@@ -17,12 +17,12 @@
 //! and the key is derived again. [`KeyManager::sign`] takes whichever route the manager is
 //! configured for.
 
-use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
-use signify_crypto::signer::{SignaturePlacement, Signer};
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
+use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 
 use super::algorithm::{CreatorKind, KeyAlgorithm};
 use super::creator::{CreatedKeys, KeyCreator, KeyIndices, RandyKeyCreator, SaltyKeyCreator, Stem};
@@ -309,7 +309,7 @@ impl KeyManagerBuilder {
 /// Creates, stores, rotates, and signs with the keys of the identifiers one controller holds.
 ///
 /// ```
-/// use signify_crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+/// use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 /// use signify_keri::manager::{InceptionRequest, KeyManager};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

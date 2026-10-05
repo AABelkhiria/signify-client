@@ -8,11 +8,11 @@
 use core::fmt;
 use std::error::Error;
 
+use keri_cesr::CesrError;
+use keri_cesr::crypto::CryptoError;
 use signify_acdc::credential::CredentialError;
 use signify_acdc::error::IpexError;
 use signify_acdc::error::TransactionError;
-use signify_cesr::CesrError;
-use signify_crypto::CryptoError;
 use signify_http::header::HeaderError;
 use signify_http::request::RequestError;
 use signify_http::response::ResponseError;

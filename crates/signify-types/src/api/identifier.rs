@@ -21,7 +21,7 @@ use super::key_state::KeyState;
 /// The security tier a salty key manager derives its keys under.
 ///
 /// This is the wire spelling KERIA stores in a salty identifier's state. The Argon2id cost profile
-/// it selects lives in `signify_crypto::salt::SecurityTier`, which this crate cannot reference:
+/// it selects lives in `keri_cesr::crypto::salt::SecurityTier`, which this crate cannot reference:
 /// `ARCHITECTURE.md` §4.3 keeps `signify-types` free of workspace dependencies so every upper crate
 /// can depend on it. The two are converted where both are in scope, which is
 /// `signify-keri::manager` (Roadmap 4.2).

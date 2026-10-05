@@ -35,8 +35,8 @@
 //! index and defaults to an empty stem. The two therefore derive different keys from the same salt,
 //! which is upstream's arrangement and is reproduced exactly.
 
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_types::api::{KeyManagerState, KeyState};
 
 use super::algorithm::KeyAlgorithm;
@@ -243,7 +243,7 @@ pub(crate) fn sign_with(
                 signer
                     .sign_indexed(
                         serialization,
-                        signify_crypto::signer::SignaturePlacement::both_lists(index),
+                        keri_cesr::crypto::signer::SignaturePlacement::both_lists(index),
                     )
                     .map_err(ManagerError::from)
             })
@@ -284,10 +284,13 @@ pub enum DerivationCost {
 impl DerivationCost {
     /// Resolves this cost against a tier.
     #[must_use]
-    pub const fn profile(self, tier: signify_crypto::salt::SecurityTier) -> signify_crypto::salt::KeyDerivationProfile {
+    pub const fn profile(
+        self,
+        tier: keri_cesr::crypto::salt::SecurityTier,
+    ) -> keri_cesr::crypto::salt::KeyDerivationProfile {
         match self {
-            Self::Production => signify_crypto::salt::KeyDerivationProfile::Standard(tier),
-            Self::Ephemeral => signify_crypto::salt::KeyDerivationProfile::Temporary,
+            Self::Production => keri_cesr::crypto::salt::KeyDerivationProfile::Standard(tier),
+            Self::Ephemeral => keri_cesr::crypto::salt::KeyDerivationProfile::Temporary,
         }
     }
 }
@@ -297,8 +300,10 @@ impl DerivationCost {
 /// # Errors
 ///
 /// Returns [`ManagerError::UnsupportedTier`] for a tier the record has no spelling for.
-pub(crate) fn key_tier(tier: signify_crypto::salt::SecurityTier) -> Result<signify_types::api::KeyTier, ManagerError> {
-    use signify_crypto::salt::SecurityTier;
+pub(crate) fn key_tier(
+    tier: keri_cesr::crypto::salt::SecurityTier,
+) -> Result<signify_types::api::KeyTier, ManagerError> {
+    use keri_cesr::crypto::salt::SecurityTier;
     use signify_types::api::KeyTier;
     match tier {
         SecurityTier::Low => Ok(KeyTier::Low),
@@ -309,8 +314,8 @@ pub(crate) fn key_tier(tier: signify_crypto::salt::SecurityTier) -> Result<signi
 }
 
 /// Maps a stored wire tier onto the derivation tier it names.
-pub(crate) const fn security_tier(tier: signify_types::api::KeyTier) -> signify_crypto::salt::SecurityTier {
-    use signify_crypto::salt::SecurityTier;
+pub(crate) const fn security_tier(tier: signify_types::api::KeyTier) -> keri_cesr::crypto::salt::SecurityTier {
+    use keri_cesr::crypto::salt::SecurityTier;
     use signify_types::api::KeyTier;
     match tier {
         KeyTier::Low => SecurityTier::Low,

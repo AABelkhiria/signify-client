@@ -1,10 +1,10 @@
 //! The salty keeper: one identifier whose keys derive from a salt of its own.
 
-use signify_crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::salt::{Salt, SecurityTier};
-use signify_crypto::signer::Signer;
-use signify_crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_cesr::crypto::signer::Signer;
+use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_types::api::{KeyManagerState, SaltyState};
 
 use super::super::algorithm::KeyAlgorithm;
@@ -407,7 +407,7 @@ mod tests {
         public_keys
             .iter()
             .map(|key| {
-                let verifier = signify_crypto::verifier::VerificationKey::from_qb64(key)?;
+                let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)?;
                 Ok(Digest::derive(algorithm, &verifier.qb64_bytes()?).qb64()?)
             })
             .collect()
@@ -429,7 +429,7 @@ mod tests {
             return Err("an indexed request produced unindexed signatures".into());
         };
         let key = incepted.public_keys.first().ok_or("no key was established")?;
-        let verifier = signify_crypto::verifier::VerificationKey::from_qb64(key)?;
+        let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)?;
         let signature = indexed.first().ok_or("no signature was produced")?;
         verifier.verify(signature.raw(), b"payload")?;
         Ok(())
@@ -442,7 +442,7 @@ mod tests {
         keeper.incept(KeyTransferability::Transferable)?;
         let signatures = keeper.sign(
             b"current-only-salty",
-            &SignatureForm::Indexed(vec![signify_crypto::signer::SignaturePlacement::current_list(0)]),
+            &SignatureForm::Indexed(vec![keri_cesr::crypto::signer::SignaturePlacement::current_list(0)]),
             SigningPurpose::Current,
         )?;
         let ManagedSignatures::Indexed(indexed) = &signatures else {

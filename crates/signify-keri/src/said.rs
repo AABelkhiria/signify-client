@@ -21,8 +21,8 @@ use core::fmt;
 use std::error::Error;
 use std::str::FromStr;
 
-use signify_cesr::code::DerivationCode;
-use signify_crypto::{
+use keri_cesr::code::DerivationCode;
+use keri_cesr::crypto::{
     CryptoError,
     digest::{Digest, DigestAlgorithm},
 };
@@ -42,7 +42,7 @@ pub const DUMMY_CHARACTER: char = '#';
 ///     said::{DEFAULT_SAID_LABEL, Said, SaidVerification},
 ///     serialization::{Sad, SadValue},
 /// };
-/// use signify_crypto::digest::DigestAlgorithm;
+/// use keri_cesr::crypto::digest::DigestAlgorithm;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut sad = Sad::new();

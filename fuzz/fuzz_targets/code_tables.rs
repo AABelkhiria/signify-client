@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::{
+use keri_cesr::{
     bytes::utf8_text,
     code::{DerivationCode, hard_code_size},
 };

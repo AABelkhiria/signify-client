@@ -8,10 +8,10 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use signify_cesr::sequence::SequenceNumber;
-use signify_crypto::digest::Digest;
-use signify_crypto::signature::{IndexedSignature, UnindexedSignature};
-use signify_crypto::verifier::VerificationKey;
+use keri_cesr::crypto::digest::Digest;
+use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
+use keri_cesr::crypto::verifier::VerificationKey;
+use keri_cesr::sequence::SequenceNumber;
 use signify_keri::attachment::{ReceiptCouple, SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::KeyEvent;
 use signify_keri::event::exchange::{ExchangeBuilder, ExchangeEmbed};

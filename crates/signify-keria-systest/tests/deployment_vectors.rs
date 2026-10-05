@@ -6,8 +6,8 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use serde::Deserialize;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
 
 #[derive(Debug, Deserialize)]
 struct Manifest {

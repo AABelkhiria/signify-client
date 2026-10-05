@@ -8,8 +8,8 @@
 use core::fmt;
 use std::error::Error;
 
-use signify_cesr::{CesrError, number::CesrNumber};
-use signify_crypto::{CryptoError, digest::Digest, verifier::VerificationKey};
+use keri_cesr::crypto::{CryptoError, digest::Digest, verifier::VerificationKey};
+use keri_cesr::{CesrError, number::CesrNumber};
 
 use crate::event::kind::{EventKind, EventKindError};
 use crate::serialization::sad::{Sad, SadError, SadValue};

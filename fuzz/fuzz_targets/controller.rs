@@ -15,7 +15,7 @@
 //! cross-language vectors, and the validation under test does not depend on it.
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::salt::SecurityTier;
+use keri_cesr::crypto::salt::SecurityTier;
 use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::SerializedEvent;

@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use signify_crypto::{
+use keri_cesr::crypto::{
     salt::{KeyDerivationProfile, Salt, SecurityTier},
     verifier::KeyTransferability,
 };

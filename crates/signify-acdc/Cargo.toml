@@ -9,14 +9,12 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-signify-cesr = { path = "../signify-cesr" }
-signify-crypto = { path = "../signify-crypto" }
+keri-cesr.workspace = true
 signify-keri = { path = "../signify-keri" }
 signify-types = { path = "../signify-types" }
 
 [dev-dependencies]
 criterion.workspace = true
-signify-crypto = { path = "../signify-crypto" }
 proptest.workspace = true
 serde.workspace = true
 serde_json.workspace = true

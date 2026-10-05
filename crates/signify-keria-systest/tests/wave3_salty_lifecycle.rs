@@ -12,11 +12,11 @@
 
 use std::error::Error;
 
+use keri_cesr::crypto::salt::SecurityTier;
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::identifiers::IdentifierUpdate;
-use signify_crypto::salt::SecurityTier;
 use signify_http::request::ItemRange;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::manager::DerivationCost;

@@ -2,8 +2,8 @@
 #![forbid(unsafe_code)]
 
 use libfuzzer_sys::fuzz_target;
-use signify_cesr::bytes::utf8_text;
-use signify_crypto::verifier::{KeyTransferability, VerificationAlgorithm, VerificationKey};
+use keri_cesr::bytes::utf8_text;
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationAlgorithm, VerificationKey};
 
 const ED25519_RAW: [u8; 32] = [
     3, 161, 7, 191, 243, 206, 16, 190, 29, 112, 221, 24, 231, 75, 192, 153, 103, 228, 214, 48,

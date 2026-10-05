@@ -110,10 +110,10 @@ mod live {
     use std::error::Error;
     use std::sync::Arc;
 
+    use keri_cesr::crypto::salt::SecurityTier;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::endpoint::oobis::OobiResolution;
-    use signify_crypto::salt::SecurityTier;
     use signify_http::retry::TokioClock;
     use signify_http::transport::RequestUrl;
     use signify_http::transport::{HttpTransport, Transport};

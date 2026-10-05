@@ -33,11 +33,11 @@ use core::fmt;
 use std::error::Error;
 use std::str::FromStr;
 
-use signify_cesr::CesrError;
-use signify_cesr::code::{DerivationCode, hard_code_size};
-use signify_crypto::CryptoError;
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::verifier::{KeyTransferability, VerificationKey};
+use keri_cesr::CesrError;
+use keri_cesr::code::{DerivationCode, hard_code_size};
+use keri_cesr::crypto::CryptoError;
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 
 use crate::event::kind::{EventKind, EventKindError};
 use crate::said::{DUMMY_CHARACTER, Said};

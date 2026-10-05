@@ -73,7 +73,7 @@
 use core::fmt;
 use std::error::Error;
 
-use signify_crypto::digest::DigestAlgorithm;
+use keri_cesr::crypto::digest::DigestAlgorithm;
 use signify_keri::event::timestamp::Timestamp;
 use signify_keri::prefix::{IdentifierPrefix, PrefixError};
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidError};

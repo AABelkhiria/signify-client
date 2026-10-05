@@ -4,13 +4,13 @@
 //! key, which a property test would multiply by its case count; nothing under test depends on the
 //! profile, and the cross-language vectors cover the production one exactly.
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use proptest::prelude::*;
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::error::TransactionError;
 use signify_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
 use signify_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
 use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
-use signify_crypto::salt::{Salt, SecurityTier};
 use signify_keri::event::Timestamp;
 use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};

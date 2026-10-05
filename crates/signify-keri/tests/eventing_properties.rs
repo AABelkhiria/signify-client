@@ -1,8 +1,8 @@
 //! Property and invalid-near-miss coverage for the core key-event builders.
 
+use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_cesr::crypto::verifier::VerificationKey;
 use proptest::{prelude::*, test_runner::TestCaseError};
-use signify_crypto::digest::{Digest, DigestAlgorithm};
-use signify_crypto::verifier::VerificationKey;
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::rotation::{RotationBuilder, RotationKind};
