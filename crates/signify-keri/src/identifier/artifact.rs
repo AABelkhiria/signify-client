@@ -16,8 +16,8 @@ use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use keri_cesr::number::CesrNumber;
+use keria_types::api::{AcceptedHab, KeyState, Role, Threshold};
 use serde_json::{Map, Value};
-use signify_types::api::{AcceptedHab, KeyState, Role, Threshold};
 
 use crate::event::inception::InceptionBuilder;
 use crate::event::interaction::InteractionBuilder;
@@ -960,13 +960,13 @@ mod tests {
         let member_artifact = incept_identifier(keeper_for(&member_request)?.as_mut(), &member_request)?;
         let member_state = state_after(&member_artifact, |_| ())?;
         let member_hab = AcceptedHab {
-            common: signify_types::api::HabCommon {
+            common: keria_types::api::HabCommon {
                 name: "member".to_owned(),
                 prefix: member_key.clone(),
                 inception_stamp: "2023-12-01T10:05:25.062609+00:00".to_owned(),
                 transferable: None,
                 witness_indexes: None,
-                key_manager: signify_types::api::KeyManagerState::Randy(signify_types::api::RandyState {
+                key_manager: keria_types::api::KeyManagerState::Randy(keria_types::api::RandyState {
                     encrypted_signing_keys: Vec::new(),
                     encrypted_next_keys: Vec::new(),
                 }),

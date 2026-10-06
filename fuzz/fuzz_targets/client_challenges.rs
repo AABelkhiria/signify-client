@@ -27,7 +27,7 @@ use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{Challenge, ChallengeOperation};
+use keria_types::api::{Challenge, ChallengeOperation};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

@@ -12,6 +12,7 @@
 
 use std::error::Error;
 
+use keria_types::api::Role;
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
@@ -21,7 +22,6 @@ use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, resolve_oobi, wait_and_delete};
-use signify_types::api::Role;
 
 #[derive(Debug, Serialize)]
 struct Captured {

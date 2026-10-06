@@ -19,10 +19,10 @@ use core::time::Duration;
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::{RegistryMetadata, UntypedOperation};
 use serde_json::Value;
 use signify_client::operation::{PollPolicy, PollableMetadata};
 use signify_http::retry::Jitter;
-use signify_types::api::{RegistryMetadata, UntypedOperation};
 
 /// A registry operation's metadata, which is the one family that always names a dependency.
 const REGISTRY_METADATA: &str =

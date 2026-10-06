@@ -15,9 +15,9 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::ReplyRecord;
 use signify_client::endpoint::escrows::{ESCROWS_SEGMENT, PRESENTATION_REQUEST_ROUTE, REPLY_SEGMENT, ROUTE_PARAMETER};
 use signify_http::request::ResourcePath;
-use signify_types::api::ReplyRecord;
 
 const DIGEST: &str = "EKpb2k5qGRzqhqpgTCL8wWyMb9Mv7HNZlS69ck7_3KDK";
 const CONTROLLER: &str = "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose";

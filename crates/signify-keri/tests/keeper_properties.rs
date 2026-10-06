@@ -8,13 +8,13 @@
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::SignaturePlacement;
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
+use keria_types::api::KeyManagerState;
 use proptest::prelude::*;
 use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
 use signify_keri::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, KeyAlgorithm,
     ManagedSignatures, ManagerError, RandyKeeperRequest, SaltyKeeper, SignatureForm, SigningPurpose, Stem,
 };
-use signify_types::api::KeyManagerState;
 
 fn salt() -> Result<Salt, ManagerError> {
     Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
@@ -258,7 +258,7 @@ proptest! {
         })?;
         inner.incept(KeyTransferability::Transferable)?;
 
-        let habitat: signify_types::api::AcceptedHab = serde_json::from_str(&format!(
+        let habitat: keria_types::api::AcceptedHab = serde_json::from_str(&format!(
             r#"{{"name":"m","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
         ))
         .map_err(|error| TestCaseError::fail(error.to_string()))?;

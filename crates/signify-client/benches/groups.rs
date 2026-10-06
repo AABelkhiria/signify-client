@@ -17,12 +17,12 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::MultisigExchangeResource;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MULTISIG_TOPIC};
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::ResourcePath;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::MultisigExchangeResource;
 
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

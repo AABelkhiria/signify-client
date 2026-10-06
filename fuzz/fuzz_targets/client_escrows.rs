@@ -28,7 +28,7 @@
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::escrows::{ESCROWS_SEGMENT, REPLY_SEGMENT, ROUTE_PARAMETER};
 use signify_http::request::{ResourcePath, encode_query_component};
-use signify_types::api::ReplyRecord;
+use keria_types::api::ReplyRecord;
 
 fuzz_target!(|data: &[u8]| {
     let mut parts = data.split(|&byte| byte == 0xff);

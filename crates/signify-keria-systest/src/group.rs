@@ -10,6 +10,7 @@
 use std::error::Error;
 
 use keri_cesr::sequence::SequenceNumber;
+use keria_types::api::Role;
 use signify_acdc::credential::{Credential, RegistryIdentifier};
 use signify_acdc::ipex::Disclosure;
 use signify_acdc::revocation::RevocationEventBuilder;
@@ -28,7 +29,6 @@ use signify_keri::manager::ManagedSignatures;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::threshold::SigningThreshold;
-use signify_types::api::Role;
 
 use crate::operation::{await_notification, wait_and_delete};
 use crate::singlesig::{credential_state, state_digest};

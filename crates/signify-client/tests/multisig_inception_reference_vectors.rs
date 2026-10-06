@@ -6,12 +6,12 @@ mod support;
 
 use std::error::Error;
 
+use keria_types::api::MultisigExchangeResource;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT};
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::MultisigExchangeResource;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-multisig-inception/v1.json");

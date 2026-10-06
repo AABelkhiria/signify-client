@@ -5,6 +5,7 @@
 use std::collections::BTreeSet;
 use std::error::Error;
 
+use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 use proptest::prelude::*;
 use serde_json::{Map, Value, json};
 use signify_acdc::ipex::IpexRoute;
@@ -13,7 +14,6 @@ use signify_client::endpoint::exchanges::{
     SIGNING_MEMBERS_LABEL, USAGE_LABEL,
 };
 use signify_client::error::ClientError;
-use signify_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
@@ -351,7 +351,7 @@ fn an_offer_embeds_a_credential_and_nothing_else() -> Result<(), Box<dyn Error>>
     assert_eq!(offer.acdc.digest, "ECRED");
 
     let block: Value = serde_json::from_str(&embeds)?;
-    assert!(serde_json::from_value::<signify_types::api::ExchangeEmbeds>(block).is_err());
+    assert!(serde_json::from_value::<keria_types::api::ExchangeEmbeds>(block).is_err());
     Ok(())
 }
 

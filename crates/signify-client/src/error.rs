@@ -10,6 +10,7 @@ use std::error::Error;
 
 use keri_cesr::CesrError;
 use keri_cesr::crypto::CryptoError;
+use keria_types::api::ApiError;
 use signify_acdc::credential::CredentialError;
 use signify_acdc::error::IpexError;
 use signify_acdc::error::TransactionError;
@@ -28,7 +29,6 @@ use signify_keri::prefix::PrefixError;
 use signify_keri::registry::RegistryError;
 use signify_keri::said::SaidError;
 use signify_keri::serialization::SerializationError;
-use signify_types::api::ApiError;
 
 /// Largest response body detail kept in an error message, in bytes.
 const MAX_DETAIL_BYTES: usize = 256;

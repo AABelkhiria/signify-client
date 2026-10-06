@@ -11,7 +11,7 @@ categories.workspace = true
 [dependencies]
 serde_json.workspace = true
 keri-cesr.workspace = true
-signify-types = { path = "../signify-types" }
+keria-types.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

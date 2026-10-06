@@ -13,9 +13,9 @@ use std::fmt::Write as _;
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::ExchangeResource;
 use signify_acdc::ipex::IpexRoute;
 use signify_client::presentation::{ReceivedStep, requested_credentials};
-use signify_types::api::ExchangeResource;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

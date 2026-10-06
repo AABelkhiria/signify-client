@@ -415,7 +415,7 @@ mod tests {
     }
 
     fn mock_agent(sequence_number_hex: &str) -> Result<crate::controller::Agent, Box<dyn Error>> {
-        let state: signify_types::api::KeyState = serde_json::from_value(serde_json::json!({
+        let state: keria_types::api::KeyState = serde_json::from_value(serde_json::json!({
             "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
             "s": sequence_number_hex,
             "p": "",

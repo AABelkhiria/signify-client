@@ -15,6 +15,7 @@ use std::time::Duration;
 
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::sequence::SequenceNumber;
+use keria_types::api::{Notification, Role};
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::exchanges::ExchangeDraft;
@@ -30,7 +31,6 @@ use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{
     Environment, agent_oobi, connect, progress, record, recorder, resolve_oobi, wait_and_delete, witness_prefixes,
 };
-use signify_types::api::{Notification, Role};
 
 const GROUP_NAME: &str = "endroles-byaid-group";
 

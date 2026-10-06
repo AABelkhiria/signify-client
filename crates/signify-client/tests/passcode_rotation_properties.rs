@@ -8,10 +8,10 @@ use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::{AcceptedHab, Hab};
 use proptest::prelude::*;
 use signify_keri::controller::{Controller, ControllerOptions};
 use signify_keri::manager::DerivationCost;
-use signify_types::api::{AcceptedHab, Hab};
 
 const ALPHABET: &str = "[0-9a-zA-Z_-]{21}";
 

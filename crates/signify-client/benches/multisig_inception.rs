@@ -18,13 +18,13 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::MultisigExchangeResource;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, GROUP_LABEL, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
 };
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT, delivery_list};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::MultisigExchangeResource;
 
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

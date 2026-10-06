@@ -12,6 +12,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{Role, Seal};
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
@@ -22,7 +23,6 @@ use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateI
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
-use signify_types::api::{Role, Seal};
 
 #[derive(Debug, Serialize)]
 struct DelegatedStep {

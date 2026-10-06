@@ -7,9 +7,9 @@
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::SecurityTier;
+use keria_types::api::KeyState;
 use signify_keri::controller::{Agent, Controller, ControllerOptions};
 use signify_keri::manager::DerivationCost;
-use signify_types::api::KeyState;
 
 const PASSCODE: &str = "0123456789abcdefghijk";
 const SECOND_PASSCODE: &str = "abcdefghijk0123456789";

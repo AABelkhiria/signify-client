@@ -12,12 +12,12 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::MultisigExchangeResource;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL};
 use signify_client::multisig::{
     ANCHOR_SLOT, ISSUANCE_ROUTE, ISSUANCE_SLOT, REGISTRY_ROUTE, REGISTRY_SLOT, REVOCATION_ROUTE, REVOCATION_SLOT,
     TRANSACTION_SLOT,
 };
-use signify_types::api::MultisigExchangeResource;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

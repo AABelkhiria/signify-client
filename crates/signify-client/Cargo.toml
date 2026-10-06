@@ -13,7 +13,7 @@ signify-acdc = { path = "../signify-acdc" }
 keri-cesr.workspace = true
 signify-http = { path = "../signify-http" }
 signify-keri = { path = "../signify-keri" }
-signify-types = { path = "../signify-types" }
+keria-types.workspace = true
 
 getrandom.workspace = true
 serde.workspace = true

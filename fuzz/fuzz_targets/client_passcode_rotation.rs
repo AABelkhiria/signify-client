@@ -20,7 +20,7 @@ use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use signify_keri::controller::{Controller, ControllerOptions, ReEncryptedKeyState};
 use signify_keri::manager::DerivationCost;
-use signify_types::api::{AcceptedHab, Hab};
+use keria_types::api::{AcceptedHab, Hab};
 
 /// A passcode is exactly twenty-one characters of the reference's own alphabet.
 fn passcode(bytes: &[u8]) -> Option<String> {

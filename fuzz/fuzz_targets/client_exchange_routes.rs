@@ -31,7 +31,7 @@ use signify_client::endpoint::exchanges::{
     ClassifiedExchange, ExchangeRoute, GROUP_LABEL, IpexPayload, MultisigRoute, ROTATION_MEMBERS_LABEL,
     SIGNING_MEMBERS_LABEL, USAGE_LABEL,
 };
-use signify_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
+use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 
 /// The four labels this port reads out of an attribute block.
 const DECLARED_LABELS: [&str; 4] = [GROUP_LABEL, SIGNING_MEMBERS_LABEL, ROTATION_MEMBERS_LABEL, USAGE_LABEL];

@@ -27,7 +27,7 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{
     INCEPTION_ROUTE, INCEPTION_SLOT, INTERACTION_ROUTE, INTERACTION_SLOT, ROTATION_ROUTE, ROTATION_SLOT,
 };
-use signify_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource, RotationRecord};
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource, RotationRecord};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

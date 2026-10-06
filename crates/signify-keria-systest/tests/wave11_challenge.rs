@@ -12,6 +12,7 @@
 
 use std::error::Error;
 
+use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::challenges::ChallengeStrength;
@@ -20,7 +21,6 @@ use signify_http::transport::RequestUrl;
 use signify_keri::said::Said;
 use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete, witness_prefixes};
-use signify_types::api::Role;
 
 #[derive(Debug, Serialize)]
 struct Captured {
@@ -68,7 +68,7 @@ async fn introduce(
     Ok(())
 }
 
-async fn bob_contact(client: &ConnectedClient) -> Result<signify_types::api::Contact, Box<dyn Error>> {
+async fn bob_contact(client: &ConnectedClient) -> Result<keria_types::api::Contact, Box<dyn Error>> {
     client
         .contacts()
         .list(None, None)

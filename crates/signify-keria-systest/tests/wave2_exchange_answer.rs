@@ -12,12 +12,12 @@
 
 use std::error::Error;
 
+use keria_types::api::{ExchangeOperation, ExchangeRecord};
 use serde::Serialize;
 use signify_client::presentation::DisclosureRequest;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
 use signify_keria_systest::{Environment, connect, introduce, progress, ready_identifier, record, recorder};
-use signify_types::api::{ExchangeOperation, ExchangeRecord};
 
 const QVI_SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 

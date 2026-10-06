@@ -7,12 +7,12 @@
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keria_types::api::KeyState;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,
 };
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
-use signify_types::api::KeyState;
 
 const PASSCODE: &str = "0123456789abcdefghijk";
 

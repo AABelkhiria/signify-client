@@ -27,7 +27,7 @@ use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::ExchangeOperation;
+use keria_types::api::ExchangeOperation;
 
 /// Whether a route's submission body carries an `atc` field, as the endpoint decides it.
 fn carries_attachment(route: IpexRoute) -> bool {

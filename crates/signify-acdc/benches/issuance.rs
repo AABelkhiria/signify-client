@@ -14,6 +14,7 @@ use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keria_types::api::KeyState;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::issuance::{IssuanceEvent, issue_credential};
 use signify_acdc::revocation::RevocationEventBuilder;
@@ -22,7 +23,6 @@ use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
-use signify_types::api::KeyState;
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";

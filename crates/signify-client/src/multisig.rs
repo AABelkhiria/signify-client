@@ -134,6 +134,10 @@
 //! group's keys come from the participants' key states either way, so nothing rests on it.
 
 use keri_cesr::sequence::SequenceNumber;
+use keria_types::api::{
+    AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
+    RegistryInceptionRecord, Threshold,
+};
 use signify_acdc::credential::Credential;
 use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_acdc::revocation::RevocationEvent;
@@ -145,10 +149,6 @@ use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
 use signify_keri::threshold::SigningThreshold;
-use signify_types::api::{
-    AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
-    RegistryInceptionRecord, Threshold,
-};
 
 use crate::client::ConnectedClient;
 use crate::endpoint::body::{sad_error, text_array};

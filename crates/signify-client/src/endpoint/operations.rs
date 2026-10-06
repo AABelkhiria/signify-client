@@ -16,10 +16,10 @@
 //! returns the untyped form and [`Operations::get_typed`] narrows it by decoding. A narrowing that
 //! does not fit is a decode failure rather than a silently wrong branch.
 
+use keria_types::api::{Operation, OperationOutcome, UntypedOperation};
 use serde::de::DeserializeOwned;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_types::api::{Operation, OperationOutcome, UntypedOperation};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json as decode;
@@ -167,7 +167,7 @@ fn bounded(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_types::api::{OperationStatus, WitnessMetadata};
+    use keria_types::api::{OperationStatus, WitnessMetadata};
     use std::error::Error;
 
     fn operation(outcome: OperationOutcome<String>) -> Operation<WitnessMetadata, String> {

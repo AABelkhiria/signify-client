@@ -4,12 +4,12 @@
 
 use std::error::Error;
 
+use keria_types::api::Notification;
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::notifications::{NOTIFICATION_RANGE_UNIT, NOTIFICATIONS_SEGMENT, NotificationListing};
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
-use signify_types::api::Notification;
 
 const NONCE: &str = "0AADChEYHyYtNDtCSVBXXmVs";
 

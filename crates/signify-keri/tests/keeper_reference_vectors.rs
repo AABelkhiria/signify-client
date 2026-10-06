@@ -379,7 +379,7 @@ fn the_salty_keeper_reproduces_the_pinned_walk() -> Result<(), Box<dyn Error>> {
 
 /// Compares a keeper's stored parameters with the reference's.
 fn assert_params(keeper: &SaltyKeeper, expected: &SaltyParams) -> Result<(), Box<dyn Error>> {
-    let signify_types::api::KeyManagerState::Salty(state) = keeper.parameters()? else {
+    let keria_types::api::KeyManagerState::Salty(state) = keeper.parameters()? else {
         return Err("a salty keeper reported another state".into());
     };
     assert_eq!(state.key_pair_index, expected.pidx);
@@ -425,7 +425,7 @@ fn every_salty_variant_derives_the_same_keys() -> Result<(), Box<dyn Error>> {
         // Inception resets the key index to zero whatever it was configured as.
         assert_eq!(keeper.key_index(), variant.kidx_after, "{}", variant.name);
 
-        let signify_types::api::KeyManagerState::Salty(state) = keeper.parameters()? else {
+        let keria_types::api::KeyManagerState::Salty(state) = keeper.parameters()? else {
             return Err("a salty keeper reported another state".into());
         };
         assert_eq!(state.stem, variant.stem_used, "{}", variant.name);
@@ -455,7 +455,7 @@ fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         Some(shape.public_key_code.clone())
     );
 
-    let signify_types::api::KeyManagerState::Randy(state) = keeper.parameters()? else {
+    let keria_types::api::KeyManagerState::Randy(state) = keeper.parameters()? else {
         return Err("a randy keeper reported another state".into());
     };
     assert_eq!(state.encrypted_signing_keys.len(), shape.sealed_key_count);
@@ -483,7 +483,7 @@ fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     // A rotation promotes the keys that were committed to, and produces new ones.
     let committed = state.encrypted_next_keys.clone();
     let rotated = keeper.rotate(KeeperRotation::to_keys(1))?;
-    let signify_types::api::KeyManagerState::Randy(after) = keeper.parameters()? else {
+    let keria_types::api::KeyManagerState::Randy(after) = keeper.parameters()? else {
         return Err("a randy keeper reported another state".into());
     };
     assert_eq!(
@@ -603,7 +603,7 @@ fn member_keeper(fixture: &Fixture) -> Result<Box<dyn IdentifierKeeper>, Box<dyn
 }
 
 /// A member identifier record naming one signing key and one committed-to digest.
-fn member_habitat(key: &str, next_digest: &str) -> Result<signify_types::api::AcceptedHab, Box<dyn Error>> {
+fn member_habitat(key: &str, next_digest: &str) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
     let document = format!(
         r#"{{"name":"member","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
     );
@@ -686,7 +686,7 @@ fn everything_the_reference_refuses_is_refused_here() -> Result<(), Box<dyn Erro
             .contains("No algo specified")
     );
     assert!(
-        serde_json::from_str::<signify_types::api::Hab>(
+        serde_json::from_str::<keria_types::api::Hab>(
             r#"{"name":"a","prefix":"E","icp_dt":"2023-12-01T10:05:25.062609+00:00"}"#
         )
         .is_err()

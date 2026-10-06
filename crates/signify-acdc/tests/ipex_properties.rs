@@ -5,6 +5,7 @@
 //! profile, and the cross-language vectors cover the production one exactly — signatures included.
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::error::IpexError;
@@ -20,7 +21,6 @@ use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, Man
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
-use signify_types::api::KeyState;
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";

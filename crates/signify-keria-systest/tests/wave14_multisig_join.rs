@@ -13,6 +13,7 @@
 use std::error::Error;
 
 use keri_cesr::sequence::SequenceNumber;
+use keria_types::api::{KeyState, Role};
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
@@ -30,7 +31,6 @@ use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::{
     Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,
 };
-use signify_types::api::{KeyState, Role};
 
 const GROUP_NAME: &str = "multisigGroup";
 

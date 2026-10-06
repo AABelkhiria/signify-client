@@ -14,6 +14,7 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::{Challenge, ChallengeOperation};
 use signify_client::endpoint::challenges::{
     CHALLENGES_SEGMENT, CHALLENGES_VERIFY_SEGMENT, ChallengeStrength, STRENGTH_PARAMETER,
 };
@@ -21,7 +22,6 @@ use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{Challenge, ChallengeOperation};
 
 const SOURCE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";

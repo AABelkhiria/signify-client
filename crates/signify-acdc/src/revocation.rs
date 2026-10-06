@@ -39,13 +39,13 @@
 //! # }
 //! ```
 
+use keria_types::api::KeyState;
 use signify_keri::event::Timestamp;
 use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::artifact::IdentifierArtifact;
 use signify_keri::manager::keeper::IdentifierKeeper;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SerializedEvent};
-use signify_types::api::KeyState;
 
 use crate::credential::RegistryIdentifier;
 use crate::error::TransactionError;

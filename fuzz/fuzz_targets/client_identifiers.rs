@@ -23,7 +23,7 @@ use signify_client::endpoint::identifiers::{
 };
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
-use signify_types::api::Hab;
+use keria_types::api::Hab;
 
 /// Every trailing segment an alias can be followed by, plus the bare record path.
 const TRAILING: [Option<&str>; 5] = [

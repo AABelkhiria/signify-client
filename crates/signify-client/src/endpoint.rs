@@ -48,7 +48,7 @@ pub mod schemas;
 /// what it should have been is the same shape whichever resource produced it.
 pub(crate) fn decode_json<T: serde::de::DeserializeOwned>(body: &[u8]) -> Result<T, crate::error::ClientError> {
     serde_json::from_slice(body).map_err(|source| crate::error::ClientError::Api {
-        source: Box::new(signify_types::api::ApiError::Json {
+        source: Box::new(keria_types::api::ApiError::Json {
             source: Box::new(source),
         }),
     })

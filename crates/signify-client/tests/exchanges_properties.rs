@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::exchanges::{EXCHANGES_SEGMENT, ExchangeDraft, MULTISIG_TOPIC, REGISTRY_TOPIC};
@@ -14,7 +15,6 @@ use signify_keri::event::timestamp::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

@@ -21,7 +21,7 @@
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
-use signify_types::api::{AcceptedHab, GroupState, KeyManagerState};
+use keria_types::api::{AcceptedHab, GroupState, KeyManagerState};
 
 use super::super::algorithm::KeyAlgorithm;
 use super::super::error::ManagerError;
@@ -86,8 +86,8 @@ impl GroupKeeper {
     pub fn from_states(
         member: Box<dyn IdentifierKeeper>,
         member_habitat: AcceptedHab,
-        states: &[signify_types::api::KeyState],
-        next_states: &[signify_types::api::KeyState],
+        states: &[keria_types::api::KeyState],
+        next_states: &[keria_types::api::KeyState],
     ) -> Result<Self, ManagerError> {
         Ok(Self::new(
             member,
@@ -416,7 +416,7 @@ mod tests {
             digests.clone(),
         );
 
-        let states: Vec<signify_types::api::KeyState> = keys
+        let states: Vec<keria_types::api::KeyState> = keys
             .iter()
             .take(3)
             .map(|key| key_state(key, digest))
@@ -445,7 +445,7 @@ mod tests {
         Ok(())
     }
 
-    fn key_state(key: &str, next_digest: &str) -> Result<signify_types::api::KeyState, Box<dyn Error>> {
+    fn key_state(key: &str, next_digest: &str) -> Result<keria_types::api::KeyState, Box<dyn Error>> {
         let document = format!(
             r#"{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}"#
         );

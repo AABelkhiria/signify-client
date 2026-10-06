@@ -5,7 +5,7 @@ use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::salt::Salt;
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
-use signify_types::api::{KeyManagerState, RandyState};
+use keria_types::api::{KeyManagerState, RandyState};
 
 use super::super::algorithm::KeyAlgorithm;
 use super::super::creator::RandyKeyCreator;

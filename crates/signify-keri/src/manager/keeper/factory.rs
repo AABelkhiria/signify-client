@@ -5,8 +5,8 @@ use std::collections::BTreeMap;
 use keri_cesr::crypto::digest::DigestAlgorithm;
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::{Hab, KeyManagerState, KeyState};
 use serde_json::{Map, Value};
-use signify_types::api::{Hab, KeyManagerState, KeyState};
 
 use super::super::algorithm::KeyAlgorithm;
 use super::super::creator::Stem;
@@ -124,7 +124,7 @@ pub enum KeeperRequest<'states> {
     /// A multisig group over a local member.
     Group {
         /// The local member identifier, whose keys sign for the group.
-        member: Box<signify_types::api::AcceptedHab>,
+        member: Box<keria_types::api::AcceptedHab>,
         /// Key states supplying the group's current signing keys.
         states: &'states [KeyState],
         /// Key states supplying the group's proposed next digests.
@@ -380,7 +380,7 @@ mod tests {
         }
 
         fn parameters(&self) -> Result<KeyManagerState, ManagerError> {
-            Ok(KeyManagerState::Extern(signify_types::api::ExternState {
+            Ok(KeyManagerState::Extern(keria_types::api::ExternState {
                 extern_type: "recording".to_owned(),
                 key_pair_index: self.key_pair_index,
                 additional: self.parameters.clone(),
@@ -465,7 +465,7 @@ mod tests {
         ));
 
         // And the same through a stored record, which is the reference's other entry point.
-        let state = KeyManagerState::Extern(signify_types::api::ExternState {
+        let state = KeyManagerState::Extern(keria_types::api::ExternState {
             extern_type: "mock".to_owned(),
             key_pair_index: 3,
             additional: Map::new(),
@@ -504,7 +504,7 @@ mod tests {
     #[test]
     fn an_external_record_reaches_its_module_with_the_stored_index() -> Result<(), Box<dyn Error>> {
         let factory = factory()?.with_module("mock", Box::new(RecordingModule));
-        let state = KeyManagerState::Extern(signify_types::api::ExternState {
+        let state = KeyManagerState::Extern(keria_types::api::ExternState {
             extern_type: "mock".to_owned(),
             key_pair_index: 3,
             additional: {
@@ -545,7 +545,7 @@ mod tests {
             .ok_or("the member committed to no keys")?;
 
         let member_hab = accepted_hab("EMEM", member_state, &member_key, &member_digest)?;
-        let group = KeyManagerState::Group(Box::new(signify_types::api::GroupState {
+        let group = KeyManagerState::Group(Box::new(keria_types::api::GroupState {
             member: member_hab,
             keys: vec![member_key.clone()],
             next_key_digests: vec![member_digest.clone()],
@@ -560,8 +560,8 @@ mod tests {
     }
 
     /// Builds the shared half of an identifier record around one key-manager state.
-    fn common(prefix: &str, state: KeyManagerState) -> signify_types::api::HabCommon {
-        signify_types::api::HabCommon {
+    fn common(prefix: &str, state: KeyManagerState) -> keria_types::api::HabCommon {
+        keria_types::api::HabCommon {
             name: "identifier".to_owned(),
             prefix: prefix.to_owned(),
             inception_stamp: "2023-12-01T10:05:25.062609+00:00".to_owned(),
@@ -573,7 +573,7 @@ mod tests {
 
     /// Builds an identifier record that has not been incepted yet.
     fn pending_hab(prefix: &str, state: KeyManagerState) -> Hab {
-        Hab::Pending(signify_types::api::PendingHab {
+        Hab::Pending(keria_types::api::PendingHab {
             common: common(prefix, state),
         })
     }
@@ -584,11 +584,11 @@ mod tests {
         state: KeyManagerState,
         key: &str,
         next_digest: &str,
-    ) -> Result<signify_types::api::AcceptedHab, Box<dyn Error>> {
+    ) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
         let document = format!(
             r#"{{"i":"{prefix}","s":"0","p":"","d":"{prefix}","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{prefix}"}},"di":""}}"#
         );
-        Ok(signify_types::api::AcceptedHab {
+        Ok(keria_types::api::AcceptedHab {
             common: common(prefix, state),
             state: Box::new(serde_json::from_str(&document)?),
         })

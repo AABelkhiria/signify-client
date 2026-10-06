@@ -25,7 +25,7 @@ use signify_keri::event::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use signify_keri::serialization::{SadValue, SerializedEvent};
-use signify_types::api::KeyState;
+use keria_types::api::KeyState;
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";

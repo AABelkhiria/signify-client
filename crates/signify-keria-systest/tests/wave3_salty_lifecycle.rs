@@ -13,6 +13,7 @@
 use std::error::Error;
 
 use keri_cesr::crypto::salt::SecurityTier;
+use keria_types::api::KeyManagerState;
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
@@ -23,7 +24,6 @@ use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::{Sad, SadValue};
 use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
-use signify_types::api::KeyManagerState;
 
 const AID1_PASSCODE: &str = "0123456789abcdefghijk";
 const AID2_PASSCODE: &str = "0123456789lmnopqrstuv";

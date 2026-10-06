@@ -23,7 +23,7 @@ use signify_client::endpoint::contacts::{
 use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::Contact;
+use keria_types::api::Contact;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

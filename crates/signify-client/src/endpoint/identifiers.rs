@@ -30,6 +30,7 @@
 
 use core::marker::PhantomData;
 
+use keria_types::api::{AcceptedHab, GroupMember, Hab, Operation, Role, UntypedOperation};
 use serde::de::DeserializeOwned;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
@@ -41,7 +42,6 @@ use signify_keri::identifier::{
 };
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{AcceptedHab, GroupMember, Hab, Operation, Role, UntypedOperation};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{insert_algorithm, sad_error, stored_transferability, text_array};
@@ -528,7 +528,7 @@ const _: Option<PhantomData<UntypedOperation>> = None;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_types::api::HabCommon;
+    use keria_types::api::HabCommon;
     use std::error::Error;
 
     #[test]

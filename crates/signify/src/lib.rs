@@ -6,6 +6,8 @@
 pub use keri_cesr as cesr;
 /// Cryptographic operations.
 pub use keri_cesr::crypto;
+/// KERIA agent API record types.
+pub use keria_types as types;
 /// ACDC credential protocol support.
 pub use signify_acdc as acdc;
 /// High-level Signify client.
@@ -14,5 +16,3 @@ pub use signify_client as client;
 pub use signify_http as http;
 /// KERI protocol support.
 pub use signify_keri as keri;
-/// Shared API types.
-pub use signify_types as types;

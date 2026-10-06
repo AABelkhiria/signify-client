@@ -15,7 +15,7 @@ signify-acdc = { path = "../signify-acdc" }
 keri-cesr.workspace = true
 signify-client = { path = "../signify-client" }
 signify-keri = { path = "../signify-keri" }
-signify-types = { path = "../signify-types" }
+keria-types.workspace = true
 signify-http = { path = "../signify-http" }
 
 [features]

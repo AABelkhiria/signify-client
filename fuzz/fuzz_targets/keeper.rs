@@ -146,7 +146,7 @@ fuzz_target!(|data: &[u8]| {
             );
             let Ok(digest) = digest.qb64() else { return };
 
-            let Ok(habitat) = serde_json::from_str::<signify_types::api::AcceptedHab>(&format!(
+            let Ok(habitat) = serde_json::from_str::<keria_types::api::AcceptedHab>(&format!(
                 r#"{{"name":"m","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
             )) else {
                 return;

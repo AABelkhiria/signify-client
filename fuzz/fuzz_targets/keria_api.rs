@@ -11,7 +11,7 @@
 //! that the byte bound is enforced before any parsing happens.
 
 use libfuzzer_sys::fuzz_target;
-use signify_types::api::{
+use keria_types::api::{
     AcdcRecord, AgentConfig, ApiError, Contact, Credential, Hab, KeyEvent, KeyState, MAX_DOCUMENT_BYTES,
     Notification, Oobi, Registry, Schema, Threshold, UntypedOperation, from_json_slice,
     from_json_slice_with_limit, to_json_string,
@@ -106,7 +106,7 @@ fuzz_target!(|data: &[u8]| {
         // Added by Roadmap 6.10, the first item to make this record a trust boundary: it is the
         // whole response of `Schemas.get`, and its `properties` map is open JSON Schema.
         12 => round_trip!(Schema, body),
-        _ => round_trip!(signify_types::api::ExchangeEmbeds, body),
+        _ => round_trip!(keria_types::api::ExchangeEmbeds, body),
     };
 
     // An accepted document is JSON, so it can never be empty.
@@ -124,7 +124,7 @@ fuzz_target!(|data: &[u8]| {
 
     // A key event that decodes always reports the ilk it was chosen by, and writes it back.
     if let Ok(event) = from_json_slice::<KeyEvent>(body) {
-        assert!(signify_types::api::KEY_EVENT_ILKS.contains(&event.kind()));
+        assert!(keria_types::api::KEY_EVENT_ILKS.contains(&event.kind()));
         let encoded = to_json_string(&event).expect("a decoded key event must encode");
         assert!(encoded.contains(&format!("\"t\":\"{}\"", event.kind())));
         assert_eq!(event.is_establishment(), event.kind() != "ixn");

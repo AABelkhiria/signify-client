@@ -12,6 +12,7 @@
 
 use std::error::Error;
 
+use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
@@ -24,7 +25,6 @@ use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{
     Environment, Recorder, connect, progress, record, recorder, wait_and_delete, witness_prefixes,
 };
-use signify_types::api::Role;
 
 #[derive(Debug, Serialize)]
 struct StateBrief {

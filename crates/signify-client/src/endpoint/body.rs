@@ -12,10 +12,10 @@
 //! `fixtures/client-registries/`.
 
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 use signify_keri::manager::IdentifierKeeper;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadError, SadValue};
-use signify_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 
 use crate::error::ClientError;
 
@@ -129,7 +129,7 @@ pub(crate) fn randy_block(
 /// Re-encodes one identifier record as the ordered document it decoded from.
 pub(crate) fn record_document(record: &AcceptedHab) -> Result<Sad, ClientError> {
     let encoded = serde_json::to_vec(record).map_err(|source| ClientError::Api {
-        source: Box::new(signify_types::api::ApiError::Json {
+        source: Box::new(keria_types::api::ApiError::Json {
             source: Box::new(source),
         }),
     })?;
@@ -181,7 +181,7 @@ pub(crate) fn sad_error(source: SadError) -> ClientError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_types::api::KeyTier;
+    use keria_types::api::KeyTier;
     use std::error::Error;
 
     fn salty_state() -> SaltyState {

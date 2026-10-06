@@ -111,6 +111,7 @@ mod live {
     use std::sync::Arc;
 
     use keri_cesr::crypto::salt::SecurityTier;
+    use keria_types::api::Role;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::endpoint::oobis::OobiResolution;
@@ -120,7 +121,6 @@ mod live {
     use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
     use signify_keri::manager::DerivationCost;
     use signify_keri::prefix::IdentifierPrefix;
-    use signify_types::api::Role;
 
     use crate::preset::Environment;
     use crate::recorder::Recorder;

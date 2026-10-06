@@ -3,7 +3,7 @@
 use core::fmt;
 use core::str::FromStr;
 
-use signify_types::api::KeyManagerState;
+use keria_types::api::KeyManagerState;
 
 use super::error::ManagerError;
 
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn an_identifier_record_reports_its_algorithm() -> Result<(), Box<dyn Error>> {
-        let randy: signify_types::api::Hab = serde_json::from_str(
+        let randy: keria_types::api::Hab = serde_json::from_str(
             r#"{"name":"a","prefix":"E","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{"prxs":[],"nxts":[]}}"#,
         )?;
         assert_eq!(KeyAlgorithm::from(&randy.common().key_manager), KeyAlgorithm::Randy);

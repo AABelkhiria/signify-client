@@ -23,7 +23,7 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INTERACTION_ROUTE, INTERACTION_SLOT};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
-use signify_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

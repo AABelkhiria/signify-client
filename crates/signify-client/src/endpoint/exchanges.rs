@@ -61,6 +61,7 @@ pub use message::{
 };
 pub use route::{ExchangeRoute, MultisigRoute, UnknownExchangeRoute};
 
+use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource, Hab};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
 use signify_keri::event::exchange::{ExchangeBuilder, ExchangeEmbed, ExchangeMessage};
@@ -69,7 +70,6 @@ use signify_keri::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource, Hab};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};

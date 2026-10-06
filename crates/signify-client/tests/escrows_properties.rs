@@ -4,11 +4,11 @@
 
 use std::error::Error;
 
+use keria_types::api::ReplyRecord;
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::escrows::{ESCROWS_SEGMENT, PRESENTATION_REQUEST_ROUTE, REPLY_SEGMENT, ROUTE_PARAMETER};
 use signify_http::request::{MAX_QUERY_BYTES, ResourcePath, encode_query_component};
-use signify_types::api::ReplyRecord;
 
 fn listing(route: Option<&str>) -> Result<ResourcePath, Box<dyn Error>> {
     Ok(ResourcePath::builder()

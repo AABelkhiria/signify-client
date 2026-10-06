@@ -24,7 +24,7 @@ use signify_keri::event::ConfigurationTrait;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::registry::RegistryInceptionBuilder;
 use signify_keri::serialization::SerializedEvent;
-use signify_types::api::{Registry, RegistryOperation};
+use keria_types::api::{Registry, RegistryOperation};
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 

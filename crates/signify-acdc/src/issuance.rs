@@ -51,6 +51,7 @@
 //! # }
 //! ```
 
+use keria_types::api::KeyState;
 use signify_keri::attachment::{AttachmentFraming, SealSourceCouple, SealSourceTriple};
 use signify_keri::event::Timestamp;
 use signify_keri::event::kind::EventKind;
@@ -59,7 +60,6 @@ use signify_keri::manager::keeper::IdentifierKeeper;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SerializedEvent};
-use signify_types::api::KeyState;
 
 use crate::credential::{Credential, RegistryIdentifier};
 use crate::error::TransactionError;

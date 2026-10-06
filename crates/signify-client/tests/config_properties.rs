@@ -4,11 +4,11 @@
 
 use std::error::Error;
 
+use keria_types::api::AgentConfig;
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::config::CONFIG_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_types::api::AgentConfig;
 
 fn introduction_urls() -> impl Strategy<Value = Vec<String>> {
     proptest::collection::vec(

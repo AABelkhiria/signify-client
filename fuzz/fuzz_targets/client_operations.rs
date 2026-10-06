@@ -18,7 +18,7 @@ use signify_client::endpoint::operations::{
 };
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use signify_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
+use keria_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
 
 fuzz_target!(|data: &[u8]| {
     let mut parts = data.split(|&byte| byte == 0xff);

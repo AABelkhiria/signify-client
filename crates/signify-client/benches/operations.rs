@@ -8,9 +8,9 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::{KeyEvent, Operation, UntypedOperation, WitnessMetadata};
 use signify_client::endpoint::operations::{OPERATIONS_SEGMENT, TYPE_PARAMETER, completed};
 use signify_http::request::ResourcePath;
-use signify_types::api::{KeyEvent, Operation, UntypedOperation, WitnessMetadata};
 
 const NAME: &str = "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0";
 

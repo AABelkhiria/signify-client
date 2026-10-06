@@ -5,6 +5,7 @@
 use core::time::Duration;
 use std::error::Error;
 
+use keria_types::api::Role;
 use serde_json::Value;
 use signify_client::client::{ClientRequest, ConnectedClient};
 use signify_client::endpoint::oobis::{OobiResolution, RESOLUTIONS_SEGMENT};
@@ -13,7 +14,6 @@ use signify_http::retry::{Clock, TokioClock};
 use signify_http::transport::Method;
 use signify_http::transport::RequestUrl;
 use signify_keri::said::Said;
-use signify_types::api::Role;
 
 use crate::preset::Environment;
 
@@ -149,7 +149,7 @@ pub async fn resolve_schema(
     let response = client
         .fetch(ClientRequest::new(Method::Post, path).body(resolution.body()?))
         .await?;
-    let submitted: signify_types::api::UntypedOperation = serde_json::from_slice(response.body())?;
+    let submitted: keria_types::api::UntypedOperation = serde_json::from_slice(response.body())?;
     wait_and_delete(client, &submitted.name).await?;
     Ok(())
 }

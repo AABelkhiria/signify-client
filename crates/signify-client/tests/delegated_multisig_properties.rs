@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::delegations::InceptionSeal;
@@ -13,7 +14,6 @@ use signify_client::endpoint::exchanges::{
 use signify_client::multisig::{INTERACTION_ROUTE, INTERACTION_SLOT};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
-use signify_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

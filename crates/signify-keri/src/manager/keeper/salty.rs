@@ -5,7 +5,7 @@ use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
-use signify_types::api::{KeyManagerState, SaltyState};
+use keria_types::api::{KeyManagerState, SaltyState};
 
 use super::super::algorithm::KeyAlgorithm;
 use super::super::creator::{KeyIndices, SaltyKeyCreator, Stem};
@@ -275,7 +275,7 @@ const ED25519_SEED_CODE: &str = "A";
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_types::api::KeyTier;
+    use keria_types::api::KeyTier;
     use std::error::Error;
 
     /// A cheap configuration; a keeper built this way is ephemeral and cannot be stored.

@@ -11,6 +11,7 @@
 use std::collections::BTreeMap;
 use std::error::Error;
 
+use keria_types::api::KeyState;
 use serde::Deserialize;
 use signify_acdc::credential::RegistryIdentifier;
 use signify_acdc::error::TransactionError;
@@ -21,7 +22,6 @@ use signify_keri::attachment::{AttachmentFraming, SealSourceCouple};
 use signify_keri::event::Timestamp;
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use signify_keri::serialization::{Sad, SerializedEvent};
-use signify_types::api::KeyState;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/acdc-issuance/v1.json");

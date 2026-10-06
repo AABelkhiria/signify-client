@@ -6,8 +6,8 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keria_types::api::{ExchangeOperation, ExchangeRecord, OperationOutcome};
 use serde::Deserialize;
-use signify_types::api::{ExchangeOperation, ExchangeRecord, OperationOutcome};
 
 #[derive(Debug, Deserialize)]
 struct Captured {

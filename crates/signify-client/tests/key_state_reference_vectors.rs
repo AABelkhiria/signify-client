@@ -8,6 +8,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use keria_types::api::{EchoedSequence, OperationOutcome, QueryOperation, Seal};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -18,7 +19,6 @@ use signify_client::error::ClientError;
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::{EchoedSequence, OperationOutcome, QueryOperation, Seal};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-key-state/v1.json");

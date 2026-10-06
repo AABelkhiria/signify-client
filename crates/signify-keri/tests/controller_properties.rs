@@ -7,12 +7,12 @@
 use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_keri::controller::{Agent, Controller, ControllerOptions};
 use signify_keri::event::kind::EventKind;
 use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::{SadValue, SerializedEvent};
-use signify_types::api::KeyState;
 
 /// The Base64 URL-safe alphabet a passcode draws from.
 const ALPHABET: &str = "[A-Za-z0-9_-]{21}";
@@ -310,7 +310,7 @@ proptest! {
             .qb64()
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
 
-        let record: signify_types::api::Hab = serde_json::from_value(serde_json::json!({
+        let record: keria_types::api::Hab = serde_json::from_value(serde_json::json!({
             "name": "aid",
             "prefix": public.clone(),
             "icp_dt": "2023-12-01T10:05:25.062609+00:00",
@@ -327,7 +327,7 @@ proptest! {
             }
         }))
         .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let signify_types::api::Hab::Accepted(record) = record else {
+        let keria_types::api::Hab::Accepted(record) = record else {
             return Err(TestCaseError::fail("the record parsed as pending"));
         };
 

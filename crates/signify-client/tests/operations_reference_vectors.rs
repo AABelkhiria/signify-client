@@ -6,6 +6,7 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
+use keria_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
 use serde::Deserialize;
 use signify_client::client::SignifyClient;
 use signify_client::config::ClientConfig;
@@ -17,7 +18,6 @@ use signify_http::retry::{Clock, TestClock};
 use signify_http::signature::transport::Freshness;
 use signify_http::transport::{Response, ScriptedTransport, StatusCode};
 use signify_keri::manager::DerivationCost;
-use signify_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-operations/v1.json");

@@ -18,9 +18,9 @@
 //! read as configuration. Here the answer is decoded, so it either is an [`AgentConfig`] or is
 //! [`ClientError::Api`]. See `fixtures/client-config/`.
 
+use keria_types::api::AgentConfig;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_types::api::AgentConfig;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json;

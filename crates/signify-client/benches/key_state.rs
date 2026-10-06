@@ -11,11 +11,11 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::{KeyEventRecord, KeyState, QueryOperation, Seal};
 use signify_client::endpoint::key_events::{EVENTS_SEGMENT, PREFIX_PARAMETER};
 use signify_client::endpoint::key_states::{KeyStateQuery, QUERIES_SEGMENT, QuerySequence, STATES_SEGMENT};
 use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::{KeyEventRecord, KeyState, QueryOperation, Seal};
 
 const PREFIX: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const OTHER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

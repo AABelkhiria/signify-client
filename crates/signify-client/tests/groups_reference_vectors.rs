@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{GroupOperation, MultisigExchangeResource};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MULTISIG_TOPIC, MultisigRoute};
@@ -11,7 +12,6 @@ use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_S
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::ResourcePath;
 use signify_keri::said::Said;
-use signify_types::api::{GroupOperation, MultisigExchangeResource};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-groups/v1.json");
@@ -539,10 +539,7 @@ fn a_join_is_answered_with_the_operation_it_declares() -> Result<(), Box<dyn Err
     let operation: GroupOperation = serde_json::from_value(recorded.answer.clone())?;
     assert_eq!(operation.name, format!("group.{GROUP}"));
     assert!(!operation.outcome.is_done());
-    assert!(matches!(
-        operation.outcome,
-        signify_types::api::OperationOutcome::Pending
-    ));
+    assert!(matches!(operation.outcome, keria_types::api::OperationOutcome::Pending));
 
     assert_eq!(fixture.declarations.join_return_type, "Promise<GroupOperation>");
     assert_eq!(fixture.declarations.send_request_return_type, "Promise<Exn>");

@@ -2,7 +2,7 @@
 
 use keri_cesr::crypto::verifier::VerificationKey;
 use keri_cesr::number::CesrNumber;
-use signify_types::api::{KeyState, Threshold};
+use keria_types::api::{KeyState, Threshold};
 
 use crate::controller::error::ControllerError;
 use crate::event::kind::EventKind;
@@ -24,7 +24,7 @@ use crate::threshold::SigningThreshold;
 ///
 /// ```
 /// use signify_keri::controller::Agent;
-/// use signify_types::api::KeyState;
+/// use keria_types::api::KeyState;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let state: KeyState = serde_json::from_str(

@@ -6,6 +6,7 @@
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{
@@ -15,7 +16,6 @@ use signify_keri::identifier::{
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 use signify_keri::threshold::SigningThreshold;
-use signify_types::api::KeyState;
 
 const PASSCODE: &str = "0123456789abcdefghijk";
 

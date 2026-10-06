@@ -21,13 +21,13 @@
 //! identifier lookup has already gone out. Here it is a typed refusal checked first, which is what
 //! Roadmap 6.2 decided for an establishment-only issuer. See `fixtures/client-registries/`.
 
+use keria_types::api::{Hab, Registry, RegistryOperation};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
 use signify_keri::event::ConfigurationTrait;
 use signify_keri::identifier::interact_identifier;
 use signify_keri::registry::RegistryInceptionBuilder;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{Hab, Registry, RegistryOperation};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{insert_algorithm, sad_error, stored_transferability, text_array};

@@ -49,9 +49,9 @@
 //! every record with an open field; here it is the reason a caller who needs to check an escrowed
 //! reply must do it against the response body rather than against the decoded record.
 
+use keria_types::api::ReplyRecord;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_types::api::ReplyRecord;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json;

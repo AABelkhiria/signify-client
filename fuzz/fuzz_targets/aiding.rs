@@ -23,7 +23,7 @@ use signify_keri::identifier::{
 };
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 use signify_keri::serialization::SerializedEvent;
-use signify_types::api::KeyState;
+use keria_types::api::KeyState;
 
 /// The key-state fields the fuzzer replaces, selected by the first input byte.
 const FIELDS: [&str; 8] = ["i", "s", "d", "nt", "b", "di", "k", "n"];

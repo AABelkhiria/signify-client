@@ -24,11 +24,11 @@
 //! Roadmap 5.3's builder would encode it exactly once even if it could. See
 //! `fixtures/client-contacts/`.
 
+use keria_types::api::Contact;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::Sad;
-use signify_types::api::Contact;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::sad_error;
@@ -159,7 +159,7 @@ impl<'client> Contacts<'client> {
     /// `info` is an ordered document, which is what Roadmap 6.6 settled a request body is here: the
     /// reference hands the caller's object literal to `JSON.stringify`, so the field order on the
     /// wire is the caller's. Any field the agent does not recognise is stored and comes back in
-    /// [`Contact::additional`](signify_types::api::Contact::additional).
+    /// [`Contact::additional`](keria_types::api::Contact::additional).
     ///
     /// # Errors
     ///

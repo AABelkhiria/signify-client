@@ -46,7 +46,7 @@ use keri_cesr::crypto::signature::IndexedSignature;
 use keri_cesr::crypto::signer::SignaturePlacement;
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
-use signify_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
+use keria_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 
 use crate::controller::client::{CONTROLLER_STEM, Controller, CurrentEvent, single_signer};
 use crate::controller::error::ControllerError;
@@ -411,7 +411,7 @@ mod tests {
     use std::error::Error;
 
     use keri_cesr::crypto::salt::{Salt, SecurityTier};
-    use signify_types::api::Hab;
+    use keria_types::api::Hab;
 
     use crate::controller::{Controller, ControllerOptions};
     use crate::event::kind::EventKind;
@@ -647,7 +647,7 @@ mod tests {
 
     /// An agent whose inception a controller can anchor.
     fn agent() -> Result<crate::controller::Agent, Box<dyn Error>> {
-        let state: signify_types::api::KeyState = serde_json::from_value(serde_json::json!({
+        let state: keria_types::api::KeyState = serde_json::from_value(serde_json::json!({
             "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
             "s": "0",
             "p": "",

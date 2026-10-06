@@ -30,10 +30,10 @@
 
 use serde_json::{Map, Value};
 
+use keria_types::api::MultisigExchangeResource;
+use keria_types::api::{AcdcRecord, ExchangeEmbed, ExchangeEmbeds, ExchangeRecord, ExchangeResource};
 use signify_acdc::ipex::IpexRoute;
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::MultisigExchangeResource;
-use signify_types::api::{AcdcRecord, ExchangeEmbed, ExchangeEmbeds, ExchangeRecord, ExchangeResource};
 
 use super::route::{ExchangeRoute, MultisigRoute};
 use crate::error::ClientError;
@@ -216,7 +216,7 @@ pub struct IpexStep {
 ///
 /// ```
 /// use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
-/// use signify_types::api::ExchangeResource;
+/// use keria_types::api::ExchangeResource;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // A route the table does not name is a message, not a failure: this crate sends one.
@@ -407,7 +407,7 @@ fn decode_embeds(
 /// which is what keeps a malformed embed a typed failure instead of a panic.
 fn decode_block<T: serde::de::DeserializeOwned>(block: &Map<String, Value>) -> Result<T, ClientError> {
     serde_json::from_value(Value::Object(block.clone())).map_err(|source| ClientError::Api {
-        source: Box::new(signify_types::api::ApiError::Json {
+        source: Box::new(keria_types::api::ApiError::Json {
             source: Box::new(source),
         }),
     })

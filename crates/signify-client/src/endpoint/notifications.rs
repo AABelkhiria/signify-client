@@ -26,10 +26,10 @@
 //! keeps the two apart and makes an unreported window [`None`], which is what Roadmap 5.3 decided
 //! and Roadmap 6.6 already applied to the identifier listing.
 
+use keria_types::api::Notification;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::{ContentRange, ResponseError};
 use signify_http::transport::Method;
-use signify_types::api::Notification;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json;

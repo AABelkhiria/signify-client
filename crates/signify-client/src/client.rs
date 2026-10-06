@@ -37,6 +37,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::VerificationKey;
+use keria_types::api::{AcceptedHab, KeyState};
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::{BaseUrl, MediaType, ResourcePath};
 use signify_http::retry::Clock;
@@ -48,7 +49,6 @@ use signify_keri::controller::{Agent, Controller, ControllerOptions, PasscodeRot
 use signify_keri::manager::{KeeperFactory, salt_from_passcode};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
-use signify_types::api::{AcceptedHab, KeyState};
 
 use crate::config::{ClientConfig, Passcode};
 use crate::endpoint::challenges::Challenges;
@@ -679,7 +679,7 @@ impl ConnectedClient {
         let record = self.identifiers().get(alias).await?;
         let keeper = self
             .keepers
-            .keeper_for(&signify_types::api::Hab::Accepted(record.clone()))?;
+            .keeper_for(&keria_types::api::Hab::Accepted(record.clone()))?;
         let signer = keeper
             .expose_signers()?
             .into_iter()

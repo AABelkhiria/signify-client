@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keria_types::api::Contact;
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::contacts::{
@@ -12,7 +13,6 @@ use signify_client::endpoint::contacts::{
 use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::Contact;
 
 const CONTACT: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 

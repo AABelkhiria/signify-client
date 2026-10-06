@@ -10,6 +10,7 @@ use std::sync::Arc;
 use std::time::{Instant, SystemTime};
 
 use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use keria_types::api::{DelegatorMetadata, Operation, RegistryMetadata};
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -19,7 +20,6 @@ use signify_client::operation::{Dependency, PollPolicy, PollableMetadata, Pollin
 use signify_http::retry::{Backoff, Clock, Jitter, RetryDecision, TestClock};
 use signify_http::transport::{Method, Transport};
 use signify_keri::manager::DerivationCost;
-use signify_types::api::{DelegatorMetadata, Operation, RegistryMetadata};
 
 const NAME: &str = "witness.EABC.0";
 

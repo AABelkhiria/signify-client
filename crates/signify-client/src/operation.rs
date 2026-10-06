@@ -54,17 +54,17 @@ use core::fmt;
 use core::time::Duration;
 use std::sync::Arc;
 
+use keria_types::api::{
+    ChallengeMetadata, CredentialMetadata, DelegatorMetadata, DoneMetadata, EndRoleMetadata, ExchangeMetadata,
+    KelMetadata, LocationSchemeMetadata, LogPositionMetadata, OobiMetadata, Operation, OperationOutcome, QueryMetadata,
+    RegistryMetadata,
+};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use signify_http::retry::{
     Backoff, Jitter, JitterSource, OsJitter, RetryDecision, RetryPolicy, RetryPolicyError, RetryScope, StopReason,
 };
 use signify_http::transport::Method;
-use signify_types::api::{
-    ChallengeMetadata, CredentialMetadata, DelegatorMetadata, DoneMetadata, EndRoleMetadata, ExchangeMetadata,
-    KelMetadata, LocationSchemeMetadata, LogPositionMetadata, OobiMetadata, Operation, OperationOutcome, QueryMetadata,
-    RegistryMetadata,
-};
 
 use crate::client::ConnectedClient;
 use crate::endpoint::operations::completed;
@@ -99,7 +99,7 @@ pub struct Dependency {
 ///
 /// This is the typed counterpart of the reference's `hasDepends`, which is a run-time
 /// `'depends' in op.metadata`. It is implemented for every metadata type in
-/// [`signify_types::api`], and exactly three of them — a registry, a credential, and a delegator
+/// [`keria_types::api`], and exactly three of them — a registry, a credential, and a delegator
 /// operation — return anything but [`None`], which is precisely the set the schema declares.
 pub trait PollableMetadata {
     /// Returns the operation this one waits on, when its family has one.
@@ -154,7 +154,7 @@ impl PollableMetadata for Value {
     /// Reads a dependency out of metadata whose family is not yet known.
     ///
     /// This is the closest honest equivalent of the reference's `'depends' in op.metadata`, and it
-    /// is what lets an [`UntypedOperation`](signify_types::api::UntypedOperation) be waited on
+    /// is what lets an [`UntypedOperation`](keria_types::api::UntypedOperation) be waited on
     /// exactly as upstream's union overload can be. A `depends` that is not an object naming a
     /// string `name` is treated as absent, which is what the truthiness test beside the reference's
     /// own guard does.
@@ -632,10 +632,10 @@ const fn limit_of(reason: StopReason) -> PollingLimit {
 
 #[cfg(test)]
 mod tests {
-    use signify_types::api::EchoedSequence;
+    use keria_types::api::EchoedSequence;
 
     use super::*;
-    use signify_types::api::{Anchor, KelResponse, KeyState, OperationStatus};
+    use keria_types::api::{Anchor, KelResponse, KeyState, OperationStatus};
     use std::error::Error;
 
     fn kel_operation(name: &str, done: bool) -> Operation<KelMetadata, KelResponse> {

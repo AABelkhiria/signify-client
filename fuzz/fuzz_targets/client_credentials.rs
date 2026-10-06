@@ -32,7 +32,7 @@ use signify_client::endpoint::registries::REGISTRIES_SEGMENT;
 use signify_http::request::ResourcePath;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{Credential, CredentialState};
+use keria_types::api::{Credential, CredentialState};
 
 /// Asserts one accepted qualified value is exactly one unchanged path segment.
 fn one_segment(prefix: &str, value: &str) {

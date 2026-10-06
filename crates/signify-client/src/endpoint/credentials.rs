@@ -37,6 +37,7 @@
 //! are validated types before they are path components, and Roadmap 5.3's [`ResourcePath`] encodes
 //! an alias exactly once. See `fixtures/client-credentials/`.
 
+use keria_types::api::{Credential as CredentialRecord, CredentialOperation, CredentialState, Hab, UntypedOperation};
 use signify_acdc::credential::{Credential, RegistryIdentifier};
 use signify_acdc::issuance::{IssuanceArtifacts, issue_credential};
 use signify_acdc::revocation::{RevocationArtifacts, RevocationEvent, revoke_credential};
@@ -46,7 +47,6 @@ use signify_http::response::ResponseError;
 use signify_http::transport::Method;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{Credential as CredentialRecord, CredentialOperation, CredentialState, Hab, UntypedOperation};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{index_value, insert_algorithm, sad_error, stored_transferability, text_array};
@@ -234,7 +234,7 @@ impl RevokedCredential {
     /// # Errors
     ///
     /// Returns [`ClientError::Api`] when the answer is not an operation of that family.
-    pub fn operation_typed<M, R>(&self) -> Result<signify_types::api::Operation<M, R>, ClientError>
+    pub fn operation_typed<M, R>(&self) -> Result<keria_types::api::Operation<M, R>, ClientError>
     where
         M: serde::de::DeserializeOwned,
         R: serde::de::DeserializeOwned,

@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use proptest::prelude::*;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, GROUP_LABEL, MultisigRoute, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
@@ -11,7 +12,6 @@ use signify_client::endpoint::exchanges::{
 use signify_client::error::ClientError;
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT, delivery_list};
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

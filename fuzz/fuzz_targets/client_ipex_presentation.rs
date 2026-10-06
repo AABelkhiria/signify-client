@@ -19,7 +19,7 @@
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::ipex::IpexRoute;
 use signify_client::presentation::{ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, requested_credentials};
-use signify_types::api::ExchangeResource;
+use keria_types::api::ExchangeResource;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

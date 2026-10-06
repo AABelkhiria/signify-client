@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{ExchangeEmbed, MultisigExchangeResource};
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL, MultisigRoute};
@@ -11,7 +12,6 @@ use signify_client::multisig::{
     ANCHOR_SLOT, ISSUANCE_ROUTE, ISSUANCE_SLOT, REGISTRY_ROUTE, REGISTRY_SLOT, REVOCATION_ROUTE, REVOCATION_SLOT,
     TRANSACTION_SLOT,
 };
-use signify_types::api::{ExchangeEmbed, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

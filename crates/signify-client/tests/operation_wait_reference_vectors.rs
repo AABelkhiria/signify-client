@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use keria_types::api::{KelMetadata, KelResponse, Operation, OperationOutcome, RegistryMetadata};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -20,7 +21,6 @@ use signify_client::operation::{DEFAULT_DEADLINE, PollPolicy, Poller, PollingLim
 use signify_http::retry::{Clock, FixedJitter, Jitter, TestClock};
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
-use signify_types::api::{KelMetadata, KelResponse, Operation, OperationOutcome, RegistryMetadata};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-operation-wait/v1.json");

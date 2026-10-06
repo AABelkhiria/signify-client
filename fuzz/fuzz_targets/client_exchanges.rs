@@ -36,7 +36,7 @@ use signify_keri::event::timestamp::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use signify_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
+use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

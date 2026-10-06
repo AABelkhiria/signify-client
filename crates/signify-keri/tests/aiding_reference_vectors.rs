@@ -10,6 +10,7 @@ use std::error::Error;
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::{Hab, KeyManagerState, KeyState, Role};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_keri::event::Timestamp;
@@ -21,7 +22,6 @@ use signify_keri::manager::{IdentifierKeeper, KeeperFactory, ManagerError};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::Sad;
 use signify_keri::threshold::SigningThreshold;
-use signify_types::api::{Hab, KeyManagerState, KeyState, Role};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-aiding/v1.json");

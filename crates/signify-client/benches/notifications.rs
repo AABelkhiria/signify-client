@@ -17,10 +17,10 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::Notification;
 use signify_client::endpoint::notifications::{NOTIFICATION_RANGE_UNIT, NOTIFICATIONS_SEGMENT};
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
-use signify_types::api::Notification;
 
 /// A notification identifier of the shape a KERIA agent produces.
 const NONCE: &str = "0AADChEYHyYtNDtCSVBXXmVs";

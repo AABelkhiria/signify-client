@@ -21,8 +21,8 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::ExchangeRecord;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, ExchangeRoute, MultisigRoute};
-use signify_types::api::ExchangeRecord;
 
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

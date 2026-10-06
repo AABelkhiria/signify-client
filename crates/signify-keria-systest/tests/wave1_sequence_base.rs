@@ -13,6 +13,7 @@
 use std::error::Error;
 
 use keri_cesr::crypto::salt::SecurityTier;
+use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::endpoint::oobis::OobiResolution;
@@ -20,7 +21,6 @@ use signify_http::transport::RequestUrl;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::DerivationCost;
 use signify_keria_systest::{Environment, connect, record, recorder};
-use signify_types::api::Role;
 
 const LOG_LENGTH: u64 = 11;
 

@@ -19,7 +19,7 @@ use keri_cesr::crypto::salt::SecurityTier;
 use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::SerializedEvent;
-use signify_types::api::KeyState;
+use keria_types::api::KeyState;
 
 /// The fields of an agent key state the fuzzer replaces, selected by the first input byte.
 const FIELDS: [&str; 9] = ["i", "s", "d", "et", "kt", "k", "nt", "n", "di"];

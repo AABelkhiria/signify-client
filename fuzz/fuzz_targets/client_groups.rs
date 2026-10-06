@@ -24,7 +24,7 @@ use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_S
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::{ResourcePath, encode_path_component};
 use signify_keri::said::Said;
-use signify_types::api::MultisigExchangeResource;
+use keria_types::api::MultisigExchangeResource;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

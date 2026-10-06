@@ -22,13 +22,13 @@
 
 use std::error::Error;
 
+use keria_types::api::Hab;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::random::random_passcode;
 use signify_keria_systest::{
     Environment, Observation, connect, dump_tails, progress, ready_identifier, reconnect, record, recorder,
 };
-use signify_types::api::Hab;
 
 /// The alias of the one managed identifier whose key material moves with each rotation.
 const ALIAS: &str = "rotating";

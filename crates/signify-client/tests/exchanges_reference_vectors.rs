@@ -517,8 +517,8 @@ fn the_mock_shortfall_is_recorded_rather_than_papered_over() -> Result<(), Box<d
     assert_eq!(shortfall.added_inception_stamp, "2023-08-21T22:30:46.473545+00:00");
     assert!(shortfall.identifier_record_fields.contains(&"salty".to_owned()));
     assert!(!shortfall.note.is_empty());
-    let record: signify_types::api::Hab = serde_json::from_slice(&identifier_record(&fixture)?)?;
-    assert!(matches!(record, signify_types::api::Hab::Accepted(_)));
+    let record: keria_types::api::Hab = serde_json::from_slice(&identifier_record(&fixture)?)?;
+    assert!(matches!(record, keria_types::api::Hab::Accepted(_)));
     Ok(())
 }
 

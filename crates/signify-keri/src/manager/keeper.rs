@@ -37,7 +37,7 @@
 
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
-use signify_types::api::{KeyManagerState, KeyState};
+use keria_types::api::{KeyManagerState, KeyState};
 
 use super::algorithm::KeyAlgorithm;
 use super::error::ManagerError;
@@ -300,11 +300,9 @@ impl DerivationCost {
 /// # Errors
 ///
 /// Returns [`ManagerError::UnsupportedTier`] for a tier the record has no spelling for.
-pub(crate) fn key_tier(
-    tier: keri_cesr::crypto::salt::SecurityTier,
-) -> Result<signify_types::api::KeyTier, ManagerError> {
+pub(crate) fn key_tier(tier: keri_cesr::crypto::salt::SecurityTier) -> Result<keria_types::api::KeyTier, ManagerError> {
     use keri_cesr::crypto::salt::SecurityTier;
-    use signify_types::api::KeyTier;
+    use keria_types::api::KeyTier;
     match tier {
         SecurityTier::Low => Ok(KeyTier::Low),
         SecurityTier::Medium => Ok(KeyTier::Medium),
@@ -314,9 +312,9 @@ pub(crate) fn key_tier(
 }
 
 /// Maps a stored wire tier onto the derivation tier it names.
-pub(crate) const fn security_tier(tier: signify_types::api::KeyTier) -> keri_cesr::crypto::salt::SecurityTier {
+pub(crate) const fn security_tier(tier: keria_types::api::KeyTier) -> keri_cesr::crypto::salt::SecurityTier {
     use keri_cesr::crypto::salt::SecurityTier;
-    use signify_types::api::KeyTier;
+    use keria_types::api::KeyTier;
     match tier {
         KeyTier::Low => SecurityTier::Low,
         KeyTier::Medium => SecurityTier::Medium,

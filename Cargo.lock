@@ -750,6 +750,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "keria-types"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "486eed9e13573586b8c64990ba2c7d628a0aeb1dab9f3a2598efc9ef984f36b7"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1226,11 +1236,11 @@ name = "signify"
 version = "0.0.0"
 dependencies = [
  "keri-cesr",
+ "keria-types",
  "signify-acdc",
  "signify-client",
  "signify-http",
  "signify-keri",
- "signify-types",
 ]
 
 [[package]]
@@ -1239,11 +1249,11 @@ version = "0.0.0"
 dependencies = [
  "criterion",
  "keri-cesr",
+ "keria-types",
  "proptest",
  "serde",
  "serde_json",
  "signify-keri",
- "signify-types",
 ]
 
 [[package]]
@@ -1253,13 +1263,13 @@ dependencies = [
  "criterion",
  "getrandom 0.3.4",
  "keri-cesr",
+ "keria-types",
  "proptest",
  "serde",
  "serde_json",
  "signify-acdc",
  "signify-http",
  "signify-keri",
- "signify-types",
  "tokio",
 ]
 
@@ -1287,10 +1297,10 @@ version = "0.0.0"
 dependencies = [
  "criterion",
  "keri-cesr",
+ "keria-types",
  "proptest",
  "serde",
  "serde_json",
- "signify-types",
 ]
 
 [[package]]
@@ -1298,24 +1308,14 @@ name = "signify-keria-systest"
 version = "0.0.0"
 dependencies = [
  "keri-cesr",
+ "keria-types",
  "serde",
  "serde_json",
  "signify-acdc",
  "signify-client",
  "signify-http",
  "signify-keri",
- "signify-types",
  "tokio",
-]
-
-[[package]]
-name = "signify-types"
-version = "0.0.0"
-dependencies = [
- "criterion",
- "proptest",
- "serde",
- "serde_json",
 ]
 
 [[package]]

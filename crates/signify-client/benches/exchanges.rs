@@ -24,6 +24,7 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::{ExchangeOperation, ExchangeRecord};
 use signify_client::endpoint::exchanges::EXCHANGES_SEGMENT;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::ResourcePath;
@@ -31,7 +32,6 @@ use signify_keri::event::exchange::{ExchangeBuilder, ExchangeEmbed};
 use signify_keri::event::timestamp::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
-use signify_types::api::{ExchangeOperation, ExchangeRecord};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

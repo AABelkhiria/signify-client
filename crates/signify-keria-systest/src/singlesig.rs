@@ -6,6 +6,7 @@
 
 use std::error::Error;
 
+use keria_types::api::{Credential as CredentialRecord, CredentialState, Role};
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::ipex::{Disclosure, IpexRoute};
 use signify_acdc::revocation::RevocationEventBuilder;
@@ -18,7 +19,6 @@ use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
-use signify_types::api::{Credential as CredentialRecord, CredentialState, Role};
 
 use crate::operation::wait_and_delete;
 
@@ -65,7 +65,7 @@ pub async fn add_contact(
     client: &ConnectedClient,
     prefix: &IdentifierPrefix,
     info: &Sad,
-) -> Result<signify_types::api::Contact, Box<dyn Error>> {
+) -> Result<keria_types::api::Contact, Box<dyn Error>> {
     Ok(client.contacts().add(prefix, info).await?)
 }
 

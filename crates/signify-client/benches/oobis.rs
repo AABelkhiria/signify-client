@@ -17,6 +17,7 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::oobis::{
     END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
@@ -24,7 +25,6 @@ use signify_client::endpoint::oobis::{
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
 use signify_keri::prefix::IdentifierPrefix;
-use signify_types::api::{EndRole, Oobi, OobiOperation, Role};
 
 const GROUP_AID: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const AGENT_PREFIX: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";

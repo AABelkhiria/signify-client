@@ -42,11 +42,11 @@
 //! signature commits to. Roadmap 5.3's [`ResourcePath`] closes all four. See
 //! `fixtures/client-oobis/`.
 
+use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
 use signify_http::request::ResourcePath;
 use signify_http::transport::{Method, RequestUrl};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::Sad;
-use signify_types::api::{EndRole, Oobi, OobiOperation, Role};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::sad_error;

@@ -11,6 +11,7 @@
 //! `src/keri/app/credentialing.ts` that both perform. The events themselves are
 //! [`issuance`](crate::issuance) and [`revocation`](crate::revocation).
 
+use keria_types::api::KeyState;
 use signify_keri::event::ConfigurationTrait;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::kind::EventKind;
@@ -22,7 +23,6 @@ use signify_keri::said::{DEFAULT_SAID_LABEL, Said};
 use signify_keri::serialization::{
     IDENTIFIER_LABEL, KIND_LABEL, SAID_LABEL, SEQUENCE_LABEL, Sad, SadValue, SerializedEvent, VERSION_LABEL,
 };
-use signify_types::api::KeyState;
 
 use crate::credential::REGISTRY_LABEL;
 use crate::error::TransactionError;

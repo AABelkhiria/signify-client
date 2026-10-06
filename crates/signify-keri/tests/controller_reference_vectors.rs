@@ -13,10 +13,10 @@ use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::{Hab, KeyState};
 use serde::Deserialize;
 use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions, ReEncryptedKeyState};
 use signify_keri::serialization::{SadValue, SerializedEvent};
-use signify_types::api::{Hab, KeyState};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-controller/v1.json");
@@ -241,7 +241,7 @@ fn new_encryption(fixture: &Fixture) -> Result<Decrypter, Box<dyn Error>> {
 }
 
 /// Builds the salty identifier record, sealing the recorded salt to the prior key ourselves.
-fn salty_record(fixture: &Fixture, encrypter: &Encrypter) -> Result<signify_types::api::AcceptedHab, Box<dyn Error>> {
+fn salty_record(fixture: &Fixture, encrypter: &Encrypter) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
     let aid = &fixture.rotation.salty_aid;
     let salt = Salt::from_qb64(&aid.aid_salt_qb64, SecurityTier::Low)?;
     let mut salty = aid.salty.clone();
@@ -254,7 +254,7 @@ fn salty_record(fixture: &Fixture, encrypter: &Encrypter) -> Result<signify_type
 }
 
 /// Builds the randy identifier record, sealing the recorded seeds to the prior key ourselves.
-fn randy_record(fixture: &Fixture, encrypter: &Encrypter) -> Result<signify_types::api::AcceptedHab, Box<dyn Error>> {
+fn randy_record(fixture: &Fixture, encrypter: &Encrypter) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
     let aid = &fixture.rotation.randy_aid;
     let mut sealed = Vec::new();
     for seed in &aid.seed_qb64s {
@@ -275,7 +275,7 @@ fn hab_record(
     prefix: &str,
     key_manager: &serde_json::Value,
     keys: &[String],
-) -> Result<signify_types::api::AcceptedHab, Box<dyn Error>> {
+) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
     let mut record = serde_json::json!({
         "name": "aid",
         "prefix": prefix,
