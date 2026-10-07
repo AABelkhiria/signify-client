@@ -1,0 +1,779 @@
+{
+  "schema_version": 1,
+  "upstream": "https://github.com/WebOfTrust/signify-ts.git",
+  "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
+  "generated_on": "2026-09-17",
+  "sources": [
+    "test-integration/utils/multisig-utils.ts",
+    "test-integration/endroles-by-aid.test.ts",
+    "test-integration/utils/test-util.ts",
+    "test/app/test-utils.ts"
+  ],
+  "provenance": {
+    "bran": "0123456789abcdefghijk",
+    "admin_url": "http://127.0.0.1:3901",
+    "boot_url": "http://127.0.0.1:3903",
+    "fixed_clock_ms": 1700000000123,
+    "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+    "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+    "note": "The unit lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`, and the members listing names one agent per member. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+  },
+  "declarations": {
+    "add_end_role_multisig": "export async function addEndRoleMultisig( client: SignifyClient, groupName: string, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, timestamp: string, isInitiator: boolean = false ) { const opList: any[] = []; const members = await client.identifiers().members(multisigAID.name); const signings = members['signing']; // there should be a notification to mark per multisig member since each // member will send /multisig/rpy exn messages per-member to each other member. if (!isInitiator) { await waitAndMarkNotification(client, '/multisig/rpy', { minCount: signings.length, }); } for (const signing of signings) { const agentEnds = signing.ends.agent; if (!agentEnds) { throw new Error('signing.ends.agent is null or undefined'); } const eid = Object.keys(agentEnds)[0]; const endRoleResult = await client .identifiers() .addEndRole(multisigAID.name, 'agent', eid, timestamp); const op = await endRoleResult.op(); opList.push(op); const rpy = endRoleResult.serder; const sigs = endRoleResult.sigs; const ghabState1 = multisigAID.state; const seal = [ 'SealEvent', { i: multisigAID.prefix, s: ghabState1['ee']['s'], d: ghabState1['ee']['d'], }, ]; const sigers = sigs.map( (sig: string) => new signify.Siger({ qb64: sig }) ); const roleims = signify.d( signify.messagize(rpy, sigers, seal, undefined, undefined, false) ); const atc = roleims.substring(rpy.size); const roleembeds = { rpy: [rpy, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, groupName, aid, '/multisig/rpy', { gid: multisigAID.prefix }, roleembeds, recp ); } return opList; }",
+    "notification_waits": [
+      "waitAndMarkNotification(client, '/multisig/rpy', { minCount: signings.length, })"
+    ],
+    "proposal_reads": [],
+    "sends": [
+      "client .exchanges() .send( aid.name, groupName, aid, '/multisig/rpy', { gid: multisigAID.prefix }, roleembeds, recp )"
+    ],
+    "agent_read": "const eid = Object.keys(agentEnds)[0];",
+    "seal_read": "i: multisigAID.prefix, s: ghabState1['ee']['s'], d: ghabState1['ee']['d']",
+    "shared_stamp": true,
+    "helper_uses": {
+      "needle": "addEndRoleMultisig(",
+      "total": 13,
+      "files": [
+        {
+          "file": "test-integration/delegation-multisig.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/endroles-by-aid.test.ts",
+          "count": 2
+        },
+        {
+          "file": "test-integration/multisig-vlei-issuance.test.ts",
+          "count": 8
+        },
+        {
+          "file": "test-integration/utils/multisig-utils.ts",
+          "count": 1
+        }
+      ],
+      "scanned_files": 117
+    },
+    "scanned_files": 117,
+    "notes": {
+      "joining": "`if (!isInitiator) { await waitAndMarkNotification(client, '/multisig/rpy', { minCount: signings.length }); }` — awaited as a statement, so the SAIDs are never bound",
+      "loop": "`for (const signing of signings)` — one `addEndRole` and one `send` per signing member's agent"
+    }
+  },
+  "key_states": {
+    "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "s": "0",
+      "p": "",
+      "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "members": {
+    "signing": [
+      {
+        "aid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "ends": {
+          "agent": {
+            "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY": {
+              "http": "http://127.0.0.1:3902/"
+            }
+          }
+        }
+      },
+      {
+        "aid": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "ends": {
+          "agent": {
+            "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1": {
+              "http": "http://127.0.0.1:3912/"
+            }
+          }
+        }
+      }
+    ],
+    "rotation": [
+      {
+        "aid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "ends": {
+          "agent": {
+            "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY": {
+              "http": "http://127.0.0.1:3902/"
+            }
+          }
+        }
+      },
+      {
+        "aid": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "ends": {
+          "agent": {
+            "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1": {
+              "http": "http://127.0.0.1:3912/"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "members_without_an_agent": {
+    "signing": [
+      {
+        "aid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "ends": {
+          "agent": {
+            "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY": {
+              "http": "http://127.0.0.1:3902/"
+            }
+          }
+        }
+      },
+      {
+        "aid": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "ends": {}
+      }
+    ],
+    "rotation": [
+      {
+        "aid": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "ends": {
+          "agent": {
+            "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY": {
+              "http": "http://127.0.0.1:3902/"
+            }
+          }
+        }
+      },
+      {
+        "aid": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+        "ends": {
+          "agent": {
+            "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1": {
+              "http": "http://127.0.0.1:3912/"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "identifier_record": {
+    "name": "member1",
+    "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+    "salty": {
+      "sxlt": "<SXLT>",
+      "pidx": 0,
+      "kidx": 0,
+      "stem": "signify:aid",
+      "tier": "low",
+      "dcode": "E",
+      "icodes": [
+        "A"
+      ],
+      "ncodes": [
+        "A"
+      ],
+      "transferable": true,
+      "sxlt_opens_to": "0AA0123456789abcdefghijk"
+    },
+    "transferable": true,
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "s": "0",
+      "p": "",
+      "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "1",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "1",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "0",
+      "b": [],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    },
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+  },
+  "group_record": {
+    "name": "multisig",
+    "prefix": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "transferable": true,
+    "windexes": [],
+    "icp_dt": "2023-08-21T22:30:46.473545+00:00",
+    "group": {
+      "mhab": {
+        "name": "member1",
+        "prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "salty": {
+          "sxlt": "<SXLT>",
+          "pidx": 0,
+          "kidx": 0,
+          "stem": "signify:aid",
+          "tier": "low",
+          "dcode": "E",
+          "icodes": [
+            "A"
+          ],
+          "ncodes": [
+            "A"
+          ],
+          "transferable": true,
+          "sxlt_opens_to": "0AA0123456789abcdefghijk"
+        },
+        "transferable": true,
+        "state": {
+          "vn": [
+            1,
+            0
+          ],
+          "i": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "s": "0",
+          "p": "",
+          "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "f": "0",
+          "dt": "2023-08-21T22:30:46.473545+00:00",
+          "et": "icp",
+          "kt": "1",
+          "k": [
+            "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+          ],
+          "nt": "1",
+          "n": [
+            "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+          ],
+          "bt": "0",
+          "b": [],
+          "c": [],
+          "ee": {
+            "s": "0",
+            "d": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+            "br": [],
+            "ba": []
+          },
+          "di": ""
+        },
+        "windexes": [],
+        "icp_dt": "2023-08-21T22:30:46.473545+00:00"
+      },
+      "keys": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "ndigs": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ]
+    },
+    "state": {
+      "vn": [
+        1,
+        0
+      ],
+      "i": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "s": "0",
+      "p": "",
+      "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+      "f": "0",
+      "dt": "2023-08-21T22:30:46.473545+00:00",
+      "et": "icp",
+      "kt": "2",
+      "k": [
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9"
+      ],
+      "nt": "2",
+      "n": [
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"
+      ],
+      "bt": "2",
+      "b": [
+        "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
+        "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
+        "BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX"
+      ],
+      "c": [],
+      "ee": {
+        "s": "0",
+        "d": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+        "br": [],
+        "ba": []
+      },
+      "di": ""
+    }
+  },
+  "calls": [
+    {
+      "name": "incept_the_group",
+      "note": "the group whose agents are authorized, from Roadmap 8.3's own helper",
+      "requests": [
+        {
+          "path": "/identifiers/member1",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/states?pre=EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers",
+          "method": "POST",
+          "body": "{\"name\":\"multisig\",\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"sigs\":[\"BACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\"],\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"group\":{\"mhab\":{\"name\":\"member1\",\"prefix\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"salty\":{\"sxlt\":\"1AAHnNQTkD0yxOC9tSz_ukbB2e-qhDTStH18uCsi5PCwOyXLONDR3MeKwWv_AVJKGKGi6xiBQH25_R1RXLS2OuK3TN3ovoUKH7-A\",\"pidx\":0,\"kidx\":0,\"stem\":\"signify:aid\",\"tier\":\"low\",\"dcode\":\"E\",\"icodes\":[\"A\"],\"ncodes\":[\"A\"],\"transferable\":true},\"transferable\":true,\"state\":{\"vn\":[1,0],\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"p\":\"\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"f\":\"0\",\"dt\":\"2023-08-21T22:30:46.473545+00:00\",\"et\":\"icp\",\"kt\":\"1\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"1\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"0\",\"b\":[],\"c\":[],\"ee\":{\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"br\":[],\"ba\":[]},\"di\":\"\"},\"windexes\":[],\"icp_dt\":\"2023-08-21T22:30:46.473545+00:00\"},\"keys\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"ndigs\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"]}}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00049a_\",\"t\":\"exn\",\"d\":\"EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"smids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"],\"rmids\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]},\"e\":{\"icp\":{\"v\":\"KERI10JSON000215_\",\"t\":\"icp\",\"d\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"i\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"s\":\"0\",\"kt\":\"2\",\"k\":[\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\",\"DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9\"],\"nt\":\"2\",\"n\":[\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\",\"EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc\"],\"bt\":\"2\",\"b\":[\"BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha\",\"BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM\",\"BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX\"],\"c\":[],\"a\":[]},\"d\":\"EDOi3yDvRfy_2iTpX9dd4nU--cgEXVBVNwjYTGMxev2m\"}},\"sigs\":[\"AAA9LNCQ4cdQ3eXCT-QPCo2FcoZG7kTKTLfHVaRgLatYkmceD8y8rKP-IOgwrcj6-UgONMkzK0FfKppFN1rb9RsA\"],\"atc\":\"-LAa5AACAA-e-icp-AABBACuXqqpj-5CKjI8CFpsPN752acK15L7VlPMUYn9wN4pJZUrI2eEesVV6pPCe6RVdmSH7XmSk8l65vFdmBx8ygsE\",\"rec\":[\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "waits": [],
+      "result": {
+        "name": "endrole.EGRP",
+        "metadata": {},
+        "done": true,
+        "response": {}
+      },
+      "error": null
+    },
+    {
+      "name": "propose_the_end_roles",
+      "note": "the first member authorizes every signing member's agent, announcing each on `/multisig/rpy`",
+      "requests": [
+        {
+          "path": "/identifiers/multisig/members",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"sigs\":[\"BAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"EAdoBlq0Fqt93lFDeOGoH5Oc0UaBM1bgZ_tNuMWW2ISK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"d\":\"EBb5_0E8eOd4D0IfULtEQCcAoM9aGtHtPlHWmuutn_Q8\"}},\"sigs\":[\"AAALcbOOkNn7KIMl-A-0_RbKUZgJHr_j8B3PEZE-HNmhM0XNkF_ycNXCvl3Kkv2Q5Dc3tuJZwCy0sLgn3zuGZnkA\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"sigs\":[\"BAB_muUnH5Nc-ib9cacWuApTghy9htc64LuD9WJlhDcXJApVMVhb22SfmPFPm9VTq5IOvP3NmbzV5R9tzUEBkw8A\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"ECp-2QZ4DDj2Dcq0ix-g7ngPD_o9W1Qg4bglw2rrPDat\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"d\":\"EPQcwCAsiGJjLlt3Lej8qSO1HxWSBri7uVVYUrquLd4l\"}},\"sigs\":[\"AAB18nFYO5ytNh0R9PiNQHDn_bBSVVYsStWky_1hwxUzvN_tatyuVUg_GT8mBzSoXlCIXQApPezicqa7c7cgVaoK\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBAB_muUnH5Nc-ib9cacWuApTghy9htc64LuD9WJlhDcXJApVMVhb22SfmPFPm9VTq5IOvP3NmbzV5R9tzUEBkw8A\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "waits": [],
+      "result": [
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        },
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "join_the_end_roles",
+      "note": "the second member waits for one notification per member, discards them, and signs from its own stamp",
+      "requests": [
+        {
+          "path": "/identifiers/multisig/members",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"sigs\":[\"BAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"EAdoBlq0Fqt93lFDeOGoH5Oc0UaBM1bgZ_tNuMWW2ISK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"d\":\"EBb5_0E8eOd4D0IfULtEQCcAoM9aGtHtPlHWmuutn_Q8\"}},\"sigs\":[\"AAALcbOOkNn7KIMl-A-0_RbKUZgJHr_j8B3PEZE-HNmhM0XNkF_ycNXCvl3Kkv2Q5Dc3tuJZwCy0sLgn3zuGZnkA\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"sigs\":[\"BAB_muUnH5Nc-ib9cacWuApTghy9htc64LuD9WJlhDcXJApVMVhb22SfmPFPm9VTq5IOvP3NmbzV5R9tzUEBkw8A\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"ECp-2QZ4DDj2Dcq0ix-g7ngPD_o9W1Qg4bglw2rrPDat\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"d\":\"EPQcwCAsiGJjLlt3Lej8qSO1HxWSBri7uVVYUrquLd4l\"}},\"sigs\":[\"AAB18nFYO5ytNh0R9PiNQHDn_bBSVVYsStWky_1hwxUzvN_tatyuVUg_GT8mBzSoXlCIXQApPezicqa7c7cgVaoK\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBAB_muUnH5Nc-ib9cacWuApTghy9htc64LuD9WJlhDcXJApVMVhb22SfmPFPm9VTq5IOvP3NmbzV5R9tzUEBkw8A\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "waits": [
+        {
+          "route": "/multisig/rpy",
+          "min_count": 2
+        }
+      ],
+      "result": [
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        },
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "join_the_end_roles_on_another_clock",
+      "note": "the same call a second later: it succeeds, and signs different replies",
+      "requests": [
+        {
+          "path": "/identifiers/multisig/members",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EAi0q6tJOARPljDHXHXip3HhHLkInFjXOpCnsPayv5LP\",\"dt\":\"2023-11-14T22:13:21.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"sigs\":[\"BABFd0TSmEc5A7K3eb8RjYO5f9hwf8NI-S97APrRePzdPI5X4UDmPcb0QrEJtoHZUR8evGYIFdg8KXwO68vy33EL\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"EO0fZVYOf06iBhwZ1XDWkxD55eVZN3DHOda1NSQThxX9\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EAi0q6tJOARPljDHXHXip3HhHLkInFjXOpCnsPayv5LP\",\"dt\":\"2023-11-14T22:13:21.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"d\":\"EKbW8hPVpsHAMCBBGj4PXD2TEJr0DUL3mckHsLKaV5oK\"}},\"sigs\":[\"AADqdHAE0S4vMJ3rZEuoagjbXZZ0bql1By_thUUpYyB6J-AOC0xonUotpjX5cjn0prEdhIGJnDKIXqMUYwRLR38O\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBABFd0TSmEc5A7K3eb8RjYO5f9hwf8NI-S97APrRePzdPI5X4UDmPcb0QrEJtoHZUR8evGYIFdg8KXwO68vy33EL\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"ELC8eXtPSiuDoaOvB6VvI_7ftXsuiM2mgH8M9hwXNxMq\",\"dt\":\"2023-11-14T22:13:21.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"sigs\":[\"BABbc0BFIDbgJdRWwajZo1Vwv3oV3wxghFJ6HqiXON1zA2-_QpD1Hl6hIrODk18bMZ4FQvIJ3Eu5ztaShGfw3pEM\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"ENf3e3o4pk2qIieCEeeitHy2o8veRO5JtfIFEujmK7dk\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"ELC8eXtPSiuDoaOvB6VvI_7ftXsuiM2mgH8M9hwXNxMq\",\"dt\":\"2023-11-14T22:13:21.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"d\":\"EDsbl93lQqz9Hf13AlfhFOsHhNE0HJ6sC9i3lrVSXmod\"}},\"sigs\":[\"AABSTYyhC__ntMBaHdoMAxpCv8M70AojyWf747Jr3wQfwAxHtKOkZ0FPEMmHZSgU865Axma1vcuIOEdeM4nFPSkJ\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBABbc0BFIDbgJdRWwajZo1Vwv3oV3wxghFJ6HqiXON1zA2-_QpD1Hl6hIrODk18bMZ4FQvIJ3Eu5ztaShGfw3pEM\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "waits": [
+        {
+          "route": "/multisig/rpy",
+          "min_count": 2
+        }
+      ],
+      "result": [
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        },
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "propose_with_a_stale_group_state",
+      "note": "the caller's group record names an establishment event the agent no longer holds; the seal follows the argument",
+      "requests": [
+        {
+          "path": "/identifiers/multisig/members",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"sigs\":[\"BAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"EAdoBlq0Fqt93lFDeOGoH5Oc0UaBM1bgZ_tNuMWW2ISK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"d\":\"EBb5_0E8eOd4D0IfULtEQCcAoM9aGtHtPlHWmuutn_Q8\"}},\"sigs\":[\"AAALcbOOkNn7KIMl-A-0_RbKUZgJHr_j8B3PEZE-HNmhM0XNkF_ycNXCvl3Kkv2Q5Dc3tuJZwCy0sLgn3zuGZnkA\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAHEStaleEstablishmentEventDigest00000000000000-AABBAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"sigs\":[\"BAB_muUnH5Nc-ib9cacWuApTghy9htc64LuD9WJlhDcXJApVMVhb22SfmPFPm9VTq5IOvP3NmbzV5R9tzUEBkw8A\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"ECp-2QZ4DDj2Dcq0ix-g7ngPD_o9W1Qg4bglw2rrPDat\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1\"}},\"d\":\"EPQcwCAsiGJjLlt3Lej8qSO1HxWSBri7uVVYUrquLd4l\"}},\"sigs\":[\"AAB18nFYO5ytNh0R9PiNQHDn_bBSVVYsStWky_1hwxUzvN_tatyuVUg_GT8mBzSoXlCIXQApPezicqa7c7cgVaoK\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAHEStaleEstablishmentEventDigest00000000000000-AABBAB_muUnH5Nc-ib9cacWuApTghy9htc64LuD9WJlhDcXJApVMVhb22SfmPFPm9VTq5IOvP3NmbzV5R9tzUEBkw8A\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "waits": [],
+      "result": [
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        },
+        {
+          "name": "endrole.EGRP",
+          "metadata": {},
+          "done": true,
+          "response": {}
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "propose_with_a_member_without_an_agent",
+      "note": "the second signing member authorizes no agent: the loop throws after the first member's reply was submitted and announced",
+      "requests": [
+        {
+          "path": "/identifiers/multisig/members",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/identifiers/multisig/endroles",
+          "method": "POST",
+          "body": "{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"sigs\":[\"BAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\"]}"
+        },
+        {
+          "path": "/identifiers/member1/exchanges",
+          "method": "POST",
+          "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON0002c6_\",\"t\":\"exn\",\"d\":\"EAdoBlq0Fqt93lFDeOGoH5Oc0UaBM1bgZ_tNuMWW2ISK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/rpy\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\"},\"e\":{\"rpy\":{\"v\":\"KERI10JSON000111_\",\"t\":\"rpy\",\"d\":\"EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/end/role/add\",\"a\":{\"cid\":\"EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk\",\"role\":\"agent\",\"eid\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}},\"d\":\"EBb5_0E8eOd4D0IfULtEQCcAoM9aGtHtPlHWmuutn_Q8\"}},\"sigs\":[\"AAALcbOOkNn7KIMl-A-0_RbKUZgJHr_j8B3PEZE-HNmhM0XNkF_ycNXCvl3Kkv2Q5Dc3tuJZwCy0sLgn3zuGZnkA\"],\"atc\":\"-LA35AACAA-e-rpy-FABEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk0AAAAAAAAAAAAAAAAAAAAAAAEISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk-AABBAAZ5Kzv_ZvfZCMnzEc0qWd2qhPDtERglBAwerh11V5QsoDPgzZhGa9SUE7B98XxXuIYGp6VQ3x93lnAO3xPtA0O\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
+        }
+      ],
+      "waits": [],
+      "result": null,
+      "error": "signing.ends.agent is null or undefined"
+    }
+  ],
+  "pinned_confirmations": {
+    "group": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
+    "stamp": "2023-11-14T22:13:20.123000+00:00",
+    "agents": [
+      "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+      "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+    ],
+    "members": [
+      "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+      "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
+    ],
+    "reply_route": "/end/role/add",
+    "announcement_route": "/multisig/rpy",
+    "announcement_topic": "multisig",
+    "announcement_slot": "rpy",
+    "propose_paths": [
+      "GET /identifiers/multisig/members",
+      "GET /identifiers/multisig",
+      "POST /identifiers/multisig/endroles",
+      "POST /identifiers/member1/exchanges",
+      "GET /identifiers/multisig",
+      "POST /identifiers/multisig/endroles",
+      "POST /identifiers/member1/exchanges"
+    ],
+    "note": "each reply is `{rpy, sigs}` posted to the group's `endroles`, and each announcement carries the reply in `rpy` with the group's establishment seal in the attachment."
+  },
+  "reference_quirks": {
+    "a_joining_member_never_reads_the_proposal": {
+      "declaration": "`if (!isInitiator) { await waitAndMarkNotification(client, '/multisig/rpy', { minCount: signings.length }); }` — awaited as a statement, so the SAIDs are never bound",
+      "waits": [
+        {
+          "route": "/multisig/rpy",
+          "min_count": 2
+        }
+      ],
+      "group_requests_made": false,
+      "note": "the joining half waits for as many `/multisig/rpy` notifications as there are signing members and never binds what they carry. No group request is fetched in any driven call, so a joining member builds its replies from its own arguments and nothing compares them with what was proposed.",
+      "rust_decision": "`accept_end_role` reads the stamp, role, and endpoint out of the proposal's embedded reply and refuses with `ProposalMismatch` when the reply it builds has another SAID. It takes no timestamp."
+    },
+    "the_members_agree_only_on_a_shared_stamp": {
+      "declaration": "`const stamp = new Date().toISOString().replace('Z', '000+00:00');` handed to both members",
+      "proposed_replies": [
+        "EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn",
+        "EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB"
+      ],
+      "joined_replies": [
+        "EJpM2-CCJv10ZqUmui0pe1Og_T-hpwx5poeYEKmPlWpn",
+        "EERq2J135jLzgeQgaiyzJizJCioWRhbLkZzTulSFqEDB"
+      ],
+      "divergent_replies": [
+        "EAi0q6tJOARPljDHXHXip3HhHLkInFjXOpCnsPayv5LP",
+        "ELC8eXtPSiuDoaOvB6VvI_7ftXsuiM2mgH8M9hwXNxMq"
+      ],
+      "agree": true,
+      "divergent_agrees": false,
+      "divergent_error": null,
+      "note": "a reply's SAID covers its `dt`, so members sign the same reply only when they stamp it identically. The scenarios hand every member one `stamp` from one process; a member a second later signs different replies, the group reaches its threshold on none, and neither call fails.",
+      "rust_decision": "the stamp is read from the proposal, so every joining member signs the proposer's reply."
+    },
+    "every_members_agent_is_authorized": {
+      "declaration": "const eid = Object.keys(agentEnds)[0];",
+      "endpoints": [
+        "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
+        "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1"
+      ],
+      "roles": [
+        "agent",
+        "agent"
+      ],
+      "announcements": 2,
+      "announcement_route": "/multisig/rpy",
+      "announcement_attributes": [
+        "i",
+        "gid"
+      ],
+      "announcement_slots": [
+        "rpy"
+      ],
+      "note": "one `addEndRole` and one `/multisig/rpy` per signing member, each authorizing that member's first agent for the group. This is the behaviour worth keeping: authorizing only the proposer's agent would leave every other member unreachable through the group.",
+      "rust_decision": "`propose_agent_end_roles` loops the same way, reading each member's agent from the members listing; the announcement names the members in `smids`/`rmids` beside `gid`, as every other round here does (`PORTING.md` §10)."
+    },
+    "a_member_without_an_agent_throws_part_way": {
+      "declaration": "`if (!agentEnds) { throw new Error('signing.ends.agent is null or undefined'); }` inside the loop",
+      "error": "signing.ends.agent is null or undefined",
+      "replies_submitted_before": 1,
+      "announcements_sent_before": 1,
+      "note": "the check sits inside the loop, so the members listed before the agentless one are authorized and announced first, and the round is left half done.",
+      "rust_decision": "`member_agents` reads every member's agent before anything is submitted and refuses with `MemberHasNoAgent`, so nothing is sent."
+    },
+    "the_seal_is_the_callers_group_state": {
+      "declaration": "i: multisigAID.prefix, s: ghabState1['ee']['s'], d: ghabState1['ee']['d']",
+      "stale_announcement_attachment_names_the_stale_digest": true,
+      "note": "the seal is built from the `multisigAID` the caller passed in, not from the agent's record, so a caller still holding the group from before a rotation seals every reply to an establishment event the group no longer holds.",
+      "rust_decision": "the seal is read from the group's record as the agent reports it when the reply is announced."
+    }
+  }
+}
