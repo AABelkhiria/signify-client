@@ -25,10 +25,10 @@
 //!
 //! Nothing panics, no route escapes its parameter, and no non-reply is ever counted as one.
 
+use keria_types::api::ReplyRecord;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::escrows::{ESCROWS_SEGMENT, REPLY_SEGMENT, ROUTE_PARAMETER};
 use signify_http::request::{ResourcePath, encode_query_component};
-use keria_types::api::ReplyRecord;
 
 fuzz_target!(|data: &[u8]| {
     let mut parts = data.split(|&byte| byte == 0xff);
@@ -45,7 +45,11 @@ fuzz_target!(|data: &[u8]| {
         .build()
     {
         let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-        assert_eq!(segments, [ESCROWS_SEGMENT, REPLY_SEGMENT], "route {route:?} moved the resource");
+        assert_eq!(
+            segments,
+            [ESCROWS_SEGMENT, REPLY_SEGMENT],
+            "route {route:?} moved the resource"
+        );
 
         let query = path.query().unwrap_or_default();
         assert_eq!(query.matches('&').count(), 0, "the query was {query:?}");

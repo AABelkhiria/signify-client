@@ -27,6 +27,7 @@
 //! Nothing panics, no component escapes its segment, and no message ever names a recipient it was
 //! not addressed to.
 
+use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::EXCHANGES_SEGMENT;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
@@ -36,7 +37,6 @@ use signify_keri::event::timestamp::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];
@@ -64,7 +64,12 @@ fuzz_target!(|data: &[u8]| {
         .build()
     {
         let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-        assert_eq!(segments.len(), 3, "the alias {alias:?} became {} segments", segments.len());
+        assert_eq!(
+            segments.len(),
+            3,
+            "the alias {alias:?} became {} segments",
+            segments.len()
+        );
         assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
         assert_eq!(segments.last().copied(), Some(EXCHANGES_SEGMENT));
         assert_eq!(segments.get(1).copied(), Some(encode_path_component(&alias).as_str()));
@@ -116,7 +121,10 @@ fuzz_target!(|data: &[u8]| {
             // The message names exactly one addressee, and never the identifier it is merely
             // delivered to. Upstream's `send` conflates the two.
             let raw = core::str::from_utf8(message.raw()).unwrap_or_default();
-            assert!(!raw.contains(ELSEWHERE), "a message named an identifier it was not addressed to");
+            assert!(
+                !raw.contains(ELSEWHERE),
+                "a message named an identifier it was not addressed to"
+            );
 
             // -----------------------------------------------------------------
             // The body: five fields, and the delivery list stays outside the message.
@@ -181,7 +189,10 @@ fuzz_target!(|data: &[u8]| {
         let encoded = serde_json::to_vec(&exchange);
         assert!(encoded.is_ok(), "a decoded exchange failed to re-encode");
         if let Ok(again) = serde_json::from_slice::<ExchangeRecord>(&encoded.unwrap_or_default()) {
-            assert_eq!(again.digest, exchange.digest, "a round trip changed a message's identifier");
+            assert_eq!(
+                again.digest, exchange.digest,
+                "a round trip changed a message's identifier"
+            );
             assert_eq!(again.sender, exchange.sender, "a round trip changed a message's sender");
             assert_eq!(again.route, exchange.route, "a round trip changed a message's route");
         }

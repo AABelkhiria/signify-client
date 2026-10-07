@@ -18,6 +18,7 @@
 //! unchanged, and that an answer decodes into what it claims or is refused — with a refusal
 //! (`authenticated: false`) never reading as an absence.
 
+use keria_types::api::{Challenge, ChallengeOperation};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::challenges::{
     CHALLENGES_SEGMENT, CHALLENGES_VERIFY_SEGMENT, ChallengeStrength, STRENGTH_PARAMETER,
@@ -27,7 +28,6 @@ use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use keria_types::api::{Challenge, ChallengeOperation};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

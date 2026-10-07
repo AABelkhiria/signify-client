@@ -17,6 +17,7 @@
 //! an alias exactly when it has one, and that an answer either decodes into the shape it claims or
 //! is refused.
 
+use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::oobis::{
@@ -25,7 +26,6 @@ use signify_client::endpoint::oobis::{
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
 use signify_keri::prefix::IdentifierPrefix;
-use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

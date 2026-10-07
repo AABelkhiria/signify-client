@@ -130,7 +130,10 @@ fuzz_target!(|data: &[u8]| {
     for attempt in [0_u32, 1, 31, 32, 63, 64, 1_000, u32::MAX] {
         let delay = policy.delay_for(attempt);
         assert!(delay >= policy.min_delay(), "{attempt}: {delay:?}");
-        assert!(delay <= policy.min_delay().max(policy.max_delay()), "{attempt}: {delay:?}");
+        assert!(
+            delay <= policy.min_delay().max(policy.max_delay()),
+            "{attempt}: {delay:?}"
+        );
     }
     // The schedule never decreases.
     let mut previous = Duration::ZERO;

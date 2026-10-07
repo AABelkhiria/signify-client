@@ -15,6 +15,7 @@
 //! both entry points; and the credential attachment is a well-formed quadlet-aligned triple naming
 //! the event it authenticates.
 
+use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::error::TransactionError;
@@ -25,7 +26,6 @@ use signify_keri::event::Timestamp;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use signify_keri::serialization::{SadValue, SerializedEvent};
-use keria_types::api::KeyState;
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";
@@ -126,7 +126,10 @@ fuzz_target!(|data: &[u8]| {
         .expect("an accepted event must encode its attachment");
     assert_eq!(attachment.len() % 4, 0, "an attachment must be quadlet aligned");
     let text = core::str::from_utf8(&attachment).expect("an attachment is CESR text");
-    assert!(text.starts_with("-IAB"), "a credential attachment is a seal-source triple");
+    assert!(
+        text.starts_with("-IAB"),
+        "a credential attachment is a seal-source triple"
+    );
     assert_eq!(text.len(), 4 + 44 + 24 + 44);
 
     let seal = if control & 0x02 == 0 {
@@ -150,7 +153,10 @@ fuzz_target!(|data: &[u8]| {
     // A seal always renders three fields, whatever its position.
     let rendered = seal.to_sad().expect("a seal of typed values must render");
     assert_eq!(rendered.len(), 3);
-    assert_eq!(rendered.get_text("s"), Some(format!("{:x}", seal.sequence_number()).as_str()));
+    assert_eq!(
+        rendered.get_text("s"),
+        Some(format!("{:x}", seal.sequence_number()).as_str())
+    );
 
     // The key state, which is the part a remote agent controls.
     let Some(state) = key_state(&position, &state_digest, &configuration) else {
@@ -206,9 +212,7 @@ fuzz_target!(|data: &[u8]| {
 
     // The establishment-only refusal is unconditional: adding the trait to any accepted state
     // makes it fail, whatever else that state says.
-    if !establishment_only
-        && let Some(mut refused) = key_state(&position, &state_digest, &configuration)
-    {
+    if !establishment_only && let Some(mut refused) = key_state(&position, &state_digest, &configuration) {
         refused.configuration.push("EO".to_owned());
         assert!(matches!(
             anchor_event(&refused, &seal),

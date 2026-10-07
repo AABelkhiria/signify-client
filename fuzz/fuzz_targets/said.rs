@@ -1,8 +1,8 @@
 #![no_main]
 #![forbid(unsafe_code)]
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::digest::DigestAlgorithm;
+use libfuzzer_sys::fuzz_target;
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use signify_keri::serialization::Sad;
 

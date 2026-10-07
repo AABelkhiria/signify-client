@@ -17,13 +17,13 @@
 //! Nothing panics, no route admits an embed it does not name, and no value that decides an
 //! identifier is rewritten in transit.
 
+use keria_types::api::{ExchangeEmbed, MultisigExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL, MultisigRoute};
 use signify_client::multisig::{
     ANCHOR_SLOT, ISSUANCE_ROUTE, ISSUANCE_SLOT, REGISTRY_ROUTE, REGISTRY_SLOT, REVOCATION_ROUTE, REVOCATION_SLOT,
     TRANSACTION_SLOT,
 };
-use keria_types::api::{ExchangeEmbed, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -85,9 +85,7 @@ fuzz_target!(|data: &[u8]| {
     let document = parts.next().unwrap_or_default();
 
     let pick = |index: usize| {
-        let choice = selection
-            .get(index)
-            .map_or(0, |byte| usize::from(*byte) % ROUNDS.len());
+        let choice = selection.get(index).map_or(0, |byte| usize::from(*byte) % ROUNDS.len());
         ROUNDS.get(choice).copied().unwrap_or(ROUNDS[0])
     };
     let (route, _) = pick(0);
@@ -96,8 +94,16 @@ fuzz_target!(|data: &[u8]| {
     // -----------------------------------------------------------------------
     // The route and the embed: every pairing but the matching one is refused.
     // -----------------------------------------------------------------------
-    let safe_nonce = if plain(&nonce) { nonce.clone() } else { "AHSND".to_owned() };
-    let safe_lei = if plain(&lei) { lei.clone() } else { "5493001KJTIIGC8Y1R17".to_owned() };
+    let safe_nonce = if plain(&nonce) {
+        nonce.clone()
+    } else {
+        "AHSND".to_owned()
+    };
+    let safe_lei = if plain(&lei) {
+        lei.clone()
+    } else {
+        "5493001KJTIIGC8Y1R17".to_owned()
+    };
 
     let matching = ROUNDS
         .iter()

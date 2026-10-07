@@ -16,6 +16,7 @@
 //! believed only in the state it actually claimed: an accepted record always carries key state, a
 //! pending one never does, and either re-encodes losslessly.
 
+use keria_types::api::Hab;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::{
     END_ROLES_SEGMENT, EVENTS_SEGMENT, IDENTIFIER_RANGE_UNIT, IDENTIFIERS_SEGMENT, LOCATION_SCHEMES_SEGMENT,
@@ -23,7 +24,6 @@ use signify_client::endpoint::identifiers::{
 };
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
-use keria_types::api::Hab;
 
 /// Every trailing segment an alias can be followed by, plus the bare record path.
 const TRAILING: [Option<&str>; 5] = [
@@ -89,10 +89,7 @@ fuzz_target!(|data: &[u8]| {
                     assert_eq!(state.digest, accepted.state.digest);
                     assert_eq!(state.sequence_number, accepted.state.sequence_number);
                 }
-                Hab::Pending(_) => assert!(
-                    record.key_state().is_none(),
-                    "a pending record produced key state"
-                ),
+                Hab::Pending(_) => assert!(record.key_state().is_none(), "a pending record produced key state"),
             }
             // Exactly one key manager, always: a record naming none or two does not decode, so a
             // keeper can never be rebuilt from an ambiguous one.

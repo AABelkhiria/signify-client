@@ -18,9 +18,9 @@ use core::time::Duration;
 use std::sync::Arc;
 use std::time::SystemTime;
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use libfuzzer_sys::fuzz_target;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, TestClock, is_transient_error};
 use signify_http::signature::authentication::{RequestSigner, ResponseVerifier};
@@ -106,20 +106,14 @@ fuzz_target!(|data: &[u8]| {
     let Ok(resource) = HeaderValue::new(RESOURCE) else {
         return;
     };
-    let Ok(transport) = SigningTransport::new(
-        Arc::new(ScriptedTransport::new()),
-        RequestSigner::new(signer),
-        resource,
-    ) else {
+    let Ok(transport) = SigningTransport::new(Arc::new(ScriptedTransport::new()), RequestSigner::new(signer), resource)
+    else {
         return;
     };
     let transport = transport.with_clock(Arc::clone(&clock));
 
     let split = usize::from(*path_len) % text.len().saturating_add(1);
-    let candidate = format!(
-        "http://localhost:3901/{}",
-        text.get(..split).unwrap_or_default()
-    );
+    let candidate = format!("http://localhost:3901/{}", text.get(..split).unwrap_or_default());
     if let Ok(url) = RequestUrl::new(candidate) {
         let method = *Method::ALL
             .get(usize::from(*selector) % Method::ALL.len())
@@ -176,9 +170,7 @@ fuzz_target!(|data: &[u8]| {
         if let Ok(broken) = broken {
             let broken = broken
                 .with_clock(Arc::clone(&clock))
-                .with_covered_components(vec![
-                    signify_http::signature::input::SignatureComponent::Header(absent),
-                ]);
+                .with_covered_components(vec![signify_http::signature::input::SignatureComponent::Header(absent)]);
             match block_on(broken.execute(request)) {
                 Ok(_) => panic!("an unsignable request was sent"),
                 Err(error) => {
@@ -246,9 +238,8 @@ fuzz_target!(|data: &[u8]| {
         return;
     }
 
-    let skewed = SystemTime::UNIX_EPOCH
-        + Duration::from_millis(1_700_000_000_123)
-        + Duration::from_secs(u64::from(*skew) * 10);
+    let skewed =
+        SystemTime::UNIX_EPOCH + Duration::from_millis(1_700_000_000_123) + Duration::from_secs(u64::from(*skew) * 10);
     let later: Arc<dyn Clock> = Arc::new(TestClock::with_wall_clock(skewed));
     let Ok(expected) = HeaderValue::new(RESOURCE) else {
         return;
@@ -269,10 +260,7 @@ fuzz_target!(|data: &[u8]| {
             assert!(!error.to_string().is_empty());
             // A mismatched resource is always reported as such, before any signature is touched.
             if claimed_text != RESOURCE {
-                assert!(matches!(
-                    error,
-                    ResponseAuthenticationError::UnexpectedResource { .. }
-                ));
+                assert!(matches!(error, ResponseAuthenticationError::UnexpectedResource { .. }));
             }
         }
     }

@@ -12,13 +12,11 @@
 //! writes none, and that an agent's answer either decodes into exactly one of the three outcomes
 //! or is refused — never resolved to a state it did not claim.
 
+use keria_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
 use libfuzzer_sys::fuzz_target;
-use signify_client::endpoint::operations::{
-    MAX_FAILURE_MESSAGE_BYTES, OPERATIONS_SEGMENT, TYPE_PARAMETER, completed,
-};
+use signify_client::endpoint::operations::{MAX_FAILURE_MESSAGE_BYTES, OPERATIONS_SEGMENT, TYPE_PARAMETER, completed};
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use keria_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
 
 fuzz_target!(|data: &[u8]| {
     let mut parts = data.split(|&byte| byte == 0xff);

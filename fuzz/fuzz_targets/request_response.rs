@@ -211,13 +211,7 @@ fuzz_target!(|data: &[u8]| {
                 // An accepted value began with the unit and a space, and its digits re-render into
                 // no more characters than it held.
                 assert!(text.starts_with(unit.as_str()));
-                let rendered = format!(
-                    "{} {}-{}/{}",
-                    unit.as_str(),
-                    range.start(),
-                    range.end(),
-                    range.total()
-                );
+                let rendered = format!("{} {}-{}/{}", unit.as_str(), range.start(), range.end(), range.total());
                 assert!(rendered.len() <= text.len(), "{rendered:?} from {text:?}");
             }
             Err(error) => {

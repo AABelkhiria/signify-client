@@ -1,9 +1,9 @@
 #![no_main]
 #![forbid(unsafe_code)]
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::digest::Digest;
 use keri_cesr::crypto::verifier::VerificationKey;
+use libfuzzer_sys::fuzz_target;
 use signify_keri::event::inception::InceptionBuilder;
 use signify_keri::event::interaction::InteractionBuilder;
 use signify_keri::event::rotation::{RotationBuilder, RotationKind};
@@ -45,7 +45,11 @@ fn byte(data: &[u8], index: usize) -> u8 {
 /// Every event a builder accepts must satisfy the invariants a peer relies on.
 fn check(event: &KeyEvent) {
     // The declared size, the byte count, and the reparsed content all agree.
-    assert_eq!(event.serialized().size(), event.raw().len(), "size disagrees with bytes");
+    assert_eq!(
+        event.serialized().size(),
+        event.raw().len(),
+        "size disagrees with bytes"
+    );
     match SerializedEvent::parse(event.raw()) {
         Ok(reparsed) => assert_eq!(reparsed.sad(), event.sad(), "an event did not survive reparsing"),
         Err(error) => panic!("a built event failed to parse: {error}"),
@@ -62,7 +66,10 @@ fn check(event: &KeyEvent) {
     // both identifier fields; every other event carries an ordinary SAID.
     if event.identifier().is_digestive() && event.kind().as_str() == "icp" {
         assert!(
-            event.identifier().verify(event.sad(), PrefixVerification::Strict).is_ok(),
+            event
+                .identifier()
+                .verify(event.sad(), PrefixVerification::Strict)
+                .is_ok(),
             "a self-addressing inception did not verify against itself",
         );
     } else {
@@ -147,7 +154,9 @@ fuzz_target!(|data: &[u8]| {
 
     // A non-transferable single-key identifier can never commit to a future.
     if let Ok(key) = VerificationKey::from_qb64(NON_TRANSFERABLE) {
-        let abandoned = InceptionBuilder::new(vec![key]).next_key_digests(digests.clone()).build();
+        let abandoned = InceptionBuilder::new(vec![key])
+            .next_key_digests(digests.clone())
+            .build();
         assert_eq!(
             abandoned.is_ok(),
             digests.is_empty(),
@@ -176,10 +185,9 @@ fuzz_target!(|data: &[u8]| {
 
         let mut seal = Sad::new();
         if seal.insert("i", SadValue::text(DIGESTS[0])).is_ok() {
-            if let Ok(interaction) =
-                InteractionBuilder::new(root.identifier().clone(), root.said(), sequence_number)
-                    .anchors(vec![seal])
-                    .build()
+            if let Ok(interaction) = InteractionBuilder::new(root.identifier().clone(), root.said(), sequence_number)
+                .anchors(vec![seal])
+                .build()
             {
                 check(&interaction);
             }

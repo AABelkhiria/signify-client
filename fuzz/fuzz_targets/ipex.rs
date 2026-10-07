@@ -15,6 +15,8 @@
 //! one indexed signature; its route is the one asked for; and only a grant produces a
 //! quadlet-aligned attachment stream, which always names all three embeds.
 
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::error::IpexError;
@@ -23,14 +25,12 @@ use signify_acdc::ipex::{
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, admit, agree, apply, grant, offer,
 };
 use signify_acdc::issuance::issue_credential;
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
-use keria_types::api::KeyState;
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";
@@ -271,12 +271,7 @@ fn drive(keeper: &dyn IdentifierKeeper, data: &[u8]) {
         }
     };
 
-    match grant(
-        keeper,
-        &envelope,
-        &disclosure,
-        carries_prior.then_some(prior),
-    ) {
+    match grant(keeper, &envelope, &disclosure, carries_prior.then_some(prior)) {
         Ok(message) => {
             assert_well_formed(&message, IpexRoute::Grant, &envelope);
             // A grant embeds all three artifacts, in order, verbatim.

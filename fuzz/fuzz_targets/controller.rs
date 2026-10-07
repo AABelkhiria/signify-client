@@ -14,12 +14,12 @@
 //! Every derivation uses the ephemeral cost; the production profile is covered by the
 //! cross-language vectors, and the validation under test does not depend on it.
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::salt::SecurityTier;
+use keria_types::api::KeyState;
+use libfuzzer_sys::fuzz_target;
 use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions};
 use signify_keri::manager::DerivationCost;
 use signify_keri::serialization::SerializedEvent;
-use keria_types::api::KeyState;
 
 /// The fields of an agent key state the fuzzer replaces, selected by the first input byte.
 const FIELDS: [&str; 9] = ["i", "s", "d", "et", "kt", "k", "nt", "n", "di"];

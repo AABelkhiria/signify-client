@@ -17,13 +17,13 @@
 
 use core::time::Duration;
 
+use keria_types::api::{RegistryMetadata, UntypedOperation};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::operations::OPERATIONS_SEGMENT;
 use signify_client::operation::{PollPolicy, PollableMetadata};
 use signify_http::request::ResourcePath;
 use signify_http::retry::{Backoff, Jitter, RetryDecision};
 use signify_http::transport::Method;
-use keria_types::api::{RegistryMetadata, UntypedOperation};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

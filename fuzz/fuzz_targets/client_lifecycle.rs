@@ -65,10 +65,7 @@ fn clock() -> Arc<dyn Clock> {
 fn response(status: u16, body: Vec<u8>) -> Option<Response> {
     let mut headers = Headers::new();
     headers
-        .insert(
-            HeaderName::new("signify-resource").ok()?,
-            HeaderValue::new(AGENT).ok()?,
-        )
+        .insert(HeaderName::new("signify-resource").ok()?, HeaderValue::new(AGENT).ok()?)
         .ok()?;
     Response::new(StatusCode::new(status).ok()?, headers, body).ok()
 }
@@ -78,9 +75,7 @@ fn agent_state(anchor: &str, inception: &str, rotation_index: &str, agent_prefix
     let agent = format!(
         r#"{{"vn":[1,0],"i":"{agent_prefix}","s":"0","p":"","d":"{agent_prefix}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{AGENT_KEY}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{agent_prefix}","br":[],"ba":[]}},"di":"{anchor}"}}"#
     );
-    format!(
-        r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":{rotation_index},"pidx":0}}"#
-    )
+    format!(r#"{{"agent":{agent},"controller":{{"state":{agent},"ee":{inception}}},"ridx":{rotation_index},"pidx":0}}"#)
 }
 
 /// Escapes a value so it can sit inside a JSON string without breaking the document.
@@ -145,8 +140,16 @@ fn drive(config: &ClientConfig, prefix: &str, inception: &str, data: &[u8]) {
     // chose, or the raw bytes verbatim.
     let body = if control & 0x01 == 0 {
         let anchor = if control & 0x02 == 0 { prefix } else { anchor.as_str() };
-        let agent_prefix = if control & 0x04 == 0 { AGENT } else { agent_prefix.as_str() };
-        let index = if control & 0x08 == 0 { "0" } else { rotation_index.as_str() };
+        let agent_prefix = if control & 0x04 == 0 {
+            AGENT
+        } else {
+            agent_prefix.as_str()
+        };
+        let index = if control & 0x08 == 0 {
+            "0"
+        } else {
+            rotation_index.as_str()
+        };
         agent_state(anchor, inception, index, agent_prefix).into_bytes()
     } else {
         raw_body.to_vec()
@@ -183,10 +186,7 @@ fn drive(config: &ClientConfig, prefix: &str, inception: &str, data: &[u8]) {
 
             // The client stamps its own prefix, never anything the document carried.
             assert_eq!(connected.resource().as_str(), prefix);
-            assert_eq!(
-                connected.controller().prefix().qb64().ok().as_deref(),
-                Some(prefix)
-            );
+            assert_eq!(connected.controller().prefix().qb64().ok().as_deref(), Some(prefix));
 
             // And the agent it verifies against is the one the document named, parsed as a key
             // rather than copied as text.

@@ -13,14 +13,14 @@
 //! is planned but not applied leaves the controller untouched — which is what lets a client decline
 //! a rotation its agent rejected.
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::{AcceptedHab, Hab};
+use libfuzzer_sys::fuzz_target;
 use signify_keri::controller::{Controller, ControllerOptions, ReEncryptedKeyState};
 use signify_keri::manager::DerivationCost;
-use keria_types::api::{AcceptedHab, Hab};
 
 /// A passcode is exactly twenty-one characters of the reference's own alphabet.
 fn passcode(bytes: &[u8]) -> Option<String> {
@@ -106,7 +106,9 @@ fuzz_target!(|data: &[u8]| {
     for (slot, byte) in seed.iter_mut().zip(parts.next().unwrap_or_default()) {
         *slot = *byte;
     }
-    let mismatch = parts.next().is_some_and(|flag| flag.first().is_some_and(|byte| byte % 2 == 0));
+    let mismatch = parts
+        .next()
+        .is_some_and(|flag| flag.first().is_some_and(|byte| byte % 2 == 0));
 
     let Some(mut controller) = controller(&first) else {
         return;
@@ -165,7 +167,11 @@ fuzz_target!(|data: &[u8]| {
     if let Ok(opened) = new_decrypter.decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
         && let Ok(text) = opened.expose_qb64()
     {
-        assert_eq!(text.as_str(), format!("0AA{second}"), "the sealed salt is not the new one");
+        assert_eq!(
+            text.as_str(),
+            format!("0AA{second}"),
+            "the sealed salt is not the new one"
+        );
     }
     if first != second {
         assert!(

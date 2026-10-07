@@ -24,6 +24,7 @@
 //! there and says something else. The target asserts the accept/reject split here is exactly UTF-8
 //! validity, with nothing repaired.
 
+use keria_types::api::{Credential, CredentialState};
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::credential::RegistryIdentifier;
 use signify_client::endpoint::credentials::{CREDENTIAL_QUERY_SEGMENT, CREDENTIALS_SEGMENT, CredentialFilter};
@@ -32,7 +33,6 @@ use signify_client::endpoint::registries::REGISTRIES_SEGMENT;
 use signify_http::request::ResourcePath;
 use signify_keri::said::Said;
 use signify_keri::serialization::{Sad, SadValue};
-use keria_types::api::{Credential, CredentialState};
 
 /// Asserts one accepted qualified value is exactly one unchanged path segment.
 fn one_segment(prefix: &str, value: &str) {

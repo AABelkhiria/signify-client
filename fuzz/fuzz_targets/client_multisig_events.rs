@@ -22,12 +22,12 @@
 //! Nothing panics, no route ever admits an embed it does not name, and no threshold ever means a
 //! different number for having been written as a number.
 
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource, RotationRecord};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{
     INCEPTION_ROUTE, INCEPTION_SLOT, INTERACTION_ROUTE, INTERACTION_SLOT, ROTATION_ROUTE, ROTATION_SLOT,
 };
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource, RotationRecord};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -50,9 +50,7 @@ fn event(slot: &str, threshold: &str) -> String {
         "rot" => format!(
             r#"{{"v":"KERI10JSON000_","t":"rot","d":"{DIGEST}","i":"{GROUP}","s":"1","p":"{GROUP}","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":{threshold},"br":[],"ba":[],"a":[]}}"#
         ),
-        _ => format!(
-            r#"{{"v":"KERI10JSON000_","t":"ixn","d":"{DIGEST}","i":"{GROUP}","s":"1","p":"{GROUP}","a":[]}}"#
-        ),
+        _ => format!(r#"{{"v":"KERI10JSON000_","t":"ixn","d":"{DIGEST}","i":"{GROUP}","s":"1","p":"{GROUP}","a":[]}}"#),
     }
 }
 
@@ -78,9 +76,7 @@ fuzz_target!(|data: &[u8]| {
     let document = parts.next().unwrap_or_default();
 
     let pick = |index: usize| {
-        let choice = selection
-            .get(index)
-            .map_or(0, |byte| usize::from(*byte) % ROUNDS.len());
+        let choice = selection.get(index).map_or(0, |byte| usize::from(*byte) % ROUNDS.len());
         ROUNDS.get(choice).copied().unwrap_or(ROUNDS[0])
     };
     let (route, _) = pick(0);
@@ -123,11 +119,7 @@ fuzz_target!(|data: &[u8]| {
     // The witness threshold: two wire types, one value.
     // -----------------------------------------------------------------------
     let as_number = classify(&listing(ROTATION_ROUTE, ROTATION_SLOT, &threshold.to_string()));
-    let as_text = classify(&listing(
-        ROTATION_ROUTE,
-        ROTATION_SLOT,
-        &format!("\"{threshold}\""),
-    ));
+    let as_text = classify(&listing(ROTATION_ROUTE, ROTATION_SLOT, &format!("\"{threshold}\"")));
     let read = |proposal: Option<ClassifiedExchange>| -> Option<String> {
         let multisig = proposal?.as_multisig()?.clone();
         let ExchangeEmbed::Rotation(embed) = multisig.proposed.message else {

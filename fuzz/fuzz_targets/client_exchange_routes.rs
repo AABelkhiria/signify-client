@@ -25,13 +25,13 @@
 //! And nothing an attribute block carries is dropped: the four labels this port reads are extracted
 //! and everything else survives, because the reference's own variants declare an index signature.
 
+use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use serde_json::{Map, Value};
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, ExchangeRoute, GROUP_LABEL, IpexPayload, MultisigRoute, ROTATION_MEMBERS_LABEL,
     SIGNING_MEMBERS_LABEL, USAGE_LABEL,
 };
-use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 
 /// The four labels this port reads out of an attribute block.
 const DECLARED_LABELS: [&str; 4] = [GROUP_LABEL, SIGNING_MEMBERS_LABEL, ROTATION_MEMBERS_LABEL, USAGE_LABEL];

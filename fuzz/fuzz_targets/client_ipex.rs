@@ -20,6 +20,7 @@
 //! **The agent's answer** is what a caller learns about delivery, and the reference casts it. The
 //! target asserts anything accepted survives re-encoding.
 
+use keria_types::api::ExchangeOperation;
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::ipex::IpexRoute;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
@@ -27,7 +28,6 @@ use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use keria_types::api::ExchangeOperation;
 
 /// Whether a route's submission body carries an `atc` field, as the endpoint decides it.
 fn carries_attachment(route: IpexRoute) -> bool {
@@ -89,10 +89,17 @@ fuzz_target!(|data: &[u8]| {
         .iter()
         .filter_map(|recipient| recipient.qb64().ok())
         .collect();
-    assert_eq!(encoded.len(), recipients.len(), "a parsed prefix could not be re-encoded");
+    assert_eq!(
+        encoded.len(),
+        recipients.len(),
+        "a parsed prefix could not be re-encoded"
+    );
     for address in &encoded {
         for separator in ['"', '\\', '/'] {
-            assert!(!address.contains(separator), "an accepted recipient carries {separator:?}");
+            assert!(
+                !address.contains(separator),
+                "an accepted recipient carries {separator:?}"
+            );
         }
     }
 

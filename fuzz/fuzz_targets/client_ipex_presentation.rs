@@ -16,10 +16,10 @@
 //! nothing* rather than as a SAID, and that an apply's schema and every requested attribute reach
 //! the credential filter with the same values.
 
+use keria_types::api::ExchangeResource;
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::ipex::IpexRoute;
 use signify_client::presentation::{ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, requested_credentials};
-use keria_types::api::ExchangeResource;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -70,7 +70,11 @@ fuzz_target!(|data: &[u8]| {
     let arbitrary = parts.next().unwrap_or_default();
 
     let known = IpexRoute::ALL
-        .get(selection.first().map_or(0, |byte| usize::from(*byte) % IpexRoute::ALL.len()))
+        .get(
+            selection
+                .first()
+                .map_or(0, |byte| usize::from(*byte) % IpexRoute::ALL.len()),
+        )
         .copied()
         .unwrap_or(IpexRoute::Apply);
     let answered = selection.get(1).is_some_and(|byte| byte % 2 == 0);
@@ -86,7 +90,10 @@ fuzz_target!(|data: &[u8]| {
     };
     if let Some(step) = read(&document(known.as_str(), prior, &attributes, &embeds(known))) {
         assert_eq!(step.route(), known, "a step's route was rewritten");
-        assert_eq!(step.said().ok().and_then(|said| said.qb64().ok()), Some(SAID.to_owned()));
+        assert_eq!(
+            step.said().ok().and_then(|said| said.qb64().ok()),
+            Some(SAID.to_owned())
+        );
         assert_eq!(
             step.sender().ok().and_then(|prefix| prefix.qb64().ok()),
             Some(LOCAL.to_owned())

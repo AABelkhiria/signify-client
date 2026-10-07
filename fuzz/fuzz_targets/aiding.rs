@@ -14,16 +14,16 @@
 //! Every derivation uses the ephemeral cost; the production profile is covered by the
 //! cross-language vectors.
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keria_types::api::KeyState;
+use libfuzzer_sys::fuzz_target;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,
 };
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 use signify_keri::serialization::SerializedEvent;
-use keria_types::api::KeyState;
 
 /// The key-state fields the fuzzer replaces, selected by the first input byte.
 const FIELDS: [&str; 8] = ["i", "s", "d", "nt", "b", "di", "k", "n"];

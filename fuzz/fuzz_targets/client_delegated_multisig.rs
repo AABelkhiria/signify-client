@@ -16,6 +16,7 @@
 //!
 //! Nothing panics, no seal is dropped, and no seal list is ever read as a shorter one.
 
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use serde_json::Value;
 use signify_client::endpoint::delegations::InceptionSeal;
@@ -23,7 +24,6 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INTERACTION_ROUTE, INTERACTION_SLOT};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -110,10 +110,7 @@ fuzz_target!(|data: &[u8]| {
                 found.and_then(|seal| seal.get("d")).and_then(Value::as_str),
                 Some(*delegatee)
             );
-            assert_eq!(
-                found.and_then(|seal| seal.get("s")).and_then(Value::as_str),
-                Some("0")
-            );
+            assert_eq!(found.and_then(|seal| seal.get("s")).and_then(Value::as_str), Some("0"));
         }
         // Reading only the first would be a shorter list whenever there is more than one.
         assert_eq!(read.len() == 1, chosen.len() == 1);

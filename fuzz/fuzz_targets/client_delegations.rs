@@ -52,7 +52,12 @@ fuzz_target!(|data: &[u8]| {
 
     if let (Ok(read), Ok(write)) = (read, write) {
         let segments: Vec<&str> = write.path().split('/').skip(1).collect();
-        assert_eq!(segments.len(), 3, "the alias {alias:?} became {} segments", segments.len());
+        assert_eq!(
+            segments.len(),
+            3,
+            "the alias {alias:?} became {} segments",
+            segments.len()
+        );
         assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
         assert_eq!(segments.last().copied(), Some(DELEGATION_SEGMENT));
         let encoded = encode_path_component(&alias);
@@ -86,10 +91,7 @@ fuzz_target!(|data: &[u8]| {
     // -----------------------------------------------------------------------
     // The seal: three fields, in order, holding what it was built from.
     // -----------------------------------------------------------------------
-    let built = (
-        IdentifierPrefix::from_qb64(&delegate),
-        digest.parse::<Said>(),
-    );
+    let built = (IdentifierPrefix::from_qb64(&delegate), digest.parse::<Said>());
     if let (Ok(prefix), Ok(said)) = built {
         let seal = InceptionSeal::new(prefix, said);
         let Ok(written) = seal.to_sad() else {
@@ -111,8 +113,14 @@ fuzz_target!(|data: &[u8]| {
         // Neither qualified value can carry a delimiter, so a seal never reshapes a path it is
         // quoted into — which is what makes the encoding above sufficient.
         for delimiter in PATH_DELIMITERS {
-            assert!(!delegate_text.contains(delimiter), "a parsed prefix carries {delimiter:?}");
-            assert!(!digest_text.contains(delimiter), "a parsed digest carries {delimiter:?}");
+            assert!(
+                !delegate_text.contains(delimiter),
+                "a parsed prefix carries {delimiter:?}"
+            );
+            assert!(
+                !digest_text.contains(delimiter),
+                "a parsed digest carries {delimiter:?}"
+            );
         }
 
         // Three fields and no more, written in the reference's own order.
@@ -129,7 +137,10 @@ fuzz_target!(|data: &[u8]| {
         }
 
         for absent in ["a", "v", "t", "n", "bt", "kt"] {
-            assert!(written.get_text(absent).is_none(), "a seal carries an unexpected {absent}");
+            assert!(
+                written.get_text(absent).is_none(),
+                "a seal carries an unexpected {absent}"
+            );
         }
     }
 });

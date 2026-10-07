@@ -18,13 +18,13 @@
 //! that decodes is something Roadmap 8.1 either classifies or refuses — never something either
 //! panics on.
 
+use keria_types::api::MultisigExchangeResource;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::ClassifiedExchange;
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::{ResourcePath, encode_path_component};
 use signify_keri::said::Said;
-use keria_types::api::MultisigExchangeResource;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];
@@ -74,7 +74,12 @@ fuzz_target!(|data: &[u8]| {
     if let (Ok(request), Ok(join)) = (write(REQUEST_SEGMENT), write(JOIN_SEGMENT)) {
         for (path, action) in [(&request, REQUEST_SEGMENT), (&join, JOIN_SEGMENT)] {
             let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-            assert_eq!(segments.len(), 4, "the alias {alias:?} became {} segments", segments.len());
+            assert_eq!(
+                segments.len(),
+                4,
+                "the alias {alias:?} became {} segments",
+                segments.len()
+            );
             assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
             assert_eq!(segments.get(1).copied(), Some(encode_path_component(&alias).as_str()));
             assert_eq!(segments.get(2).copied(), Some(MULTISIG_SEGMENT));
@@ -85,7 +90,11 @@ fuzz_target!(|data: &[u8]| {
         }
         // The same resource asked to do two things: everything but the action agrees.
         let strip = |path: &ResourcePath| path.path().rsplit_once('/').map(|(head, _)| head.to_owned());
-        assert_eq!(strip(&request), strip(&join), "the two writes addressed different resources");
+        assert_eq!(
+            strip(&request),
+            strip(&join),
+            "the two writes addressed different resources"
+        );
         assert_ne!(request.as_str(), join.as_str());
     }
 

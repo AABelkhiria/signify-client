@@ -16,6 +16,7 @@
 //! Nothing panics, no component escapes its segment, a filter is always whole, and an info body is
 //! always exactly what it was given.
 
+use keria_types::api::Contact;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::contacts::{
     CONTACTS_SEGMENT, ContactFilter, FILTER_FIELD_PARAMETER, FILTER_VALUE_PARAMETER, GROUP_PARAMETER,
@@ -23,7 +24,6 @@ use signify_client::endpoint::contacts::{
 use signify_http::request::ResourcePath;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::serialization::{Sad, SadValue};
-use keria_types::api::Contact;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

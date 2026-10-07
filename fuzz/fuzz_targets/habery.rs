@@ -12,9 +12,9 @@
 //! Every derivation uses the ephemeral cost; the production profile is covered by the
 //! cross-language vectors, and the composition under test does not depend on it.
 
-use libfuzzer_sys::fuzz_target;
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use libfuzzer_sys::fuzz_target;
 use signify_keri::identifier::{Habery, HabitatRequest, IdentifierError};
 use signify_keri::manager::DerivationCost;
 use signify_keri::prefix::IdentifierPrefix;

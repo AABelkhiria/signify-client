@@ -74,7 +74,11 @@ fuzz_target!(|data: &[u8]| {
         Ok(message) => {
             assert!(route.len() <= MAX_ROUTE_BYTES, "an overlong route was accepted");
             assert!(!carries_identifier, "a payload naming the recipient was accepted");
-            assert_eq!(message.route(), Some(route.as_str()), "a route was not written verbatim");
+            assert_eq!(
+                message.route(),
+                Some(route.as_str()),
+                "a route was not written verbatim"
+            );
             assert_eq!(message.sender(), Some(SENDER));
             assert_eq!(message.recipient(), Some(RECIPIENT));
 
@@ -98,10 +102,13 @@ fuzz_target!(|data: &[u8]| {
             let embeds = message.sad().get("e").and_then(SadValue::as_map);
             match embeds {
                 Some(block) if !block.is_empty() => {
-                    let claimed = block.get_text(DEFAULT_SAID_LABEL).and_then(|text| Said::from_qb64(text).ok());
+                    let claimed = block
+                        .get_text(DEFAULT_SAID_LABEL)
+                        .and_then(|text| Said::from_qb64(text).ok());
                     assert!(
                         claimed.is_some_and(|said| {
-                            said.verify(block, DEFAULT_SAID_LABEL, SaidVerification::strict()).is_ok()
+                            said.verify(block, DEFAULT_SAID_LABEL, SaidVerification::strict())
+                                .is_ok()
                         }),
                         "an embeds block did not commit to itself",
                     );
