@@ -5,7 +5,7 @@
 use core::time::Duration;
 use std::error::Error;
 
-use keria_types::api::Role;
+use keria_types::api::{Notification, Role};
 use serde_json::Value;
 use signify_client::client::{ClientRequest, ConnectedClient};
 use signify_client::endpoint::oobis::{OobiResolution, RESOLUTIONS_SEGMENT};
@@ -58,12 +58,7 @@ pub async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Val
 pub async fn await_notification(client: &ConnectedClient, route: &str) -> Result<Said, Box<dyn Error>> {
     crate::progress(&format!("waiting for a notification on {route}"));
     for _ in 0..POLL_ATTEMPTS {
-        let listing = client.notifications().list(ItemRange::DEFAULT).await?;
-        let matching: Vec<_> = listing
-            .unread()
-            .filter(|notification| notification.attributes.route.as_deref() == Some(route))
-            .cloned()
-            .collect();
+        let matching = unread_on(client, route).await?;
         if let Some(last) = matching.last() {
             let said = last
                 .attributes
@@ -78,6 +73,66 @@ pub async fn await_notification(client: &ConnectedClient, route: &str) -> Result
         TokioClock.sleep(POLL_INTERVAL).await;
     }
     Err(format!("no notification on {route} arrived in time").into())
+}
+
+/// Waits for at least `minimum` unread notifications on `route` and returns what every one of
+/// them names, marking them all.
+///
+/// [`await_notification`] answers one round with one proposal; a round that sends one message per
+/// member — the agent end-role round does — needs every SAID rather than the last. Everything
+/// unread on the route is returned, so a scenario that leaves a round's notifications unread on a
+/// client and then waits on the same route with that client picks the old ones up too.
+///
+/// # Errors
+///
+/// Returns an error when `minimum` notifications do not arrive within `POLL_ATTEMPTS` polls, when
+/// one names no message, and whatever listing or marking returns.
+pub async fn await_proposals(
+    client: &ConnectedClient,
+    route: &str,
+    minimum: usize,
+) -> Result<Vec<Said>, Box<dyn Error>> {
+    crate::progress(&format!("waiting for {minimum} notification(s) on {route}"));
+    for _ in 0..POLL_ATTEMPTS {
+        let matching = unread_on(client, route).await?;
+        if matching.len() >= minimum {
+            let mut proposals = Vec::with_capacity(matching.len());
+            for notification in &matching {
+                let said = notification
+                    .attributes
+                    .digest
+                    .clone()
+                    .ok_or("a notification names no message")?;
+                proposals.push(Said::from_qb64(&said)?);
+                client.notifications().mark(&notification.id).await?;
+            }
+            return Ok(proposals);
+        }
+        TokioClock.sleep(POLL_INTERVAL).await;
+    }
+    Err(format!("no {minimum} notifications on {route} arrived in time").into())
+}
+
+/// Lists every unread notification on `route`, however many notifications the agent holds.
+///
+/// The agent pages oldest first and counts read notifications in the page, and nothing here ever
+/// deletes one, so a long scenario pushes its newest notifications past the default page. The
+/// first page reports the total, and when the total exceeds the page everything is asked for.
+async fn unread_on(client: &ConnectedClient, route: &str) -> Result<Vec<Notification>, Box<dyn Error>> {
+    let mut listing = client.notifications().list(ItemRange::DEFAULT).await?;
+    if let Some(window) = listing.window
+        && window.total() > ItemRange::DEFAULT.end().saturating_add(1)
+    {
+        listing = client
+            .notifications()
+            .list(ItemRange::new(0, window.total().saturating_sub(1))?)
+            .await?;
+    }
+    Ok(listing
+        .unread()
+        .filter(|notification| notification.attributes.route.as_deref() == Some(route))
+        .cloned()
+        .collect())
 }
 
 /// Resolves one OOBI URL under `alias` and returns the identifier the resolution answered with.

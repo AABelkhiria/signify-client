@@ -120,7 +120,7 @@ async fn two_member_group(
         group::incept_group(&pair, GROUP, &participants, Some(SigningThreshold::numeric(2)), &[], 0).await?;
     // A group that has not authorised its agents publishes no OOBI, so nobody could be
     // introduced to it — wave 12's lesson.
-    group::authorise_agents(&pair, GROUP, &participants).await?;
+    group::authorise_agents(&pair, GROUP).await?;
     Ok((group_prefix, participants))
 }
 

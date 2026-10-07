@@ -12,22 +12,20 @@
 
 use std::error::Error;
 
-use keri_cesr::sequence::SequenceNumber;
 use keria_types::api::{KeyState, Role};
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
-use signify_client::endpoint::exchanges::{ClassifiedExchange, ExchangeDraft, MultisigRoute};
+use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::endpoint::groups::GroupJoin;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::multisig::{GroupInceptionRequest, GroupRotationRequest};
-use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
-use signify_keri::event::exchange::ExchangeEmbed;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest, rotate_identifier};
-use signify_keri::manager::{KeeperRequest, ManagedSignatures};
+use signify_keri::manager::KeeperRequest;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::threshold::SigningThreshold;
+use signify_keria_systest::group::authorise_agents;
 use signify_keria_systest::{
     Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,
 };
@@ -92,48 +90,6 @@ async fn rotate_own(client: &ConnectedClient, alias: &str) -> Result<(), Box<dyn
     Ok(())
 }
 
-async fn add_group_end_role(
-    client: &ConnectedClient,
-    member_alias: &str,
-    eid: &IdentifierPrefix,
-    peers: &[IdentifierPrefix],
-    stamp: signify_keri::event::Timestamp,
-) -> Result<String, Box<dyn Error>> {
-    let authorised = client
-        .identifiers()
-        .add_end_role(GROUP_NAME, &Role::Agent, Some(eid), stamp)
-        .await?;
-    let operation_name = authorised.operation()?.name;
-
-    let group_record = client.identifiers().get(GROUP_NAME).await?;
-    let establishment = &group_record.state.latest_establishment_event;
-    let reply = authorised.artifact();
-    let ManagedSignatures::Indexed(signatures) = &reply.signatures else {
-        return Err("the group reply is not signed with indexed signatures".into());
-    };
-    let attachment = SignedMessageBuilder::new(reply.reply.serialized())
-        .controller_signatures(signatures.clone())
-        .seal(SignatureSeal::Event {
-            identifier: IdentifierPrefix::from_qb64(&group_record.common.prefix)?,
-            sequence_number: SequenceNumber::from_hex(&establishment.sequence_number)?,
-            said: Said::from_qb64(&establishment.digest)?,
-        })
-        .build()?
-        .attachments()
-        .to_vec();
-    let embed = ExchangeEmbed::new("rpy", reply.reply.serialized())?.with_attachment(attachment)?;
-
-    let addressee = peers.first().ok_or("the end-role round has no peers")?.clone();
-    let mut payload = signify_keri::serialization::Sad::new();
-    payload.insert("gid", group_record.common.prefix.clone())?;
-    let draft = ExchangeDraft::new("/multisig/rpy", addressee, signify_keria_systest::now()?)
-        .payload(payload)
-        .embeds(vec![embed]);
-    let sent = client.exchanges().send(member_alias, GROUP_NAME, &draft, peers).await?;
-    wait_and_delete(client, &sent.operation()?.name).await?;
-    Ok(operation_name)
-}
-
 async fn incept_group(
     member1: &ConnectedClient,
     member2: &ConnectedClient,
@@ -167,31 +123,8 @@ async fn incept_group(
     wait_and_delete(member1, &proposed.creation().operation()?.name).await?;
     wait_and_delete(member2, &accepted.creation().operation()?.name).await?;
 
-    let stamp = signify_keria_systest::now()?;
-    let eids = [member1.agent().prefix().clone(), member2.agent().prefix().clone()];
-    let mut names = Vec::new();
-    progress("member1: authorising both agents for the group");
-    for eid in &eids {
-        names.push((
-            add_group_end_role(member1, "member1", eid, core::slice::from_ref(aid2), stamp.clone()).await?,
-            true,
-        ));
-    }
-    await_notification(member2, "/multisig/rpy").await?;
-    progress("member2: authorising both agents for the group");
-    for eid in &eids {
-        names.push((
-            add_group_end_role(member2, "member2", eid, core::slice::from_ref(aid1), stamp.clone()).await?,
-            false,
-        ));
-    }
-    for (name, on_member1) in &names {
-        if *on_member1 {
-            wait_and_delete(member1, name).await?;
-        } else {
-            wait_and_delete(member2, name).await?;
-        }
-    }
+    // The end-role round, through the library.
+    authorise_agents(&[(member1, "member1"), (member2, "member2")], GROUP_NAME).await?;
     Ok(proposed.group().clone())
 }
 

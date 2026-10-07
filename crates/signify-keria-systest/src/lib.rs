@@ -72,7 +72,9 @@ pub use preset::{Environment, Preset};
 pub use recorder::{Observation, Recorder};
 
 #[cfg(feature = "live")]
-pub use operation::{agent_oobi, await_notification, resolve_oobi, resolve_schema, wait_and_delete, witness_prefixes};
+pub use operation::{
+    agent_oobi, await_notification, await_proposals, resolve_oobi, resolve_schema, wait_and_delete, witness_prefixes,
+};
 
 /// Environment variable that turns a run into a recording run.
 pub const RECORD_VARIABLE: &str = "SIGNIFY_RECORD";

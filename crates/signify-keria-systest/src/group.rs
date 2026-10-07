@@ -9,28 +9,21 @@
 
 use std::error::Error;
 
-use keri_cesr::sequence::SequenceNumber;
-use keria_types::api::Role;
 use signify_acdc::credential::{Credential, RegistryIdentifier};
 use signify_acdc::ipex::Disclosure;
 use signify_acdc::revocation::RevocationEventBuilder;
 use signify_client::client::ConnectedClient;
-use signify_client::endpoint::exchanges::ExchangeDraft;
 use signify_client::endpoint::exchanges::MultisigRoute;
 use signify_client::endpoint::registries::RegistryBacking;
 use signify_client::multisig::{
-    GroupAdmittanceRequest, GroupDisclosureRequest, GroupInceptionRequest, GroupIssuanceRequest, GroupRegistryRequest,
-    GroupRevocationRequest,
+    GroupAdmittanceRequest, GroupDisclosureRequest, GroupEndRoleRequest, GroupInceptionRequest, GroupIssuanceRequest,
+    GroupRegistryRequest, GroupRevocationRequest,
 };
-use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
-use signify_keri::event::Timestamp;
-use signify_keri::event::exchange::ExchangeEmbed;
-use signify_keri::manager::ManagedSignatures;
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::threshold::SigningThreshold;
 
-use crate::operation::{await_notification, wait_and_delete};
+use crate::operation::{await_notification, await_proposals, wait_and_delete};
 use crate::singlesig::{credential_state, state_digest};
 
 /// One member of a group: its client, and the local alias of its own identifier.
@@ -318,89 +311,57 @@ pub async fn admit_credential(
 
 /// Authorises every member's agent for the group, so the group publishes an OOBI.
 ///
-/// Wave 12's round, expressed once: each member adds the agent end role for each agent under
-/// the group's alias, relays the signed reply to its peers on `/multisig/rpy` with the `{gid}`
-/// payload that makes the agent raise a notification, and the joining members wait for the
-/// leader's relays before signing their own. One stamp, so every member derives the same reply.
+/// The leader proposes one end-role reply per member's agent, and every other
+/// member accepts each proposal, reading the stamp, role, and endpoint out of it. Until this
+/// completes, nothing addressed to the group reaches any member's agent but the leader's.
+///
+/// Each acceptance is announced to every other member, but the agent raises one notification per
+/// reply however many members relay it, so a joining member waits for exactly as many proposals
+/// as the leader sent. The leader is left with one unread `/multisig/rpy` notification per reply
+/// per joining member, which nothing here reads: a scenario that later waits on that route with
+/// the leader must expect them.
 ///
 /// # Errors
 ///
-/// Returns whatever the end-role call, the relay, the notification wait, or the operations return.
-pub async fn authorise_agents(
-    members: &[Member<'_>],
-    group_name: &str,
-    participants: &[IdentifierPrefix],
-) -> Result<(), Box<dyn Error>> {
-    let stamp = crate::now()?;
-    let agents: Vec<IdentifierPrefix> = members
+/// Returns whatever the proposal, the notifications, the acceptances, or the operations return.
+pub async fn authorise_agents(members: &[Member<'_>], group_name: &str) -> Result<(), Box<dyn Error>> {
+    let (leader, leader_alias) = *members.first().ok_or("a group needs at least one member")?;
+    crate::progress(&format!(
+        "{group_name}: {leader_alias} authorising every member's agent"
+    ));
+    let proposed = leader
+        .multisig()
+        .propose_agent_end_roles(&GroupEndRoleRequest {
+            group_name,
+            local_member: leader_alias,
+            timestamp: crate::now()?,
+        })
+        .await?;
+    let mut operations: Vec<(usize, String)> = proposed
         .iter()
-        .map(|(client, _)| client.agent().prefix().clone())
-        .collect();
-    let mut operations: Vec<(usize, String)> = Vec::new();
-    for (index, (client, alias)) in members.iter().enumerate() {
-        if index > 0 {
-            for _ in &agents {
-                await_notification(client, MultisigRoute::Reply.as_str()).await?;
-            }
-        }
-        crate::progress(&format!("{group_name}: {alias} authorising every agent"));
-        let local = participants.get(index).ok_or("a member has no participant prefix")?;
-        let peers: Vec<IdentifierPrefix> = participants
-            .iter()
-            .filter(|participant| *participant != local)
-            .cloned()
-            .collect();
-        for agent in &agents {
-            let name = add_group_end_role(client, alias, group_name, agent, &peers, stamp.clone()).await?;
-            operations.push((index, name));
+        .map(|reply| Ok((0, reply.submission().operation()?.name)))
+        .collect::<Result<_, Box<dyn Error>>>()?;
+    for reply in &proposed {
+        wait_and_delete(leader, &reply.announcement().operation()?.name).await?;
+    }
+
+    for (index, (client, alias)) in members.iter().enumerate().skip(1) {
+        let proposals = await_proposals(client, MultisigRoute::Reply.as_str(), proposed.len()).await?;
+        for proposal in &proposals {
+            crate::progress(&format!("{group_name}: {alias} accepting an agent authorisation"));
+            let accepted = client.multisig().accept_end_role(group_name, alias, proposal).await?;
+            operations.push((index, accepted.submission().operation()?.name));
+            wait_and_delete(client, &accepted.announcement().operation()?.name).await?;
         }
     }
+
+    // The end-role operations complete only once the group's threshold is met, so they are waited
+    // out after every member has signed. The agent names an operation for the role and endpoint it
+    // authorizes, so two members sharing one agent yield one operation twice; it is waited once.
+    operations.dedup();
     for (index, name) in &operations {
         let (client, _) = members.get(*index).ok_or("an operation names no member")?;
         wait_and_delete(client, name).await?;
     }
     Ok(())
-}
-
-async fn add_group_end_role(
-    client: &ConnectedClient,
-    member_alias: &str,
-    group_name: &str,
-    eid: &IdentifierPrefix,
-    peers: &[IdentifierPrefix],
-    stamp: Timestamp,
-) -> Result<String, Box<dyn Error>> {
-    let authorised = client
-        .identifiers()
-        .add_end_role(group_name, &Role::Agent, Some(eid), stamp)
-        .await?;
-    let operation_name = authorised.operation()?.name;
-
-    let record = client.identifiers().get(group_name).await?;
-    let establishment = &record.state.latest_establishment_event;
-    let reply = authorised.artifact();
-    let ManagedSignatures::Indexed(signatures) = &reply.signatures else {
-        return Err("the group reply is not signed with indexed signatures".into());
-    };
-    let attachment = SignedMessageBuilder::new(reply.reply.serialized())
-        .controller_signatures(signatures.clone())
-        .seal(SignatureSeal::Event {
-            identifier: IdentifierPrefix::from_qb64(&record.common.prefix)?,
-            sequence_number: SequenceNumber::from_hex(&establishment.sequence_number)?,
-            said: Said::from_qb64(&establishment.digest)?,
-        })
-        .build()?
-        .attachments()
-        .to_vec();
-    let embed = ExchangeEmbed::new("rpy", reply.reply.serialized())?.with_attachment(attachment)?;
-
-    let addressee = peers.first().ok_or("the end-role round has no peers")?.clone();
-    let mut payload = signify_keri::serialization::Sad::new();
-    payload.insert("gid", record.common.prefix.clone())?;
-    let draft = ExchangeDraft::new(MultisigRoute::Reply.as_str(), addressee, crate::now()?)
-        .payload(payload)
-        .embeds(vec![embed]);
-    let sent = client.exchanges().send(member_alias, group_name, &draft, peers).await?;
-    wait_and_delete(client, &sent.operation()?.name).await?;
-    Ok(operation_name)
 }

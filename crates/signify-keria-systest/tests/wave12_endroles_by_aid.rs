@@ -11,25 +11,19 @@
 #![cfg(feature = "live")]
 
 use std::error::Error;
-use std::time::Duration;
 
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
-use keri_cesr::sequence::SequenceNumber;
-use keria_types::api::{Notification, Role};
+use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
-use signify_client::endpoint::exchanges::ExchangeDraft;
 use signify_client::multisig::GroupInceptionRequest;
-use signify_http::request::ItemRange;
-use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
-use signify_keri::event::exchange::ExchangeEmbed;
-use signify_keri::manager::ManagedSignatures;
 use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
 use signify_keri::threshold::SigningThreshold;
+use signify_keria_systest::group::authorise_agents;
 use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{
-    Environment, agent_oobi, connect, progress, record, recorder, resolve_oobi, wait_and_delete, witness_prefixes,
+    Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,
+    witness_prefixes,
 };
 
 const GROUP_NAME: &str = "endroles-byaid-group";
@@ -60,72 +54,6 @@ struct Captured {
     member2_operations_remaining: usize,
     alice_operations_remaining: usize,
     alice_transcript: Vec<signify_keria_systest::Observation>,
-}
-
-async fn await_notifications(
-    client: &ConnectedClient,
-    route: &str,
-    minimum: usize,
-) -> Result<Vec<Notification>, Box<dyn Error>> {
-    progress(&format!("waiting for {minimum} notification(s) on {route}"));
-    for _ in 0..60 {
-        let listing = client.notifications().list(ItemRange::DEFAULT).await?;
-        let matching: Vec<Notification> = listing
-            .unread()
-            .filter(|notification| notification.attributes.route.as_deref() == Some(route))
-            .cloned()
-            .collect();
-        if matching.len() >= minimum {
-            for notification in &matching {
-                client.notifications().mark(&notification.id).await?;
-            }
-            return Ok(matching);
-        }
-        tokio::time::sleep(Duration::from_millis(500)).await;
-    }
-    Err(format!("no {minimum} notifications on {route} arrived in time").into())
-}
-
-async fn add_group_end_role(
-    client: &ConnectedClient,
-    member_alias: &str,
-    eid: &IdentifierPrefix,
-    peers: &[IdentifierPrefix],
-    stamp: signify_keri::event::Timestamp,
-) -> Result<String, Box<dyn Error>> {
-    let authorised = client
-        .identifiers()
-        .add_end_role(GROUP_NAME, &Role::Agent, Some(eid), stamp)
-        .await?;
-    let operation_name = authorised.operation()?.name;
-
-    let record = client.identifiers().get(GROUP_NAME).await?;
-    let establishment = &record.state.latest_establishment_event;
-    let reply = authorised.artifact();
-    let ManagedSignatures::Indexed(signatures) = &reply.signatures else {
-        return Err("the group reply is not signed with indexed signatures".into());
-    };
-    let attachment = SignedMessageBuilder::new(reply.reply.serialized())
-        .controller_signatures(signatures.clone())
-        .seal(SignatureSeal::Event {
-            identifier: IdentifierPrefix::from_qb64(&record.common.prefix)?,
-            sequence_number: SequenceNumber::from_hex(&establishment.sequence_number)?,
-            said: Said::from_qb64(&establishment.digest)?,
-        })
-        .build()?
-        .attachments()
-        .to_vec();
-    let embed = ExchangeEmbed::new("rpy", reply.reply.serialized())?.with_attachment(attachment)?;
-
-    let addressee = peers.first().ok_or("the end-role round has no peers")?.clone();
-    let mut payload = signify_keri::serialization::Sad::new();
-    payload.insert("gid", record.common.prefix.clone())?;
-    let draft = ExchangeDraft::new("/multisig/rpy", addressee, signify_keria_systest::now()?)
-        .payload(payload)
-        .embeds(vec![embed]);
-    let sent = client.exchanges().send(member_alias, GROUP_NAME, &draft, peers).await?;
-    wait_and_delete(client, &sent.operation()?.name).await?;
-    Ok(operation_name)
 }
 
 async fn three_clients(
@@ -202,20 +130,11 @@ async fn incept_group(
         .await?;
     wait_and_delete(member1, &proposed.proposal().operation()?.name).await?;
 
-    let notes = await_notifications(member2, "/multisig/icp", 1).await?;
-    let said = notes
-        .last()
-        .and_then(|note| note.attributes.digest.clone())
-        .ok_or("the inception notification names no message")?;
+    let said = await_notification(member2, "/multisig/icp").await?;
     progress("member2: accepting the group inception");
     let accepted = member2
         .multisig()
-        .accept_inception(
-            GROUP_NAME,
-            "member2",
-            &Said::from_qb64(&said)?,
-            signify_keria_systest::now()?,
-        )
+        .accept_inception(GROUP_NAME, "member2", &said, signify_keria_systest::now()?)
         .await?;
     wait_and_delete(member2, &accepted.proposal().operation()?.name).await?;
 
@@ -244,28 +163,10 @@ async fn a_third_party_reads_a_groups_end_roles() -> Result<(), Box<dyn Error>> 
     let group = incept_group(&member1, &member2, &aid1, &aid2, &environment).await?;
     progress(&format!("group incepted as {}", group.qb64()?));
 
-    let stamp = signify_keria_systest::now()?;
+    // The end-role round, through the library: one reply per member's agent, and every member
+    // accepting each proposal.
     let agent_eids = [member1.agent().prefix().clone(), member2.agent().prefix().clone()];
-    let mut member1_operations = Vec::new();
-    progress("member1: authorising both agents for the group");
-    for eid in &agent_eids {
-        member1_operations
-            .push(add_group_end_role(&member1, "member1", eid, core::slice::from_ref(&aid2), stamp.clone()).await?);
-    }
-    await_notifications(&member2, "/multisig/rpy", agent_eids.len()).await?;
-    let mut member2_operations = Vec::new();
-    progress("member2: authorising both agents for the group");
-    for eid in &agent_eids {
-        member2_operations
-            .push(add_group_end_role(&member2, "member2", eid, core::slice::from_ref(&aid1), stamp.clone()).await?);
-    }
-    progress("waiting out the end-role operations");
-    for name in &member1_operations {
-        wait_and_delete(&member1, name).await?;
-    }
-    for name in &member2_operations {
-        wait_and_delete(&member2, name).await?;
-    }
+    authorise_agents(&[(&member1, "member1"), (&member2, "member2")], GROUP_NAME).await?;
 
     let group_oobi = agent_oobi(&member1, GROUP_NAME).await?;
     let truncated = group_oobi
