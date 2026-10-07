@@ -276,6 +276,22 @@ pub enum ClientError {
         /// What was found instead.
         found: &'static str,
     },
+    /// A group request was read expecting a proposed end-role authorization and was something else.
+    ///
+    /// Includes a reply on another route, one for a different group, and one whose role or
+    /// endpoint is missing or is not usable — none of which a member can rebuild and sign.
+    NotAnEndRoleProposal {
+        /// What was found instead.
+        found: &'static str,
+    },
+    /// A group member authorizes no agent, so there is no agent for the group to authorize.
+    ///
+    /// The reference throws `signing.ends.agent is null or undefined` part way through its loop,
+    /// after the members before it were already authorized.
+    MemberHasNoAgent {
+        /// The member's prefix.
+        member: String,
+    },
     /// An IPEX message could not be built or signed.
     Ipex {
         /// Underlying failure.
@@ -611,6 +627,15 @@ impl fmt::Display for ClientError {
             Self::Transaction { source } => write!(formatter, "transaction event construction failed: {source}"),
             Self::Credential { source } => write!(formatter, "credential encoding failed: {source}"),
             Self::Timestamp { source } => write!(formatter, "a timestamp could not be read: {source}"),
+            Self::NotAnEndRoleProposal { found } => {
+                write!(
+                    formatter,
+                    "a group end-role proposal was expected, but {found} was found"
+                )
+            }
+            Self::MemberHasNoAgent { member } => {
+                write!(formatter, "the group member {member} authorizes no agent")
+            }
             Self::NotAnExchangeProposal { found } => {
                 write!(
                     formatter,
@@ -792,6 +817,8 @@ impl Error for ClientError {
             | Self::CredentialIssuerMismatch { .. }
             | Self::NoIpexRecipients { .. }
             | Self::NotAnExchangeProposal { .. }
+            | Self::NotAnEndRoleProposal { .. }
+            | Self::MemberHasNoAgent { .. }
             | Self::WrongDisclosureStep { .. }
             | Self::UnaddressedNotification { .. }
             | Self::NotADisclosureStep { .. }

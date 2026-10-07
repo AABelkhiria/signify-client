@@ -16,6 +16,7 @@
 //! | revocation | [`Multisig::propose_revocation`] | [`Multisig::accept_revocation`] |
 //! | disclosure | [`Multisig::propose_disclosure`] | [`Multisig::accept_disclosure`] |
 //! | admittance | [`Multisig::propose_admittance`] | [`Multisig::accept_admittance`] |
+//! | agent end roles | [`Multisig::propose_agent_end_roles`] | [`Multisig::accept_end_role`] |
 //!
 //! An inception creates the identifier, a rotation changes who controls it, and an interaction
 //! anchors seals in its log without changing anything about its keys. A **delegation approval** is
@@ -75,6 +76,30 @@
 //! would fail in any real deployment. Here [`Multisig::accept_admittance`] takes no timestamp at
 //! all — it reads the stamp, the recipient, the text, and the grant being acknowledged out of the
 //! proposal, and compares the SAID it derives with the one it was shown.
+//!
+//! # A group reaches its members' agents only once it authorizes them
+//!
+//! A group identifier has no agent endpoint until its members authorize one, so until then nothing
+//! addressed to the group gets past the sender's own agent. The reference's `addEndRoleMultisig`
+//! authorizes **every signing member's agent** — one end-role reply per agent, each announced on
+//! [`REPLY_ROUTE`] with the reply in [`REPLY_SLOT`] under the group's establishment seal — and so
+//! does [`Multisig::propose_agent_end_roles`]. A joining member of the reference waits for as many
+//! notifications as there are signing members, **discards them**, and builds its replies from its
+//! own timestamp argument, so two members stamping differently sign different replies, and a group
+//! whose threshold needs more than one member authorizes nobody. [`Multisig::accept_end_role`]
+//! takes no timestamp: it reads the stamp, the role, and the endpoint out of the proposal and
+//! compares the reply it derives with the one it was shown.
+//!
+//! The two halves are not tied to a leader. A member may propose every agent and also accept every
+//! proposal it is shown, which is what a notification-driven wallet does: each member proposes once
+//! its own group operation completes, with its own stamp, and accepts each `/multisig/rpy`
+//! notification as it arrives. Replies proposed by different members carry different stamps and so
+//! different SAIDs, and each reaches the group's threshold through the members accepting it.
+//!
+//! The agent keeps a reply short of the threshold in escrow for one hour **measured from the
+//! reply's own stamp**, not from when it arrived, so every member must sign within an hour of the
+//! stamp the proposer chose. A stamp in the past shortens that window; one more than an hour old
+//! can never complete.
 //!
 //! # The route names the embed
 //!
@@ -136,7 +161,7 @@
 use keri_cesr::sequence::SequenceNumber;
 use keria_types::api::{
     AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
-    RegistryInceptionRecord, Threshold,
+    RegistryInceptionRecord, ReplyRecord, Role, Threshold,
 };
 use signify_acdc::credential::Credential;
 use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
@@ -144,7 +169,10 @@ use signify_acdc::revocation::RevocationEvent;
 use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
 use signify_keri::event::Timestamp;
 use signify_keri::event::exchange::ExchangeEmbed;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, RotateIdentifierRequest};
+use signify_keri::identifier::{
+    CreateAlgorithm, CreateIdentifierRequest, END_ROLE_ROUTE, IdentifierArtifact, RotateIdentifierRequest, SignedReply,
+    end_role_reply,
+};
 use signify_keri::prefix::IdentifierPrefix;
 use signify_keri::said::Said;
 use signify_keri::serialization::Sad;
@@ -1424,6 +1452,7 @@ impl<'client> Multisig<'client> {
         let wrong = |found: &'static str| match expected {
             MultisigRoute::Rotation => ClientError::NotARotationProposal { found },
             MultisigRoute::Interaction => ClientError::NotAnInteractionProposal { found },
+            MultisigRoute::Reply => ClientError::NotAnEndRoleProposal { found },
             _ => ClientError::NotAnInceptionProposal { found },
         };
         let listing = self.client.groups().requests(said).await?;
@@ -1840,6 +1869,371 @@ fn threshold_from(threshold: &Threshold) -> Result<SigningThreshold, ClientError
     SigningThreshold::from_sith(&sith).map_err(|_| ClientError::UnrepresentableNumber)
 }
 
+/// The route a group end-role authorization is proposed on.
+pub const REPLY_ROUTE: &str = "/multisig/rpy";
+
+/// The embed slot carrying the end-role reply.
+pub const REPLY_SLOT: &str = "rpy";
+
+/// One group member's agent, as the group's members listing names it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MemberAgent {
+    /// The member.
+    pub member: IdentifierPrefix,
+    /// The agent that member authorizes, which the group will authorize too.
+    pub agent: IdentifierPrefix,
+}
+
+/// Reads each signing member's agent out of a group's members listing, in the listing's order.
+///
+/// The reference takes `Object.keys(signing.ends.agent)[0]` — the first agent a member authorizes,
+/// in the order the agent wrote them. Here the listing is decoded into an ordered map, so a member
+/// authorizing several agents yields the lowest prefix. The two agree: the agent builds the listing
+/// from a database cursor that walks agents in byte order, so the first written is the lowest. A
+/// member has one agent in every deployment observed.
+///
+/// # Errors
+///
+/// Returns [`ClientError::MemberHasNoAgent`] when a signing member authorizes no agent — where the
+/// reference throws part way through its loop, after authorizing the members before it — and
+/// [`ClientError::Identifier`] when a member or an agent is not a qualified prefix.
+pub fn member_agents(listing: &GroupMember) -> Result<Vec<MemberAgent>, ClientError> {
+    listing
+        .signing
+        .iter()
+        .map(|record| {
+            let agent = record
+                .ends
+                .agent
+                .as_ref()
+                .and_then(|agents| agents.keys().next())
+                .ok_or_else(|| ClientError::MemberHasNoAgent {
+                    member: record.aid.clone(),
+                })?;
+            Ok(MemberAgent {
+                member: IdentifierPrefix::from_qb64(&record.aid)?,
+                agent: IdentifierPrefix::from_qb64(agent)?,
+            })
+        })
+        .collect()
+}
+
+/// The end role a proposal asks the group to authorize, read out of its embedded reply.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProposedEndRole {
+    /// The role, wire label `a.role`.
+    pub role: Role,
+    /// The endpoint authorized for it, wire label `a.eid`.
+    pub endpoint: IdentifierPrefix,
+    /// The reply's own timestamp, wire label `dt`: every member must sign the same one.
+    pub stamp: Timestamp,
+    /// The reply's SAID, which the rebuilt reply must reproduce.
+    pub said: Said,
+}
+
+/// Reads what a proposed end-role reply authorizes, requiring it to be for `group`.
+///
+/// Everything that decides the reply's SAID — the route, the controller, the role, the endpoint,
+/// and the stamp — is read and checked, so a joining member can rebuild the same reply rather than
+/// one from its own arguments.
+///
+/// # Errors
+///
+/// Returns [`ClientError::NotAnEndRoleProposal`] when the reply is on another route, names another
+/// controller, or carries no usable role or endpoint, [`ClientError::Timestamp`] when its stamp is
+/// not a KERI timestamp, [`ClientError::Identifier`] when a prefix is not qualified, and
+/// [`ClientError::Said`] when the reply's digest is not one.
+pub fn proposed_end_role(group: &IdentifierPrefix, reply: &ReplyRecord) -> Result<ProposedEndRole, ClientError> {
+    if reply.route != END_ROLE_ROUTE {
+        return Err(ClientError::NotAnEndRoleProposal {
+            found: "a reply on another route",
+        });
+    }
+    let attribute = |label: &str| reply.attributes.get(label).and_then(serde_json::Value::as_str);
+    let controller = attribute("cid").ok_or(ClientError::NotAnEndRoleProposal {
+        found: "a reply naming no controller",
+    })?;
+    if IdentifierPrefix::from_qb64(controller)? != *group {
+        return Err(ClientError::NotAnEndRoleProposal {
+            found: "a reply for another controller",
+        });
+    }
+    let role = attribute("role")
+        .filter(|role| !role.is_empty())
+        .ok_or(ClientError::NotAnEndRoleProposal {
+            found: "a reply naming no role",
+        })?;
+    let endpoint = attribute("eid").ok_or(ClientError::NotAnEndRoleProposal {
+        found: "a reply naming no endpoint",
+    })?;
+    Ok(ProposedEndRole {
+        role: Role::from(role),
+        endpoint: IdentifierPrefix::from_qb64(endpoint)?,
+        stamp: reply.stamp.parse::<Timestamp>()?,
+        said: Said::from_qb64(&reply.digest)?,
+    })
+}
+
+/// What a group's agent end-role round commits to.
+#[derive(Debug)]
+pub struct GroupEndRoleRequest<'a> {
+    /// Local alias of the group.
+    pub group_name: &'a str,
+    /// Local alias of this member's own identifier.
+    pub local_member: &'a str,
+    /// The stamp every reply carries, and so every member signs.
+    ///
+    /// It decides the replies' SAIDs, so proposing again with the same stamp resubmits the same
+    /// replies — the agent records each once and notifies nobody twice — where a fresh stamp
+    /// starts a second set that the first does not count toward. It also starts the agent's
+    /// one-hour escrow clock: the other members must sign within an hour of it.
+    pub timestamp: Timestamp,
+}
+
+/// One member's half of one end-role authorization: the reply it submitted and the announcement.
+#[derive(Debug)]
+pub struct GroupReply {
+    submission: Submission<SignedReply>,
+    announcement: SentExchange,
+    signing_members: Vec<IdentifierPrefix>,
+    end_role: ProposedEndRole,
+}
+
+impl GroupReply {
+    /// Returns what the reply authorizes: the role, the endpoint, the stamp, and the SAID.
+    ///
+    /// A caller keeping one pending operation per agent correlates them by the endpoint here.
+    #[must_use]
+    pub const fn end_role(&self) -> &ProposedEndRole {
+        &self.end_role
+    }
+
+    /// Returns the signed reply the agent was asked to record, with its long-running operation.
+    #[must_use]
+    pub const fn submission(&self) -> &Submission<SignedReply> {
+        &self.submission
+    }
+
+    /// Returns the agent's answer to the announcement.
+    #[must_use]
+    pub const fn announcement(&self) -> &SentExchange {
+        &self.announcement
+    }
+
+    /// Returns the members that sign for the group.
+    #[must_use]
+    pub fn signing_members(&self) -> &[IdentifierPrefix] {
+        &self.signing_members
+    }
+
+    /// Returns the SAID of the reply, which every member's is.
+    #[must_use]
+    pub const fn said(&self) -> Said {
+        self.end_role.said
+    }
+}
+
+impl Multisig<'_> {
+    /// Proposes authorizing every signing member's agent as the group's agent.
+    ///
+    /// One end-role reply per member's agent, each announced to the other members on
+    /// [`REPLY_ROUTE`]. Until this round completes, nothing addressed to the group reaches any
+    /// member's agent but the sender's. The replies come back in the members listing's order, each
+    /// naming the agent it authorizes under [`GroupReply::end_role`].
+    ///
+    /// The replies are submitted and announced one agent at a time, so a failure part way through
+    /// leaves the agents before it proposed and the error carries nothing about them. Proposing
+    /// again with the same [`GroupEndRoleRequest::timestamp`] resubmits those replies unchanged and
+    /// continues; a fresh stamp starts the round over.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NoRecordedMembers`] when the agent lists no signing member,
+    /// [`ClientError::MemberHasNoAgent`] when one authorizes no agent — before anything is
+    /// submitted — [`ClientError::LocalMemberNotAParticipant`] and [`ClientError::LonelyGroup`] for
+    /// an unusable membership, and whatever
+    /// [`Identifiers::add_end_role`](crate::endpoint::identifiers::Identifiers::add_end_role) and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn propose_agent_end_roles(
+        &self,
+        request: &GroupEndRoleRequest<'_>,
+    ) -> Result<Vec<GroupReply>, ClientError> {
+        let member = self.local_member(request.local_member).await?;
+        let listing = self.client.identifiers().members(request.group_name).await?;
+        let members = signing_prefixes(request.group_name, &listing)?;
+        let recipients = peers(&member, &members)?;
+        // Read whole before anything is submitted, so a member without an agent refuses the round
+        // rather than leaving it half done.
+        let agents = member_agents(&listing)?;
+
+        let mut replies = Vec::with_capacity(agents.len());
+        for agent in &agents {
+            let submission = self
+                .client
+                .identifiers()
+                .add_end_role(
+                    request.group_name,
+                    &Role::Agent,
+                    Some(&agent.agent),
+                    request.timestamp.clone(),
+                )
+                .await?;
+            let end_role = ProposedEndRole {
+                role: Role::Agent,
+                endpoint: agent.agent.clone(),
+                stamp: request.timestamp.clone(),
+                said: submission.artifact().reply.said(),
+            };
+            replies.push(
+                self.announce_reply(
+                    request.group_name,
+                    request.local_member,
+                    submission,
+                    &members,
+                    &recipients,
+                    end_role,
+                )
+                .await?,
+            );
+        }
+        Ok(replies)
+    }
+
+    /// Joins one end-role authorization another member proposed.
+    ///
+    /// The stamp, the role, and the endpoint are read out of the proposal's reply, and the reply this
+    /// member builds is compared with the one it was shown. A proposing member sends one proposal per
+    /// agent, so a joining member accepts each — one call per `/multisig/rpy` notification, with the
+    /// SAID the notification names.
+    ///
+    /// The comparison proves the proposal is the reply it claims to be, not that this member wants
+    /// it: whatever role and endpoint the proposal names are signed. The agent refuses a role it
+    /// does not know, but a known role other than `agent` is authorized as proposed. A caller with
+    /// a policy reads the proposal first, through
+    /// [`Groups::requests`](crate::endpoint::groups::Groups::requests) and [`proposed_end_role`].
+    ///
+    /// The announcement is stamped with the reply's stamp rather than the clock, so accepting the
+    /// same proposal twice sends the same announcement twice, which the agent records once.
+    ///
+    /// **Upstream the reference's helper reads nothing.** `addEndRoleMultisig` waits for as many
+    /// `/multisig/rpy` notifications as there are signing members, discards them, and builds from
+    /// its own `timestamp` argument; two members stamping differently sign different replies and
+    /// nothing says so. A wallet built on the reference does read the stamp, the role, and the
+    /// endpoint out of the proposal, as this does, without comparing what it rebuilds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::NotAnEndRoleProposal`] when the message under `proposal` is not a
+    /// proposed end-role reply for this group, [`ClientError::ProposalMismatch`] when this member
+    /// derives a different reply, and whatever
+    /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// [`Identifiers::add_end_role`](crate::endpoint::identifiers::Identifiers::add_end_role), and
+    /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
+    pub async fn accept_end_role(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        proposal: &Said,
+    ) -> Result<GroupReply, ClientError> {
+        let member = self.local_member(local_member).await?;
+        let proposed = self.read_proposal(proposal, MultisigRoute::Reply).await?;
+        let ApiEmbed::Reply(embed) = &proposed.proposed.message else {
+            return Err(ClientError::NotAnEndRoleProposal {
+                found: "an embed that is not a reply",
+            });
+        };
+        let group = self.client.identifiers().get(group_name).await?;
+        let group_prefix = IdentifierPrefix::from_qb64(&group.common.prefix)?;
+        let end_role = proposed_end_role(&group_prefix, &embed.rpy)?;
+
+        // Rebuilt and compared before anything is signed or sent: a reply is pure, so a proposal
+        // this member would not sign costs nothing but the reads above.
+        let rebuilt = end_role_reply(
+            &group_prefix,
+            &end_role.role,
+            Some(&end_role.endpoint),
+            end_role.stamp.clone(),
+        )?;
+        if rebuilt.said() != end_role.said {
+            return Err(ClientError::ProposalMismatch {
+                proposed: end_role.said.qb64()?,
+                built: rebuilt.said().qb64()?,
+            });
+        }
+
+        let members = self.members_of(&proposed, group_name).await?;
+        let recipients = peers(&member, &members)?;
+
+        let submission = self
+            .client
+            .identifiers()
+            .add_end_role(
+                group_name,
+                &end_role.role,
+                Some(&end_role.endpoint),
+                end_role.stamp.clone(),
+            )
+            .await?;
+
+        self.announce_reply(group_name, local_member, submission, &members, &recipients, end_role)
+            .await
+    }
+
+    /// Announces one signed end-role reply to the group's other members.
+    ///
+    /// The reply is sealed to the group's latest establishment event as the agent reports it now,
+    /// where the reference seals to the state its caller passed in — stale once the group rotates.
+    /// The seal has to match: a receiving agent merges signatures only under one seal, its own
+    /// latest establishment event, and drops a reply sealed to an older one.
+    async fn announce_reply(
+        &self,
+        group_name: &str,
+        local_member: &str,
+        submission: Submission<SignedReply>,
+        members: &[IdentifierPrefix],
+        recipients: &[IdentifierPrefix],
+        end_role: ProposedEndRole,
+    ) -> Result<GroupReply, ClientError> {
+        let record = self.client.identifiers().get(group_name).await?;
+        let establishment = &record.state.latest_establishment_event;
+        let reply = &submission.artifact().reply;
+
+        let attachment = SignedMessageBuilder::new(reply.serialized())
+            .controller_signatures(indexed(&submission.artifact().signatures)?)
+            .seal(SignatureSeal::Event {
+                identifier: IdentifierPrefix::from_qb64(&record.common.prefix)?,
+                sequence_number: SequenceNumber::from_hex(&establishment.sequence_number)?,
+                said: Said::from_qb64(&establishment.digest)?,
+            })
+            .build()
+            .map_err(|source| ClientError::Attachment {
+                source: Box::new(source),
+            })?
+            .attachments()
+            .to_vec();
+        let embed = ExchangeEmbed::new(REPLY_SLOT, reply.serialized())?.with_attachment(attachment)?;
+
+        let payload = group_payload(&record.common.prefix, members, members)?;
+        let addressee = recipients.first().ok_or(ClientError::LonelyGroup)?.clone();
+        let draft = ExchangeDraft::new(REPLY_ROUTE, addressee, end_role.stamp.clone())
+            .payload(payload)
+            .embeds(vec![embed]);
+        // The topic is the group's local alias, which is what the reference passes.
+        let announcement = self
+            .client
+            .exchanges()
+            .send(local_member, group_name, &draft, recipients)
+            .await?;
+
+        Ok(GroupReply {
+            submission,
+            announcement,
+            signing_members: members.to_vec(),
+            end_role,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1962,10 +2356,13 @@ mod tests {
         assert_eq!(ROTATION_SLOT, "rot");
         assert_eq!(INTERACTION_ROUTE, "/multisig/ixn");
         assert_eq!(INTERACTION_SLOT, "ixn");
+        assert_eq!(REPLY_ROUTE, "/multisig/rpy");
+        assert_eq!(REPLY_SLOT, "rpy");
         // And each is the route Roadmap 8.1's table names.
         assert_eq!(MultisigRoute::Inception.as_str(), INCEPTION_ROUTE);
         assert_eq!(MultisigRoute::Rotation.as_str(), ROTATION_ROUTE);
         assert_eq!(MultisigRoute::Interaction.as_str(), INTERACTION_ROUTE);
+        assert_eq!(MultisigRoute::Reply.as_str(), REPLY_ROUTE);
     }
 
     /// Every route this module announces on names the slot it embeds.
@@ -1978,6 +2375,7 @@ mod tests {
             (INCEPTION_ROUTE, INCEPTION_SLOT),
             (ROTATION_ROUTE, ROTATION_SLOT),
             (INTERACTION_ROUTE, INTERACTION_SLOT),
+            (REPLY_ROUTE, REPLY_SLOT),
         ] {
             assert_eq!(route.rsplit('/').next(), Some(slot), "{route} does not name {slot}");
         }
