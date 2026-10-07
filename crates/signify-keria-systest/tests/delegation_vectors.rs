@@ -67,7 +67,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "delegation");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(!captured.delegator_transcript.is_empty());
     assert!(!captured.delegate_transcript.is_empty());
 

@@ -489,7 +489,7 @@ mod tests {
     #[test]
     fn an_empty_listing_is_an_answer_rather_than_an_absence() -> Result<(), Box<dyn Error>> {
         let listing: Vec<MultisigExchangeResource> = serde_json::from_str("[]")?;
-        assert!(listing.is_empty());
+        assert_eq!(listing, [] as [MultisigExchangeResource; 0]);
         Ok(())
     }
 }

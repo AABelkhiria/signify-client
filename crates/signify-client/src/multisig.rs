@@ -2387,7 +2387,7 @@ mod tests {
         assert_eq!(prefixes_of(&states)?, [prefix(PEER)?, prefix(LOCAL)?, prefix(THIRD)?]);
         // An empty list is empty rather than an error: whether a group may have no members is
         // the caller's question, and `peers` answers it.
-        assert!(prefixes_of(&[])?.is_empty());
+        assert_eq!(prefixes_of(&[])?, [] as [IdentifierPrefix; 0]);
         Ok(())
     }
 
@@ -2585,7 +2585,7 @@ mod tests {
     fn a_delegation_approval_that_anchors_nothing_is_refused() -> Result<(), Box<dyn Error>> {
         // An interaction anchoring an empty list is a valid event and a meaningless approval.
         let empty = interaction("[]")?;
-        assert!(anchors_of(&empty)?.is_empty());
+        assert_eq!(anchors_of(&empty)?, [] as [Sad; 0]);
         Ok(())
     }
 

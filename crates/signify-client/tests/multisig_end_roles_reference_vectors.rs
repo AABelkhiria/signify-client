@@ -211,7 +211,7 @@ fn the_reference_authorizes_every_members_agent_one_announcement_each() -> Resul
 fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.declarations.notification_waits.len(), 1);
-    assert!(fixture.declarations.proposal_reads.is_empty());
+    assert_eq!(fixture.declarations.proposal_reads, [] as [String; 0]);
     assert_eq!(fixture.declarations.sends.len(), 1);
 
     let joined = call(&fixture, "join_the_end_roles")?;

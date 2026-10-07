@@ -167,7 +167,7 @@ fn fixture_metadata_matches_the_pinned_keripy_reference() -> Result<(), Box<dyn 
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/keripy.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert_eq!(fixture.reference_version, "1.3.6");
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(
         fixture.sources,
         ["src/keri/core/eventing.py", "src/keri/core/coring.py"]

@@ -56,7 +56,7 @@ fn the_group_that_issued_is_a_group_of_two() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "multisig_credentials");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
 
     assert_eq!(captured.member_prefixes.len(), 2);
     for prefix in &captured.member_prefixes {
@@ -80,7 +80,7 @@ fn a_group_issues_and_revokes_through_the_same_registry() -> Result<(), Box<dyn 
     };
 
     Said::from_qb64(&captured.credential_said)?;
-    assert!(!captured.registry.is_empty());
+    assert_ne!(captured.registry, "");
 
     // Every step was a propose/accept round, and the outcome is the single-signature one.
     assert_eq!(captured.state_after_issue, "iss");

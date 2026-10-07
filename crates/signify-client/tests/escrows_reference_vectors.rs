@@ -209,7 +209,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("escrowing.ts")));
     assert!(
         fixture
@@ -223,7 +223,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.reply_stamp, "2023-11-14T22:13:20.123000+00:00");
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
 
     assert_eq!(fixture.calls.len(), 13);
@@ -344,7 +344,7 @@ fn keripy_corroborates_that_the_one_named_route_is_not_a_reply_route() -> Result
     let keripy = &fixture.keripy_corroboration;
     assert_eq!(keripy.keripy_sha, KERIPY_SHA);
     assert!(keripy.scoping.starts_with("corroboration only"));
-    assert!(!keripy.note.is_empty());
+    assert_ne!(keripy.note, "");
 
     assert!(keripy.escrow_reply_declaration.starts_with("def escrowReply("));
 
@@ -408,7 +408,7 @@ fn the_pinned_url_and_method_are_produced() -> Result<(), Box<dyn Error>> {
         .ok_or("the pinned test publishes no path")?;
     assert_eq!(&confirmations.driven_path, published);
     assert_eq!(confirmations.driven_method, "GET");
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
 
     let recorded = call(&fixture, "pinned_route")?;
     let ((path, method, body), _) = drive(recorded)?;
@@ -503,7 +503,7 @@ fn an_empty_route_and_an_absent_one_are_two_requests() -> Result<(), Box<dyn Err
     assert_eq!(path, "/escrows/rpy?route=");
 
     let absent = call(&fixture, "no_route")?;
-    assert!(absent.arguments.is_empty());
+    assert_eq!(absent.arguments, [] as [String; 0]);
     let ((path, _, _), _) = drive(absent)?;
     assert_eq!(path, "/escrows/rpy");
     Ok(())
@@ -576,7 +576,7 @@ fn an_empty_listing_is_an_answer() -> Result<(), Box<dyn Error>> {
     let recorded = call(&fixture, "empty_listing")?;
     assert_eq!(recorded.result, serde_json::json!([]));
     let (_, listing) = drive(recorded)?;
-    assert!(listing?.is_empty());
+    assert_eq!(listing?, [] as [Value; 0]);
     Ok(())
 }
 

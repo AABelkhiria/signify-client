@@ -342,7 +342,7 @@ fn a_keeper_signs_both_anchors_and_agrees_with_the_unsigned_event() -> Result<()
     let artifacts = issue_credential(keeper.as_ref(), &state, credential.clone())?;
     assert_eq!(artifacts.issuance.sequence_number(), ISSUANCE_SEQUENCE_NUMBER);
     assert_eq!(artifacts.anchor.event.sequence_number(), 1);
-    assert!(!artifacts.anchor.signatures.qb64()?.is_empty());
+    assert_ne!(artifacts.anchor.signatures.qb64()?, [] as [String; 0]);
     let unsigned = anchor_event(&state, &artifacts.issuance.seal())?;
     assert_eq!(unsigned.raw(), artifacts.anchor.event.raw());
     assert_eq!(
@@ -373,7 +373,7 @@ fn a_keeper_signs_both_anchors_and_agrees_with_the_unsigned_event() -> Result<()
     let revoked = revoke_credential(keeper.as_ref(), &advanced, revocation)?;
     assert_eq!(revoked.revocation.sequence_number(), DEFAULT_REVOCATION_SEQUENCE_NUMBER);
     assert_eq!(revoked.anchor.event.sequence_number(), 2);
-    assert!(!revoked.anchor.signatures.qb64()?.is_empty());
+    assert_ne!(revoked.anchor.signatures.qb64()?, [] as [String; 0]);
     assert_eq!(
         anchor_event(&advanced, &revoked.revocation.seal())?.raw(),
         revoked.anchor.event.raw()

@@ -380,7 +380,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(
         fixture.sources,
         ["src/keri/core/eventing.ts", "test/core/eventing.test.ts"]
@@ -676,8 +676,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     let multi = &quirks.multi_key_inception_needs_an_explicit_code;
     assert_eq!(multi.reference_error_category, "Error");
     assert!(multi.reference_error_message.contains("Empty Material"));
-    assert!(!multi.note.is_empty());
-    assert!(!multi.rust_decision.is_empty());
+    assert_ne!(multi.note, "");
+    assert_ne!(multi.rust_decision, "");
     // Rust builds it, and builds exactly the event the reference produces with an explicit code.
     let inferred = InceptionBuilder::new(multisig.clone())
         .signing_threshold(SigningThreshold::numeric(2))
@@ -698,7 +698,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
         "string"
     );
     assert_eq!(encoding.weighted_current_numeric_next_integer_encoding.nt, "1");
-    assert!(!encoding.note.is_empty());
+    assert_ne!(encoding.note, "");
     assert!(encoding.rust_decision.contains("reproduced"));
     let weighted_current = InceptionBuilder::new(multisig.clone())
         .signing_threshold(SigningThreshold::weighted(vec![weights(&["1/2", "1/2", "1/2"])?])?)
@@ -720,7 +720,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
         "the reference event must be missing its next-threshold field"
     );
     assert!(!dropped.raw.contains(r#""nt""#));
-    assert!(!dropped.note.is_empty());
+    assert_ne!(dropped.note, "");
     let error = InceptionBuilder::new(multisig.clone())
         .signing_threshold(SigningThreshold::numeric(2))
         .next_key_digests(next_digests.clone())
@@ -735,9 +735,9 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     // 4. The next threshold is validated against the current key count.
     let validation = &quirks.next_threshold_validated_against_the_current_key_count;
     assert!(validation.reference_error_message.contains("Invalid nsith"));
-    assert!(!validation.note.is_empty());
-    assert!(!validation.rust_decision.is_empty());
-    assert!(!validation.unsatisfiable_note.is_empty());
+    assert_ne!(validation.note, "");
+    assert_ne!(validation.rust_decision, "");
+    assert_ne!(validation.unsatisfiable_note, "");
     // Rust builds the commitment the reference rejects...
     InceptionBuilder::new(vec![transferable.clone()])
         .next_key_digests(next_digests.clone())
@@ -764,8 +764,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     assert!(auto.non_transferable_with_next_keys.contains(r#""i":"B"#));
     assert!(auto.non_transferable_with_next_keys.contains(r#""n":["E"#));
     assert!(auto.non_transferable_with_anchors.contains(r#""a":[{"#));
-    assert!(!auto.note.is_empty());
-    assert!(!auto.rust_decision.is_empty());
+    assert_ne!(auto.note, "");
+    assert_ne!(auto.rust_decision, "");
     for builder in [
         InceptionBuilder::new(vec![non_transferable.clone()]).next_key_digests(vec![next_digest]),
         InceptionBuilder::new(vec![non_transferable]).anchors(vec![seal(&[("i", "x")])?]),
@@ -786,8 +786,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
             .contains("Signing threshold failure")
     );
     assert!(abandon.explicit_zero.reference_error_message.contains("less than 1"));
-    assert!(!abandon.note.is_empty());
-    assert!(!abandon.rust_decision.is_empty());
+    assert_ne!(abandon.note, "");
+    assert_ne!(abandon.rust_decision, "");
     let abandoning = RotationBuilder::new(root.identifier().clone(), root.said(), 1, vec![second.clone()]).build()?;
     assert_eq!(abandoning.sad().get_text("nt"), Some("0"));
     assert_eq!(abandoning.sad().get("n").and_then(SadValue::as_array), Some(&[][..]));
@@ -795,8 +795,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     // 7. Rotation silently ignores configuration traits; Rust has no such setter.
     let configuration = &quirks.rotation_ignores_the_configuration_argument;
     assert!(!configuration.fields.contains(",c,"));
-    assert!(!configuration.note.is_empty());
-    assert!(!configuration.rust_decision.is_empty());
+    assert_ne!(configuration.note, "");
+    assert_ne!(configuration.rust_decision, "");
     let rotation = RotationBuilder::new(root.identifier().clone(), root.said(), 1, vec![second.clone()])
         .next_key_digests(vec![next_digest])
         .build()?;
@@ -808,8 +808,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     let omitted = &quirks.rotation_omits_absent_identifier_and_prior;
     assert!(!omitted.missing_identifier.contains(r#""i":"#));
     assert!(!omitted.missing_prior.contains(r#""p":"#));
-    assert!(!omitted.note.is_empty());
-    assert!(!omitted.rust_decision.is_empty());
+    assert_ne!(omitted.note, "");
+    assert_ne!(omitted.rust_decision, "");
     // Both are required constructor arguments in Rust, so every rotation carries them.
     assert!(rotation.sad().contains("i"));
     assert!(rotation.sad().contains("p"));

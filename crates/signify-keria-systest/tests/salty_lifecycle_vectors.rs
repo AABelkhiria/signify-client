@@ -158,7 +158,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "salty_lifecycle");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(!captured.transcript.is_empty(), "the recording kept no transcript");
 
     let aliases: Vec<&str> = captured.creations.iter().map(|c| c.alias.as_str()).collect();

@@ -173,7 +173,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -427,7 +427,7 @@ fn the_issuance_result_drops_the_signatures_it_computed() -> Result<(), Box<dyn 
             .any(|member| member.name == "sigs")
     );
     for member in &fixture.declarations.issue_credential_result {
-        assert!(!member.declared.is_empty());
+        assert_ne!(member.declared, "");
     }
 
     let reads = call(&fixture, "propose_the_issuance")?
@@ -480,7 +480,7 @@ fn the_registry_round_is_filed_under_its_own_topic() -> Result<(), Box<dyn Error
     );
 
     for entry in &fixture.declarations.send_calls {
-        assert!(!entry.file.is_empty());
+        assert_ne!(entry.file, "");
         assert!(entry.route.starts_with("/multisig/") || entry.route.starts_with('<'));
         assert!(!entry.embed_slots.is_empty(), "a send names no embed");
 
@@ -523,7 +523,7 @@ fn each_round_addresses_its_own_endpoint_and_announces_on_its_own_route() -> Res
             .iter()
             .any(|path| path.ends_with("/credentials"))
     );
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
     assert_eq!(confirmations.schema.len(), 44);
     assert_eq!(confirmations.group.len(), 44);
     Ok(())

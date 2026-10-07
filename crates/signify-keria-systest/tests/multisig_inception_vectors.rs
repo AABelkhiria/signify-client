@@ -59,7 +59,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "multisig_inception");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(!captured.member1_transcript.is_empty());
 
     let [witnessed, witnessless] = captured.rounds.as_slice() else {
@@ -125,7 +125,7 @@ fn the_witnessless_members_listing_works_despite_upstreams_guard() -> Result<(),
         witnessless.members_error, None,
         "the witnessless members listing failed, so upstream's keria#189 guard is live again"
     );
-    assert!(!witnessless.signing_aids.is_empty());
+    assert_ne!(witnessless.signing_aids, [] as [String; 0]);
     Ok(())
 }
 

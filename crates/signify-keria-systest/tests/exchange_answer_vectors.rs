@@ -46,7 +46,7 @@ fn both_submission_paths_were_actually_reached() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "exchange_answer");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert_eq!(captured.submissions.len(), 2);
 
     for submission in &captured.submissions {

@@ -341,7 +341,7 @@ mod tests {
             },
             crypto,
         ] {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
         }
         Ok(())
     }

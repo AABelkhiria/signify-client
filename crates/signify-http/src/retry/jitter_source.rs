@@ -108,7 +108,7 @@ mod tests {
         let sources: [Arc<dyn JitterSource>; 2] = [Arc::new(OsJitter), Arc::new(FixedJitter::new(7))];
         for source in &sources {
             let _ = source.next_u32();
-            assert!(!format!("{source:?}").is_empty());
+            assert_ne!(format!("{source:?}"), "");
         }
         assert_send_sync(&sources);
         assert_eq!(sources.get(1).map(|source| source.next_u32()), Some(7));

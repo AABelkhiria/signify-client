@@ -47,8 +47,8 @@ fn the_recording_asked_a_log_long_enough_for_the_bases_to_disagree() -> Result<(
         return Ok(());
     };
     assert_eq!(captured.scenario, "sequence_base");
-    assert!(!captured.preset.is_empty());
-    assert!(!captured.remote_prefix.is_empty());
+    assert_ne!(captured.preset, "");
+    assert_ne!(captured.remote_prefix, "");
 
     assert!(
         captured.log_length > 10,

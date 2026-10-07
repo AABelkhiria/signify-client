@@ -146,14 +146,14 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("coring.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
     assert_eq!(fixture.provenance.admin_url, ADMIN);
     assert_eq!(fixture.provenance.boot_url, BOOT);
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
 
     assert_eq!(fixture.calls.len(), 5);
@@ -200,7 +200,7 @@ fn the_one_pinned_path_is_produced() -> Result<(), Box<dyn Error>> {
     assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
     assert_eq!(fixture.pinned_confirmations.published_paths, ["/config"]);
     assert_eq!(fixture.pinned_confirmations.driven_paths, ["/config"]);
-    assert!(!fixture.pinned_confirmations.note.is_empty());
+    assert_ne!(fixture.pinned_confirmations.note, "");
     Ok(())
 }
 

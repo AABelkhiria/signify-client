@@ -11,7 +11,7 @@ use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE,
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
-use keria_types::api::{AcceptedHab, Role};
+use keria_types::api::{AcceptedHab, Hab, Role};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -316,7 +316,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("aiding.ts")));
     assert!(fixture.sources.iter().any(|source| source.ends_with("clienting.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
@@ -333,10 +333,10 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
     }
-    assert!(!fixture.group_creation.note.is_empty());
-    assert!(!fixture.randy_shape.note.is_empty());
-    assert!(!fixture.randy_reload_shape.note.is_empty());
-    assert!(!fixture.signed_request.note.is_empty());
+    assert_ne!(fixture.group_creation.note, "");
+    assert_ne!(fixture.randy_shape.note, "");
+    assert_ne!(fixture.randy_reload_shape.note, "");
+    assert_ne!(fixture.signed_request.note, "");
     Ok(())
 }
 
@@ -400,7 +400,7 @@ fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
     assert!(fixture.pinned_confirmations.create_signed_request_is_published);
-    assert!(!fixture.pinned_confirmations.note.is_empty());
+    assert_ne!(fixture.pinned_confirmations.note, "");
     for path in [
         "/identifiers",
         "/identifiers/aid1",
@@ -486,7 +486,7 @@ fn an_absent_content_range_is_told_apart_from_an_empty_one() -> Result<(), Box<d
     let (client, transport) = connected(&[b"[]"])?;
     let listing = block_on(client.identifiers().list(ItemRange::DEFAULT))?;
     assert!(listing.window.is_none(), "an unreported window is not a zero one");
-    assert!(listing.identifiers.is_empty());
+    assert_eq!(listing.identifiers, [] as [Hab; 0]);
     assert_eq!(
         sent(&transport, 0)?.0,
         recorded.request.as_ref().map_or("", |r| &r.path)
@@ -952,7 +952,7 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
     assert_eq!(signed.agent_prefix, AGENT);
 
     let (client, transport) = connected(&[&record_document(&fixture)?])?;
-    assert!(!signed.controller_prefix.is_empty());
+    assert_ne!(signed.controller_prefix, "");
 
     let url = signify_http::transport::RequestUrl::new(&signed.post.url)?;
     let request = Request::builder(Method::Post, url)
@@ -1008,7 +1008,7 @@ fn an_external_request_without_a_body_matches_the_recorded_get() -> Result<(), B
             header.name
         );
     }
-    assert!(!signed.get.note.is_empty());
+    assert_ne!(signed.get.note, "");
     assert_eq!(signed.fixed_clock_ms, FIXED_MILLIS);
     Ok(())
 }

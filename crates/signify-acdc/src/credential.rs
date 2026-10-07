@@ -1327,7 +1327,7 @@ mod tests {
         ];
         for failure in &failures {
             let rendered = failure.to_string();
-            assert!(!rendered.is_empty());
+            assert_ne!(rendered, "");
             assert!(!rendered.contains("  "), "{rendered}");
             // Only labels and bounds are quoted; no value ever is.
             assert!(!rendered.contains("5493001KJTIIGC8Y1R17"));

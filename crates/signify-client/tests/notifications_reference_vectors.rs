@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use keria_types::api::contact::Notification;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -218,7 +219,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.keripy_sha, KERIPY_SHA);
     assert_eq!(fixture.keripy_sources.len(), 2);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("notifying.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
     assert_eq!(fixture.provenance.admin_url, ADMIN);
@@ -268,8 +269,8 @@ fn a_notification_identifier_is_not_a_said() -> Result<(), Box<dyn Error>> {
     assert_eq!(record.sample_said, fixture.provenance.sample_said);
     assert!(Said::from_qb64(PINNED_LITERAL).is_err());
 
-    assert!(!record.note.is_empty());
-    assert!(!record.rust_decision.is_empty());
+    assert_ne!(record.note, "");
+    assert_ne!(record.rust_decision, "");
     Ok(())
 }
 
@@ -350,7 +351,7 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     );
     assert!(pinned.call_sites.total >= 5);
     assert!(pinned.call_sites.scanned_files > 100);
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
     Ok(())
 }
 
@@ -451,7 +452,7 @@ fn an_absent_content_range_stays_unreported_rather_than_becoming_zeroes() -> Res
     let (client, _) = connected(&[&empty], empty_range.as_deref())?;
     let empty_listing = block_on(client.notifications().list(ItemRange::DEFAULT))?;
     assert!(empty_listing.window.is_some());
-    assert!(empty_listing.notifications.is_empty());
+    assert_eq!(empty_listing.notifications, [] as [Notification; 0]);
     assert_ne!(listing.window, empty_listing.window);
     Ok(())
 }

@@ -321,7 +321,7 @@ mod tests {
             backers: vec!["BAK".to_owned()],
             threshold: 1,
         };
-        assert!(backed.traits().is_empty());
+        assert_eq!(backed.traits(), [] as [ConfigurationTrait; 0]);
     }
 
     #[test]
@@ -351,7 +351,7 @@ mod tests {
         };
         assert_eq!(backers.len(), 2);
         assert_eq!(*threshold, 2);
-        assert!(request.backing.traits().is_empty());
+        assert_eq!(request.backing.traits(), [] as [ConfigurationTrait; 0]);
         Ok(())
     }
 

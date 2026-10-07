@@ -968,7 +968,7 @@ mod tests {
             ClientError::Randomness,
         ];
         for failure in &failures {
-            assert!(!failure.to_string().is_empty());
+            assert_ne!(failure.to_string(), "");
             assert!(failure.source().is_none());
         }
     }

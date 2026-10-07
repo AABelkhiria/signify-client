@@ -493,7 +493,7 @@ mod tests {
 
         // The empty listing both `endroles` integration cases expect.
         let empty: Vec<EndRole> = serde_json::from_str("[]")?;
-        assert!(empty.is_empty());
+        assert_eq!(empty, [] as [EndRole; 0]);
         Ok(())
     }
 }

@@ -289,7 +289,7 @@ fn the_defects_are_recorded_with_a_line_each() -> Result<(), Box<dyn Error>> {
     for defect in &inventory.defects {
         assert!(defect.file.starts_with("test-integration/"));
         assert!(defect.line > 0, "{} names no line", defect.kind);
-        assert!(!defect.text.is_empty());
+        assert_ne!(defect.text, "");
     }
 
     for kind in [
@@ -343,7 +343,7 @@ fn every_scenario_row_is_answered_once_and_names_real_files() -> Result<(), Box<
             );
             claimed.insert(file.as_str());
         }
-        assert!(!scenario.roadmap_gates.is_empty());
+        assert_ne!(scenario.roadmap_gates, [] as [String; 0]);
         assert!(scenario.note.len() > 60, "{} explains too little", scenario.row);
     }
 
@@ -538,7 +538,7 @@ fn every_open_question_names_the_experiment_that_would_settle_it() -> Result<(),
 
     for question in &ledger.open_questions {
         assert!(question.porting_line > 0);
-        assert!(!question.due.is_empty());
+        assert_ne!(question.due, "");
         assert!(
             question.experiment.len() > 150,
             "{} does not describe an experiment",
@@ -611,7 +611,7 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
         assert!(obligation.porting_line > 0, "an obligation cites no line");
         assert!(lines.insert(obligation.porting_line), "two obligations cite one line");
         assert!(!obligation.record.is_empty(), "an obligation names no owning record");
-        assert!(!obligation.claim.is_empty());
+        assert_ne!(obligation.claim, "");
 
         if obligation.status == "out_of_scope" {
             assert!(
@@ -687,7 +687,7 @@ fn the_matrix_says_how_much_of_the_item_is_left() -> Result<(), Box<dyn Error>> 
     assert!(discharged <= ledger.obligations.len());
 
     for scenario in ledger.scenarios.iter().filter(|entry| entry.status == "unobserved") {
-        assert!(!scenario.reason.is_empty());
+        assert_ne!(scenario.reason, "");
     }
     Ok(())
 }
@@ -735,7 +735,7 @@ fn the_suites_own_shape_is_recorded_faithfully() -> Result<(), Box<dyn Error>> {
                 file.file,
                 call.family
             );
-            assert!(!call.method.is_empty());
+            assert_ne!(call.method, "");
             assert!(call.count > 0);
         }
 
@@ -795,7 +795,7 @@ fn the_suites_cases_are_recorded_faithfully() -> Result<(), Box<dyn Error>> {
 
     for case in &inventory.cases {
         assert!(case.line > 0 && case.lines > 0, "{} has no position", case.title);
-        assert!(!case.title.is_empty());
+        assert_ne!(case.title, "");
         if case.assertions > 0 {
             assert!(
                 !case.helpers.is_empty(),

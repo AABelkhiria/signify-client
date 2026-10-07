@@ -557,7 +557,7 @@ mod tests {
         // An empty embeds block carries no SAID of its own, as upstream.
         let embeds = message.sad().get("e").and_then(SadValue::as_map).ok_or("no embeds")?;
         assert!(embeds.is_empty());
-        assert!(message.attachments().is_empty());
+        assert_eq!(message.attachments(), b"");
         Ok(())
     }
 
@@ -785,7 +785,7 @@ mod tests {
                 quadlets: 4096,
             },
         ] {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
             assert!(error.source().is_none());
         }
     }

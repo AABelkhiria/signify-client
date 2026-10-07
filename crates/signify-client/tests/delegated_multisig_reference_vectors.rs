@@ -180,7 +180,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -454,7 +454,7 @@ fn an_approval_is_an_interaction_at_the_delegation_address() -> Result<(), Box<d
             .is_some_and(|embeds| embeds.contains_key(INTERACTION_SLOT))
     );
     assert_eq!(confirmations.announcement_topic, "delegators");
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
     Ok(())
 }
 
@@ -491,7 +491,7 @@ fn the_rotation_set_is_the_signing_set_a_third_time() -> Result<(), Box<dyn Erro
         "the signing set is no longer hand-assembled"
     );
     for entry in expressions {
-        assert!(!entry.file.is_empty());
+        assert_ne!(entry.file, "");
         assert!(["smids", "rmids", "recp"].contains(&entry.label.as_str()));
     }
     Ok(())
@@ -529,7 +529,7 @@ fn the_scenario_still_reads_a_group_prefix_out_of_an_operations_name() -> Result
     assert!(discoveries.len() >= 2);
     for discovery in discoveries {
         assert!(discovery.from.contains(".name.split("));
-        assert!(!discovery.binds.is_empty());
+        assert_ne!(discovery.binds, "");
     }
     Ok(())
 }

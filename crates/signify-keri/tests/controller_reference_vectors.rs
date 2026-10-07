@@ -316,9 +316,9 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("controller.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.provenance.agent_seed.len(), 32);
     Ok(())
 }
@@ -678,14 +678,14 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
         quirks.verfers_getter_always_throws.reference_error_message,
         "this.signer.verfer is not a function"
     );
-    assert!(!quirks.derive_throws_on_undefined.reference_error_message.is_empty());
-    assert!(!quirks.derive_reads_a_different_shape.reference_error_message.is_empty());
+    assert_ne!(quirks.derive_throws_on_undefined.reference_error_message, "");
+    assert_ne!(quirks.derive_reads_a_different_shape.reference_error_message, "");
 
     // The mutable rotation index that does not re-derive: unrepresentable in Rust.
     assert!(quirks.ridx_mutation_does_not_rederive.signer_unchanged);
     assert_eq!(quirks.ridx_mutation_does_not_rederive.ridx_after, 5);
-    assert!(!quirks.ridx_mutation_does_not_rederive.rust_decision.is_empty());
-    assert!(!quirks.ridx_mutation_does_not_rederive.note.is_empty());
+    assert_ne!(quirks.ridx_mutation_does_not_rederive.rust_decision, "");
+    assert_ne!(quirks.ridx_mutation_does_not_rederive.note, "");
 
     // The rotation that always claims sequence one, even after an approval moved the log.
     assert_eq!(
@@ -694,8 +694,8 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     );
     assert_eq!(quirks.rotation_always_claims_sequence_one.rotation_sequence, "1");
     assert!(quirks.rotation_always_claims_sequence_one.prior_is_interaction_said);
-    assert!(!quirks.rotation_always_claims_sequence_one.note.is_empty());
-    assert!(!quirks.rotation_always_claims_sequence_one.rust_decision.is_empty());
+    assert_ne!(quirks.rotation_always_claims_sequence_one.note, "");
+    assert_ne!(quirks.rotation_always_claims_sequence_one.rust_decision, "");
     let mut controller = Controller::new(&fixture.provenance.passcode, SecurityTier::Low)?;
     let state: KeyState = serde_json::from_value(fixture.agent.accepted.input.clone())?;
     controller.approve_delegation(&Agent::from_key_state(state)?)?;
@@ -721,13 +721,8 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     // A second rotation upstream still derives its "old" key from the original salt, because the
     // reference never moves the controller's salt: the recorded key is identical both times.
     assert!(quirks.second_rotation_derives_from_the_original_salt.old_key_identical);
-    assert!(!quirks.second_rotation_derives_from_the_original_salt.note.is_empty());
-    assert!(
-        !quirks
-            .second_rotation_derives_from_the_original_salt
-            .rust_decision
-            .is_empty()
-    );
+    assert_ne!(quirks.second_rotation_derives_from_the_original_salt.note, "");
+    assert_ne!(quirks.second_rotation_derives_from_the_original_salt.rust_decision, "");
 
     // Here the salt moves with the keys, so the second rotation commits to the *first new*
     // passcode's key rather than the original's. That is required by the sealing fix rather than

@@ -206,7 +206,7 @@ fn fixture() -> Result<Fixture, Box<dyn Error>> {
     assert_eq!(fixture.provenance.bran, "0123456789abcdefghijk");
     assert_eq!(fixture.provenance.admin_url, "http://localhost:3901");
     assert!(fixture.provenance.seed_warning.contains("PUBLIC TEST MATERIAL"));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.provenance.typescript_version, "5.9.2");
     Ok(fixture)
 }
@@ -256,7 +256,7 @@ fn the_covered_components_are_the_references_own() -> Result<(), Box<dyn Error>>
         fixture.constants.default_fields,
         ["@method", "@path", "signify-resource", "signify-timestamp"],
     );
-    assert!(!fixture.constants.note.is_empty());
+    assert_ne!(fixture.constants.note, "");
 
     let ours = default_components()?;
     let names: Vec<&str> = ours.iter().map(SignatureComponent::as_str).collect();
@@ -299,7 +299,7 @@ fn the_timestamp_format_is_reproduced_exactly() -> Result<(), Box<dyn Error>> {
         fixture.constants.fixed_clock_iso.replace('Z', "000+00:00"),
     );
     assert!(quirk.produced.ends_with("000+00:00"), "{}", quirk.produced);
-    assert!(!quirk.rust_decision.is_empty());
+    assert_ne!(quirk.rust_decision, "");
     Ok(())
 }
 
@@ -422,7 +422,7 @@ fn the_body_is_carried_but_never_covered() -> Result<(), Box<dyn Error>> {
     // They differ in method, so their signatures differ for that reason — but the path and method
     // are the only things that made them differ.
     assert!(put.request.body.is_some() && post.request.body.is_some());
-    assert!(!quirk.rust_decision.is_empty());
+    assert_ne!(quirk.rust_decision, "");
     Ok(())
 }
 
@@ -491,7 +491,7 @@ fn a_missing_header_and_a_bad_signature_become_distinct_errors() -> Result<(), B
     // The reference returns `false` for both, and the client turns both into one message.
     assert!(!quirk.missing_signature);
     assert!(!quirk.missing_input);
-    assert!(!quirk.rust_decision.is_empty());
+    assert_ne!(quirk.rust_decision, "");
 
     let agent_key = Signer::from_qb64(
         &fixture.provenance.agent_signing_seed,
@@ -545,7 +545,7 @@ fn the_reference_has_no_freshness_check_at_all() -> Result<(), Box<dyn Error>> {
     let scan = &fixture.freshness_scan;
     assert_eq!(scan.roots, ["src", "test", "test-integration"]);
     assert_eq!(scan.files_scanned, 117);
-    assert!(!scan.note.is_empty());
+    assert_ne!(scan.note, "");
 
     // Two needles do match, and both are accounted for rather than waved away.
     let expires = scan.matches.get("expires").ok_or("no `expires` scan")?;
@@ -665,7 +665,7 @@ fn the_defects_are_pinned_and_not_reproduced() -> Result<(), Box<dyn Error>> {
 
     // The resource check is an equality on an untyped header upstream.
     let resource = &quirks.the_resource_check_is_an_equality_on_an_untyped_header;
-    assert!(!resource.rust_decision.is_empty());
+    assert_ne!(resource.rust_decision, "");
 
     for (name, note, decision) in [
         (

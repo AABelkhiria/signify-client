@@ -57,7 +57,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "challenge");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(!captured.alice_transcript.is_empty());
     assert!(!captured.bob_transcript.is_empty());
 

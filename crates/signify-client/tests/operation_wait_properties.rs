@@ -270,7 +270,7 @@ fn a_deadline_below_the_first_delay_stops_immediately() -> Result<(), Box<dyn Er
         "{outcome:?}"
     );
     assert_eq!(transport.endpoint_calls().len(), 1);
-    assert!(clock.recorded_sleeps().is_empty());
+    assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
     Ok(())
 }
 

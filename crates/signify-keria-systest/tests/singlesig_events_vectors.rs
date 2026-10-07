@@ -58,7 +58,7 @@ fn captured(name: &str) -> Result<Option<Captured>, Box<dyn Error>> {
 }
 
 fn shared(captured: &Captured, kind: &str) -> Result<(), Box<dyn Error>> {
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
 
     assert_eq!(captured.contact_resolved, captured.prefix);
 

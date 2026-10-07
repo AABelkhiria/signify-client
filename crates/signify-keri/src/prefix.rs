@@ -1072,7 +1072,7 @@ mod tests {
             .ok_or("expected a serialization failure")?;
         assert!(matches!(error, PrefixError::Serialization { .. }));
         assert!(error.source().is_some());
-        assert!(!error.to_string().is_empty());
+        assert_ne!(error.to_string(), "");
 
         for error in [
             PrefixError::UnsupportedCode { code: "H" },
@@ -1092,7 +1092,7 @@ mod tests {
             PrefixError::MissingIdentifierField,
             PrefixError::IdentifierFieldMismatch,
         ] {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
             assert!(error.source().is_none());
         }
         Ok(())

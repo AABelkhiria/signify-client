@@ -144,9 +144,9 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("clienting.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.provenance.bran.len(), 21);
     assert!(fixture.provenance.controller_prefix.starts_with('E'));
     assert_eq!(fixture.provenance.masked_headers.len(), 3);
@@ -319,8 +319,8 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
 
     // A GET carries no body at all, which is a different value from an empty one here.
     assert_eq!(quirks.get_sends_a_null_body.body, None);
-    assert!(!quirks.get_sends_a_null_body.note.is_empty());
-    assert!(!quirks.get_sends_a_null_body.rust_decision.is_empty());
+    assert_ne!(quirks.get_sends_a_null_body.note, "");
+    assert_ne!(quirks.get_sends_a_null_body.rust_decision, "");
     let url = RequestUrl::new("https://keria.example/identifiers")?;
     let absent = Request::builder(Method::Get, url.clone()).build()?;
     let empty = Request::builder(Method::Get, url).body(Vec::new()).build()?;
@@ -328,7 +328,7 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     assert_eq!(empty.body(), Some(b"".as_slice()));
 
     // A duplicate header name is refused rather than joined with a comma.
-    assert!(!quirks.headers_are_joined_on_duplicates.note.is_empty());
+    assert_ne!(quirks.headers_are_joined_on_duplicates.note, "");
     let duplicate = Request::builder(Method::Get, RequestUrl::new("https://keria.example/a")?)
         .header(HeaderName::new("Range")?, HeaderValue::new("aids=0-24")?)
         .header(HeaderName::new("range")?, HeaderValue::new("aids=25-49")?)
@@ -352,18 +352,18 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
             .admin_url
             .starts_with(&fixture.provenance.admin_url)
     );
-    assert!(!quirks.boot_uses_a_second_base_url.note.is_empty());
-    assert!(!quirks.boot_uses_a_second_base_url.rust_decision.is_empty());
+    assert_ne!(quirks.boot_uses_a_second_base_url.note, "");
+    assert_ne!(quirks.boot_uses_a_second_base_url.rust_decision, "");
 
     // The delegation approval really does go out unsigned.
     assert!(!quirks.delegation_approval_is_unauthenticated.carries_signature);
     assert_eq!(quirks.delegation_approval_is_unauthenticated.headers, ["content-type"]);
-    assert!(!quirks.delegation_approval_is_unauthenticated.note.is_empty());
-    assert!(!quirks.delegation_approval_is_unauthenticated.rust_decision.is_empty());
+    assert_ne!(quirks.delegation_approval_is_unauthenticated.note, "");
+    assert_ne!(quirks.delegation_approval_is_unauthenticated.rust_decision, "");
 
     // No timeout anywhere upstream; here it is a typed outcome a transport can report.
-    assert!(!quirks.no_timeout_anywhere.note.is_empty());
-    assert!(!quirks.no_timeout_anywhere.rust_decision.is_empty());
+    assert_ne!(quirks.no_timeout_anywhere.note, "");
+    assert_ne!(quirks.no_timeout_anywhere.rust_decision, "");
     let transport = ScriptedTransport::new().fail(TransportError::Timeout { milliseconds: 30_000 });
     let outcome = block_on(
         transport.execute(Request::builder(Method::Get, RequestUrl::new("https://keria.example/slow")?).build()?),

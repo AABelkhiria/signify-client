@@ -114,9 +114,9 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("vdring.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.inceptions.len(), 11);
     Ok(())
 }
@@ -225,26 +225,26 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     // The NaN threshold: pinned from the reference, unrepresentable here.
     assert_eq!(quirks.non_numeric_toad_emits_nan.backer_threshold, "NaN");
     assert!(quirks.non_numeric_toad_emits_nan.raw.contains("\"bt\":\"NaN\""));
-    assert!(!quirks.non_numeric_toad_emits_nan.note.is_empty());
-    assert!(!quirks.non_numeric_toad_emits_nan.rust_decision.is_empty());
+    assert_ne!(quirks.non_numeric_toad_emits_nan.note, "");
+    assert_ne!(quirks.non_numeric_toad_emits_nan.rust_decision, "");
 
     // The string coercion: "1" and 1 build the same event upstream; only u32 exists here.
     assert!(quirks.string_toad_is_coerced.identical);
-    assert!(!quirks.string_toad_is_coerced.note.is_empty());
-    assert!(!quirks.string_toad_is_coerced.rust_decision.is_empty());
+    assert_ne!(quirks.string_toad_is_coerced.note, "");
+    assert_ne!(quirks.string_toad_is_coerced.rust_decision, "");
 
     // Unvalidated backers are the pinned vector itself; the unvalidated issuer is refused here.
-    assert!(!quirks.backers_are_unvalidated.note.is_empty());
-    assert!(!quirks.backers_are_unvalidated.rust_decision.is_empty());
+    assert_ne!(quirks.backers_are_unvalidated.note, "");
+    assert_ne!(quirks.backers_are_unvalidated.rust_decision, "");
     assert!(quirks.issuer_is_unvalidated.accepted);
     assert!(quirks.issuer_is_unvalidated.pre.starts_with('E'));
-    assert!(!quirks.issuer_is_unvalidated.note.is_empty());
-    assert!(!quirks.issuer_is_unvalidated.rust_decision.is_empty());
+    assert_ne!(quirks.issuer_is_unvalidated.note, "");
+    assert_ne!(quirks.issuer_is_unvalidated.rust_decision, "");
     assert!(IdentifierPrefix::from_qb64("not an identifier").is_err());
 
     // The random-nonce default: shape only, owned by Roadmap 6.4.
     assert_eq!(fixture.random_nonce_shape.length, 44);
     assert_eq!(fixture.random_nonce_shape.code, "A");
-    assert!(!fixture.random_nonce_shape.note.is_empty());
+    assert_ne!(fixture.random_nonce_shape.note, "");
     Ok(())
 }

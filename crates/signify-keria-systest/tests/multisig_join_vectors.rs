@@ -50,7 +50,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "multisig_join");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(!captured.member3_transcript.is_empty());
     assert_eq!(captured.member_prefixes.len(), 3);
     for prefix in &captured.member_prefixes {

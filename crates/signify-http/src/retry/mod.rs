@@ -383,7 +383,7 @@ mod tests {
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(200));
         assert_eq!(scripted.answered(), 1);
-        assert!(clock.recorded_sleeps().is_empty());
+        assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
         Ok(())
     }
 
@@ -420,7 +420,7 @@ mod tests {
         );
         // The observer never sees the query.
         assert_eq!(retries.first().map(|event| event.origin.path()), Some("/identifiers"));
-        assert!(observer.give_ups().is_empty());
+        assert_eq!(observer.give_ups(), [] as [GiveUpEvent; 0]);
         Ok(())
     }
 
@@ -441,7 +441,7 @@ mod tests {
             );
             assert_eq!(scripted.answered(), 1, "{status}");
         }
-        assert!(clock.recorded_sleeps().is_empty());
+        assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
         Ok(())
     }
 
@@ -658,7 +658,7 @@ mod tests {
         );
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert!(answer.is_ok());
-        assert!(!format!("{transport:?}").is_empty());
+        assert_ne!(format!("{transport:?}"), "");
         assert_send_sync(&transport);
         Ok(())
     }

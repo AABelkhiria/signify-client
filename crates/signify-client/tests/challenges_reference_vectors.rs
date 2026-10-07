@@ -201,7 +201,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("contacting.ts")));
     assert!(fixture.sources.iter().any(|source| source.ends_with("exchanging.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
@@ -229,8 +229,8 @@ fn the_deferred_capability_is_read_from_the_reference() -> Result<(), Box<dyn Er
 
     assert_eq!(deferred.capability, "Challenges.respond");
     assert!(deferred.deferred_to.contains("7.7"));
-    assert!(!deferred.note.is_empty());
-    assert!(!deferred.rust_decision.is_empty());
+    assert_ne!(deferred.note, "");
+    assert_ne!(deferred.rust_decision, "");
 
     assert!(deferred.body.contains("exchanges.send("));
     assert!(deferred.body.contains("identifiers().get(name)"));
@@ -351,7 +351,7 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     );
     assert!(pinned.call_sites.total >= 10);
     assert!(pinned.call_sites.scanned_files > 100);
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
     Ok(())
 }
 

@@ -192,7 +192,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(
         fixture.sources,
         [
@@ -308,7 +308,7 @@ fn reference_rejections_map_to_stable_rust_error_categories() -> Result<(), Box<
         .err()
         .ok_or("an unsigned message was accepted")?;
     assert_eq!(attachment_error_category(&error), case.rust_error_category);
-    assert!(!case.reference_error_category.is_empty());
+    assert_ne!(case.reference_error_category, "");
     Ok(())
 }
 
@@ -340,7 +340,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     }
     assert!(receipts.second_defect.contains("ControllerIdxSigs"));
     assert!(receipts.rust_decision.contains("BLOCKED"));
-    assert!(!receipts.note.is_empty());
+    assert_ne!(receipts.note, "");
 
     // 2. Seal sequence numbers are read as decimal, so a seal silently names the wrong event.
     let sequences = &quirks.seal_sequence_numbers_are_parsed_as_decimal;
@@ -350,7 +350,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     );
     assert_eq!(sequences.sequence_a_attachments, sequences.sequence_0_attachments);
     assert_ne!(sequences.sequence_10_attachments, sequences.sequence_a_attachments);
-    assert!(!sequences.note.is_empty());
+    assert_ne!(sequences.note, "");
     assert!(sequences.rust_decision.contains("SequenceNumber"));
 
     // Rust takes a typed sequence number, so ten and sixteen are distinct and neither is zero.
@@ -387,7 +387,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
         "a misspelled tag produced a message with no seal at all"
     );
     assert!(!tag.attachments.starts_with("-FAB"));
-    assert!(!tag.note.is_empty());
+    assert_ne!(tag.note, "");
     assert!(tag.rust_decision.contains("enum"));
     Ok(())
 }

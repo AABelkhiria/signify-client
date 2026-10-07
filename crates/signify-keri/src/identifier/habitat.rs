@@ -585,8 +585,8 @@ mod tests {
         assert_eq!(text_field(habitat, "bt").as_deref(), Some("0"));
         assert_eq!(list_field(habitat, "k")?.len(), 1);
         assert_eq!(list_field(habitat, "n")?.len(), 1);
-        assert!(list_field(habitat, "b")?.is_empty());
-        assert!(list_field(habitat, "c")?.is_empty());
+        assert_eq!(list_field(habitat, "b")?, [] as [String; 0]);
+        assert_eq!(list_field(habitat, "c")?, [] as [String; 0]);
 
         // The reference's default derivation code is BLAKE3-256, so the identifier is the event's
         // own digest even for a single key — unlike the bare inception builder, whose default
@@ -613,7 +613,7 @@ mod tests {
         assert!(habitat.prefix().qb64()?.starts_with('B'));
         assert!(!habitat.prefix().is_transferable());
         assert_eq!(text_field(habitat, "nt").as_deref(), Some("0"));
-        assert!(list_field(habitat, "n")?.is_empty());
+        assert_eq!(list_field(habitat, "n")?, [] as [String; 0]);
 
         // An explicit zero next threshold and an explicit basic derivation agree with the forced
         // values and are accepted. A fresh registry is needed: the same registry would re-derive
@@ -950,7 +950,7 @@ mod tests {
             },
         )?;
         assert_eq!(text_field(habitat, "nt").as_deref(), Some("0"));
-        assert!(list_field(habitat, "n")?.is_empty());
+        assert_eq!(list_field(habitat, "n")?, [] as [String; 0]);
         Ok(())
     }
 

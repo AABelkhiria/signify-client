@@ -55,7 +55,7 @@ fn the_recording_names_three_distinct_parties_and_one_credential() -> Result<(),
         return Ok(());
     };
     assert_eq!(captured.scenario, "credential_ipex");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
 
     for prefix in [
         &captured.issuer_prefix,
@@ -69,7 +69,7 @@ fn the_recording_names_three_distinct_parties_and_one_credential() -> Result<(),
 
     Said::from_qb64(&captured.credential_said)?;
     Said::from_qb64(&captured.schema)?;
-    assert!(!captured.registry.is_empty());
+    assert_ne!(captured.registry, "");
     assert_eq!(captured.operations_remaining, [0, 0, 0]);
     Ok(())
 }

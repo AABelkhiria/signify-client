@@ -630,7 +630,7 @@ mod tests {
         assert_eq!(message.route(), Some("/multisig/icp"));
         assert_eq!(message.sender(), Some(SENDER));
         assert_eq!(message.recipient(), Some(RECIPIENT));
-        assert!(message.attachments().is_empty());
+        assert_eq!(message.attachments(), b"");
         Ok(())
     }
 

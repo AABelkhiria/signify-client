@@ -68,12 +68,12 @@ fn the_recorded_deployment_describes_itself_completely() -> Result<(), Box<dyn E
     };
 
     assert!(!manifest.keria.kind.is_empty() && !manifest.keria.preset.is_empty());
-    assert!(!manifest.keria.admin_url.is_empty());
+    assert_ne!(manifest.keria.admin_url, "");
     assert!(!manifest.witnesses.is_empty(), "no witness configuration was recorded");
-    assert!(!manifest.schema_source.url.is_empty());
-    assert!(!manifest.environment_variables.is_empty());
-    assert!(!manifest.startup_command.is_empty());
-    assert!(!manifest.timeout_policy.is_empty());
+    assert_ne!(manifest.schema_source.url, "");
+    assert_ne!(manifest.environment_variables, [] as [(String, String); 0]);
+    assert_ne!(manifest.startup_command, "");
+    assert_ne!(manifest.timeout_policy, "");
     assert!(
         manifest.note.len() > 100,
         "the manifest does not say what it cannot close"
@@ -107,7 +107,7 @@ fn the_served_specification_carries_a_version() -> Result<(), Box<dyn Error>> {
         .spec_version
         .as_deref()
         .ok_or("the recorded specification carries no version, which would confirm §10:9799")?;
-    assert!(!version.is_empty());
+    assert_ne!(version, "");
     assert!(
         manifest.keria.spec_openapi.is_some(),
         "the document declares no OpenAPI version"

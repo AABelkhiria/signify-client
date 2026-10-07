@@ -174,7 +174,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("coring.ts")));
     assert!(
         fixture
@@ -190,7 +190,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.anchor_said, ANCHOR_SAID);
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
     assert_eq!(fixture.calls.len(), 11);
     for entry in &fixture.calls {
@@ -243,7 +243,7 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
-    assert!(!fixture.pinned_confirmations.note.is_empty());
+    assert_ne!(fixture.pinned_confirmations.note, "");
     for path in [
         format!("/events?pre={PREFIX_ONE}"),
         format!("/states?pre={PREFIX_ONE}"),
@@ -303,7 +303,7 @@ fn a_key_event_read_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> 
 
     assert_eq!(events.len(), 1);
     let record = events.first().ok_or("no record decoded")?;
-    assert!(!record.atc.is_empty());
+    assert_ne!(record.atc, "");
     Ok(())
 }
 

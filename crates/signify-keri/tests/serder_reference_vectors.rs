@@ -158,7 +158,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(fixture.sources, ["src/keri/core/serder.ts", "test/core/serder.test.ts"]);
     assert!(fixture.notes.contains("Prefixer"));
     // The pinned unit test asserts this Blake3 prefix, which proves the generator reproduced the
@@ -232,8 +232,8 @@ fn escaping_and_value_shapes_round_trip_byte_exactly() -> Result<(), Box<dyn Err
 fn reference_rejections_map_to_stable_rust_error_categories() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     for case in &fixture.rejected_cases {
-        assert!(!case.reference_error_category.is_empty());
-        assert!(!case.reference_error_message.is_empty());
+        assert_ne!(case.reference_error_category, "");
+        assert_ne!(case.reference_error_message, "");
         match case.name.as_str() {
             "missing_version_field" => {
                 assert_eq!(case.rust_error_category, "MissingVersionField");
@@ -274,7 +274,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 1. A version string that is not first still gets sized and emitted by the reference.
     let order = &quirks.version_field_not_first;
-    assert!(!order.note.is_empty());
+    assert_ne!(order.note, "");
     assert!(!order.reference_raw.starts_with(r#"{"v""#));
     let sad = Sad::from_json_bytes(order.input_sad_json.as_bytes())?;
     let error = SerializedEvent::from_sad(sad)
@@ -284,7 +284,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 2. JavaScript hoists array-index-like keys; insertion order is the protocol order.
     let numeric = &quirks.numeric_key_hoisting;
-    assert!(!numeric.note.is_empty());
+    assert_ne!(numeric.note, "");
     assert_ne!(numeric.reference_raw, numeric.rust_raw);
     let sad = Sad::from_json_bytes(numeric.input_sad_json.as_bytes())?;
     // Reading the reference's already-hoisted output reproduces it exactly; what Rust refuses to
@@ -299,7 +299,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 3. Duplicate labels are ambiguous; the reference silently keeps the last value.
     let duplicate = &quirks.duplicate_field_last_wins;
-    assert!(!duplicate.note.is_empty());
+    assert_ne!(duplicate.note, "");
     assert!(duplicate.reference_reparsed.contains(r#""a":2"#));
     assert_eq!(duplicate.rust_error_category, "DuplicateField");
     assert!(matches!(
@@ -309,7 +309,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 4. A padded version string makes the reference's declared size overstate the message.
     let embedded = &quirks.embedded_version_string_undersizes;
-    assert!(!embedded.note.is_empty());
+    assert_ne!(embedded.note, "");
     assert_eq!(embedded.reference_declared_size, "KERI10JSON000027_");
     assert_eq!(0x27_usize, 39);
     assert_eq!(embedded.reference_byte_size, 35);
@@ -331,7 +331,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 5. The reference's size accessor undercounts non-ASCII messages by design of JS strings.
     let utf16 = &quirks.utf16_size_accessor;
-    assert!(!utf16.note.is_empty());
+    assert_ne!(utf16.note, "");
     assert_eq!(utf16.byte_size, 313);
     assert_eq!(utf16.reference_size_accessor, 312);
     let parsed = SerializedEvent::parse(utf16.raw.as_bytes())?;
@@ -340,7 +340,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 6. Numbers renormalize through IEEE-754, changing bytes and therefore any SAID over them.
     let numbers = &quirks.number_renormalization;
-    assert!(!numbers.note.is_empty());
+    assert_ne!(numbers.note, "");
     assert_ne!(numbers.input_raw, numbers.reference_reparsed);
     assert!(numbers.rust_error_categories.contains(&"UnsupportedNumber".to_owned()));
     assert!(

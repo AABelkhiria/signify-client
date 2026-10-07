@@ -223,7 +223,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("exchanging.ts")));
     assert!(
         fixture
@@ -462,7 +462,7 @@ fn the_generated_schema_names_no_group_attribute() -> Result<(), Box<dyn Error>>
     let fixture = fixture()?;
     let counts = &fixture.declarations.attribute_labels_in_schema.in_generated_schema;
     assert_eq!((counts.gid, counts.smids, counts.rmids), (0, 0, 0));
-    assert!(!fixture.declarations.attribute_labels_in_schema.note.is_empty());
+    assert_ne!(fixture.declarations.attribute_labels_in_schema.note, "");
     assert!(fixture.declarations.schema_exchange_resource.contains("pathed"));
     assert!(fixture.declarations.schema_exn_multisig.contains("paths"));
     Ok(())

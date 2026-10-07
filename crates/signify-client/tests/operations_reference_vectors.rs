@@ -239,9 +239,9 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("coring.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.calls.len(), 7);
     for entry in &fixture.calls {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
@@ -280,7 +280,7 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         &declarations.notes.failure,
         &declarations.notes.depends,
     ] {
-        assert!(!note.is_empty());
+        assert_ne!(note, "");
     }
     Ok(())
 }
@@ -398,7 +398,7 @@ fn a_failed_operation_carries_everything_the_reference_interpolates() -> Result<
     }
 
     assert!(fixture.failures.completed_returns_itself.identical);
-    assert!(!fixture.failures.note.is_empty());
+    assert_ne!(fixture.failures.note, "");
     Ok(())
 }
 
@@ -407,7 +407,7 @@ fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>
     let fixture = fixture()?;
     let confirmations = &fixture.pinned_confirmations;
     assert!(confirmations.every_pinned_path_is_driven);
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
     assert_eq!(
         confirmations.published_paths,
         ["/operations/operationName", "/operations?", "/operations?type=witness"]

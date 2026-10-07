@@ -158,7 +158,7 @@ fn successful_reference_cases_match_exact_outputs() -> Result<(), Box<dyn Error>
 fn reference_rejections_map_to_typed_failures() -> Result<(), Box<dyn Error>> {
     for case in fixture()?.rejected_cases {
         assert_eq!(case.reference_error_category, "Error");
-        assert!(!case.reference_error_message.is_empty());
+        assert_ne!(case.reference_error_message, "");
         let category = match case.name.as_str() {
             "missing_expression" => threshold_error_category(
                 &SigningThreshold::from_sith("")

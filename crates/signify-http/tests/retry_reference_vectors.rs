@@ -167,7 +167,7 @@ fn fixture() -> Result<Fixture, Box<dyn Error>> {
     assert!(fixture.sources.contains(&"src/keri/app/coring.ts".to_owned()));
     assert_eq!(fixture.provenance.operation_name, "witness.EPRE");
     assert_eq!(fixture.provenance.typescript_version, "5.9.2");
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     Ok(fixture)
 }
 
@@ -285,7 +285,7 @@ fn the_two_upstream_formulas_are_one_formula() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let helper = &fixture.integration_helper;
     assert_eq!(helper.path, "test-integration/utils/retry.ts");
-    assert!(!helper.note.is_empty());
+    assert_ne!(helper.note, "");
 
     // Read from the reference's own syntax tree, which is why executing only the production one is
     // sufficient evidence for both.
@@ -322,7 +322,7 @@ fn the_reference_never_reads_server_guidance() -> Result<(), Box<dyn Error>> {
     let scan = &fixture.server_guidance_scan;
     assert_eq!(scan.roots, ["src", "test", "test-integration"]);
     assert_eq!(scan.files_scanned, 117);
-    assert!(!scan.note.is_empty());
+    assert_ne!(scan.note, "");
 
     // Every spelling, and both statuses that usually carry the header: zero, across the tree.
     assert_eq!(scan.matches.len(), 6);

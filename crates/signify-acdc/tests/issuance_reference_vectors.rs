@@ -302,7 +302,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -310,7 +310,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
             .any(|source| source.ends_with("credentialing.ts"))
     );
     assert!(fixture.sources.iter().any(|source| source.ends_with("core/utils.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.issuances.len(), 5);
     assert_eq!(fixture.revocations.len(), 3);
     Ok(())
@@ -338,7 +338,7 @@ fn the_ported_expressions_are_the_references_own() -> Result<(), Box<dyn Error>>
     }
     // The timestamp is the credential's, not a second clock reading.
     assert!(issuance.contains("dt: subject.dt"));
-    assert!(!declarations.notes.issuance.is_empty());
+    assert_ne!(declarations.notes.issuance, "");
 
     // The revocation literal, which adds exactly one field and fixes the position.
     let revocation = &declarations.revocation_literal;
@@ -356,7 +356,7 @@ fn the_ported_expressions_are_the_references_own() -> Result<(), Box<dyn Error>>
         assert!(first < second, "{earlier:?} must precede {later:?}");
     }
     assert!(declarations.revocation_saidify_expression.contains("_rev"));
-    assert!(!declarations.notes.revocation.is_empty());
+    assert_ne!(declarations.notes.revocation, "");
 
     // Both anchors are the same interaction, sealing one `{i, s, d}` at the next position.
     for expression in [
@@ -367,14 +367,14 @@ fn the_ported_expressions_are_the_references_own() -> Result<(), Box<dyn Error>>
         assert!(expression.contains("interact("), "{expression}");
     }
     assert!(declarations.issuance_anchor_expression.contains("i: iss.i"));
-    assert!(!declarations.notes.issuance_anchor.is_empty());
+    assert_ne!(declarations.notes.issuance_anchor, "");
 
     // Both serializers, whose framing this port makes an argument.
     assert!(declarations.acdc_attachment_body.contains("SealSourceTriples"));
     assert!(declarations.iss_attachment_body.contains("SealSourceCouples"));
     assert!(declarations.iss_attachment_body.contains("AttachedMaterialQuadlets"));
     assert!(!declarations.acdc_attachment_body.contains("AttachedMaterialQuadlets"));
-    assert!(!declarations.notes.attachments.is_empty());
+    assert_ne!(declarations.notes.attachments, "");
 
     // The three constants this port hard-codes, read from the reference rather than assumed.
     assert_eq!(
@@ -383,7 +383,7 @@ fn the_ported_expressions_are_the_references_own() -> Result<(), Box<dyn Error>>
     );
     assert_eq!(declarations.issuance_ilk, "iss");
     assert_eq!(declarations.revocation_ilk, "rev");
-    assert!(!declarations.revocation_registry_fallback.is_empty());
+    assert_ne!(declarations.revocation_registry_fallback, "");
     Ok(())
 }
 
@@ -487,7 +487,7 @@ fn the_artifacts_the_pinned_test_suite_publishes_reproduce() -> Result<(), Box<d
     assert!(pinned.iss_said_matches_published);
     assert!(pinned.attachments_appear_in_grant);
     assert!(pinned.anchor_seals_empty_object);
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
     assert!(pinned.grant_attachment.starts_with("-LAg4AACA-e-acdc"));
 
     // And this port rebuilds the same issuance and the same attachment from the same inputs.
@@ -527,7 +527,7 @@ fn both_serializer_vectors_the_reference_publishes_reproduce() -> Result<(), Box
     assert_eq!(pinned.published_in_test.len(), 2);
     assert!(pinned.published_in_test.contains(&pinned.iss_attachment));
     assert!(pinned.published_in_test.contains(&pinned.acdc_attachment));
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     // Neither input is a message this port would accept as one: both write their version string
     // after another field, which Roadmap 3.2's `SerializedEvent` refuses and the reference's

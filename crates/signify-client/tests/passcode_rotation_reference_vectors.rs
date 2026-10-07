@@ -274,7 +274,7 @@ fn keripy_seals_under_the_new_key() -> Result<(), Box<dyn Error>> {
     );
     assert!(keripy.docstring_claim.contains("reencrypts"));
 
-    assert!(!keripy.cipher_lines.is_empty());
+    assert_ne!(keripy.cipher_lines, [] as [String; 0]);
     assert!(
         keripy
             .cipher_lines

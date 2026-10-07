@@ -153,7 +153,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -209,7 +209,7 @@ fn the_route_constants_are_the_references_own() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.declarations.scanned_files, 117);
     assert_eq!(fixture.declarations.scenario_files.len(), 3);
     assert!(fixture.declarations.notes.is_object());
-    assert!(!fixture.declarations.group_rotate_calls.is_empty());
+    assert_ne!(fixture.declarations.group_rotate_calls, [] as [Value; 0]);
     Ok(())
 }
 
@@ -454,9 +454,9 @@ fn the_two_rotation_call_sites_disagree_about_the_rotation_set() -> Result<(), B
         "no call site substitutes the signing states"
     );
     for entry in &fixture.declarations.member_expressions {
-        assert!(!entry.file.is_empty());
-        assert!(!entry.enclosing.is_empty());
-        assert!(!entry.expression.is_empty());
+        assert_ne!(entry.file, "");
+        assert_ne!(entry.enclosing, "");
+        assert_ne!(entry.expression, "");
         assert!(entry.label == "smids" || entry.label == "rmids");
     }
     Ok(())
@@ -513,7 +513,7 @@ fn each_round_reads_the_group_and_writes_one_event() -> Result<(), Box<dyn Error
         rotation.pointer("/rot/d").and_then(Value::as_str),
         Some(fixture.pinned_confirmations.rotation_digest.as_str())
     );
-    assert!(!fixture.pinned_confirmations.note.is_empty());
+    assert_ne!(fixture.pinned_confirmations.note, "");
     Ok(())
 }
 
@@ -549,8 +549,8 @@ fn every_wait_names_a_route_some_send_uses() -> Result<(), Box<dyn Error>> {
         .map(|call| call.route.as_str())
         .collect();
     for wait in &fixture.declarations.wait_calls {
-        assert!(!wait.file.is_empty());
-        assert!(!wait.enclosing.is_empty());
+        assert_ne!(wait.file, "");
+        assert_ne!(wait.enclosing, "");
         if wait.route.starts_with("/multisig/") {
             assert!(
                 sent.contains(&wait.route.as_str()),

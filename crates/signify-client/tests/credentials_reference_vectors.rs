@@ -369,7 +369,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -388,7 +388,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.registry, CREDENTIAL_REGISTRY);
     assert_eq!(fixture.provenance.schema, SCHEMA);
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
-    assert!(!fixture.mock_records.note.is_empty());
+    assert_ne!(fixture.mock_records.note, "");
 
     assert_eq!(fixture.calls.len(), 16);
     for entry in &fixture.calls {
@@ -408,11 +408,11 @@ fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn 
         ["test/app/clienting.test.ts", "test/app/credentialing.test.ts"]
     );
     assert!(pinned.accessor_assertion);
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
     assert!(pinned.usage_scan.is_object());
 
     let asserted = &pinned.unit_test_assertions;
-    assert!(!asserted.note.is_empty());
+    assert_ne!(asserted.note, "");
     assert_eq!(asserted.list_path, "/credentials/query");
     assert_eq!(asserted.list_method, "POST");
     assert_eq!(asserted.get_path, format!("/credentials/{SCHEMA}"));
@@ -460,8 +460,8 @@ fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn 
     assert_eq!(asserted.revoke_signature_prefix, "AA");
     assert_eq!(asserted.revoke_signature_length, 88);
 
-    assert!(!pinned.published_paths.is_empty());
-    assert!(!pinned.published_identifiers.is_empty());
+    assert_ne!(pinned.published_paths, [] as [String; 0]);
+    assert_ne!(pinned.published_identifiers, [] as [String; 0]);
     assert!(pinned.driven_paths.iter().any(|path| path == "/credentials/query"));
     Ok(())
 }
@@ -580,7 +580,7 @@ fn an_unfiltered_listing_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
     assert_eq!(method, "POST");
     assert_eq!(body.as_deref(), recorded.body.as_deref());
     assert_eq!(body.as_deref(), Some(r#"{"filter":{},"sort":[],"skip":0,"limit":25}"#));
-    assert!(listed.is_empty());
+    assert_eq!(listed, [] as [CredentialRecord; 0]);
     assert_eq!(DEFAULT_CREDENTIAL_LIMIT, 25);
     Ok(())
 }
@@ -688,7 +688,7 @@ fn the_references_own_mock_credential_is_refused() -> Result<(), Box<dyn Error>>
     assert_eq!(shortfall.credential_record_missing.len(), 7);
     assert_eq!(shortfall.credential_record_extra, ["sadsigers", "sadcigars"]);
     assert_eq!(shortfall.credential_record_fields.len(), 6);
-    assert!(!shortfall.note.is_empty());
+    assert_ne!(shortfall.note, "");
     assert_eq!(shortfall.credential_status_seal_sequence_type, "number");
     assert_eq!(shortfall.credential_status_schema_sequence_type, "string");
     assert!(shortfall.credential_status_seal.get("s").is_some_and(Value::is_number));
@@ -888,7 +888,7 @@ fn the_issuance_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn 
     let metadata = typed.metadata.ok_or("the operation carried no metadata")?;
     assert_eq!(metadata.ced.digest, CREDENTIAL);
     assert!(issued.operation().is_ok());
-    assert!(!issued.response_body().is_empty());
+    assert_ne!(issued.response_body(), b"");
     Ok(())
 }
 
@@ -942,7 +942,7 @@ fn an_issuance_addresses_the_callers_alias_rather_than_the_agents() -> Result<()
     assert_eq!(renamed.answered_with, "chosen-by-the-agent");
     assert_eq!(renamed.method, "POST");
     assert_eq!(renamed.requests, 2);
-    assert!(!renamed.note.is_empty());
+    assert_ne!(renamed.note, "");
     assert_eq!(renamed.path, "/identifiers/chosen-by-the-agent/credentials");
 
     let mut record: Value = fixture.mock_records.identifier.clone();
@@ -966,7 +966,7 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_derived() -> Resul
     let recorded = &fixture.issue_establishment_only;
     assert_eq!(recorded.reference_error_message, "Establishment only not implemented");
     assert_eq!(recorded.requests_made, 1);
-    assert!(!recorded.note.is_empty());
+    assert_ne!(recorded.note, "");
 
     let record = identifier_record(&fixture.mock_records.establishment_only)?;
     let (client, transport) = connected(&[&record])?;
@@ -1114,7 +1114,7 @@ fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>
         "Neither ri nor rd property found in credential"
     );
     assert_eq!(recorded.requests_made, 2);
-    assert!(!recorded.note.is_empty());
+    assert_ne!(recorded.note, "");
     let registryless = &fixture.mock_records.registryless_credential;
     assert!(
         registryless

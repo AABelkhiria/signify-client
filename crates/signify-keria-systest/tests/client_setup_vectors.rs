@@ -75,7 +75,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "client_setup");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     for (name, transcript) in [
         ("pinned", &captured.pinned_transcript),
         ("A", &captured.a_transcript),

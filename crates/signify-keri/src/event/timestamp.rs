@@ -353,7 +353,7 @@ mod tests {
             Timestamp::parse("2021-06-27T21:26:21.233257+00:0é"),
             Err(TimestampError::InvalidLength { length: 33 })
         ));
-        assert!(!TimestampError::NotADigit.to_string().is_empty());
+        assert_ne!(TimestampError::NotADigit.to_string(), "");
         assert!(TimestampError::NotADigit.source().is_none());
     }
 }

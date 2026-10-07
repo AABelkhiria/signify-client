@@ -260,7 +260,7 @@ fn the_fixture_records_the_pinned_baseline() -> Result<(), Box<dyn Error>> {
             .iter()
             .any(|source| source == "src/keri/core/keeping.ts")
     );
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(
         passcode_salt(&fixture)?.expose_qb64()?.as_str(),
         fixture.provenance.salt_qb64
@@ -391,8 +391,8 @@ fn assert_params(keeper: &SaltyKeeper, expected: &SaltyParams) -> Result<(), Box
     assert_eq!(state.digest_code, expected.dcode);
     assert_eq!(state.transferable, expected.transferable);
     // The sealed salt is not comparable byte for byte, but what it opens to is.
-    assert!(!expected.sealed_salt_opens_to.is_empty());
-    assert!(!state.encrypted_salt.is_empty());
+    assert_ne!(expected.sealed_salt_opens_to, "");
+    assert_ne!(state.encrypted_salt, "");
     Ok(())
 }
 
@@ -437,7 +437,7 @@ fn every_salty_variant_derives_the_same_keys() -> Result<(), Box<dyn Error>> {
 fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shape = &fixture.randy_shape;
-    assert!(!shape.note.is_empty());
+    assert_ne!(shape.note, "");
 
     let factory = KeeperFactory::new(passcode_salt(&fixture)?);
     let mut keeper = factory.create(KeeperRequest::Randy(RandyKeeperRequest {
@@ -707,16 +707,16 @@ fn the_reference_defects_are_recorded_with_their_own_output() -> Result<(), Box<
         &quirks.keeper_publishes_its_private_signers,
         &quirks.every_method_is_async_without_awaiting,
     ] {
-        assert!(!quirk.note.is_empty());
-        assert!(!quirk.rust_decision.is_empty());
+        assert_ne!(quirk.note, "");
+        assert_ne!(quirk.rust_decision, "");
     }
 
     // The sealing key depends on the identifier's transferability, so two identifiers under one
     // passcode seal to different keys. Reproduced, and re-derived here rather than copied.
     let aeid = &quirks.salty_aeid_depends_on_transferability;
     assert!(aeid.differ);
-    assert!(!aeid.note.is_empty());
-    assert!(!aeid.rust_decision.is_empty());
+    assert_ne!(aeid.note, "");
+    assert_ne!(aeid.rust_decision, "");
     let salt = passcode_salt(&fixture)?;
     for (transferable, expected) in [(true, &aeid.transferable_aeid), (false, &aeid.non_transferable_aeid)] {
         let signer = salt.derive_signer_with_profile(

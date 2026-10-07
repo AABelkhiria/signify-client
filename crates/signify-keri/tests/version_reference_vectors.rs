@@ -165,7 +165,7 @@ fn fixture_metadata_and_constants_match_the_pinned_reference() -> Result<(), Box
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(fixture.sources, ["src/keri/core/core.ts", "test/core/serder.test.ts"]);
 
     assert_eq!(fixture.constants.verfullsize, VersionString::FULL_SIZE);
@@ -255,7 +255,7 @@ fn deversify_cases_parse_every_field_exactly() -> Result<(), Box<dyn Error>> {
 fn reference_rejections_map_to_stable_rust_error_categories() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     for case in &fixture.rejected_cases {
-        assert!(!case.reference_error_message.is_empty());
+        assert_ne!(case.reference_error_message, "");
         match VersionString::from_str(&case.input) {
             Err(error) => assert_eq!(error_category(&error), case.rust_error_category, "case {}", case.name),
             Ok(parsed) => assert!(
@@ -290,7 +290,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     let coercion = &quirks.hex_digit_decimal_coercion;
     assert_eq!(coercion.major, "NaN");
     assert_eq!(coercion.minor, "0");
-    assert!(!coercion.note.is_empty());
+    assert_ne!(coercion.note, "");
     let parsed = VersionString::from_str(&coercion.input)?;
     assert_eq!(parsed.version().major(), coercion.rust_major);
     assert_eq!(parsed.version().minor(), 0);
@@ -299,11 +299,11 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     // a parse can never change a later default.
     assert!(quirks.aliased_version_objects.all_returns_are_one_object);
     assert_eq!(quirks.aliased_version_objects.inputs.len(), 3);
-    assert!(!quirks.aliased_version_objects.note.is_empty());
+    assert_ne!(quirks.aliased_version_objects.note, "");
     let mutation = &quirks.shared_default_version_mutation;
     assert!(mutation.returns_shared_singleton);
     assert_eq!(mutation.default_versify_after_parse, mutation.input);
-    assert!(!mutation.note.is_empty());
+    assert_ne!(mutation.note, "");
     let before = VersionString::new(Protocol::Keri, ProtocolVersion::V1_0, SerializationKind::Json, 0)?;
     let _ = VersionString::from_str(&mutation.input)?;
     let after = VersionString::new(Protocol::Keri, ProtocolVersion::V1_0, SerializationKind::Json, 0)?;

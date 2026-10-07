@@ -278,7 +278,7 @@ mod tests {
     #[test]
     fn an_empty_listing_is_an_answer_rather_than_an_absence() -> Result<(), Box<dyn Error>> {
         let listing: Vec<ReplyRecord> = serde_json::from_str("[]")?;
-        assert!(listing.is_empty());
+        assert_eq!(listing, [] as [ReplyRecord; 0]);
         Ok(())
     }
 

@@ -263,7 +263,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -271,10 +271,10 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
             .any(|source| source.ends_with("credentialing.ts"))
     );
     assert!(fixture.sources.iter().any(|source| source.ends_with("test-utils.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.provenance.issuer, MOCK_ISSUER);
     assert_eq!(fixture.credentials.len(), 13);
-    assert!(!fixture.supporting.note.is_empty());
+    assert_ne!(fixture.supporting.note, "");
     Ok(())
 }
 
@@ -289,7 +289,7 @@ fn the_ported_expressions_are_the_references_own() -> Result<(), Box<dyn Error>>
     let attribute = &declarations.attribute_saidify_expression;
     assert!(attribute.starts_with("Saider.saidify({ d: '', ...args.a,"));
     assert!(attribute.contains("dt: args.a.dt ??"));
-    assert!(!declarations.attribute_saidify_note.is_empty());
+    assert_ne!(declarations.attribute_saidify_note, "");
 
     // The container expression: the fixed field order this port reproduces, in this order.
     let container = &declarations.credential_saidify_expression;
@@ -309,11 +309,11 @@ fn the_ported_expressions_are_the_references_own() -> Result<(), Box<dyn Error>>
         assert!(first < second, "{earlier:?} must precede {later:?}");
     }
     assert!(container.contains("Protocols.ACDC"));
-    assert!(!declarations.credential_saidify_note.is_empty());
+    assert_ne!(declarations.credential_saidify_note, "");
 
     // The third expression is the TEL issuance event, which is Roadmap 6.2's and untouched here.
     assert!(declarations.issuance_saidify_expression.contains("t: Ilks.iss"));
-    assert!(!declarations.issuance_saidify_note.is_empty());
+    assert_ne!(declarations.issuance_saidify_note, "");
 
     // The two constants this port hard-codes, read from the reference rather than assumed.
     assert_eq!(
@@ -583,7 +583,7 @@ fn the_pinned_test_helpers_credential_reproduces() -> Result<(), Box<dyn Error>>
     // The generator proved both of these against the reference; the fixture carries the proof.
     assert!(pinned.reference_verifies);
     assert!(pinned.rebuilt_matches);
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     // And this port rebuilds the same bytes from the same inputs.
     let built = CredentialBuilder::new(
@@ -713,7 +713,7 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
     // `01` has a leading zero and is not an array index, so the reference leaves it in place and
     // so does this port.
     CredentialAttributes::new(stamp.clone()).text("01", "w")?;
-    assert!(!hoisted.rust_decision.is_empty());
+    assert_ne!(hoisted.rust_decision, "");
 
     // 2. An attribute named `v` is resized as if the block were a message.
     let versioned = &quirks.attribute_version_string_is_sized;
@@ -723,7 +723,7 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
         CredentialAttributes::new(stamp.clone()).text("v", "ACDC10JSON000000_"),
         Err(CredentialError::ReservedLabel { label: "v", .. })
     ));
-    assert!(!versioned.note.is_empty());
+    assert_ne!(versioned.note, "");
 
     // 3. An attribute named `d` is silently replaced by the derivation placeholder.
     let overwritten = &quirks.attribute_identifier_is_overwritten;
@@ -732,23 +732,18 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
         CredentialAttributes::new(stamp.clone()).text("d", "EGARBAGE"),
         Err(CredentialError::ReservedLabel { label: "d", .. })
     ));
-    assert!(!overwritten.rust_decision.is_empty());
+    assert_ne!(overwritten.rust_decision, "");
 
     // 4. `CredentialData.v` and `.d` are declared and read by nothing.
     assert!(quirks.credential_version_and_identifier_are_ignored.identical);
-    assert!(
-        !quirks
-            .credential_version_and_identifier_are_ignored
-            .rust_decision
-            .is_empty()
-    );
+    assert_ne!(quirks.credential_version_and_identifier_are_ignored.rust_decision, "");
 
     // 5. A missing attribute block still produces one, identical to an empty block spelled out.
     let absent = &quirks.absent_attributes_still_produce_a_block;
     assert!(absent.identical_to_empty_block);
     let untargeted = fixture.credentials.get("untargeted").ok_or("missing untargeted")?;
     assert_eq!(absent.raw, untargeted.raw);
-    assert!(!absent.note.is_empty());
+    assert_ne!(absent.note, "");
 
     // 6. A non-object attribute block is spread by index; unrepresentable here.
     assert!(
@@ -757,12 +752,7 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
             .attributes_raw
             .contains(r#""0":"h""#)
     );
-    assert!(
-        !quirks
-            .non_object_attributes_are_spread_by_index
-            .rust_decision
-            .is_empty()
-    );
+    assert_ne!(quirks.non_object_attributes_are_spread_by_index.rust_decision, "");
 
     // 7. A fractional attribute is committed as a double; `SadValue` has no such shape.
     assert!(
@@ -771,14 +761,14 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
             .attributes_raw
             .contains("1.5")
     );
-    assert!(!quirks.fractional_attribute_values_are_committed.note.is_empty());
+    assert_ne!(quirks.fractional_attribute_values_are_committed.note, "");
 
     // 8. An integer above 2^53 is rounded before it is serialized.
     let precision = &quirks.oversized_integers_lose_precision;
     assert_eq!(precision.committed, 9_007_199_254_740_996);
     assert!(precision.attributes_raw.contains("9007199254740996"));
     assert!(SadValue::integer(9_007_199_254_740_995).is_err());
-    assert!(!precision.rust_decision.is_empty());
+    assert_ne!(precision.rust_decision, "");
 
     Ok(())
 }
@@ -801,7 +791,7 @@ fn the_untyped_reference_inputs_are_typed_here() -> Result<(), Box<dyn Error>> {
     assert!(empty.raw.contains(r#""ri":"","s":"""#));
     assert!(!empty.raw_absent.contains(r#""ri""#));
     assert!(RegistryIdentifier::from_qb64("").is_err());
-    assert!(!empty.rust_decision.is_empty());
+    assert_ne!(empty.rust_decision, "");
 
     // 11. The timestamp default is a clock reading with three fake digits of precision.
     let clock = &quirks.timestamp_default_reads_the_clock;
@@ -809,7 +799,7 @@ fn the_untyped_reference_inputs_are_typed_here() -> Result<(), Box<dyn Error>> {
     assert!(clock.expression.contains("000+00:00"));
     assert_eq!(clock.length, Timestamp::LENGTH);
     assert_eq!(clock.shape.len(), Timestamp::LENGTH);
-    assert!(!clock.rust_decision.is_empty());
+    assert_ne!(clock.rust_decision, "");
 
     // 12. `CredentialTypes` has no consumer anywhere in the pinned tree, so it is `N/A`.
     let types = &quirks.credential_types_have_no_consumer;
@@ -822,7 +812,7 @@ fn the_untyped_reference_inputs_are_typed_here() -> Result<(), Box<dyn Error>> {
     );
     assert_eq!(types.scan.files.first().map(|hit| hit.count), Some(1));
     assert!(types.scan.scanned_files > 100);
-    assert!(!types.note.is_empty());
+    assert_ne!(types.note, "");
 
     // 13. `CredentialFilter` is named only where the endpoint that sends it lives.
     let filter = &quirks.credential_filter_belongs_to_the_endpoint;
@@ -832,6 +822,6 @@ fn the_untyped_reference_inputs_are_typed_here() -> Result<(), Box<dyn Error>> {
         filter.scan.files.first().map(|hit| hit.file.as_str()),
         Some("src/keri/app/credentialing.ts")
     );
-    assert!(!filter.rust_decision.is_empty());
+    assert_ne!(filter.rust_decision, "");
     Ok(())
 }

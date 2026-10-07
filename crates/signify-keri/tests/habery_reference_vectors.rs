@@ -277,9 +277,9 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("habery.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.provenance.witnesses.len(), 3);
     // The generator derives its salt from the recorded raw bytes; both spellings must agree.
     assert_eq!(salt(&fixture)?.expose_qb64()?.as_str(), fixture.provenance.salt_qb64);
@@ -371,7 +371,7 @@ habitat_case_tests! {
 fn the_prefix_index_does_not_reach_a_named_habitat() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert!(fixture.pidx_does_not_change_a_named_habitat.raw_matches_default);
-    assert!(!fixture.pidx_does_not_change_a_named_habitat.note.is_empty());
+    assert_ne!(fixture.pidx_does_not_change_a_named_habitat.note, "");
 
     let default_case = fixture
         .habitat_cases
@@ -391,7 +391,7 @@ fn the_prefix_index_does_not_reach_a_named_habitat() -> Result<(), Box<dyn Error
 fn one_registry_holds_both_transferabilities() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let expected = &fixture.mixed_transferability;
-    assert!(!expected.note.is_empty());
+    assert_ne!(expected.note, "");
 
     let mut habery = Habery::builder("signify").salt(salt(&fixture)?).build()?;
     let controller = habery
@@ -515,8 +515,8 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
         quirks.tier_argument_is_never_read.tier_with_argument,
         quirks.tier_argument_is_never_read.tier_without_argument
     );
-    assert!(!quirks.tier_argument_is_never_read.note.is_empty());
-    assert!(!quirks.tier_argument_is_never_read.rust_decision.is_empty());
+    assert_ne!(quirks.tier_argument_is_never_read.note, "");
+    assert_ne!(quirks.tier_argument_is_never_read.rust_decision, "");
 
     // The ignored passcode: the reference accepted a one-character passcode beside a seed and
     // derived no encryption identifier from it. The Rust builder cannot express the combination.
@@ -526,16 +526,16 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
             .accepted_with_one_character_passcode
     );
     assert_eq!(quirks.passcode_is_ignored_when_a_seed_is_given.aeid, None);
-    assert!(!quirks.passcode_is_ignored_when_a_seed_is_given.note.is_empty());
-    assert!(!quirks.passcode_is_ignored_when_a_seed_is_given.rust_decision.is_empty());
+    assert_ne!(quirks.passcode_is_ignored_when_a_seed_is_given.note, "");
+    assert_ne!(quirks.passcode_is_ignored_when_a_seed_is_given.rust_decision, "");
 
     // The duplicate-name overwrite: one map entry, two identifiers. Rust refuses instead, through
     // the only registry shape that can reach a second same-transferability habitat.
     assert_eq!(quirks.duplicate_name_overwrites_the_map_entry.habs_length, 1);
     assert!(quirks.duplicate_name_overwrites_the_map_entry.identifiers_differ);
     assert_eq!(quirks.duplicate_name_overwrites_the_map_entry.pidx_after, 2);
-    assert!(!quirks.duplicate_name_overwrites_the_map_entry.note.is_empty());
-    assert!(!quirks.duplicate_name_overwrites_the_map_entry.rust_decision.is_empty());
+    assert_ne!(quirks.duplicate_name_overwrites_the_map_entry.note, "");
+    assert_ne!(quirks.duplicate_name_overwrites_the_map_entry.rust_decision, "");
     let mut unnamed = Habery::builder("").salt(salt(&fixture)?).build()?;
     unnamed.make_habitat("same", HabitatRequest::default())?;
     assert!(matches!(
@@ -546,19 +546,12 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     // The unsatisfiable next threshold: the reference's event carries a threshold of one over an
     // empty next-key list. Rust refuses the same input.
     assert_eq!(quirks.zero_next_keys_get_an_unsatisfiable_threshold.nt, "1");
-    assert!(
-        quirks
-            .zero_next_keys_get_an_unsatisfiable_threshold
-            .next_digests
-            .is_empty()
+    assert_eq!(
+        quirks.zero_next_keys_get_an_unsatisfiable_threshold.next_digests,
+        [] as [String; 0]
     );
-    assert!(!quirks.zero_next_keys_get_an_unsatisfiable_threshold.note.is_empty());
-    assert!(
-        !quirks
-            .zero_next_keys_get_an_unsatisfiable_threshold
-            .rust_decision
-            .is_empty()
-    );
+    assert_ne!(quirks.zero_next_keys_get_an_unsatisfiable_threshold.note, "");
+    assert_ne!(quirks.zero_next_keys_get_an_unsatisfiable_threshold.rust_decision, "");
     assert!(
         quirks
             .zero_next_keys_get_an_unsatisfiable_threshold
@@ -585,8 +578,8 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
         "Empty Material"
     );
     assert_eq!(quirks.randy_habitats_are_unreachable.name, "randy_habitat");
-    assert!(!quirks.randy_habitats_are_unreachable.note.is_empty());
-    assert!(!quirks.randy_habitats_are_unreachable.rust_decision.is_empty());
+    assert_ne!(quirks.randy_habitats_are_unreachable.note, "");
+    assert_ne!(quirks.randy_habitats_are_unreachable.rust_decision, "");
     let mut randy = Habery::builder("signify").build_with_passcode(&fixture.provenance.passcode)?;
     let habitat = randy.make_habitat("one", HabitatRequest::default())?;
     let keys = &habitat.inception().sad().get("k").cloned();

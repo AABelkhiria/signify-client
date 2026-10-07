@@ -193,14 +193,14 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("contacting.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
     assert_eq!(fixture.provenance.admin_url, ADMIN);
     assert_eq!(fixture.provenance.boot_url, BOOT);
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert_eq!(fixture.provenance.contact_prefix, CONTACT);
     assert_eq!(fixture.provenance.other_prefix, OTHER);
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
@@ -309,7 +309,7 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
     assert!(pinned.integration_helper_call.contains("list(undefined, 'alias'"));
     assert!(pinned.call_sites.total >= 3);
     assert!(pinned.call_sites.scanned_files > 100);
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
     Ok(())
 }
 

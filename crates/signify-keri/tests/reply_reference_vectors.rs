@@ -111,7 +111,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(
         fixture.sources,
         ["src/keri/core/eventing.ts", "test/app/aiding.test.ts"]
@@ -195,7 +195,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     assert_eq!(clock.length, Timestamp::LENGTH);
     // The recorded shape is digit-masked so the fixture stays reproducible.
     assert_eq!(clock.shape, "9999-99-99T99:99:99.999999+99:99");
-    assert!(!clock.note.is_empty());
+    assert_ne!(clock.note, "");
     assert!(clock.rust_decision.contains("required"));
     // Rust cannot build a reply without being told the time, so two builds always agree.
     let first = ReplyBuilder::new("/x", stamp.clone()).build()?;
@@ -206,7 +206,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     let loose = &quirks.any_string_is_accepted_as_a_timestamp;
     assert!(loose.garbage.contains(r#""dt":"not-a-timestamp""#));
     assert!(loose.empty.contains(r#""dt":"""#));
-    assert!(!loose.note.is_empty());
+    assert_ne!(loose.note, "");
     assert_eq!(loose.rust_error_category, "TimestampError");
     for text in ["not-a-timestamp", ""] {
         assert!(
@@ -220,8 +220,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     assert!(attributes.string.contains(r#""a":"hello""#));
     assert!(attributes.array.contains(r#""a":[1,2]"#));
     assert!(attributes.number.contains(r#""a":42"#));
-    assert!(!attributes.note.is_empty());
-    assert!(!attributes.rust_decision.is_empty());
+    assert_ne!(attributes.note, "");
+    assert_ne!(attributes.rust_decision, "");
     // The Rust builder takes a `Sad`, so a bare scalar cannot be supplied at all; the closest
     // expressible message wraps it, which is a different -- and well-formed -- document.
     let mut wrapped = Sad::new();
@@ -232,15 +232,15 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     // 4. Null attributes silently become an empty map.
     let null = &quirks.null_attributes_become_an_empty_map;
     assert!(null.raw.contains(r#""a":{}"#));
-    assert!(!null.note.is_empty());
-    assert!(!null.rust_decision.is_empty());
+    assert_ne!(null.note, "");
+    assert_ne!(null.rust_decision, "");
     let empty = ReplyBuilder::new("/x", stamp.clone()).build()?;
     assert!(core::str::from_utf8(empty.raw())?.contains(r#""a":{}"#));
 
     // 5. The reference re-verifies the SAID it just derived, which can never fail.
     let unreachable = &quirks.the_post_derivation_check_is_unreachable;
-    assert!(!unreachable.note.is_empty());
-    assert!(!unreachable.rust_decision.is_empty());
+    assert_ne!(unreachable.note, "");
+    assert_ne!(unreachable.rust_decision, "");
     // Rust derives once and the invariant still holds.
     let derived = ReplyBuilder::new("/end/role/add", stamp).build()?;
     assert_eq!(derived.sad().get_text("d"), Some(derived.said().qb64()?.as_str()));

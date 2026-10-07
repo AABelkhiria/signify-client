@@ -207,7 +207,7 @@ mod tests {
             (TransportError::signing("no covered header"), false),
         ];
         for (error, has_source) in cases {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
     }

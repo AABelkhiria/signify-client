@@ -270,7 +270,7 @@ fn fixture() -> Result<Fixture, Box<dyn Error>> {
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.generated_on, "2026-08-23");
     assert!(fixture.sources.contains(&"src/keri/core/httping.ts".to_owned()));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert_eq!(fixture.provenance.bran, "0123456789abcdefghijk");
     assert_eq!(fixture.provenance.admin_url, "http://localhost:3901");
     assert_eq!(fixture.provenance.boot_url, "http://localhost:3903");
@@ -312,7 +312,7 @@ fn every_query_component_encodes_as_the_reference_does() -> Result<(), Box<dyn E
     let fixture = fixture()?;
     assert_eq!(fixture.query_strings.len(), 13);
     for case in &fixture.query_strings {
-        assert!(!case.note.is_empty());
+        assert_ne!(case.note, "");
         if case.pairs.is_empty() {
             // The reference still appends a bare `?` at the call site; a path with no parameters
             // has no query here at all. That divergence is asserted separately below.
@@ -513,7 +513,7 @@ fn the_reference_paths_this_crate_refuses_to_reproduce_are_encoded_instead() -> 
 fn the_range_headers_match_the_reference_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.media_types.range_units, ["aids", "notes"]);
-    assert!(!fixture.media_types.note.is_empty());
+    assert_ne!(fixture.media_types.note, "");
 
     let cases: [(&str, &str, ItemRange); 3] = [
         ("identifiers_list_default", "aids", ItemRange::DEFAULT),
@@ -630,7 +630,7 @@ fn every_content_range_agrees_or_is_refused_on_purpose() -> Result<(), Box<dyn E
     let mut disagreed = Vec::new();
     let mut refused = Vec::new();
     for case in &fixture.content_ranges {
-        assert!(!case.note.is_empty());
+        assert_ne!(case.note, "");
         let label = case.header.clone().unwrap_or_else(|| "<absent>".to_owned());
         let Ok(unit) = RangeUnit::new(case.unit.clone()) else {
             // The reference accepts an empty unit and a unit with a trailing space; neither is a
@@ -706,24 +706,18 @@ fn the_content_range_defects_are_pinned_and_not_reproduced() -> Result<(), Box<d
         (0, 0, 0),
     );
     assert!(missing.real_zero_range_is_indistinguishable);
-    assert!(!missing.rust_decision.is_empty());
+    assert_ne!(missing.rust_decision, "");
     let zero = ContentRange::parse("aids 0-0/0", &aids)?;
     assert_eq!((zero.start(), zero.end(), zero.total()), (0, 0, 0));
 
     // A malformed value is a typed error, not a NaN.
-    assert!(
-        !fixture
+    assert_ne!(fixture.reference_quirks.malformed_content_range_yields_nan.note, "");
+    assert_ne!(
+        fixture
             .reference_quirks
             .malformed_content_range_yields_nan
-            .note
-            .is_empty()
-    );
-    assert!(
-        !fixture
-            .reference_quirks
-            .malformed_content_range_yields_nan
-            .rust_decision
-            .is_empty()
+            .rust_decision,
+        ""
     );
 
     // Precision: the reference's own answer differs from the bytes the server sent.
@@ -768,7 +762,7 @@ fn the_success_boundary_is_the_references_own() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.status_outcomes.len(), 8);
     for case in &fixture.status_outcomes {
-        assert!(!case.note.is_empty());
+        assert_ne!(case.note, "");
         let outcome = decode(case.status, Some("application/json"), &case.body)?;
         match (&outcome, case.ok) {
             (DecodeOutcome::Accepted(decoded), true) => {
@@ -813,7 +807,7 @@ fn a_status_failure_redacts_what_the_reference_interpolates() -> Result<(), Box<
     // The reason phrase the reference interpolates is always empty, and is not modelled at all.
     let empty_reason = &fixture.reference_quirks.status_text_is_empty;
     assert!(empty_reason.message.contains(" - 500  - "), "{}", empty_reason.message);
-    assert!(!empty_reason.rust_decision.is_empty());
+    assert_ne!(empty_reason.rust_decision, "");
     Ok(())
 }
 
@@ -885,7 +879,7 @@ fn the_body_decoding_defects_are_pinned_and_not_reproduced() -> Result<(), Box<d
     let quirk = &fixture.reference_quirks.response_json_ignores_the_content_type;
     assert_eq!(quirk.declared, "text/plain");
     assert_eq!(quirk.parsed, r#"{"name":"aid1"}"#);
-    assert!(!quirk.rust_decision.is_empty());
+    assert_ne!(quirk.rust_decision, "");
 
     let DecodeOutcome::Accepted(decoded) = decode(200, Some("text/plain"), r#"{"name":"aid1"}"#)? else {
         return Err("a 200 was refused".into());
@@ -918,7 +912,7 @@ fn the_request_defects_are_pinned_and_not_reproduced() -> Result<(), Box<dyn Err
     assert_eq!(encoding.raw_interpolations, 41);
     assert_eq!(encoding.total_interpolations, 43);
     assert_eq!(encoding.scanned_files, 12);
-    assert!(!encoding.counting_method.is_empty());
+    assert_ne!(encoding.counting_method, "");
     assert_eq!(
         encoding.operation_get_url,
         "http://localhost:3901/operations/../identifiers"
@@ -989,7 +983,7 @@ fn the_request_defects_are_pinned_and_not_reproduced() -> Result<(), Box<dyn Err
     let mut sorted = order.names.clone();
     sorted.sort();
     assert_eq!(order.names, sorted, "{}", order.note);
-    assert!(!order.rust_decision.is_empty());
+    assert_ne!(order.rust_decision, "");
     Ok(())
 }
 

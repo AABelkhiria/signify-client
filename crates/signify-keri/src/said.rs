@@ -588,9 +588,9 @@ mod tests {
             .ok_or("expected a serialization failure")?;
         assert!(matches!(error, SaidError::Serialization { .. }));
         assert!(error.source().is_some());
-        assert!(!error.to_string().is_empty());
+        assert_ne!(error.to_string(), "");
 
-        assert!(!SaidError::DigestMismatch.to_string().is_empty());
+        assert_ne!(SaidError::DigestMismatch.to_string(), "");
         assert!(SaidError::DigestMismatch.source().is_none());
         Ok(())
     }

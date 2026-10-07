@@ -467,7 +467,7 @@ mod tests {
                 reason: "not a date",
             },
         ] {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
             assert!(error.source().is_none());
         }
         // Rejected text is bounded even when the input is not.

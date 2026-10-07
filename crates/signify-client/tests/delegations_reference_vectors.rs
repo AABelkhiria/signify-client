@@ -181,7 +181,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("delegating.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
@@ -468,10 +468,10 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
                 .extension()
                 .is_some_and(|kind| kind == "ts")
         );
-        assert!(!entry.arguments.is_empty());
+        assert_ne!(entry.arguments, [] as [String; 0]);
     }
-    assert!(!fixture.pinned_confirmations.note.is_empty());
-    assert!(!fixture.pinned_confirmations.approval_path.is_empty());
+    assert_ne!(fixture.pinned_confirmations.note, "");
+    assert_ne!(fixture.pinned_confirmations.approval_path, "");
     assert_eq!(fixture.pinned_confirmations.delegator_prefix, DELEGATOR);
     Ok(())
 }
@@ -598,7 +598,7 @@ fn this_port_cannot_spell_an_approval_of_nothing() -> Result<(), Box<dyn Error>>
         Err(ClientError::NoDelegationSeals)
     );
     assert!(refused, "an approval of nothing was accepted");
-    assert!(sent(&transport)?.is_empty());
+    assert_eq!(sent(&transport)?, [] as [(String, String, Option<String>); 0]);
 
     assert!(fixture.pinned_confirmations.pinned_body.contains(r#""a":[null]"#));
     Ok(())

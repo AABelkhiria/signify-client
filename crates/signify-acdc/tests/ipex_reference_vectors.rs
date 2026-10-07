@@ -258,7 +258,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -266,9 +266,9 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
             .any(|source| source.ends_with("credentialing.ts"))
     );
     assert!(fixture.sources.iter().any(|source| source.ends_with("exchanging.ts")));
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
     assert!(fixture.provenance.passcode_note.contains("PUBLIC TEST MATERIAL"));
-    assert!(!fixture.embedded_artifacts.note.is_empty());
+    assert_ne!(fixture.embedded_artifacts.note, "");
     assert_eq!(fixture.messages.len(), 8);
     Ok(())
 }
@@ -320,9 +320,9 @@ fn the_routes_are_the_literals_the_reference_writes() -> Result<(), Box<dyn Erro
 
     assert!(fixture.declarations.create_exchange_message.contains("exchange("));
     assert!(fixture.declarations.create_exchange_message.contains("keeper.sign"));
-    assert!(!fixture.declarations.notes.payloads.is_empty());
-    assert!(!fixture.declarations.notes.embeds.is_empty());
-    assert!(!fixture.declarations.notes.signing.is_empty());
+    assert_ne!(fixture.declarations.notes.payloads, "");
+    assert_ne!(fixture.declarations.notes.embeds, "");
+    assert_ne!(fixture.declarations.notes.signing, "");
     Ok(())
 }
 
@@ -568,9 +568,9 @@ fn every_reference_quirk_holds_and_the_divergence_is_deliberate() -> Result<(), 
     //    distinct from an explicitly empty attachment, which still writes its path.
     let offer_quirk = &quirks.offer_embeds_an_undefined_attachment;
     assert!(offer_quirk.embed_expression.contains("undefined"));
-    assert!(offer_quirk.attachment.is_empty());
+    assert_eq!(offer_quirk.attachment, "");
     let recorded_offer = fixture.messages.get("offer").ok_or("no offer")?;
-    assert!(recorded_offer.attachment.is_empty());
+    assert_eq!(recorded_offer.attachment, "");
     assert_eq!(recorded_offer.embed_labels, [CREDENTIAL_EMBED, "d"]);
 
     // 3. A grant with no anchor attachment signs the issuer's key event with the *sender's*

@@ -407,7 +407,7 @@ fn the_audit_states_what_it_found_and_the_counts_hold() -> Result<(), Box<dyn Er
 
     assert_eq!(ledger.findings.len(), 2);
     for finding in &ledger.findings {
-        assert!(!finding.name.is_empty());
+        assert_ne!(finding.name, "");
         assert_eq!(finding.owner, "9.5", "{} is owned by someone else now", finding.name);
         assert!(
             matches!(finding.porting_status.as_str(), "TODO" | "IN_PROGRESS"),

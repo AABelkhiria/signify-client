@@ -164,7 +164,7 @@ fn the_recorded_request_is_the_reference_rotation_keripy_judged() -> Result<(), 
         &recorded.kel.inception_prior_rotation,
     ] {
         SerializedEvent::parse(event.raw.as_bytes())?;
-        assert!(!event.sigs.is_empty());
+        assert_ne!(event.sigs, [] as [String; 0]);
     }
     Ok(())
 }

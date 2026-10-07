@@ -145,7 +145,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(fixture.sources, ["src/keri/core/saider.ts", "test/core/saider.test.ts"]);
     assert_eq!(fixture.dummy_character, DUMMY_CHARACTER.to_string());
     assert_eq!(fixture.default_label, signify_keri::said::DEFAULT_SAID_LABEL);
@@ -260,8 +260,8 @@ fn reference_verification_outcomes_are_reproduced() -> Result<(), Box<dyn Error>
 fn reference_rejections_map_to_stable_rust_error_categories() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     for case in &fixture.rejected_cases {
-        assert!(!case.reference_error_category.is_empty());
-        assert!(!case.reference_error_message.is_empty());
+        assert_ne!(case.reference_error_category, "");
+        assert_ne!(case.reference_error_message, "");
         match case.name.as_str() {
             "saidify_missing_label" => {
                 assert_eq!(case.rust_error_category, "MissingLabelField");
@@ -297,8 +297,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     assert!(ignored.empty_identifier_accepted);
     assert!(ignored.unrelated_identifier_accepted);
     assert!(!ignored.unrelated_identifier_rejected_when_prefixed);
-    assert!(!ignored.note.is_empty());
-    assert!(!ignored.rust_decision.is_empty());
+    assert_ne!(ignored.note, "");
+    assert_ne!(ignored.rust_decision, "");
     assert_eq!(ignored.rust_error_category, "LabelFieldMismatch");
 
     let error = said
@@ -322,7 +322,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
 
     // 2. The reference's public derive appends an absent label at the end of the field order.
     let append = &quirks.derive_appends_a_missing_label;
-    assert!(!append.note.is_empty());
+    assert_ne!(append.note, "");
     assert!(append.reference_result_json.contains(r#""d":"#));
     assert!(
         !append.input_sad_json.contains(r#""d":"#),

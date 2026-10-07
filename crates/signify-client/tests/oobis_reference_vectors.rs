@@ -8,7 +8,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
-use keria_types::api::{OperationOutcome, Role};
+use keria_types::api::{EndRole, OperationOutcome, Role};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -185,7 +185,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("coring.ts")));
     assert!(
         fixture
@@ -198,7 +198,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.boot_url, BOOT);
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert_eq!(fixture.provenance.group_aid, GROUP_AID);
     assert_eq!(fixture.provenance.unknown_aid, UNKNOWN_AID);
     assert_eq!(fixture.provenance.unknown_valid_aid, UNKNOWN_VALID_AID);
@@ -306,7 +306,7 @@ fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<
             "the pinned unit test asserts {path}, which nothing here drove"
         );
     }
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     assert_eq!(pinned.integration_expectations.len(), 10);
     assert!(
@@ -594,7 +594,7 @@ fn the_unknown_aid_the_reference_asks_about_is_not_a_prefix() -> Result<(), Box<
     let answer = answer_of(&fixture, "endroles_unknown_valid_aid")?;
     let (client, transport) = connected(&[&answer])?;
     let roles = block_on(client.oobis().end_roles(&prefix(UNKNOWN_VALID_AID)?, None))?;
-    assert!(roles.is_empty());
+    assert_eq!(roles, [] as [EndRole; 0]);
     assert_eq!(sent(&transport)?.0, valid.path);
     Ok(())
 }

@@ -396,7 +396,7 @@ fn the_fixture_records_the_pinned_baseline() -> Result<(), Box<dyn Error>> {
             .iter()
             .any(|source| source == "src/keri/core/manager.ts")
     );
-    assert!(!fixture.provenance.note.is_empty());
+    assert_ne!(fixture.provenance.note, "");
 
     // The salt is the pinned unit test's own public constant, re-derived here rather than copied.
     let salt = salt(&fixture)?;
@@ -456,8 +456,8 @@ fn an_empty_stem_derives_one_key_for_every_rotation() -> Result<(), Box<dyn Erro
     // The reference's own output: an identifier's current and committed-to keys are the same key.
     assert!(quirk.identical);
     assert_eq!(quirk.current, quirk.next);
-    assert!(!quirk.note.is_empty());
-    assert!(!quirk.rust_decision.is_empty());
+    assert_ne!(quirk.note, "");
+    assert_ne!(quirk.rust_decision, "");
 
     // Two cases in the fixture differ only in their rotation and key indices; both derive the same
     // key, which is what the reference does and what Rust reproduces.
@@ -489,7 +489,7 @@ fn the_randy_creator_shape_matches() -> Result<(), Box<dyn Error>> {
     assert_eq!(shape.salt, "");
     assert_eq!(shape.stem, "");
     assert_eq!(shape.tier, "");
-    assert!(!shape.note.is_empty());
+    assert_ne!(shape.note, "");
 
     let keys = signify_keri::manager::RandyKeyCreator::new().create(shape.count, KeyTransferability::Transferable)?;
     assert_eq!(keys.len(), shape.count);
@@ -777,7 +777,7 @@ fn assert_snapshot(manager: &KeyManager, expected: &Snapshot, prefix: &str) -> R
         assert!(lot.dt_shape.is_empty() || lot.dt_shape.contains('#'));
     }
     if let Some(opened) = &recorded.parameters.salt_decrypts_to {
-        assert!(!opened.is_empty());
+        assert_ne!(opened, "");
     }
 
     for (ours, theirs, label) in [
@@ -809,7 +809,7 @@ fn assert_snapshot(manager: &KeyManager, expected: &Snapshot, prefix: &str) -> R
         // The reference records a derivation code and a tier alongside the path; this port needs
         // neither, because it derives Ed25519 only and the profile carries the cost.
         assert!(stored.code.is_empty() || stored.code == "A");
-        assert!(!stored.tier.is_empty());
+        assert_ne!(stored.tier, "");
         assert_eq!(
             ours.profile == KeyDerivationProfile::Temporary,
             stored.temp,
@@ -971,9 +971,9 @@ fn the_reference_defects_are_recorded_with_their_own_output() -> Result<(), Box<
     assert_eq!(rotation.code, "", "the reference stored a code after all");
     assert!(rotation.signing_fails.contains("Cannot read properties"));
     // The rotation stores a path and a tier but no code, which is exactly what makes it unusable.
-    assert!(!rotation.path.is_empty());
-    assert!(!rotation.note.is_empty());
-    assert!(!rotation.rust_decision.is_empty());
+    assert_ne!(rotation.path, "");
+    assert_ne!(rotation.note, "");
+    assert_ne!(rotation.rust_decision, "");
     // The reference's rotation defaults to the production profile, so its stored flag is false.
     assert!(!rotation.temp);
 
@@ -1004,19 +1004,19 @@ fn the_reference_defects_are_recorded_with_their_own_output() -> Result<(), Box<
 
     // The timestamp the reference writes into every key set and reads nowhere.
     assert!(quirks.public_key_lot_timestamp.shape.contains('#'));
-    assert!(!quirks.public_key_lot_timestamp.note.is_empty());
-    assert!(!quirks.public_key_lot_timestamp.rust_decision.is_empty());
+    assert_ne!(quirks.public_key_lot_timestamp.note, "");
+    assert_ne!(quirks.public_key_lot_timestamp.rust_decision, "");
 
     // `updateAeid` is unreachable, so nothing depends on it.
-    assert!(!quirks.update_aeid_is_unreachable.note.is_empty());
-    assert!(!quirks.update_aeid_is_unreachable.rust_decision.is_empty());
+    assert_ne!(quirks.update_aeid_is_unreachable.note, "");
+    assert_ne!(quirks.update_aeid_is_unreachable.rust_decision, "");
 
     // Both signing entry points produce the same bytes, which is why there is one method here.
     let two = &quirks.two_signing_entry_points;
     assert!(two.identical);
     assert_eq!(two.by_public_key, two.by_verification_key);
-    assert!(!two.note.is_empty());
-    assert!(!two.rust_decision.is_empty());
+    assert_ne!(two.note, "");
+    assert_ne!(two.rust_decision, "");
 
     // A randy creator answers the salt, stem, and tier accessors with empty strings.
     assert_eq!(quirks.creator_reports_empty_strings.tier, "");

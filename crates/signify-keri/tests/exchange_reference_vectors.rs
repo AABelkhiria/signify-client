@@ -228,7 +228,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(
         fixture.sources,
         ["src/keri/app/exchanging.ts", "test/app/exchanging.test.ts"]
@@ -314,10 +314,10 @@ fn the_upstream_unit_test_vectors_are_pinned_and_their_inputs_refused() -> Resul
         unit.with_embeds.attachments,
         "-LAZ5AACAA-e-icpAAAPkMTS3LrrhVuQB0k4UndDN0xIfEiKYaN7rTlQ_q9ImnBcugwNO8VWTALXzWoaldJEC1IOpEGkEnjZfxxIleoI"
     );
-    assert!(unit.no_embeds.attachments.is_empty());
+    assert_eq!(unit.no_embeds.attachments, "");
     assert!(unit.no_embeds.raw.contains(r#""i":"test""#));
-    assert!(!unit.note.is_empty());
-    assert!(!unit.rust_decision.is_empty());
+    assert_ne!(unit.note, "");
+    assert_ne!(unit.rust_decision, "");
 
     // Each of the three inputs is refused on its own.
     assert!(IdentifierPrefix::from_qb64(&unit.sender).is_err());
@@ -401,14 +401,14 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     let clock = &quirks.the_timestamp_defaults_to_the_system_clock;
     assert_eq!(clock.length, Timestamp::LENGTH);
     assert_eq!(clock.shape, "9999-99-99T99:99:99.999999+99:99");
-    assert!(!clock.note.is_empty());
+    assert_ne!(clock.note, "");
     assert!(clock.rust_decision.contains("required"));
 
     // 2. Sender and recipient are free text upstream.
     let unvalidated = &quirks.sender_and_recipient_are_unvalidated_text;
     assert!(unvalidated.raw.contains(r#""i":"test""#));
     assert!(unvalidated.raw.contains(r#""rp":"not-a-prefix""#));
-    assert!(!unvalidated.note.is_empty());
+    assert_ne!(unvalidated.note, "");
     assert!(
         unvalidated
             .rust_decision
@@ -446,8 +446,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     assert!(loose.array_payload.contains(r#""a":{"0":1,"1":2"#));
     assert!(loose.null_modifiers.contains(r#""q":null"#));
     assert!(loose.string_modifiers.contains(r#""q":"mods""#));
-    assert!(!loose.note.is_empty());
-    assert!(!loose.rust_decision.is_empty());
+    assert_ne!(loose.note, "");
+    assert_ne!(loose.rust_decision, "");
     // Rust always writes both as blocks.
     let message = builder().build()?;
     assert!(core::str::from_utf8(message.raw())?.contains(r#""q":{}"#));
@@ -476,7 +476,7 @@ fn reference_embed_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn
     let versioned = &quirks.an_embed_labelled_v_throws;
     assert!(versioned.threw);
     assert!(versioned.error_message.contains("Invalid version string"));
-    assert!(!versioned.note.is_empty());
+    assert_ne!(versioned.note, "");
     assert_eq!(versioned.rust_error_category, "ReservedEmbedLabel");
     assert!(matches!(
         ExchangeEmbed::new("v", &event),
@@ -486,7 +486,7 @@ fn reference_embed_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn
     // 6. A label carrying the path separator names a different field once parsed.
     let separator = &quirks.a_separator_in_a_label_changes_the_path;
     assert!(separator.attachments.contains("-e-a-b"));
-    assert!(!separator.note.is_empty());
+    assert_ne!(separator.note, "");
     assert_eq!(separator.rust_error_category, "InvalidEmbedLabel");
     assert!(matches!(
         ExchangeEmbed::new("a-b", &event),

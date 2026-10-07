@@ -483,7 +483,7 @@ mod tests {
         // A non-success status is still a response, not an error.
         let failure = Response::new(StatusCode::new(404)?, Headers::new(), Vec::new())?;
         assert!(failure.status().is_client_error());
-        assert!(failure.body().is_empty());
+        assert_eq!(failure.body(), b"");
         Ok(())
     }
 

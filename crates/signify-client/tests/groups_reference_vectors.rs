@@ -179,7 +179,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("grouping.ts")));
     assert!(
         fixture
@@ -190,7 +190,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.bran, "0123456789abcdefghijk");
     assert_eq!(fixture.provenance.admin_url, "http://127.0.0.1:3901");
     assert_eq!(fixture.provenance.fixed_clock_ms, 1_700_000_000_123);
-    assert!(!fixture.provenance.agent_prefix.is_empty());
+    assert_ne!(fixture.provenance.agent_prefix, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
 
     assert_eq!(fixture.calls.len(), 12);
@@ -303,7 +303,7 @@ fn every_pinned_assertion_is_driven() -> Result<(), Box<dyn Error>> {
     assert_eq!(confirmations.join_method, "POST");
     assert_eq!(confirmations.get_request_method, "GET");
     assert!(confirmations.get_request_path.starts_with("/multisig/request/"));
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
 
     assert_eq!(
         write_path("aid1", REQUEST_SEGMENT)?.as_str(),
@@ -337,7 +337,7 @@ fn the_pinned_read_value_is_not_a_qualified_digest() -> Result<(), Box<dyn Error
 fn the_pinned_join_arguments_are_each_unrepresentable() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let pinned = &fixture.pinned_arguments;
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     assert_eq!(pinned.rotation, "{ sad: {} }");
     let recorded = request_of(&fixture, "join_pinned")?;
@@ -370,7 +370,7 @@ fn the_pinned_join_arguments_are_each_unrepresentable() -> Result<(), Box<dyn Er
 #[test]
 fn the_pinned_proposal_carries_no_signature() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    assert!(fixture.pinned_arguments.send_request_signatures.is_empty());
+    assert_eq!(fixture.pinned_arguments.send_request_signatures, [] as [String; 0]);
 
     let recorded = request_of(&fixture, "send_request_pinned")?;
     let body: Value = serde_json::from_str(recorded.body.as_deref().ok_or("no body")?)?;

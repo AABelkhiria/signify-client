@@ -259,7 +259,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -272,10 +272,10 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
     assert_eq!(fixture.provenance.backers.len(), 3);
-    assert!(!fixture.provenance.identifier.is_empty());
-    assert!(!fixture.provenance.establishment_only_identifier.is_empty());
+    assert_ne!(fixture.provenance.identifier, "");
+    assert_ne!(fixture.provenance.establishment_only_identifier, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
-    assert!(!fixture.identifier_records.note.is_empty());
+    assert_ne!(fixture.identifier_records.note, "");
 
     assert_eq!(fixture.calls.len(), 6);
     for entry in &fixture.calls {
@@ -294,7 +294,7 @@ fn the_pinned_unit_tests_two_vectors_are_recorded_and_their_input_refused() -> R
         pinned.unit_test_files_naming_registries,
         ["test/app/clienting.test.ts", "test/app/registry.test.ts"]
     );
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     assert_eq!(pinned.published_events.len(), 2);
     let inception = pinned.published_events.first().map(String::as_str).unwrap_or_default();
@@ -526,7 +526,7 @@ fn a_generated_nonce_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     assert!(shape.regser_said_is_vcp_prefix);
     assert_eq!(shape.nonce_code, "A");
     assert_eq!(shape.nonce_length, 44);
-    assert!(!shape.note.is_empty());
+    assert_ne!(shape.note, "");
     assert_eq!(shape.vcp_fields, ["v", "t", "d", "i", "ii", "s", "c", "bt", "b", "n"]);
 
     let record = identifier_record(&fixture.identifier_records.ordinary)?;
@@ -576,7 +576,7 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_built() -> Result<
     assert_eq!(recorded.identifier_configuration, ["EO"]);
     assert_eq!(recorded.reference_error_message, "establishment only not implemented");
     assert_eq!(recorded.requests_made, 1);
-    assert!(!recorded.note.is_empty());
+    assert_ne!(recorded.note, "");
 
     let record = identifier_record(&fixture.identifier_records.establishment_only)?;
     let (client, transport) = connected(&[&record])?;
@@ -635,6 +635,6 @@ fn a_creation_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Er
     assert_eq!(metadata.anchor.sn, 1);
     assert_eq!(metadata.depends.name, "witness.EISS.1");
     assert!(created.operation().is_ok());
-    assert!(!created.response_body().is_empty());
+    assert_ne!(created.response_body(), b"");
     Ok(())
 }

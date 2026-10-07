@@ -253,7 +253,7 @@ async fn a_get_sends_no_body_and_a_post_sends_its_own() -> Result<(), Box<dyn Er
     let seen = server.seen();
     let get = seen.first().ok_or("no GET recorded")?;
     let post = seen.get(1).ok_or("no POST recorded")?;
-    assert!(get.body.is_empty());
+    assert_eq!(get.body, [] as [u8; 0]);
     // An absent body sends no content-length at all, rather than a zero-length one.
     assert_eq!(get.header("content-length"), None);
     assert_eq!(post.body, b"payload");
@@ -344,7 +344,7 @@ async fn a_server_that_hangs_up_is_a_typed_failure() -> Result<(), Box<dyn Error
     let outcome = transport(Duration::from_secs(5))?.execute(request).await;
     assert!(outcome.is_err(), "a truncated exchange must not look like success");
     if let Err(error) = outcome {
-        assert!(!error.to_string().is_empty());
+        assert_ne!(error.to_string(), "");
     }
     Ok(())
 }

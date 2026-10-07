@@ -298,7 +298,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -310,11 +310,11 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.boot_url, BOOT);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
     assert_eq!(fixture.provenance.sender_alias, "multisig");
-    assert!(!fixture.provenance.sender.is_empty());
-    assert!(!fixture.provenance.recipient.is_empty());
-    assert!(!fixture.provenance.second_recipient.is_empty());
+    assert_ne!(fixture.provenance.sender, "");
+    assert_ne!(fixture.provenance.recipient, "");
+    assert_ne!(fixture.provenance.second_recipient, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
-    assert!(!fixture.embedded_artifacts.note.is_empty());
+    assert_ne!(fixture.embedded_artifacts.note, "");
     let grant_body = request_of(&fixture, "grant")?.body.clone().unwrap_or_default();
     for artifact in [
         &fixture.embedded_artifacts.acdc_raw,
@@ -352,7 +352,7 @@ fn the_pinned_unit_test_publishes_all_five_submission_urls() -> Result<(), Box<d
     let fixture = fixture()?;
     let pinned = &fixture.pinned_confirmations;
     assert_eq!(pinned.unit_test_file, "test/app/credentialing.test.ts");
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
     assert!(pinned.submitter_call_sites.is_object());
 
     assert_eq!(pinned.published_submission_urls.len(), 8);
@@ -373,7 +373,7 @@ fn the_pinned_unit_test_publishes_all_five_submission_urls() -> Result<(), Box<d
     }
 
     assert!(!pinned.accessor_assertion);
-    assert!(!pinned.accessor_assertions_that_do_exist.is_empty());
+    assert_ne!(pinned.accessor_assertions_that_do_exist, [] as [String; 0]);
     assert_eq!(pinned.unit_test_files_naming_ipex, ["test/app/credentialing.test.ts"]);
     Ok(())
 }
@@ -705,9 +705,9 @@ fn the_answer_is_decoded_rather_than_cast() -> Result<(), Box<dyn Error>> {
     let operation = submitted.operation()?;
     assert!(operation.name.starts_with("exchange."));
     let metadata = operation.metadata.ok_or("the operation carried no metadata")?;
-    assert!(!metadata.said.is_empty());
+    assert_ne!(metadata.said, "");
     assert!(submitted.operation().is_ok());
-    assert!(!submitted.response_body().is_empty());
+    assert_ne!(submitted.response_body(), b"");
 
     let (other, _) = connected(&[br#"{"not":"an operation"}"#])?;
     let submitted = block_on(other.ipex().submit("multisig", grant, &recipients))?;

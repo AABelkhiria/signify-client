@@ -225,7 +225,7 @@ mod tests {
         let clock = TestClock::new();
         let start = clock.now();
         assert_eq!(clock.elapsed(), Duration::ZERO);
-        assert!(clock.recorded_sleeps().is_empty());
+        assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
 
         block_on(clock.sleep(Duration::from_millis(50)));
         block_on(clock.sleep(Duration::from_millis(100)));
@@ -242,7 +242,7 @@ mod tests {
         let clock = TestClock::default();
         clock.advance(Duration::from_secs(30));
         assert_eq!(clock.elapsed(), Duration::from_secs(30));
-        assert!(clock.recorded_sleeps().is_empty());
+        assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
         // A sleep does both.
         block_on(clock.sleep(Duration::from_secs(1)));
         assert_eq!(clock.elapsed(), Duration::from_secs(31));

@@ -146,7 +146,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -254,7 +254,7 @@ fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
     assert_eq!(confirmations.scenario_member_names, ["member1", "member2"]);
     assert_eq!(confirmations.scenario_route, [INCEPTION_ROUTE]);
     assert_eq!(fixture.declarations.scenario_witnesses.len(), 3);
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
 
     assert_eq!(
         confirmations.initiator_paths,
@@ -273,7 +273,7 @@ fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
         .collect();
     assert_eq!(recorded, confirmations.initiator_paths);
     assert_eq!(confirmations.proposal_route, INCEPTION_ROUTE);
-    assert!(!confirmations.group_prefix.is_empty());
+    assert_ne!(confirmations.group_prefix, "");
     Ok(())
 }
 
@@ -479,7 +479,7 @@ fn the_proposal_embeds_the_event_it_proposes_with_its_attachment() -> Result<(),
     );
 
     let attachment = body.get("atc").and_then(Value::as_str).ok_or("no attachment")?;
-    assert!(!attachment.is_empty());
+    assert_ne!(attachment, "");
     assert!(attachment.starts_with("-L"), "the attachment is not a pathed group");
     Ok(())
 }

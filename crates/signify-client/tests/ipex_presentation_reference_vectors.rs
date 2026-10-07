@@ -241,7 +241,7 @@ fn every_driven_round_succeeded() -> Result<(), Box<dyn Error>> {
     for entry in &fixture.calls {
         assert!(entry.error.is_none(), "{} failed: {:?}", entry.name, entry.error);
         assert!(!entry.requests.is_empty(), "{} sent nothing", entry.name);
-        assert!(!entry.note.is_empty());
+        assert_ne!(entry.note, "");
 
         assert!(
             entry.requests.iter().any(|request| request.method == "POST"),
@@ -314,7 +314,7 @@ fn each_step_embeds_what_its_route_carries() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let pinned = &fixture.pinned_confirmations;
 
-    assert!(pinned.apply_slots.is_empty());
+    assert_eq!(pinned.apply_slots, [] as [String; 0]);
     assert_eq!(pinned.offer_slots, ["acdc"]);
     assert_eq!(pinned.grant_slots, ["acdc", "iss", "anc"]);
     assert_eq!(pinned.issuance_grant_slots, pinned.grant_slots);
@@ -550,9 +550,9 @@ fn the_recorded_credential_discloses_without_re_signing_anything() -> Result<(),
     );
     assert_eq!(disclosure.anchor().said(), Some(fixture.held_credential.anc.digest()));
 
-    assert!(!fixture.held_credential.atc.is_empty());
-    assert!(!fixture.held_credential.issatc.is_empty());
-    assert!(!fixture.held_credential.ancatc.is_empty());
+    assert_ne!(fixture.held_credential.atc, "");
+    assert_ne!(fixture.held_credential.issatc, "");
+    assert_ne!(fixture.held_credential.ancatc, [] as [String; 0]);
     Ok(())
 }
 
@@ -657,7 +657,7 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
             "{} is not an IPEX step",
             entry.step
         );
-        assert!(!entry.arguments.is_empty());
+        assert_ne!(entry.arguments, [] as [String; 0]);
     }
     assert!(fixture.declarations.notes.get("waiter").is_some());
     Ok(())

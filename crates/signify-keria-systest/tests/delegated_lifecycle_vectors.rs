@@ -110,7 +110,7 @@ fn both_delegated_inceptions_pend_and_complete_under_their_refresh_modes() -> Re
         return Ok(());
     };
     assert_eq!(captured.scenario, "singlesig_dip");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert_eq!(captured.delegator_operations_remaining, 0);
     assert_eq!(captured.delegate_operations_remaining, 0);
 

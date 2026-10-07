@@ -339,17 +339,17 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("aiding.ts")));
-    assert!(!fixture.provenance.note.is_empty());
-    assert!(!fixture.provenance.member_two_bran.is_empty());
+    assert_ne!(fixture.provenance.note, "");
+    assert_ne!(fixture.provenance.member_two_bran, "");
     assert_eq!(fixture.provenance.witnesses.len(), 3);
     assert_eq!(fixture.creations.len(), 6);
     for case in &fixture.creations {
         assert_eq!(case.request.path, "/identifiers", "{}", case.name);
         assert_eq!(case.request.method, "POST", "{}", case.name);
         assert!(case.request.name.is_some(), "{}", case.name);
-        assert!(!case.kargs_note.is_empty());
+        assert_ne!(case.kargs_note, "");
     }
     // The reply records carry the parsed reply beside its exact text; both must agree.
     for record in [
@@ -361,12 +361,12 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
         let reparsed: Value = serde_json::from_str(&record.rpy_raw)?;
         assert_eq!(reparsed, record.rpy);
     }
-    assert!(
-        !fixture
+    assert_ne!(
+        fixture
             .reference_quirks
             .create_wraps_data_even_when_it_is_a_list
-            .rust_decision
-            .is_empty()
+            .rust_decision,
+        ""
     );
     Ok(())
 }
@@ -418,7 +418,7 @@ creation_tests! {
 fn a_randy_creation_reproduces_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shape = &fixture.randy_shape;
-    assert!(!shape.note.is_empty());
+    assert_ne!(shape.note, "");
 
     let request = CreateIdentifierRequest::new(CreateAlgorithm::randy());
     let factory = factory(&fixture.provenance.bran)?;
@@ -735,11 +735,11 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
             .non_transferable_rewrites_are_silent
             .overridden_arguments_change_nothing
     );
-    assert!(!quirks.non_transferable_rewrites_are_silent.note.is_empty());
-    assert!(!quirks.non_transferable_rewrites_are_silent.rust_decision.is_empty());
+    assert_ne!(quirks.non_transferable_rewrites_are_silent.note, "");
+    assert_ne!(quirks.non_transferable_rewrites_are_silent.rust_decision, "");
 
     // The `[null]` anchor and the double-wrapped list are unrepresentable here.
-    assert!(!quirks.interact_without_data_anchors_null.rust_decision.is_empty());
+    assert_ne!(quirks.interact_without_data_anchors_null.rust_decision, "");
     assert!(quirks.create_wraps_data_even_when_it_is_a_list.nested);
     assert!(
         quirks
@@ -749,10 +749,10 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
             .and_then(Value::as_array)
             .is_some()
     );
-    assert!(!quirks.create_wraps_data_even_when_it_is_a_list.note.is_empty());
-    assert!(!quirks.unused_create_arguments.note.is_empty());
-    assert!(!quirks.unused_create_arguments.rust_decision.is_empty());
-    assert!(!quirks.end_role_default_stamp_reads_the_clock.note.is_empty());
-    assert!(!quirks.end_role_default_stamp_reads_the_clock.rust_decision.is_empty());
+    assert_ne!(quirks.create_wraps_data_even_when_it_is_a_list.note, "");
+    assert_ne!(quirks.unused_create_arguments.note, "");
+    assert_ne!(quirks.unused_create_arguments.rust_decision, "");
+    assert_ne!(quirks.end_role_default_stamp_reads_the_clock.note, "");
+    assert_ne!(quirks.end_role_default_stamp_reads_the_clock.rust_decision, "");
     Ok(())
 }

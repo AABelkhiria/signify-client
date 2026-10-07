@@ -9,6 +9,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use keria_types::api::message::Schema;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -148,7 +149,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(
         fixture
             .sources
@@ -160,7 +161,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.boot_url, BOOT);
     assert_eq!(fixture.provenance.fixed_clock_ms, FIXED_MILLIS);
     assert_eq!(fixture.provenance.agent_prefix, AGENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert_eq!(fixture.provenance.qvi_schema_said, QVI);
     assert_eq!(fixture.provenance.le_schema_said, LEGAL_ENTITY);
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
@@ -235,7 +236,7 @@ fn the_pinned_tree_exercises_this_family_only_in_integration() -> Result<(), Box
     assert!(integration.iter().any(|line| line.contains("schemas().list()")));
     assert!(integration.iter().any(|line| line.contains("$id, QVI_SCHEMA_SAID")));
     assert!(integration.iter().any(|line| line.contains("holderSchemas.length, 2")));
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     assert!(Said::from_qb64(&pinned.qvi_schema_said).is_ok());
     assert!(Said::from_qb64(&pinned.le_schema_said).is_ok());
@@ -294,7 +295,7 @@ fn both_recorded_reads_address_the_recorded_path() -> Result<(), Box<dyn Error>>
         assert_eq!(body, None);
 
         assert_eq!(schema.id, said);
-        assert!(!schema.credential_type.is_empty());
+        assert_ne!(schema.credential_type, "");
     }
     Ok(())
 }
@@ -320,7 +321,7 @@ fn a_listing_addresses_the_constant_path() -> Result<(), Box<dyn Error>> {
     assert_eq!(empty.path, recorded.path);
     let answer = serde_json::to_vec(&call(&fixture, "list_empty")?.result)?;
     let (client, _) = connected(&[&answer])?;
-    assert!(block_on(client.schemas().list())?.is_empty());
+    assert_eq!(block_on(client.schemas().list())?, [] as [Schema; 0]);
     Ok(())
 }
 

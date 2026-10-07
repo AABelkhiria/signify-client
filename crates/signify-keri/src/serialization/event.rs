@@ -494,8 +494,8 @@ mod tests {
             .ok_or("interaction event lacks a sequence number")?;
         assert_eq!(sequence.value(), 57);
         // Non-establishment messages have no key fields at all.
-        assert!(event.verification_keys()?.is_empty());
-        assert!(event.next_key_digests()?.is_empty());
+        assert_eq!(event.verification_keys()?, [] as [VerificationKey; 0]);
+        assert_eq!(event.next_key_digests()?, [] as [Digest; 0]);
         Ok(())
     }
 
@@ -586,7 +586,7 @@ mod tests {
             .err()
             .ok_or("expected a version failure")?;
         assert!(error.source().is_some());
-        assert!(!error.to_string().is_empty());
+        assert_ne!(error.to_string(), "");
         Ok(())
     }
 }

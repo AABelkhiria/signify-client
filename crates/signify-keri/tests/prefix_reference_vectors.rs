@@ -206,7 +206,7 @@ fn fixture_metadata_matches_the_pinned_reference() -> Result<(), Box<dyn Error>>
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.upstream, "https://github.com/WebOfTrust/signify-ts.git");
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert_eq!(
         fixture.sources,
         [
@@ -564,8 +564,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
         gate.verify_prefixed_on_a_completed_event.contains("Non-incepting ilk"),
         "an event that does claim its prefix cannot even reach the prefixed check"
     );
-    assert!(!gate.note.is_empty());
-    assert!(!gate.rust_decision.is_empty());
+    assert_ne!(gate.note, "");
+    assert_ne!(gate.rust_decision, "");
 
     // Rust performs the check the reference intends, on a real event.
     let prefix = IdentifierPrefix::derive(&pinned, PrefixDerivation::Blake3_256)?;
@@ -585,7 +585,7 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
         !swap.reference_transferable,
         "a caller who asked for a rotatable identifier received one that can never rotate"
     );
-    assert!(!swap.note.is_empty());
+    assert_ne!(swap.note, "");
     let error = IdentifierPrefix::derive(&non_transferable, PrefixDerivation::Ed25519)
         .err()
         .ok_or("the transferable derivation accepted a non-transferable key")?;
@@ -596,8 +596,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     assert!(!skipped.reference_verify_with_next_keys);
     assert!(skipped.reference_verify_with_backers);
     assert!(skipped.reference_verify_with_anchors);
-    assert!(!skipped.note.is_empty());
-    assert!(!skipped.rust_decision.is_empty());
+    assert_ne!(skipped.note, "");
+    assert_ne!(skipped.rust_decision, "");
 
     let non_transferable_prefix =
         IdentifierPrefix::derive(&non_transferable, PrefixDerivation::Ed25519NonTransferable)?;
@@ -623,8 +623,8 @@ fn reference_quirks_are_pinned_and_safely_diverged() -> Result<(), Box<dyn Error
     );
     assert!(mutation.event_after_json.contains(DUMMY_CHARACTER));
     assert!(!mutation.event_before_json.contains(DUMMY_CHARACTER));
-    assert!(!mutation.note.is_empty());
-    assert!(!mutation.rust_decision.is_empty());
+    assert_ne!(mutation.note, "");
+    assert_ne!(mutation.rust_decision, "");
 
     let before = completed.clone();
     prefix.verify(&completed, PrefixVerification::Strict)?;

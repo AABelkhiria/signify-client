@@ -233,7 +233,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("coring.ts")));
     assert!(fixture.sources.iter().any(|source| source.ends_with("test-util.ts")));
     assert_eq!(fixture.provenance.operation_name, NAME);
@@ -361,7 +361,7 @@ fn every_request_count_the_pinned_unit_test_asserts_is_reproduced() -> Result<()
     assert_eq!(pinned.asserted_request_counts.len(), 4);
     assert!(pinned.returns_the_same_object);
     assert!(pinned.integration_timeout.contains("AbortSignal.timeout(30000)"));
-    assert!(!pinned.note.is_empty());
+    assert_ne!(pinned.note, "");
 
     for entry in &pinned.unit_test_cases {
         if let Some(expected) = entry.expects {
@@ -418,7 +418,7 @@ fn an_already_finished_operation_costs_no_request() -> Result<(), Box<dyn Error>
     let finished = block_on(reference_poller(&client)?.wait(operation))?;
 
     assert!(transport.endpoint_calls().is_empty(), "a finished snapshot was polled");
-    assert!(clock.recorded_sleeps().is_empty());
+    assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
     assert_eq!(finished.name(), NAME);
     assert_eq!(*finished.response(), serde_json::json!({}));
     Ok(())
@@ -440,7 +440,7 @@ fn an_operation_done_after_one_poll_makes_one_request() -> Result<(), Box<dyn Er
         transport.endpoint_calls(),
         [("GET".to_owned(), format!("/operations/{NAME}"))]
     );
-    assert!(clock.recorded_sleeps().is_empty());
+    assert_eq!(clock.recorded_sleeps(), [] as [Duration; 0]);
     Ok(())
 }
 

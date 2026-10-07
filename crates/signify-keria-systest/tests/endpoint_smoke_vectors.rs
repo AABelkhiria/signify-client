@@ -57,7 +57,7 @@ fn the_recording_is_the_whole_scenario() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     assert_eq!(captured.scenario, "endpoint_smoke");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(!captured.transcript.is_empty(), "the recording kept no transcript");
     assert_eq!(captured.operations_remaining, 0);
 

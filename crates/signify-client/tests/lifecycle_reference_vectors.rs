@@ -269,7 +269,7 @@ fn every_recorded_step_and_scan_hit_carries_its_context() -> Result<(), Box<dyn 
         fixture.pinned_confirmations.passcode_error,
         "bran must be 21 characters"
     );
-    assert!(!fixture.pinned_confirmations.note.is_empty());
+    assert_ne!(fixture.pinned_confirmations.note, "");
     assert!(matches!(
         Passcode::new("short"),
         Err(ClientError::InvalidPasscodeLength { .. })
@@ -293,15 +293,15 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("clienting.ts")));
     assert!(fixture.sources.iter().any(|source| source.ends_with("ready.ts")));
     assert!(fixture.provenance.passcode_note.contains("PUBLIC TEST MATERIAL"));
     assert!(fixture.provenance.agent_seed_note.contains("PUBLIC TEST MATERIAL"));
-    assert!(!fixture.provenance.note.is_empty());
-    assert!(!fixture.provenance.fixed_clock_iso.is_empty());
+    assert_ne!(fixture.provenance.note, "");
+    assert_ne!(fixture.provenance.fixed_clock_iso, "");
     assert_eq!(fixture.lifecycle.len(), 8);
-    assert!(!fixture.connected.note.is_empty());
+    assert_ne!(fixture.connected.note, "");
     Ok(())
 }
 
@@ -347,7 +347,7 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         &declarations.notes.connect,
         &declarations.notes.fetch,
     ] {
-        assert!(!note.is_empty());
+        assert_ne!(note, "");
     }
     Ok(())
 }
@@ -574,8 +574,8 @@ fn the_random_helpers_match_the_recorded_shapes() -> Result<(), Box<dyn Error>> 
     assert!(shapes.nonce_codes_all_equal);
     assert_eq!(shapes.passcode_distinct, shapes.samples);
     assert_eq!(shapes.nonce_distinct, shapes.samples);
-    assert!(!shapes.passcode_note.is_empty());
-    assert!(!shapes.nonce_note.is_empty());
+    assert_ne!(shapes.passcode_note, "");
+    assert_ne!(shapes.nonce_note, "");
 
     assert!(
         shapes

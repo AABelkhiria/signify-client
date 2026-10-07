@@ -1069,7 +1069,7 @@ mod tests {
                 ..temporary()
             })?;
             assert_eq!(witness.prefix, expected);
-            assert!(witness.next_digests.is_empty());
+            assert_eq!(witness.next_digests, [] as [Digest; 0]);
         }
         Ok(())
     }
@@ -1163,7 +1163,7 @@ mod tests {
             next_keys: 0,
             ..RotationRequest::new(&live.prefix)
         })?;
-        assert!(rotated.next_digests.is_empty());
+        assert_eq!(rotated.next_digests, [] as [Digest; 0]);
         assert!(matches!(
             manager.rotate(RotationRequest::new(&live.prefix)),
             Err(ManagerError::Abandoned { .. })

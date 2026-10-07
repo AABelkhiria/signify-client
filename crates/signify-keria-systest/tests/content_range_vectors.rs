@@ -47,7 +47,7 @@ fn every_value_the_deployment_sent_is_one_this_port_accepts() -> Result<(), Box<
         return Ok(());
     };
     assert_eq!(captured.scenario, "content_range");
-    assert!(!captured.preset.is_empty());
+    assert_ne!(captured.preset, "");
     assert!(captured.note.len() > 80);
 
     let mut refused = Vec::new();
@@ -178,7 +178,7 @@ fn the_malformed_request_is_unrepresentable_rather_than_merely_unsent() -> Resul
         return Ok(());
     };
 
-    assert!(!captured.unrepresentable.is_empty());
+    assert_ne!(captured.unrepresentable, [] as [String; 0]);
     assert!(
         captured
             .unrepresentable

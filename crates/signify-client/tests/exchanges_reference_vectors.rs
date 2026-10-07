@@ -270,7 +270,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.schema_version, 1);
     assert_eq!(fixture.reference_sha, REFERENCE_SHA);
     assert!(fixture.upstream.contains("WebOfTrust/signify-ts"));
-    assert!(!fixture.generated_on.is_empty());
+    assert_ne!(fixture.generated_on, "");
     assert!(fixture.sources.iter().any(|source| source.ends_with("exchanging.ts")));
     assert!(fixture.sources.iter().any(|source| source.ends_with("contacting.ts")));
     assert_eq!(fixture.provenance.bran, PASSCODE);
@@ -281,7 +281,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.provenance.identifier_prefix, SENDER);
     assert_eq!(fixture.provenance.recipient, RECIPIENT);
     assert_eq!(fixture.provenance.second_recipient, SECOND_RECIPIENT);
-    assert!(!fixture.provenance.controller_prefix.is_empty());
+    assert_ne!(fixture.provenance.controller_prefix, "");
     assert!(fixture.provenance.note.contains("PUBLIC TEST MATERIAL"));
 
     assert_eq!(fixture.calls.len(), 12);
@@ -424,7 +424,7 @@ fn the_recorded_scans_name_the_files_they_counted() -> Result<(), Box<dyn Error>
         &declarations.send_uses,
         &declarations.send_from_events_uses,
     ] {
-        assert!(!scan.needle.is_empty());
+        assert_ne!(scan.needle, "");
         assert_eq!(scan.scanned_files, 117);
         assert_eq!(
             scan.files.iter().map(|hit| hit.count).sum::<usize>(),
@@ -482,7 +482,7 @@ fn every_pinned_assertion_is_driven() -> Result<(), Box<dyn Error>> {
         fixture.declarations.pinned_words
     );
     assert_eq!(confirmations.contacting_test.first_signature_length, 88);
-    assert!(!confirmations.note.is_empty());
+    assert_ne!(confirmations.note, "");
     Ok(())
 }
 
@@ -516,7 +516,7 @@ fn the_mock_shortfall_is_recorded_rather_than_papered_over() -> Result<(), Box<d
     assert_eq!(shortfall.identifier_record_missing, ["icp_dt"]);
     assert_eq!(shortfall.added_inception_stamp, "2023-08-21T22:30:46.473545+00:00");
     assert!(shortfall.identifier_record_fields.contains(&"salty".to_owned()));
-    assert!(!shortfall.note.is_empty());
+    assert_ne!(shortfall.note, "");
     let record: keria_types::api::Hab = serde_json::from_slice(&identifier_record(&fixture)?)?;
     assert!(matches!(record, keria_types::api::Hab::Accepted(_)));
     Ok(())

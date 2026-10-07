@@ -594,7 +594,7 @@ mod tests {
         assert_eq!(accepted.status().as_u16(), 202);
         // 204 carries nothing at all.
         let empty = ResourceResponse::decode(&origin()?, response(204, None, b"")?)?;
-        assert!(empty.body().is_empty());
+        assert_eq!(empty.body(), b"");
         assert_eq!(empty.content_type()?, None);
         // An absent content type does not block a JSON read.
         assert_eq!(empty.json()?, b"");
@@ -796,7 +796,7 @@ mod tests {
             ),
         ];
         for (error, has_source) in cases {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
         Ok(())
