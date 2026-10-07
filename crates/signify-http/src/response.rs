@@ -306,7 +306,7 @@ impl ResourceResponse {
     /// Returns the body as a JSON document.
     ///
     /// The bytes are handed back for a caller to deserialize; this crate does not deserialize, so
-    /// no serialization dependency reaches it and the domain records stay in `signify-types`.
+    /// no serialization dependency reaches it and the domain records stay in `keria-types`.
     ///
     /// # Errors
     ///

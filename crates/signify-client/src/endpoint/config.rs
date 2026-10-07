@@ -135,8 +135,7 @@ mod tests {
         // Serde reads a struct positionally from a JSON sequence, so these decode where an
         // object-only reader would refuse them. It is a leniency rather than a wrong belief: the
         // sequence spelling yields exactly what the object spelling yields, and it applies to every
-        // `signify-types::api` record rather than to this endpoint. `PORTING.md` records it for the
-        // Roadmap 9.1 audit.
+        // `keria_types::api` record rather than to this endpoint.
         assert_eq!(serde_json::from_str::<AgentConfig>("[]")?.introduction_urls, None);
         assert_eq!(serde_json::from_str::<AgentConfig>("[null]")?.introduction_urls, None);
         assert_eq!(

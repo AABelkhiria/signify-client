@@ -18,7 +18,7 @@
 //! Two mechanisms, because one is not enough.
 //!
 //! The `live` feature carries the production transport and, with it, a TLS stack. It is off by
-//! default: this crate is the first to depend on both `signify-crypto` and `rustls`, and `ring`
+//! default: this crate is the first to depend on both `keri-cesr` and `rustls`, and `ring`
 //! pins a `getrandom` the workspace does not otherwise use, so an unconditional dependency would
 //! put a duplicate in every build graph and `clippy::cargo` would rightly object.
 //!

@@ -37,7 +37,7 @@ pub const MAX_STEM_BYTES: usize = 256;
 
 /// Largest derivation path this module produces, in bytes.
 ///
-/// This is `signify-crypto`'s own bound, restated because a path is assembled here.
+/// This is `keri-cesr`'s own bound, restated because a path is assembled here.
 pub const MAX_DERIVATION_PATH_BYTES: usize = keri_cesr::crypto::salt::MAX_DERIVATION_PATH_BYTES;
 
 /// Largest number of keys one creator call produces.

@@ -26,7 +26,7 @@
 //! in [`crate::signature::input`], not from the collection.
 //!
 //! It also does not serialize: a JSON body arrives here as bytes a caller already produced, so no
-//! serialization dependency reaches this crate and the domain records stay in `signify-types`.
+//! serialization dependency reaches this crate and the domain records stay in `keria-types`.
 
 use core::fmt;
 use std::error::Error;
@@ -883,7 +883,7 @@ impl ResourceRequestBuilder {
     /// Sets a JSON body and declares it.
     ///
     /// The bytes are a document a caller already serialized; this crate does not serialize, so no
-    /// serialization dependency reaches it and the domain records stay in `signify-types`.
+    /// serialization dependency reaches it and the domain records stay in `keria-types`.
     #[must_use]
     pub fn json_body(self, body: impl Into<Vec<u8>>) -> Self {
         self.body(MediaType::json(), body)
