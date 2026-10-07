@@ -263,6 +263,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "client_multisig_end_roles"
+path = "fuzz_targets/client_multisig_end_roles.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "client_ipex_presentation"
 path = "fuzz_targets/client_ipex_presentation.rs"
 test = false

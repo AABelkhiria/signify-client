@@ -113,6 +113,10 @@ name = "multisig_credentials"
 harness = false
 
 [[bench]]
+name = "multisig_end_roles"
+harness = false
+
+[[bench]]
 name = "ipex_presentation"
 harness = false
 
