@@ -357,9 +357,9 @@ fn bounded(text: &str) -> String {
 
 /// Stable failures of composing a signed request.
 ///
-/// A local type rather than a new variant on Roadmap 3.10's `AuthenticationError`: the three ways
+/// A local type rather than a new variant on keri-http-auth's `AuthenticationError`: the three ways
 /// this composition fails belong to the composition, and adding them upstream would make
-/// `signature::authentication` depend on `transport`, which nothing else in that module needs.
+/// keri-http-auth depend on this crate's `transport`, which nothing else there needs.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SigningError {
