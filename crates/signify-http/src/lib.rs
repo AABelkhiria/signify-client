@@ -2,7 +2,8 @@
 
 #![forbid(unsafe_code)]
 
-pub mod header;
+/// Validated HTTP header names, values, and collections, from keri-http-auth.
+pub use keri_http_auth::header;
 pub mod request;
 pub mod response;
 pub mod retry;

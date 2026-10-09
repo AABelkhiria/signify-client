@@ -750,6 +750,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "keri-http-auth"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b9b7c7f49024db9ead6c7cf5c5a9fce35e918b3b8d541304830b733d23c3e39"
+dependencies = [
+ "keri-cesr",
+]
+
+[[package]]
 name = "keria-types"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1236,6 +1245,7 @@ name = "signify"
 version = "0.0.0"
 dependencies = [
  "keri-cesr",
+ "keri-http-auth",
  "keria-types",
  "signify-acdc",
  "signify-client",
@@ -1285,6 +1295,7 @@ dependencies = [
  "hyper-rustls",
  "hyper-util",
  "keri-cesr",
+ "keri-http-auth",
  "proptest",
  "serde",
  "serde_json",
