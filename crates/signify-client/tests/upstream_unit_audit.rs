@@ -70,7 +70,7 @@ struct Ledger {
     reference_sha: String,
     authored_on: String,
     note: String,
-    moved: Moved,
+    moved: Vec<Moved>,
     entries: Vec<LedgerEntry>,
     findings: Vec<Finding>,
 }
@@ -168,10 +168,14 @@ fn every_upstream_case_is_answered_exactly_once() -> Result<(), Box<dyn Error>> 
             .or_default() += 1;
     }
 
-    assert_eq!(ledger.moved.to, "keri-cesr");
-    assert!(ledger.moved.note.contains("keri-cesr"));
-    let moved: BTreeSet<&str> = ledger.moved.files.iter().map(String::as_str).collect();
-    assert_eq!(moved.len(), ledger.moved.files.len(), "a moved file is listed twice");
+    let mut moved = BTreeSet::new();
+    for destination in &ledger.moved {
+        assert!(!destination.to.is_empty(), "a moved block names no crate");
+        assert!(destination.note.contains(&destination.to));
+        for file in &destination.files {
+            assert!(moved.insert(file.as_str()), "{file} is listed as moved twice");
+        }
+    }
     for file in &moved {
         assert!(
             inventory.files.iter().any(|entry| entry.file == *file),
@@ -378,13 +382,16 @@ fn the_audit_covers_the_whole_suite_by_weight_too() -> Result<(), Box<dyn Error>
     );
 
     let answered_files: BTreeSet<&str> = ledger.entries.iter().map(|entry| entry.file.as_str()).collect();
-    assert_eq!(answered_files.len() + ledger.moved.files.len(), inventory.totals.files);
+    let moved_files: usize = ledger.moved.iter().map(|destination| destination.files.len()).sum();
+    assert_eq!(answered_files.len() + moved_files, inventory.totals.files);
 
-    for case in inventory
-        .cases
-        .iter()
-        .filter(|case| case.assertions >= 40 && !ledger.moved.files.contains(&case.file))
-    {
+    for case in inventory.cases.iter().filter(|case| {
+        case.assertions >= 40
+            && !ledger
+                .moved
+                .iter()
+                .any(|destination| destination.files.contains(&case.file))
+    }) {
         let case_key = key(&case.file, &case.group, &case.title);
         let entry = ledger
             .entries

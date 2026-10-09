@@ -3,27 +3,38 @@
   "reference_sha": "91a04a5edd804425f42be75ffbf034f8d14e5cb2",
   "authored_on": "2026-08-27",
   "note": "Authored, not generated: 'this Rust evidence answers that upstream case' is a judgement. `crates/signify-client/tests/upstream_unit_audit.rs` requires every inventory case to appear here exactly once, every named path to exist, and every `n_a` to carry a reason.",
-  "moved": {
-    "to": "keri-cesr",
-    "note": "These upstream files are answered by the keri-cesr crate, which now holds the CESR and crypto code and its evidence; this ledger no longer answers their cases.",
-    "files": [
-      "test/core/base64.test.ts",
-      "test/core/bexter.test.ts",
-      "test/core/coring.test.ts",
-      "test/core/counter.test.ts",
-      "test/core/decrypter.test.ts",
-      "test/core/diger.test.ts",
-      "test/core/encrypter.test.ts",
-      "test/core/indexer.test.ts",
-      "test/core/matter.test.ts",
-      "test/core/number.test.ts",
-      "test/core/pather.test.ts",
-      "test/core/salter.test.ts",
-      "test/core/seqner.test.ts",
-      "test/core/signer.test.ts",
-      "test/core/verfer.test.ts"
-    ]
-  },
+  "moved": [
+    {
+      "to": "keri-cesr",
+      "note": "These upstream files are answered by the keri-cesr crate, which now holds the CESR and crypto code and its evidence; this ledger no longer answers their cases.",
+      "files": [
+        "test/core/base64.test.ts",
+        "test/core/bexter.test.ts",
+        "test/core/coring.test.ts",
+        "test/core/counter.test.ts",
+        "test/core/decrypter.test.ts",
+        "test/core/diger.test.ts",
+        "test/core/encrypter.test.ts",
+        "test/core/indexer.test.ts",
+        "test/core/matter.test.ts",
+        "test/core/number.test.ts",
+        "test/core/pather.test.ts",
+        "test/core/salter.test.ts",
+        "test/core/seqner.test.ts",
+        "test/core/signer.test.ts",
+        "test/core/verfer.test.ts"
+      ]
+    },
+    {
+      "to": "keri-http-auth",
+      "note": "These upstream files are answered by the keri-http-auth crate, which now holds the Signature and Signature-Input header code, request authentication and their evidence; this ledger no longer answers their cases.",
+      "files": [
+        "test/core/authing.test.ts",
+        "test/core/httping.test.ts",
+        "test/end/ending.test.ts"
+      ]
+    }
+  ],
   "entries": [
     {
       "file": "test/app/aiding.test.ts",
@@ -1060,36 +1071,6 @@
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
     },
     {
-      "file": "test/core/authing.test.ts",
-      "group": "Authenticater.sign",
-      "title": "Create signed headers for a request",
-      "status": "covered",
-      "roadmap": [
-        "3.10"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/authing_reference_vectors.rs",
-        "crates/signify-http/tests/authing_properties.rs",
-        "fixtures/http-authing/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/core/authing.test.ts",
-      "group": "Authenticater.verify",
-      "title": "verify signature on Response",
-      "status": "covered",
-      "roadmap": [
-        "3.10"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/authing_reference_vectors.rs",
-        "crates/signify-http/tests/authing_properties.rs",
-        "fixtures/http-authing/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
       "file": "test/core/eventing.test.ts",
       "group": "key event function \u203a rotate",
       "title": "should create rotation event with hex sequence number",
@@ -1161,36 +1142,6 @@
         "crates/signify-keri/tests/eventing_reference_vectors.rs",
         "crates/signify-keri/tests/eventing_properties.rs",
         "fixtures/keri-eventing/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/core/httping.test.ts",
-      "group": "desiginput",
-      "title": "create valid Signature-Input header with signature",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/core/httping.test.ts",
-      "group": "siginput",
-      "title": "create valid Signature-Input header with signature",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
     },
@@ -1651,156 +1602,6 @@
         "crates/signify-keri/tests/registry_reference_vectors.rs",
         "crates/signify-keri/tests/registry_properties.rs",
         "fixtures/keri-registry/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "Combined headers",
-      "title": "Should create header",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "Combined headers",
-      "title": "Should parse hader",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When indexed CESR signatures",
-      "title": "Should create headers",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When indexed CESR signatures",
-      "title": "Should parse headers",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When indexed signatures",
-      "title": "Can create signature header",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When indexed signatures",
-      "title": "Can parse signature header",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When named signatures",
-      "title": "Can create signature header",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When named signatures",
-      "title": "Can parse signature header",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When non-indexed signatures",
-      "title": "Should create headers",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/end/ending.test.ts",
-      "group": "When non-indexed signatures",
-      "title": "Should parse headers",
-      "status": "covered",
-      "roadmap": [
-        "3.9"
-      ],
-      "evidence": [
-        "crates/signify-http/tests/ending_reference_vectors.rs",
-        "crates/signify-http/tests/ending_properties.rs",
-        "fixtures/http-ending/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
     }
