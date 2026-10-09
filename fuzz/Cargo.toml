@@ -81,20 +81,6 @@ doc = false
 bench = false
 
 [[bin]]
-name = "ending"
-path = "fuzz_targets/ending.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "authing"
-path = "fuzz_targets/authing.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
 name = "keeper"
 path = "fuzz_targets/keeper.rs"
 test = false
