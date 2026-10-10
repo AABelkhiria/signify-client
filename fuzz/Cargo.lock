@@ -409,6 +409,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "keri-protocol"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12c4d4106a7ff785708d758376777df8957980df3ce5a86d4caa62c6eddd3021"
+dependencies = [
+ "keri-cesr",
+ "serde_json",
+]
+
+[[package]]
 name = "keria-types"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -720,6 +730,7 @@ name = "signify-keri"
 version = "0.0.0"
 dependencies = [
  "keri-cesr",
+ "keri-protocol",
  "keria-types",
  "serde_json",
 ]
