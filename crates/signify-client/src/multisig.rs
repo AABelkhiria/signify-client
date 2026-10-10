@@ -158,6 +158,7 @@
 //! makes six requests here where the reference — passing the hab it already has — makes five. The
 //! group's keys come from the participants' key states either way, so nothing rests on it.
 
+use keri_acdc::credential::Credential;
 use keri_cesr::sequence::SequenceNumber;
 use keri_protocol::attachment::{SignatureSeal, SignedMessageBuilder};
 use keri_protocol::event::Timestamp;
@@ -170,9 +171,8 @@ use keria_types::api::{
     AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
     RegistryInceptionRecord, ReplyRecord, Role, Threshold,
 };
-use signify_acdc::credential::Credential;
-use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
-use signify_acdc::revocation::RevocationEvent;
+use signify_keys::acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
+use signify_keys::acdc::revocation::RevocationEvent;
 use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, END_ROLE_ROUTE, IdentifierArtifact, RotateIdentifierRequest, SignedReply,
     end_role_reply,

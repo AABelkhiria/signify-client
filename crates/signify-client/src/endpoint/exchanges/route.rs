@@ -20,7 +20,7 @@
 use core::fmt;
 use core::str::FromStr;
 
-use signify_acdc::ipex::IpexRoute;
+use signify_keys::acdc::ipex::IpexRoute;
 
 /// Which multisig coordination step a message proposes.
 ///
@@ -98,7 +98,7 @@ impl fmt::Display for MultisigRoute {
 ///
 /// ```
 /// use signify_client::endpoint::exchanges::{ExchangeRoute, MultisigRoute};
-/// use signify_acdc::ipex::IpexRoute;
+/// use signify_keys::acdc::ipex::IpexRoute;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(ExchangeRoute::ALL.len(), 13);

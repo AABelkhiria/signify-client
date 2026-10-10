@@ -22,7 +22,7 @@
 
 use keria_types::api::ExchangeOperation;
 use libfuzzer_sys::fuzz_target;
-use signify_acdc::ipex::IpexRoute;
+use signify_keys::acdc::ipex::IpexRoute;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_http::request::ResourcePath;

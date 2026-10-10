@@ -18,7 +18,7 @@
 
 use keria_types::api::ExchangeResource;
 use libfuzzer_sys::fuzz_target;
-use signify_acdc::ipex::IpexRoute;
+use signify_keys::acdc::ipex::IpexRoute;
 use signify_client::presentation::{ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, requested_credentials};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

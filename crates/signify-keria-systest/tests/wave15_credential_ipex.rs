@@ -18,7 +18,6 @@ use std::error::Error;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
 use serde::Serialize;
-use signify_acdc::ipex::IpexRoute;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
 use signify_client::presentation::disclosure_of;
@@ -30,6 +29,7 @@ use signify_keria_systest::singlesig::{
 use signify_keria_systest::{
     Environment, agent_oobi, connect, progress, record, recorder, resolve_oobi, resolve_schema,
 };
+use signify_keys::acdc::ipex::IpexRoute;
 
 /// The Qualified vLEI Issuer schema, which the vLEI server and the Veridian credential server both
 /// serve under the same SAID — the schemas are byte-identical, so the SAID is too.
@@ -225,7 +225,7 @@ async fn verifier_round(
     verifier: &ConnectedClient,
     holder_prefix: &keri_protocol::prefix::IdentifierPrefix,
     schema: &Said,
-    acdc: &signify_acdc::credential::Credential,
+    acdc: &keri_acdc::credential::Credential,
     credential_said: &Said,
 ) -> Result<Round, Box<dyn Error>> {
     progress("the verifier's disclosure round begins");

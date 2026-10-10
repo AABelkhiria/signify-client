@@ -8,7 +8,7 @@
 //! for a long-running agent operation to finish.
 //!
 //! Nothing in this crate implements protocol logic of its own. Events come from `signify-keys`,
-//! credentials from `keri-acdc` through `signify-acdc`, and the whole signed-request mechanism
+//! credentials from `keri-acdc` signed through `signify-keys`, and the whole signed-request mechanism
 //! from `signify-http`;
 //! what the client adds is which URL to send to, which prefix to stamp, and which key to verify
 //! against.

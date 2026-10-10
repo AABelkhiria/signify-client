@@ -11,15 +11,15 @@
 use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
+use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::KeyState;
-use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::ipex::{IpexEnvelope, admit, agree, apply, grant, offer};
-use signify_acdc::issuance::issue_credential;
+use signify_keys::acdc::ipex::{IpexEnvelope, admit, agree, apply, grant, offer};
+use signify_keys::acdc::issuance::issue_credential;
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 

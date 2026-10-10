@@ -10,7 +10,6 @@ categories.workspace = true
 
 [dependencies]
 keri-acdc.workspace = true
-signify-acdc = { path = "../signify-acdc" }
 keri-cesr.workspace = true
 keri-http-auth.workspace = true
 keri-protocol.workspace = true

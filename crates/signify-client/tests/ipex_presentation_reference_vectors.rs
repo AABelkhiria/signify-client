@@ -9,11 +9,11 @@ use std::error::Error;
 use keria_types::api::{Credential, ExchangeResource};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_acdc::ipex::IpexRoute;
 use signify_client::error::ClientError;
 use signify_client::presentation::{
     ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, disclosure_of, requested_credentials,
 };
+use signify_keys::acdc::ipex::IpexRoute;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-ipex-presentation/v1.json");
@@ -680,11 +680,11 @@ mod driven {
     use keri_protocol::event::Timestamp;
     use keri_protocol::prefix::IdentifierPrefix;
     use keri_protocol::said::Said;
-    use signify_acdc::ipex::Disclosure;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::multisig::GroupDisclosureRequest;
     use signify_http::transport::Transport;
+    use signify_keys::acdc::ipex::Disclosure;
     use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";

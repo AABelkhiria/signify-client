@@ -14,8 +14,6 @@ pub use keri_http_auth as auth;
 pub use keri_protocol as protocol;
 /// KERIA agent API record types.
 pub use keria_types as types;
-/// Signing ACDC artifacts with a Signify keeper.
-pub use signify_acdc as acdc_signing;
 /// High-level Signify client.
 pub use signify_client as client;
 /// HTTP transport and authentication.

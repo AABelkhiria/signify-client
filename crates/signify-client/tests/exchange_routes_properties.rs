@@ -8,12 +8,12 @@ use std::error::Error;
 use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 use proptest::prelude::*;
 use serde_json::{Map, Value, json};
-use signify_acdc::ipex::IpexRoute;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, ExchangeRoute, GROUP_LABEL, IpexPayload, MultisigRoute, ROTATION_MEMBERS_LABEL,
     SIGNING_MEMBERS_LABEL, USAGE_LABEL,
 };
 use signify_client::error::ClientError;
+use signify_keys::acdc::ipex::IpexRoute;
 
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";

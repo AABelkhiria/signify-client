@@ -20,10 +20,10 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::ExchangeOperation;
-use signify_acdc::ipex::IpexRoute;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_http::request::ResourcePath;
+use signify_keys::acdc::ipex::IpexRoute;
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const HOLDER: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";

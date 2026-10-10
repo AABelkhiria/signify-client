@@ -4,12 +4,12 @@
 
 use std::error::Error;
 
+use keri_acdc::credential::RegistryIdentifier;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential as CredentialRecord;
 use proptest::prelude::*;
 use serde_json::{Value, json};
-use signify_acdc::credential::RegistryIdentifier;
 use signify_client::endpoint::credentials::{
     CREDENTIAL_QUERY_SEGMENT, CREDENTIALS_SEGMENT, CredentialFilter, DEFAULT_CREDENTIAL_LIMIT,
 };

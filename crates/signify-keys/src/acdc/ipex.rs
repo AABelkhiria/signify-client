@@ -4,19 +4,19 @@
 //! adds the reference's `createExchangeMessage` tail: one keeper signature over the serialized
 //! message, indexed by position, which [`IpexMessage`] carries beside the message.
 
+use crate::manager::keeper::IdentifierKeeper;
+use crate::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 use keri_protocol::event::exchange::ExchangeMessage;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::Sad;
-use signify_keys::manager::keeper::IdentifierKeeper;
-use signify_keys::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 
 pub use keri_acdc::ipex::{
     ANCHOR_EMBED, ATTRIBUTES_LABEL, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexRoute,
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, SCHEMA_LABEL, SignedIpexMessage,
 };
 
-use crate::credential::Credential;
-use crate::error::IpexSigningError;
+use crate::acdc::error::IpexSigningError;
+use keri_acdc::credential::Credential;
 
 /// One IPEX message signed by its sender's keeper: the message and the signatures over it.
 #[derive(Debug)]

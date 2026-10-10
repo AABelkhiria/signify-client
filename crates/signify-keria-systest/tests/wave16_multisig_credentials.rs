@@ -16,12 +16,11 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use keri_acdc::credential::RegistryIdentifier;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::threshold::SigningThreshold;
 use serde::Serialize;
-use signify_acdc::credential::RegistryIdentifier;
-use signify_acdc::ipex::IpexRoute;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
 use signify_client::presentation::disclosure_of;
@@ -33,6 +32,7 @@ use signify_keria_systest::singlesig::{
 use signify_keria_systest::{
     Environment, Recorder, agent_oobi, connect, dump_tails, record, recorder, resolve_oobi, resolve_schema,
 };
+use signify_keys::acdc::ipex::IpexRoute;
 
 /// The Qualified vLEI Issuer schema, served under this SAID by the vLEI server and by the Veridian
 /// credential server alike.

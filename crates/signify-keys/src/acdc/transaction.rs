@@ -5,6 +5,10 @@
 //! [`KeyState`] into an [`AnchorState`] and signing the event through an [`IdentifierKeeper`],
 //! which is what the reference's `Credentials.issue` and `Credentials.revoke` both do.
 
+use crate::identifier::IdentifierError;
+use crate::identifier::artifact::IdentifierArtifact;
+use crate::manager::keeper::IdentifierKeeper;
+use crate::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 pub use keri_acdc::transaction::{
     AnchorState, PRIOR_LABEL, SignedAnchor, TIMESTAMP_LABEL, TransactionSeal, UNSIZED_VERSION_STRING,
 };
@@ -12,12 +16,8 @@ use keri_protocol::event::KeyEvent;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keria_types::api::KeyState;
-use signify_keys::identifier::IdentifierError;
-use signify_keys::identifier::artifact::IdentifierArtifact;
-use signify_keys::manager::keeper::IdentifierKeeper;
-use signify_keys::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 
-use crate::error::AnchorError;
+use crate::acdc::error::AnchorError;
 
 /// Reads what anchoring needs from a key state as KERIA reports it.
 ///

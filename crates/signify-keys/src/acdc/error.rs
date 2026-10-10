@@ -7,9 +7,9 @@
 use core::fmt;
 use std::error::Error;
 
+use crate::identifier::IdentifierError;
+use crate::manager::ManagerError;
 pub use keri_acdc::error::{IpexError, TransactionError};
-use signify_keys::identifier::IdentifierError;
-use signify_keys::manager::ManagerError;
 
 /// Stable failures of anchoring a transaction event through the issuer's keeper.
 #[derive(Debug)]

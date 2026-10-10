@@ -18,13 +18,13 @@
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
-use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::error::{IpexError, IpexSigningError};
-use signify_acdc::ipex::{
+use keri_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
+use signify_keys::acdc::error::{IpexError, IpexSigningError};
+use signify_keys::acdc::ipex::{
     ANCHOR_EMBED, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexMessage, IpexRoute,
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, admit, agree, apply, grant, offer,
 };
-use signify_acdc::issuance::issue_credential;
+use signify_keys::acdc::issuance::issue_credential;
 use keri_protocol::event::Timestamp;
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};

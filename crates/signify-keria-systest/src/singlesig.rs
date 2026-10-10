@@ -6,18 +6,18 @@
 
 use std::error::Error;
 
+use keri_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::Sad;
 use keria_types::api::{Credential as CredentialRecord, CredentialState, Role};
-use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::ipex::{Disclosure, IpexRoute};
-use signify_acdc::revocation::RevocationEventBuilder;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
 use signify_client::endpoint::registries::CreateRegistryRequest;
 use signify_client::presentation::{DisclosureRequest, ReceivedStep, disclosure_of};
 use signify_http::request::ItemRange;
+use signify_keys::acdc::ipex::{Disclosure, IpexRoute};
+use signify_keys::acdc::revocation::RevocationEventBuilder;
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 
 use crate::operation::wait_and_delete;
@@ -100,7 +100,7 @@ pub fn build_credential(
     schema: &Said,
     holder: &IdentifierPrefix,
     attributes: &[(&str, &str)],
-) -> Result<signify_acdc::credential::Credential, Box<dyn Error>> {
+) -> Result<keri_acdc::credential::Credential, Box<dyn Error>> {
     let mut block = CredentialAttributes::new(crate::now()?).issuee(holder)?;
     for (label, value) in attributes {
         block = block.text(*label, *value)?;
@@ -116,7 +116,7 @@ pub fn build_credential(
 pub async fn issue_credential(
     client: &ConnectedClient,
     alias: &str,
-    credential: signify_acdc::credential::Credential,
+    credential: keri_acdc::credential::Credential,
 ) -> Result<Said, Box<dyn Error>> {
     let said = credential.said();
     crate::progress(&format!("{alias}: issuing {said}"));
@@ -271,7 +271,7 @@ pub async fn offer_credential(
     client: &ConnectedClient,
     alias: &str,
     apply: &ReceivedStep,
-    credential: &signify_acdc::credential::Credential,
+    credential: &keri_acdc::credential::Credential,
     message: &str,
 ) -> Result<Said, Box<dyn Error>> {
     let submitted = client

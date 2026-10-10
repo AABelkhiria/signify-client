@@ -2,7 +2,6 @@
 resolver = "3"
 members = [
     "crates/signify",
-    "crates/signify-acdc",
     "crates/signify-client",
     "crates/signify-http",
     "crates/signify-keys",

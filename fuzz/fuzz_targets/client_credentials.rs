@@ -26,7 +26,7 @@
 
 use keria_types::api::{Credential, CredentialState};
 use libfuzzer_sys::fuzz_target;
-use signify_acdc::credential::RegistryIdentifier;
+use keri_acdc::credential::RegistryIdentifier;
 use signify_client::endpoint::credentials::{CREDENTIAL_QUERY_SEGMENT, CREDENTIALS_SEGMENT, CredentialFilter};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::REGISTRIES_SEGMENT;

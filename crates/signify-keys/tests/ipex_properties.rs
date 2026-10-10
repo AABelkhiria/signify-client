@@ -4,6 +4,7 @@
 //! key, which a property test would multiply by its case count; nothing under test depends on the
 //! profile, and the cross-language vectors cover the production one exactly — signatures included.
 
+use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
 use keri_protocol::event::kind::EventKind;
@@ -12,13 +13,12 @@ use keri_protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use keria_types::api::KeyState;
 use proptest::prelude::*;
-use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::error::{IpexError, IpexSigningError};
-use signify_acdc::ipex::{
+use signify_keys::acdc::error::{IpexError, IpexSigningError};
+use signify_keys::acdc::ipex::{
     ANCHOR_EMBED, ATTRIBUTES_LABEL, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexMessage, IpexRoute,
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, SCHEMA_LABEL, admit, agree, apply, grant, offer,
 };
-use signify_acdc::issuance::{IssuanceEvent, issue_credential};
+use signify_keys::acdc::issuance::{IssuanceEvent, issue_credential};
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
 

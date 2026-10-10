@@ -3,7 +3,7 @@
 //! Each family is a lightweight handle borrowed from a [`ConnectedClient`](crate::client::ConnectedClient):
 //! it knows a resource's paths, its query parameters, and the shape of what comes back, and
 //! nothing else. Protocol logic lives below — events in `keri-protocol`, keys in `signify-keys`,
-//! credentials in `keri-acdc` and their signing in `signify-acdc`, the signed request itself in
+//! credentials in `keri-acdc` and their signing in `signify-keys`, the signed request itself in
 //! `signify-http` — and a family only decides which URL to address and how to read the answer.
 //!
 //! Roadmap 6.5 opens the module with [`operations`], which is the family every other one depends

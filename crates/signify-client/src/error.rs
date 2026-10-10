@@ -8,6 +8,7 @@
 use core::fmt;
 use std::error::Error;
 
+use keri_acdc::credential::CredentialError;
 use keri_cesr::CesrError;
 use keri_cesr::crypto::CryptoError;
 use keri_protocol::attachment::AttachmentError;
@@ -17,14 +18,13 @@ use keri_protocol::registry::RegistryError;
 use keri_protocol::said::SaidError;
 use keri_protocol::serialization::SerializationError;
 use keria_types::api::ApiError;
-use signify_acdc::credential::CredentialError;
-use signify_acdc::error::{AnchorError, IpexError, IpexSigningError, TransactionError};
 use signify_http::header::HeaderError;
 use signify_http::request::RequestError;
 use signify_http::response::ResponseError;
 use signify_http::signature::authentication::AuthenticationError;
 use signify_http::signature::transport::{ResponseAuthenticationError, SigningError};
 use signify_http::transport::TransportError;
+use signify_keys::acdc::error::{AnchorError, IpexError, IpexSigningError, TransactionError};
 use signify_keys::controller::ControllerError;
 use signify_keys::identifier::IdentifierError;
 use signify_keys::manager::ManagerError;

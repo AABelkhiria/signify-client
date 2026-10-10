@@ -13,14 +13,14 @@
 use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
+use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keria_types::api::KeyState;
-use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::issuance::{IssuanceEvent, issue_credential};
-use signify_acdc::revocation::RevocationEventBuilder;
-use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event};
+use signify_keys::acdc::issuance::{IssuanceEvent, issue_credential};
+use signify_keys::acdc::revocation::RevocationEventBuilder;
+use signify_keys::acdc::transaction::{TransactionSeal, anchor, anchor_event};
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 

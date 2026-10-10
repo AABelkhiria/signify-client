@@ -3,14 +3,14 @@
 //! The event is keri-acdc's. This module adds the reference's `Credentials.revoke` composition:
 //! anchor the event in the issuer's log, signed by its keeper.
 
+use crate::identifier::artifact::IdentifierArtifact;
+use crate::manager::keeper::IdentifierKeeper;
 use keria_types::api::KeyState;
-use signify_keys::identifier::artifact::IdentifierArtifact;
-use signify_keys::manager::keeper::IdentifierKeeper;
 
 pub use keri_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEvent, RevocationEventBuilder};
 
-use crate::error::AnchorError;
-use crate::transaction::anchor;
+use crate::acdc::error::AnchorError;
+use crate::acdc::transaction::anchor;
 
 /// Everything revoking one credential produces before anything is sent.
 #[derive(Debug)]

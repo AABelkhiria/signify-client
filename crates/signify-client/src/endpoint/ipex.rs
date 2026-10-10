@@ -1,7 +1,7 @@
 //! The IPEX endpoint: handing a signed disclosure message to the agent for delivery.
 //!
 //! IPEX is a five-step conversation — apply, offer, agree, grant, admit — and this family is the
-//! submission half of it. The messages themselves are Roadmap 6.3's, in `signify_acdc::ipex`: this
+//! submission half of it. The messages themselves are Roadmap 6.3's, in `signify_keys::acdc::ipex`: this
 //! module assembles the request body around one, addresses the resource, and reads the operation
 //! that comes back. Nothing here builds or signs a message.
 //!
@@ -14,7 +14,7 @@
 //! `r` field says `/ipex/grant`, and posting an apply through `submitGrant` attaches an `atc` the
 //! message never had. Both are recorded in `fixtures/client-ipex/`. Here there is one
 //! [`Ipex::submit`] and the path segment is read from the message's own
-//! [`route`](signify_acdc::ipex::IpexMessage::route), so the resource and the route cannot disagree.
+//! [`route`](signify_keys::acdc::ipex::IpexMessage::route), so the resource and the route cannot disagree.
 //!
 //! # The route decides the body
 //!
@@ -27,10 +27,10 @@
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::ExchangeOperation;
-use signify_acdc::ipex::{IpexMessage, IpexRoute};
 use signify_http::request::ResourcePath;
 use signify_http::response::ResponseError;
 use signify_http::transport::Method;
+use signify_keys::acdc::ipex::{IpexMessage, IpexRoute};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};

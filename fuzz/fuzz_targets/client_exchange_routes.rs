@@ -117,9 +117,9 @@ fn check(record: &ExchangeRecord) {
                 empty,
                 matches!(
                     step.route,
-                    signify_acdc::ipex::IpexRoute::Apply
-                        | signify_acdc::ipex::IpexRoute::Agree
-                        | signify_acdc::ipex::IpexRoute::Admit
+                    signify_keys::acdc::ipex::IpexRoute::Apply
+                        | signify_keys::acdc::ipex::IpexRoute::Agree
+                        | signify_keys::acdc::ipex::IpexRoute::Admit
                 ),
                 "{} embedded the wrong amount",
                 step.route.as_str()

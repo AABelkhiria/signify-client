@@ -6,7 +6,7 @@
 //! anchoring it in the issuer's key event log.
 //!
 //! This ports `Credentials` from the pinned `src/keri/app/credentialing.ts`. The artifacts
-//! themselves are `keri-acdc`'s, signed through `signify_acdc`: this module supplies the keeper,
+//! themselves are `keri-acdc`'s, signed through `signify_keys::acdc`: this module supplies the keeper,
 //! assembles the request body around what those modules return, and addresses the resource.
 //! Nothing here builds a credential or an event.
 //!
@@ -37,16 +37,16 @@
 //! are validated types before they are path components, and Roadmap 5.3's [`ResourcePath`] encodes
 //! an alias exactly once. See `fixtures/client-credentials/`.
 
+use keri_acdc::credential::{Credential, RegistryIdentifier};
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{Credential as CredentialRecord, CredentialOperation, CredentialState, Hab, UntypedOperation};
-use signify_acdc::credential::{Credential, RegistryIdentifier};
-use signify_acdc::issuance::{IssuanceArtifacts, issue_credential};
-use signify_acdc::revocation::{RevocationArtifacts, RevocationEvent, revoke_credential};
-use signify_acdc::transaction::is_establishment_only;
 use signify_http::request::{MediaType, ResourcePath};
 use signify_http::response::ResponseError;
 use signify_http::transport::Method;
+use signify_keys::acdc::issuance::{IssuanceArtifacts, issue_credential};
+use signify_keys::acdc::revocation::{RevocationArtifacts, RevocationEvent, revoke_credential};
+use signify_keys::acdc::transaction::is_establishment_only;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{index_value, insert_algorithm, sad_error, stored_transferability, text_array};

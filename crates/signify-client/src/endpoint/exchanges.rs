@@ -7,7 +7,7 @@
 //! This ports the `Exchanges` class of the pinned `src/keri/app/exchanging.ts`. The message itself
 //! is Roadmap 3.8's [`ExchangeBuilder`], already byte-exact; what is new here is the signing, the
 //! request body, and the two addresses. The IPEX specialisation of the same composition is Roadmap
-//! 6.3's `signify_acdc::ipex`, and the typed route table over `/multisig/*` and `/ipex/*` is
+//! 6.3's `signify_keys::acdc::ipex`, and the typed route table over `/multisig/*` and `/ipex/*` is
 //! Roadmap 8.1's — so a route is borrowed text here, exactly as [`ExchangeBuilder`] leaves it.
 //!
 //! # The addressee is not the delivery list

@@ -4,6 +4,7 @@
 //! key, which a property test would multiply by its case count; nothing under test depends on the
 //! profile, and the cross-language vectors cover the production one exactly.
 
+use keri_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
 use keri_protocol::event::kind::EventKind;
@@ -12,11 +13,10 @@ use keri_protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use keri_protocol::serialization::SerializedEvent;
 use keria_types::api::KeyState;
 use proptest::prelude::*;
-use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::error::{AnchorError, TransactionError};
-use signify_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
-use signify_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
-use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
+use signify_keys::acdc::error::{AnchorError, TransactionError};
+use signify_keys::acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
+use signify_keys::acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
+use signify_keys::acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 
@@ -36,7 +36,7 @@ fn stamp() -> Result<Timestamp, TestCaseError> {
     STAMP.parse().map_err(fail)
 }
 
-fn credential(registry: &str, value: &str) -> Result<signify_acdc::credential::Credential, TestCaseError> {
+fn credential(registry: &str, value: &str) -> Result<keri_acdc::credential::Credential, TestCaseError> {
     CredentialBuilder::new(
         IdentifierPrefix::from_qb64(ISSUER).map_err(fail)?,
         RegistryIdentifier::from_qb64(registry).map_err(fail)?,

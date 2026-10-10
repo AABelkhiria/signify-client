@@ -8,6 +8,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
@@ -17,8 +18,6 @@ use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential as CredentialRecord;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::revocation::RevocationEventBuilder;
 use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
 use signify_client::endpoint::credentials::{
@@ -27,6 +26,7 @@ use signify_client::endpoint::credentials::{
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
+use signify_keys::acdc::revocation::RevocationEventBuilder;
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";

@@ -33,7 +33,7 @@ use serde_json::{Map, Value};
 use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::MultisigExchangeResource;
 use keria_types::api::{AcdcRecord, ExchangeEmbed, ExchangeEmbeds, ExchangeRecord, ExchangeResource};
-use signify_acdc::ipex::IpexRoute;
+use signify_keys::acdc::ipex::IpexRoute;
 
 use super::route::{ExchangeRoute, MultisigRoute};
 use crate::error::ClientError;

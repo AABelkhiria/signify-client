@@ -4,17 +4,17 @@
 //! The event and the attachments are keri-acdc's. This module adds the reference's
 //! `Credentials.issue` composition: anchor the event in the issuer's log, signed by its keeper.
 
+use crate::identifier::artifact::IdentifierArtifact;
+use crate::manager::keeper::IdentifierKeeper;
 use keri_acdc::ipex::Disclosure;
 use keri_protocol::attachment::{AttachmentFraming, SealSourceCouple};
 use keria_types::api::KeyState;
-use signify_keys::identifier::artifact::IdentifierArtifact;
-use signify_keys::manager::keeper::IdentifierKeeper;
 
 pub use keri_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent};
 
-use crate::credential::Credential;
-use crate::error::{AnchorError, IpexError, TransactionError};
-use crate::transaction::{anchor, signed_anchor};
+use crate::acdc::error::{AnchorError, IpexError, TransactionError};
+use crate::acdc::transaction::{anchor, signed_anchor};
+use keri_acdc::credential::Credential;
 
 /// Everything issuing one credential produces before anything is sent.
 #[derive(Debug)]

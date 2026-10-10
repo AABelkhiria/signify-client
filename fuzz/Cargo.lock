@@ -690,27 +690,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "signify-acdc"
-version = "0.0.0"
-dependencies = [
- "keri-acdc",
- "keri-cesr",
- "keri-protocol",
- "keria-types",
- "signify-keys",
-]
-
-[[package]]
 name = "signify-client"
 version = "0.0.0"
 dependencies = [
  "getrandom 0.3.4",
+ "keri-acdc",
  "keri-cesr",
  "keri-protocol",
  "keria-types",
  "serde",
  "serde_json",
- "signify-acdc",
  "signify-http",
  "signify-keys",
 ]
@@ -719,12 +708,12 @@ dependencies = [
 name = "signify-fuzz"
 version = "0.0.0"
 dependencies = [
+ "keri-acdc",
  "keri-cesr",
  "keri-protocol",
  "keria-types",
  "libfuzzer-sys",
  "serde_json",
- "signify-acdc",
  "signify-client",
  "signify-http",
  "signify-keys",
@@ -743,6 +732,7 @@ dependencies = [
 name = "signify-keys"
 version = "0.0.0"
 dependencies = [
+ "keri-acdc",
  "keri-cesr",
  "keri-protocol",
  "keria-types",

@@ -8,6 +8,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
@@ -15,14 +16,13 @@ use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::ipex::{Disclosure, IpexEnvelope, IpexMessage, IpexRoute, admit, agree, apply, grant, offer};
 use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
 use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
+use signify_keys::acdc::ipex::{Disclosure, IpexEnvelope, IpexMessage, IpexRoute, admit, agree, apply, grant, offer};
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 
@@ -226,7 +226,7 @@ fn credential(fixture: &Fixture) -> Result<Credential, Box<dyn Error>> {
 
 fn disclosure(fixture: &Fixture) -> Result<Disclosure, Box<dyn Error>> {
     use keri_protocol::attachment::{AttachmentFraming, SealSourceCouple};
-    use signify_acdc::issuance::IssuanceEvent;
+    use signify_keys::acdc::issuance::IssuanceEvent;
 
     let credential = credential(fixture)?;
     let issuance = IssuanceEvent::for_credential(&credential)?;

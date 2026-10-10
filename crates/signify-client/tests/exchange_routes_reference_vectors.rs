@@ -7,13 +7,13 @@ use std::error::Error;
 use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
 use serde::Deserialize;
 use serde_json::{Map, Value};
-use signify_acdc::ipex::IpexRoute;
 use signify_client::endpoint::challenges::CHALLENGE_RESPONSE_ROUTE;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, ExchangeRoute, GROUP_LABEL, IpexPayload, MultisigRoute, ROTATION_MEMBERS_LABEL,
     SIGNING_MEMBERS_LABEL, USAGE_LABEL,
 };
 use signify_client::error::ClientError;
+use signify_keys::acdc::ipex::IpexRoute;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-exchange-routes/v1.json");
