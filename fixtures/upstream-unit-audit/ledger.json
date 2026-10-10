@@ -45,6 +45,13 @@
         "test/core/tholder.test.ts",
         "test/core/vdring.test.ts"
       ]
+    },
+    {
+      "to": "keri-acdc",
+      "note": "These upstream files are answered by the keri-acdc crate, which now holds the credential container, the issuance and revocation events, the transaction seal and anchor, and the IPEX messages with their evidence; this ledger no longer answers their cases.",
+      "files": [
+        "test/core/utils.test.ts"
+      ]
     }
   ],
   "entries": [
@@ -871,10 +878,8 @@
         "8.8"
       ],
       "evidence": [
-        "crates/signify-acdc/tests/ipex_reference_vectors.rs",
         "crates/signify-client/tests/ipex_reference_vectors.rs",
-        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs",
-        "fixtures/acdc-ipex/v1.json"
+        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs"
       ],
       "note": "The message builders (6.3), their submission (6.12), and the conversation around them (8.8)."
     },
@@ -889,10 +894,8 @@
         "8.8"
       ],
       "evidence": [
-        "crates/signify-acdc/tests/ipex_reference_vectors.rs",
         "crates/signify-client/tests/ipex_reference_vectors.rs",
-        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs",
-        "fixtures/acdc-ipex/v1.json"
+        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs"
       ],
       "note": "The message builders (6.3), their submission (6.12), and the conversation around them (8.8)."
     },
@@ -907,10 +910,8 @@
         "8.8"
       ],
       "evidence": [
-        "crates/signify-acdc/tests/ipex_reference_vectors.rs",
         "crates/signify-client/tests/ipex_reference_vectors.rs",
-        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs",
-        "fixtures/acdc-ipex/v1.json"
+        "crates/signify-client/tests/ipex_presentation_reference_vectors.rs"
       ],
       "note": "The message builders (6.3), their submission (6.12), and the conversation around them (8.8)."
     },
@@ -1312,36 +1313,6 @@
         "crates/signify-keri/tests/manager_reference_vectors.rs",
         "crates/signify-keri/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/core/utils.test.ts",
-      "group": "<computed>",
-      "title": "serializes acdc data",
-      "status": "covered",
-      "roadmap": [
-        "6.2"
-      ],
-      "evidence": [
-        "crates/signify-acdc/tests/issuance_reference_vectors.rs",
-        "crates/signify-acdc/tests/issuance_properties.rs",
-        "fixtures/acdc-issuance/v1.json"
-      ],
-      "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
-    },
-    {
-      "file": "test/core/utils.test.ts",
-      "group": "<computed>",
-      "title": "serializes iss data",
-      "status": "covered",
-      "roadmap": [
-        "6.2"
-      ],
-      "evidence": [
-        "crates/signify-acdc/tests/issuance_reference_vectors.rs",
-        "crates/signify-acdc/tests/issuance_properties.rs",
-        "fixtures/acdc-issuance/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
     }
