@@ -19,7 +19,7 @@ use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::error::IpexError;
+use signify_acdc::error::{IpexError, IpexSigningError};
 use signify_acdc::ipex::{
     ANCHOR_EMBED, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexMessage, IpexRoute,
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, admit, agree, apply, grant, offer,
@@ -198,7 +198,10 @@ fn drive(keeper: &dyn IdentifierKeeper, data: &[u8]) {
         Err(error) => {
             assert!(!error.to_string().is_empty());
             if names_recipient {
-                assert!(matches!(error, IpexError::ReservedPayloadLabel { label: "i" }));
+                assert!(matches!(
+                    &error,
+                    IpexSigningError::Ipex { source } if matches!(**source, IpexError::ReservedPayloadLabel { label: "i" })
+                ));
             }
         }
     }
@@ -263,7 +266,7 @@ fn drive(keeper: &dyn IdentifierKeeper, data: &[u8]) {
     let Ok(artifacts) = issue_credential(keeper, &state, credential) else {
         return;
     };
-    let disclosure = match Disclosure::from_issuance(&artifacts) {
+    let disclosure = match artifacts.disclosure() {
         Ok(disclosure) => disclosure,
         Err(error) => {
             assert!(!error.to_string().is_empty());

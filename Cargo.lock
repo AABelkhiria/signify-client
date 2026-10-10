@@ -732,6 +732,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "keri-acdc"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8aa1a67a9682dc8994d2b05e363cd64fecc696b9040a161499f5fc74bbde037e"
+dependencies = [
+ "keri-cesr",
+ "keri-protocol",
+]
+
+[[package]]
 name = "keri-cesr"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1269,6 +1279,7 @@ name = "signify-acdc"
 version = "0.0.0"
 dependencies = [
  "criterion",
+ "keri-acdc",
  "keri-cesr",
  "keria-types",
  "proptest",

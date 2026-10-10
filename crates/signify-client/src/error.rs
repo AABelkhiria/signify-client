@@ -12,8 +12,7 @@ use keri_cesr::CesrError;
 use keri_cesr::crypto::CryptoError;
 use keria_types::api::ApiError;
 use signify_acdc::credential::CredentialError;
-use signify_acdc::error::IpexError;
-use signify_acdc::error::TransactionError;
+use signify_acdc::error::{AnchorError, IpexError, IpexSigningError, TransactionError};
 use signify_http::header::HeaderError;
 use signify_http::request::RequestError;
 use signify_http::response::ResponseError;
@@ -888,6 +887,24 @@ layered!(SaidError, Said);
 layered!(TransactionError, Transaction);
 layered!(CredentialError, Credential);
 layered!(IpexError, Ipex);
+
+impl From<AnchorError> for ClientError {
+    fn from(error: AnchorError) -> Self {
+        match error {
+            AnchorError::Transaction { source } => Self::Transaction { source },
+            AnchorError::Identifier { source } => Self::Identifier { source },
+        }
+    }
+}
+
+impl From<IpexSigningError> for ClientError {
+    fn from(error: IpexSigningError) -> Self {
+        match error {
+            IpexSigningError::Ipex { source } => Self::Ipex { source },
+            IpexSigningError::Manager { source } => Self::Manager { source },
+        }
+    }
+}
 layered!(TimestampError, Timestamp);
 
 impl From<PrefixError> for ClientError {

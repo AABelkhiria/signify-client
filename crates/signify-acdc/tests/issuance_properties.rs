@@ -8,7 +8,7 @@ use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::error::TransactionError;
+use signify_acdc::error::{AnchorError, TransactionError};
 use signify_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
 use signify_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
 use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
@@ -262,7 +262,7 @@ proptest! {
         prop_assert!(
             matches!(
                 anchor_event(&state, &issuance.seal()),
-                Err(TransactionError::EstablishmentOnlyIssuer { .. })
+                Err(AnchorError::Transaction { source }) if matches!(*source, TransactionError::EstablishmentOnlyIssuer { .. })
             ),
             "an establishment-only issuer was accepted"
         );
@@ -425,7 +425,7 @@ fn the_signing_path_refuses_an_establishment_only_issuer() -> Result<(), Box<dyn
 
     assert!(matches!(
         issue_credential(keeper.as_ref(), &state, credential.clone()),
-        Err(TransactionError::EstablishmentOnlyIssuer { trait_code: "EO" })
+        Err(AnchorError::Transaction { source }) if matches!(*source, TransactionError::EstablishmentOnlyIssuer { trait_code: "EO" })
     ));
 
     let revocation = RevocationEventBuilder::new(
@@ -437,7 +437,7 @@ fn the_signing_path_refuses_an_establishment_only_issuer() -> Result<(), Box<dyn
     .build()?;
     assert!(matches!(
         revoke_credential(keeper.as_ref(), &state, revocation),
-        Err(TransactionError::EstablishmentOnlyIssuer { trait_code: "EO" })
+        Err(AnchorError::Transaction { source }) if matches!(*source, TransactionError::EstablishmentOnlyIssuer { trait_code: "EO" })
     ));
     Ok(())
 }
@@ -468,7 +468,7 @@ fn a_key_event_log_at_the_ceiling_cannot_advance() -> Result<(), Box<dyn std::er
     let said = Said::from_qb64(ISSUANCE)?;
     assert!(matches!(
         anchor_event(&state, &TransactionSeal::new(said, 0, said)),
-        Err(TransactionError::SequenceNumberOverflow { current }) if current == u128::MAX
+        Err(AnchorError::Transaction { source }) if matches!(*source, TransactionError::SequenceNumberOverflow { current } if current == u128::MAX)
     ));
     Ok(())
 }

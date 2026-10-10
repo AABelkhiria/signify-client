@@ -14,7 +14,7 @@ use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keria_types::api::KeyState;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::ipex::{Disclosure, IpexEnvelope, admit, agree, apply, grant, offer};
+use signify_acdc::ipex::{IpexEnvelope, admit, agree, apply, grant, offer};
 use signify_acdc::issuance::issue_credential;
 use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
@@ -102,7 +102,7 @@ fn benchmark_ipex(criterion: &mut Criterion) {
     let Ok(artifacts) = issue_credential(keeper.as_ref(), &state, credential.clone()) else {
         return;
     };
-    let Ok(disclosure) = Disclosure::from_issuance(&artifacts) else {
+    let Ok(disclosure) = artifacts.disclosure() else {
         return;
     };
 
@@ -143,7 +143,7 @@ fn benchmark_ipex(criterion: &mut Criterion) {
     // Assembling the disclosure is a separate cost, paid once per credential rather than per
     // message: three attachment encodings over artifacts already in hand.
     criterion.bench_function("ipex_disclosure_from_issuance", |bencher| {
-        bencher.iter(|| Disclosure::from_issuance(black_box(&artifacts)).is_ok());
+        bencher.iter(|| black_box(&artifacts).disclosure().is_ok());
     });
 }
 

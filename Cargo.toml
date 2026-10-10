@@ -25,6 +25,7 @@ hyper = { version = "1.8.1", default-features = false, features = ["client", "ht
 hyper-rustls = { version = "0.27.9", default-features = false, features = ["http1", "http2", "native-tokio", "ring"] }
 hyper-util = { version = "0.1.20", default-features = false, features = ["client-legacy", "http1", "http2", "tokio"] }
 keri-cesr = { version = "0.1.0", features = ["crypto"] }
+keri-acdc = "0.1.0"
 keri-http-auth = "0.1.0"
 keri-protocol = "0.1.0"
 keria-types = "0.1.0"

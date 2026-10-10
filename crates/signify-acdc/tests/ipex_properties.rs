@@ -8,7 +8,7 @@ use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use signify_acdc::error::IpexError;
+use signify_acdc::error::{IpexError, IpexSigningError};
 use signify_acdc::ipex::{
     ANCHOR_EMBED, ATTRIBUTES_LABEL, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexMessage, IpexRoute,
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, SCHEMA_LABEL, admit, agree, apply, grant, offer,
@@ -94,7 +94,7 @@ fn disclosure(keeper: &dyn IdentifierKeeper, credential: Credential) -> Result<D
         "di": "",
     }))?;
     let artifacts = issue_credential(keeper, &state, credential)?;
-    Ok(Disclosure::from_issuance(&artifacts)?)
+    Ok(artifacts.disclosure()?)
 }
 
 /// Every property a signed IPEX message must hold regardless of route.
@@ -346,7 +346,7 @@ proptest! {
         prop_assert!(
             matches!(
                 apply(keeper.as_ref(), &envelope, Said::from_qb64(SCHEMA).map_err(fail)?, attributes),
-                Err(IpexError::ReservedPayloadLabel { label: "i" })
+                Err(IpexSigningError::Ipex { source }) if matches!(*source, IpexError::ReservedPayloadLabel { label: "i" })
             ),
             "a payload naming the recipient label was accepted"
         );
@@ -382,7 +382,7 @@ fn a_disclosure_chains_to_a_signed_key_event() -> Result<(), Box<dyn std::error:
 
     let credential = credential("5493001KJTIIGC8Y1R17")?;
     let artifacts = issue_credential(keeper.as_ref(), &state, credential)?;
-    let disclosure = Disclosure::from_issuance(&artifacts)?;
+    let disclosure = artifacts.disclosure()?;
 
     // The three artifacts are exactly what Roadmap 6.2 produced.
     assert_eq!(disclosure.credential().raw(), artifacts.credential.raw());
@@ -433,11 +433,8 @@ fn an_unsigned_anchor_is_refused() -> Result<(), Box<dyn std::error::Error>> {
     let mut artifacts = issue_credential(keeper.as_ref(), &state, credential("1")?)?;
 
     // A real issuance signs; emptying the signatures is the state this refusal exists for.
-    assert!(Disclosure::from_issuance(&artifacts).is_ok());
+    assert!(artifacts.disclosure().is_ok());
     artifacts.anchor.signatures = ManagedSignatures::Indexed(Vec::new());
-    assert!(matches!(
-        Disclosure::from_issuance(&artifacts),
-        Err(IpexError::UnsignedAnchor)
-    ));
+    assert!(matches!(artifacts.disclosure(), Err(IpexError::UnsignedAnchor)));
     Ok(())
 }

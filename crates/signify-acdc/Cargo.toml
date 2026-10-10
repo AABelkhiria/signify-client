@@ -9,6 +9,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+keri-acdc.workspace = true
 keri-cesr.workspace = true
 signify-keri = { path = "../signify-keri" }
 keria-types.workspace = true
@@ -18,10 +19,6 @@ criterion.workspace = true
 proptest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-
-[[bench]]
-name = "credential"
-harness = false
 
 [[bench]]
 name = "issuance"
