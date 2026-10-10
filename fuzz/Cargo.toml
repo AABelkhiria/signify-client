@@ -81,20 +81,6 @@ doc = false
 bench = false
 
 [[bin]]
-name = "credential"
-path = "fuzz_targets/credential.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "issuance"
-path = "fuzz_targets/issuance.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
 name = "ipex"
 path = "fuzz_targets/ipex.rs"
 test = false
