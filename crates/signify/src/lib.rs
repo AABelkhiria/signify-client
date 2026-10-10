@@ -8,6 +8,8 @@ pub use keri_cesr as cesr;
 pub use keri_cesr::crypto;
 /// KERI HTTP message signatures and request authentication.
 pub use keri_http_auth as auth;
+/// KERI protocol messages: events, SAIDs, prefixes, thresholds and attachments.
+pub use keri_protocol as protocol;
 /// KERIA agent API record types.
 pub use keria_types as types;
 /// ACDC credential protocol support.

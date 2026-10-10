@@ -24,7 +24,8 @@ use crate::event::interaction::InteractionBuilder;
 use crate::event::reply::{ReplyBuilder, ReplyMessage};
 use crate::event::rotation::{RotationBuilder, RotationKind};
 use crate::event::{
-    KeyEvent, Timestamp, check_distinct, check_next_threshold, check_signing_threshold, check_witness_threshold,
+    EventError, KeyEvent, Timestamp, check_distinct, check_next_threshold, check_signing_threshold,
+    check_witness_threshold,
 };
 use crate::identifier::error::IdentifierError;
 use crate::manager::key_manager::{ManagedSignatures, SignatureForm};
@@ -32,9 +33,9 @@ use crate::manager::{
     DerivationCost, IdentifierKeeper, KeeperRequest, KeeperRotation, KeyMaterial, ManagerError, RandyKeeperRequest,
     SaltyKeeperRequest, SaltySource, SigningPurpose,
 };
-use crate::prefix::{IdentifierPrefix, PrefixDerivation};
+use crate::prefix::{IdentifierPrefix, PrefixDerivation, PrefixError};
 use crate::said::Said;
-use crate::serialization::Sad;
+use crate::serialization::{Sad, SadError};
 use crate::threshold::SigningThreshold;
 
 /// The route an end-role authorization reply travels under.
@@ -607,15 +608,13 @@ pub fn end_role_reply(
 ) -> Result<ReplyMessage, IdentifierError> {
     let mut attributes = Sad::new();
     attributes
-        .insert("cid", controller.qb64().map_err(crate::event::EventError::prefix)?)
-        .map_err(crate::event::EventError::sad)?;
-    attributes
-        .insert("role", role.as_str().to_owned())
-        .map_err(crate::event::EventError::sad)?;
+        .insert("cid", controller.qb64().map_err(prefix_error)?)
+        .map_err(sad_error)?;
+    attributes.insert("role", role.as_str().to_owned()).map_err(sad_error)?;
     if let Some(endpoint) = endpoint {
         attributes
-            .insert("eid", endpoint.qb64().map_err(crate::event::EventError::prefix)?)
-            .map_err(crate::event::EventError::sad)?;
+            .insert("eid", endpoint.qb64().map_err(prefix_error)?)
+            .map_err(sad_error)?;
     }
     Ok(ReplyBuilder::new(END_ROLE_ROUTE, stamp)
         .attributes(attributes)
@@ -645,14 +644,12 @@ pub fn location_scheme_reply(
     };
     let mut attributes = Sad::new();
     attributes
-        .insert("eid", endpoint.qb64().map_err(crate::event::EventError::prefix)?)
-        .map_err(crate::event::EventError::sad)?;
-    attributes
-        .insert("url", url.to_owned())
-        .map_err(crate::event::EventError::sad)?;
+        .insert("eid", endpoint.qb64().map_err(prefix_error)?)
+        .map_err(sad_error)?;
+    attributes.insert("url", url.to_owned()).map_err(sad_error)?;
     attributes
         .insert("scheme", scheme.unwrap_or(DEFAULT_LOCATION_SCHEME).to_owned())
-        .map_err(crate::event::EventError::sad)?;
+        .map_err(sad_error)?;
     Ok(ReplyBuilder::new(LOCATION_SCHEME_ROUTE, stamp)
         .attributes(attributes)
         .build()?)
@@ -715,6 +712,18 @@ fn signing_threshold_of(threshold: &Threshold) -> Result<SigningThreshold, Ident
 
 /// Keeps the digest table reachable from this module's documentation.
 const _: DigestAlgorithm = DigestAlgorithm::Blake3_256;
+
+fn sad_error(source: SadError) -> EventError {
+    EventError::Sad {
+        source: Box::new(source),
+    }
+}
+
+fn prefix_error(source: PrefixError) -> EventError {
+    EventError::Prefix {
+        source: Box::new(source),
+    }
+}
 
 #[cfg(test)]
 mod tests {

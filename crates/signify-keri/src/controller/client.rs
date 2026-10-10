@@ -15,7 +15,7 @@ use crate::manager::key_manager::salt_from_passcode;
 use crate::manager::{DerivationCost, KeyIndices, ManagerError, SaltyKeyCreator, Stem};
 use crate::prefix::{IdentifierPrefix, PrefixDerivation};
 use crate::said::Said;
-use crate::serialization::{Sad, SadValue, SerializedEvent};
+use crate::serialization::{Sad, SadError, SadValue, SerializedEvent};
 use crate::threshold::SigningThreshold;
 
 /// The derivation stem every controller key derives under; the reference's `signify:controller`.
@@ -347,13 +347,13 @@ impl Controller {
         let mut anchor = Sad::new();
         anchor
             .insert("i", SadValue::Text(agent.prefix().qb64()?))
-            .map_err(EventError::sad)?;
+            .map_err(sad_error)?;
         anchor
             .insert("s", SadValue::text(format!("{:x}", agent.sequence_number())))
-            .map_err(EventError::sad)?;
+            .map_err(sad_error)?;
         anchor
             .insert("d", SadValue::Text(agent.said().qb64()?))
-            .map_err(EventError::sad)?;
+            .map_err(sad_error)?;
 
         let sequence_number = self
             .current
@@ -390,6 +390,12 @@ pub(crate) fn single_signer(
         .next()
         .map(|(signer, _)| signer)
         .ok_or_else(|| ControllerError::from(ManagerError::NoCurrentKeys))
+}
+
+fn sad_error(source: SadError) -> EventError {
+    EventError::Sad {
+        source: Box::new(source),
+    }
 }
 
 #[cfg(test)]
