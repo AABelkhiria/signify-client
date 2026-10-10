@@ -53,7 +53,7 @@ impl<'client> Schemas<'client> {
     /// The answer is returned as the agent sent it. Nothing here checks that the schema's own
     /// `$id` is the SAID that was asked for — the reference does not either, and its integration
     /// test makes that check at the call site. A caller who needs the guarantee should compare, or
-    /// verify the digest, which is `signify-keri::said`'s job rather than an endpoint's.
+    /// verify the digest, which is `keri-protocol::said`'s job rather than an endpoint's.
     ///
     /// # Errors
     ///

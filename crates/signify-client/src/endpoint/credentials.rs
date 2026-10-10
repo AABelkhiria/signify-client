@@ -288,7 +288,7 @@ impl<'client> Credentials<'client> {
     ///
     /// Nothing here checks that the credential came back under the SAID that was asked for; the
     /// reference does not either. A caller who needs that guarantee should compare, or verify the
-    /// digest, which is `signify-keri::said`'s job.
+    /// digest, which is `keri-protocol::said`'s job.
     ///
     /// # Errors
     ///
