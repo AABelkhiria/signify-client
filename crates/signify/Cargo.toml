@@ -9,6 +9,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+keri-acdc.workspace = true
 signify-acdc = { path = "../signify-acdc" }
 keri-cesr.workspace = true
 keri-http-auth.workspace = true

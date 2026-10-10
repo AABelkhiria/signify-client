@@ -1264,6 +1264,7 @@ dependencies = [
 name = "signify"
 version = "0.0.0"
 dependencies = [
+ "keri-acdc",
  "keri-cesr",
  "keri-http-auth",
  "keri-protocol",
