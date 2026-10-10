@@ -166,19 +166,19 @@ proptest! {
             .rotate_passcode(&third, &[])
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
 
-        let revealed = |rotation: &signify_keri::event::KeyEvent| {
+        let revealed = |rotation: &keri_protocol::event::KeyEvent| {
             rotation.sad().get("k").and_then(|keys| match keys {
-                signify_keri::serialization::SadValue::Array(keys) => match keys.get(1) {
-                    Some(signify_keri::serialization::SadValue::Text(key)) => Some(key.clone()),
+                keri_protocol::serialization::SadValue::Array(keys) => match keys.get(1) {
+                    Some(keri_protocol::serialization::SadValue::Text(key)) => Some(key.clone()),
                     _ => None,
                 },
                 _ => None,
             })
         };
-        let committed = |rotation: &signify_keri::event::KeyEvent| {
+        let committed = |rotation: &keri_protocol::event::KeyEvent| {
             rotation.sad().get("n").and_then(|digests| match digests {
-                signify_keri::serialization::SadValue::Array(digests) => match digests.first() {
-                    Some(signify_keri::serialization::SadValue::Text(digest)) => Some(digest.clone()),
+                keri_protocol::serialization::SadValue::Array(digests) => match digests.first() {
+                    Some(keri_protocol::serialization::SadValue::Text(digest)) => Some(digest.clone()),
                     _ => None,
                 },
                 _ => None,

@@ -24,13 +24,13 @@
 //! embeds anything and so neither attachment is ever non-empty — which a property asserts rather
 //! than assumes.
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::ExchangeOperation;
 use signify_acdc::ipex::{IpexMessage, IpexRoute};
 use signify_http::request::ResourcePath;
 use signify_http::response::ResponseError;
 use signify_http::transport::Method;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};

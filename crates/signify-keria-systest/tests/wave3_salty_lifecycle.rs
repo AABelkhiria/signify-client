@@ -13,6 +13,8 @@
 use std::error::Error;
 
 use keri_cesr::crypto::salt::SecurityTier;
+use keri_protocol::serialization::{Sad, SadValue};
+use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::KeyManagerState;
 use serde::Serialize;
 use serde_json::Value;
@@ -21,8 +23,6 @@ use signify_client::endpoint::identifiers::IdentifierUpdate;
 use signify_http::request::ItemRange;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::manager::DerivationCost;
-use signify_keri::serialization::{Sad, SadValue};
-use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 
 const AID1_PASSCODE: &str = "0123456789abcdefghijk";
@@ -236,7 +236,7 @@ async fn interact_aid1(
     aid1_prefix: &str,
     aid1_said: &str,
     mismatches: &mut Vec<String>,
-) -> Result<(Interaction, signify_keri::prefix::IdentifierPrefix), Box<dyn Error>> {
+) -> Result<(Interaction, keri_protocol::prefix::IdentifierPrefix), Box<dyn Error>> {
     progress("aid1: interacting");
     let mut seal = Sad::new();
     seal.insert("i", SadValue::text(aid1_prefix))?;

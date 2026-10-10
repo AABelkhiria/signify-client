@@ -9,13 +9,13 @@ use std::error::Error;
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
+use keri_protocol::threshold::SigningThreshold;
 use serde::Deserialize;
-use signify_keri::event::ConfigurationTrait;
 use signify_keri::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
 use signify_keri::manager::ManagerError;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue};
-use signify_keri::threshold::SigningThreshold;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-habery/v1.json");

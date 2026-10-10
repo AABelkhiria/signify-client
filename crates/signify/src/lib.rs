@@ -2,6 +2,8 @@
 
 #![forbid(unsafe_code)]
 
+/// ACDC credentials: the container, issuance and revocation events, and IPEX messages.
+pub use keri_acdc as acdc;
 /// CESR primitives.
 pub use keri_cesr as cesr;
 /// Cryptographic operations.
@@ -12,8 +14,6 @@ pub use keri_http_auth as auth;
 pub use keri_protocol as protocol;
 /// KERIA agent API record types.
 pub use keria_types as types;
-/// ACDC credentials: the container, issuance and revocation events, and IPEX messages.
-pub use keri_acdc as acdc;
 /// Signing ACDC artifacts with a Signify keeper.
 pub use signify_acdc as acdc_signing;
 /// High-level Signify client.

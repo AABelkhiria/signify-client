@@ -21,13 +21,13 @@
 //! identifier lookup has already gone out. Here it is a typed refusal checked first, which is what
 //! Roadmap 6.2 decided for an establishment-only issuer. See `fixtures/client-registries/`.
 
+use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::registry::RegistryInceptionBuilder;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{Hab, Registry, RegistryOperation};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::event::ConfigurationTrait;
 use signify_keri::identifier::interact_identifier;
-use signify_keri::registry::RegistryInceptionBuilder;
-use signify_keri::serialization::{Sad, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{insert_algorithm, sad_error, stored_transferability, text_array};
@@ -128,9 +128,9 @@ impl CreateRegistryRequest {
 pub struct CreatedRegistry {
     /// The registry's own inception event; the reference's `regser`. Its SAID is the registry
     /// identifier.
-    pub inception: signify_keri::event::KeyEvent,
+    pub inception: keri_protocol::event::KeyEvent,
     /// The issuer's interaction event anchoring it; the reference's `serder`.
-    pub anchor: signify_keri::event::KeyEvent,
+    pub anchor: keri_protocol::event::KeyEvent,
     /// The issuer's signatures over that interaction event.
     pub signatures: signify_keri::manager::ManagedSignatures,
     response: Vec<u8>,
@@ -210,7 +210,7 @@ impl<'client> Registries<'client> {
             });
         }
 
-        let issuer = signify_keri::prefix::IdentifierPrefix::from_qb64(&record.common.prefix)?;
+        let issuer = keri_protocol::prefix::IdentifierPrefix::from_qb64(&record.common.prefix)?;
         let nonce = match &request.nonce {
             Some(nonce) => nonce.clone(),
             None => crate::random::random_nonce()?,

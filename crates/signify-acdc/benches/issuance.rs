@@ -14,6 +14,8 @@ use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 use keria_types::api::KeyState;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::issuance::{IssuanceEvent, issue_credential};
@@ -21,8 +23,6 @@ use signify_acdc::revocation::RevocationEventBuilder;
 use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event};
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";
@@ -103,7 +103,7 @@ fn benchmark_issuance(criterion: &mut Criterion) {
     });
 
     // The same, plus the one field a revocation adds.
-    let Ok(timestamp) = STAMP.parse::<signify_keri::event::Timestamp>() else {
+    let Ok(timestamp) = STAMP.parse::<keri_protocol::event::Timestamp>() else {
         return;
     };
     criterion.bench_function("revocation_event", |bencher| {

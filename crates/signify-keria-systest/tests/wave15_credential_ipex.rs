@@ -15,13 +15,13 @@
 
 use std::error::Error;
 
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use serde::Serialize;
 use signify_acdc::ipex::IpexRoute;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
 use signify_client::presentation::disclosure_of;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 use signify_keria_systest::singlesig::{
     admit_credential, agree_to_offer, apply_for_credential, await_ipex_step, build_credential, create_identifier,
     create_registry, credential_state, delete_credential, disclose_credential, get_credential, grant_credential,
@@ -223,7 +223,7 @@ struct Round {
 async fn verifier_round(
     holder: &ConnectedClient,
     verifier: &ConnectedClient,
-    holder_prefix: &signify_keri::prefix::IdentifierPrefix,
+    holder_prefix: &keri_protocol::prefix::IdentifierPrefix,
     schema: &Said,
     acdc: &signify_acdc::credential::Credential,
     credential_said: &Said,

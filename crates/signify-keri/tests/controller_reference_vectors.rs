@@ -13,10 +13,10 @@ use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::serialization::{SadValue, SerializedEvent};
 use keria_types::api::{Hab, KeyState};
 use serde::Deserialize;
 use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions, ReEncryptedKeyState};
-use signify_keri::serialization::{SadValue, SerializedEvent};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-controller/v1.json");
@@ -735,7 +735,7 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     assert_eq!(first.rotation.sad().get_text("s"), Some("1"));
     assert_eq!(second.rotation.sad().get_text("s"), Some("2"));
     assert_eq!(second.rotation.sad().get_text("p"), first.rotation.sad().get_text("d"));
-    let old_key = |rotation: &signify_keri::event::KeyEvent| {
+    let old_key = |rotation: &keri_protocol::event::KeyEvent| {
         rotation.sad().get("k").and_then(|keys| match keys {
             SadValue::Array(keys) => keys.get(1).cloned(),
             _ => None,

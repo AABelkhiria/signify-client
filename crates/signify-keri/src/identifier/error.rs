@@ -5,11 +5,11 @@ use std::error::Error;
 
 use keri_cesr::CesrError;
 
-use crate::event::EventError;
 use crate::manager::ManagerError;
-use crate::prefix::PrefixError;
-use crate::said::SaidError;
-use crate::threshold::ThresholdError;
+use keri_protocol::event::EventError;
+use keri_protocol::prefix::PrefixError;
+use keri_protocol::said::SaidError;
+use keri_protocol::threshold::ThresholdError;
 
 /// Stable habitat-management failures.
 #[derive(Debug)]

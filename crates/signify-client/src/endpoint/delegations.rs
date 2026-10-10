@@ -34,11 +34,11 @@
 //! only body the pinned tree publishes for this endpoint approves nothing at all. Here the seals
 //! are a required argument and an empty list is refused. See `fixtures/client-delegations/`.
 
-use signify_keri::event::kind::EventKind;
+use keri_protocol::event::kind::EventKind;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::Sad;
 use signify_keri::identifier::IdentifierArtifact;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::Sad;
 
 use crate::client::ConnectedClient;
 use crate::endpoint::body::sad_error;
@@ -68,8 +68,8 @@ pub const SEAL_DIGEST_LABEL: &str = "d";
 ///
 /// ```
 /// use signify_client::endpoint::delegations::InceptionSeal;
-/// use signify_keri::prefix::IdentifierPrefix;
-/// use signify_keri::said::Said;
+/// use keri_protocol::prefix::IdentifierPrefix;
+/// use keri_protocol::said::Said;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // A delegated inception is its own digest, so the seal names one value twice.

@@ -23,7 +23,7 @@ use signify_keri::identifier::{
     interact_identifier, rotate_identifier,
 };
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
-use signify_keri::serialization::SerializedEvent;
+use keri_protocol::serialization::SerializedEvent;
 
 /// The key-state fields the fuzzer replaces, selected by the first input byte.
 const FIELDS: [&str; 8] = ["i", "s", "d", "nt", "b", "di", "k", "n"];
@@ -129,7 +129,7 @@ fuzz_target!(|data: &[u8]| {
         request.transferability = KeyTransferability::NonTransferable;
     }
     if b2 & 1 == 1 {
-        request.signing_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(u128::from(*b2 >> 4)));
+        request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(u128::from(*b2 >> 4)));
     }
     match request
         .keeper_request(u32::from(*b0))

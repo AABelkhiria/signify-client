@@ -37,6 +37,8 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::VerificationKey;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use keria_types::api::{AcceptedHab, KeyState};
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::{BaseUrl, MediaType, ResourcePath};
@@ -47,8 +49,6 @@ use signify_http::signature::transport::{Freshness, ResponseAuthenticator, Signi
 use signify_http::transport::{Method, Request, RequestUrl, Response, StatusCode, Transport};
 use signify_keri::controller::{Agent, Controller, ControllerOptions, PasscodeRotation, ReEncryptedKeyState};
 use signify_keri::manager::{KeeperFactory, salt_from_passcode};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 
 use crate::config::{ClientConfig, Passcode};
 use crate::endpoint::challenges::Challenges;
@@ -994,13 +994,13 @@ fn json_value() -> Result<HeaderValue, ClientError> {
     Ok(MediaType::json().header_value()?)
 }
 
-fn sad_error(source: signify_keri::serialization::SadError) -> ClientError {
+fn sad_error(source: keri_protocol::serialization::SadError) -> ClientError {
     ClientError::Serialization {
         source: Box::new(source.into()),
     }
 }
 
-fn prefix_error(source: signify_keri::prefix::PrefixError) -> ClientError {
+fn prefix_error(source: keri_protocol::prefix::PrefixError) -> ClientError {
     ClientError::Controller {
         source: Box::new(source.into()),
     }

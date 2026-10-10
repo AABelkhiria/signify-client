@@ -24,11 +24,11 @@
 //! Roadmap 5.3's builder would encode it exactly once even if it could. See
 //! `fixtures/client-contacts/`.
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::Sad;
 use keria_types::api::Contact;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::Sad;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::sad_error;
@@ -213,7 +213,7 @@ impl<'client> Contacts<'client> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signify_keri::serialization::SadValue;
+    use keri_protocol::serialization::SadValue;
     use std::error::Error;
 
     const CONTACT: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";

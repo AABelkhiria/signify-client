@@ -8,15 +8,15 @@ use keri_cesr::crypto::verifier::KeyTransferability;
 
 use crate::controller::agent::Agent;
 use crate::controller::error::ControllerError;
-use crate::event::EventError;
-use crate::event::inception::InceptionBuilder;
-use crate::event::interaction::InteractionBuilder;
 use crate::manager::key_manager::salt_from_passcode;
 use crate::manager::{DerivationCost, KeyIndices, ManagerError, SaltyKeyCreator, Stem};
-use crate::prefix::{IdentifierPrefix, PrefixDerivation};
-use crate::said::Said;
-use crate::serialization::{Sad, SadError, SadValue, SerializedEvent};
-use crate::threshold::SigningThreshold;
+use keri_protocol::event::EventError;
+use keri_protocol::event::inception::InceptionBuilder;
+use keri_protocol::event::interaction::InteractionBuilder;
+use keri_protocol::prefix::{IdentifierPrefix, PrefixDerivation};
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadError, SadValue, SerializedEvent};
+use keri_protocol::threshold::SigningThreshold;
 
 /// The derivation stem every controller key derives under; the reference's `signify:controller`.
 pub const CONTROLLER_STEM: &str = "signify:controller";
@@ -403,8 +403,8 @@ mod tests {
     use super::*;
     use std::error::Error;
 
-    use crate::event::kind::EventKind;
     use crate::manager::ManagerError;
+    use keri_protocol::event::kind::EventKind;
 
     /// The passcode the pinned `controller.test.ts` uses.
     const PASSCODE: &str = "0123456789abcdefghijk";

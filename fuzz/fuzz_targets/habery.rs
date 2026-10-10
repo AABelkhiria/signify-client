@@ -17,9 +17,9 @@ use keri_cesr::crypto::verifier::KeyTransferability;
 use libfuzzer_sys::fuzz_target;
 use signify_keri::identifier::{Habery, HabitatRequest, IdentifierError};
 use signify_keri::manager::DerivationCost;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::SerializedEvent;
-use signify_keri::threshold::SigningThreshold;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::SerializedEvent;
+use keri_protocol::threshold::SigningThreshold;
 
 /// A valid witness prefix for requests that name one; the value only has to parse.
 const WITNESS: &str = "BB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ";

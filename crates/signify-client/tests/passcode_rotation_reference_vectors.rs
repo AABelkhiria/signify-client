@@ -428,10 +428,10 @@ mod driven {
     use signify_http::signature::input::RequestTarget;
 
     use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, agent_state, block_on, clock};
+    use keri_protocol::prefix::IdentifierPrefix;
     use keria_types::api::AcceptedHab;
     use signify_http::transport::Transport;
     use signify_keri::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
-    use signify_keri::prefix::IdentifierPrefix;
 
     fn connected(passcode: &str, bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
         let configuration = || {

@@ -33,13 +33,13 @@
 //! never says which to use; this port reproduces both and says so, because the pinned tree does not
 //! settle it.
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{GroupOperation, MultisigExchangeResource};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
 use signify_keri::identifier::IdentifierArtifact;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};
@@ -173,7 +173,7 @@ impl<'client> Groups<'client> {
     /// ```no_run
     /// # use signify_client::client::ConnectedClient;
     /// # use signify_client::endpoint::exchanges::ClassifiedExchange;
-    /// # use signify_keri::said::Said;
+    /// # use keri_protocol::said::Said;
     /// # async fn read(client: &ConnectedClient, said: &Said) -> Result<(), Box<dyn std::error::Error>> {
     /// for resource in client.groups().requests(said).await? {
     ///     let proposal = ClassifiedExchange::try_from(&resource)?;

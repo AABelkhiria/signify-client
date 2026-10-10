@@ -25,12 +25,12 @@ use signify_acdc::ipex::{
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, admit, agree, apply, grant, offer,
 };
 use signify_acdc::issuance::issue_credential;
-use signify_keri::event::Timestamp;
+use keri_protocol::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
-use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
+use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";

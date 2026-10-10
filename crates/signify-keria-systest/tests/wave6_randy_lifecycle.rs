@@ -13,12 +13,12 @@
 use std::error::Error;
 
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_protocol::serialization::{Sad, SadValue};
 use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_http::request::ItemRange;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
-use signify_keri::serialization::{Sad, SadValue};
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 
 #[derive(Debug, Serialize)]
@@ -152,7 +152,7 @@ async fn the_randy_lifecycle_rotates_to_the_committed_key() -> Result<(), Box<dy
     let mut mismatches = Vec::new();
 
     let (inception, prefix_text, inception_verfer, inception_diger) = create_randy(&client, &mut mismatches).await?;
-    let prefix = signify_keri::prefix::IdentifierPrefix::from_qb64(&prefix_text)?;
+    let prefix = keri_protocol::prefix::IdentifierPrefix::from_qb64(&prefix_text)?;
 
     let listing = client.identifiers().list(ItemRange::DEFAULT).await?;
     if listing.identifiers.len() != 1 {

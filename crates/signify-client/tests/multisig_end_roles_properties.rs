@@ -3,14 +3,14 @@
 //! Every member's agent is read in order or the round is refused whole, and what a proposed reply
 //! authorizes — role, endpoint, stamp, SAID — survives the round trip exactly.
 
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::{GroupMember, ReplyRecord, Role};
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::error::ClientError;
 use signify_client::multisig::{member_agents, proposed_end_role};
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::end_role_reply;
-use signify_keri::prefix::IdentifierPrefix;
 
 /// Qualified self-addressing prefixes to draw members and agents from.
 const PREFIXES: [&str; 6] = [
@@ -233,7 +233,7 @@ proptest! {
         endpoint in 0_usize..6,
     ) {
         let (mut record, _) = reply_record(&Role::Agent, pinned(endpoint)?, "2023-11-14T22:13:20.123000+00:00")?;
-        prop_assume!(signify_keri::said::Said::from_qb64(&digest).is_err());
+        prop_assume!(keri_protocol::said::Said::from_qb64(&digest).is_err());
         record.digest = digest;
         let outcome = proposed_end_role(&prefix(GROUP)?, &record);
         prop_assert!(matches!(outcome, Err(ClientError::Said { .. })), "{:?}", outcome);

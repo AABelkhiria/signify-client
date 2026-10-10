@@ -5,10 +5,10 @@ use keri_cesr::number::CesrNumber;
 use keria_types::api::{KeyState, Threshold};
 
 use crate::controller::error::ControllerError;
-use crate::event::kind::EventKind;
-use crate::prefix::IdentifierPrefix;
-use crate::said::Said;
-use crate::threshold::SigningThreshold;
+use keri_protocol::event::kind::EventKind;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::threshold::SigningThreshold;
 
 /// The KERIA agent: a custodial identity delegated to the client's controller.
 ///

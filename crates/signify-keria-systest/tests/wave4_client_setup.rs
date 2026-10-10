@@ -13,6 +13,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -21,7 +22,6 @@ use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::retry::TokioClock;
 use signify_http::transport::{HttpTransport, RequestUrl, Transport};
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::{Environment, Recorder, progress, record, wait_and_delete};
 
 const PINNED_PASSCODE_UPSTREAM: &str = "0ADF2TpptgqcDE5IQUF1HeTp";

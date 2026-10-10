@@ -8,9 +8,9 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 use serde::Deserialize;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
 
 #[derive(Debug, Deserialize)]
 struct Captured {

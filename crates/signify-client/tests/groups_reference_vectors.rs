@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keri_protocol::said::Said;
 use keria_types::api::{GroupOperation, MultisigExchangeResource};
 use serde::Deserialize;
 use serde_json::Value;
@@ -11,7 +12,6 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MULTISIG_TOPIC, Mu
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_keri::said::Said;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-groups/v1.json");
@@ -355,13 +355,13 @@ fn the_pinned_join_arguments_are_each_unrepresentable() -> Result<(), Box<dyn Er
     assert_eq!(pinned.rotation_members, ["a", "b", "c"]);
     for member in pinned.signing_members.iter().chain(&pinned.rotation_members) {
         assert!(
-            signify_keri::prefix::IdentifierPrefix::from_qb64(member).is_err(),
+            keri_protocol::prefix::IdentifierPrefix::from_qb64(member).is_err(),
             "{member:?} was accepted as a member prefix"
         );
     }
     assert_eq!(body.get("gid").and_then(Value::as_str), Some(pinned.said.as_str()));
     assert!(
-        signify_keri::prefix::IdentifierPrefix::from_qb64(&pinned.said).is_err(),
+        keri_protocol::prefix::IdentifierPrefix::from_qb64(&pinned.said).is_err(),
         "the pinned group identifier was accepted"
     );
     Ok(())
@@ -380,7 +380,7 @@ fn the_pinned_proposal_carries_no_signature() -> Result<(), Box<dyn Error>> {
         body.get("exn").and_then(|exn| exn.get("i")).and_then(Value::as_str),
         Some("test")
     );
-    assert!(signify_keri::prefix::IdentifierPrefix::from_qb64("test").is_err());
+    assert!(keri_protocol::prefix::IdentifierPrefix::from_qb64("test").is_err());
     Ok(())
 }
 

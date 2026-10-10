@@ -6,12 +6,12 @@ use std::error::Error;
 use keri_cesr::CesrError;
 use keri_cesr::crypto::CryptoError;
 
-use crate::event::EventError;
 use crate::manager::ManagerError;
-use crate::prefix::PrefixError;
-use crate::said::SaidError;
-use crate::serialization::SerializationError;
-use crate::threshold::ThresholdError;
+use keri_protocol::event::EventError;
+use keri_protocol::prefix::PrefixError;
+use keri_protocol::said::SaidError;
+use keri_protocol::serialization::SerializationError;
+use keri_protocol::threshold::ThresholdError;
 
 /// Stable controller and agent failures.
 #[derive(Debug)]

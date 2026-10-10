@@ -8,14 +8,14 @@
 pub use keri_acdc::transaction::{
     AnchorState, PRIOR_LABEL, SignedAnchor, TIMESTAMP_LABEL, TransactionSeal, UNSIZED_VERSION_STRING,
 };
+use keri_protocol::event::KeyEvent;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 use keria_types::api::KeyState;
-use signify_keri::event::KeyEvent;
 use signify_keri::identifier::IdentifierError;
 use signify_keri::identifier::artifact::IdentifierArtifact;
 use signify_keri::manager::keeper::IdentifierKeeper;
 use signify_keri::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
 
 use crate::error::AnchorError;
 

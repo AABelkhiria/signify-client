@@ -6,12 +6,12 @@
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::kind::EventKind;
+use keri_protocol::serialization::{SadValue, SerializedEvent};
+use keri_protocol::threshold::SigningThreshold;
 use proptest::prelude::*;
-use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
 use signify_keri::manager::DerivationCost;
-use signify_keri::serialization::{SadValue, SerializedEvent};
-use signify_keri::threshold::SigningThreshold;
 
 fn salt() -> Result<Salt, TestCaseError> {
     Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).map_err(|error| TestCaseError::fail(error.to_string()))

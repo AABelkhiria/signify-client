@@ -13,7 +13,7 @@
 //! notification". It is not one. A notice is built with an empty `i` and filled with a random
 //! nonce, and the two references do not even agree which code that nonce carries: signify-ts's own
 //! `randomNonce` uses the Ed25519 **seed** code `A`, keripy's the 128-bit **salt** code `0A`.
-//! Neither is a digest code, so reading the field as Roadmap 3.3's [`Said`](signify_keri::said::Said)
+//! Neither is a digest code, so reading the field as Roadmap 3.3's [`Said`](keri_protocol::said::Said)
 //! would refuse every identifier a real agent produces. The argument is therefore borrowed text,
 //! encoded exactly once — the shape Roadmap 6.5 gave an operation name, and enough to close the
 //! path injection Roadmap 5.3 already recorded here. See `fixtures/client-notifications/`.

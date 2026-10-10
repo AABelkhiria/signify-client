@@ -12,16 +12,16 @@ use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::KeyState;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::ipex::{IpexEnvelope, admit, agree, apply, grant, offer};
 use signify_acdc::issuance::issue_credential;
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";

@@ -4,14 +4,14 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 use proptest::prelude::*;
 use signify_client::endpoint::delegations::{
     DELEGATION_SEGMENT, InceptionSeal, SEAL_DIGEST_LABEL, SEAL_IDENTIFIER_LABEL, SEAL_SEQUENCE_LABEL,
 };
 use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT};
 use signify_http::request::{ResourcePath, encode_path_component};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
 
 const DELEGATE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const DELEGATOR: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

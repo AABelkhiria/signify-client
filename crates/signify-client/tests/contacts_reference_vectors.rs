@@ -10,6 +10,8 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
@@ -21,8 +23,6 @@ use signify_client::error::ClientError;
 use signify_http::retry::{Clock, TestClock};
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-contacts/v1.json");

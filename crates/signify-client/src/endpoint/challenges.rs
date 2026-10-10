@@ -24,13 +24,13 @@
 //! sizes BIP39 defines, so a request that could not produce a mnemonic cannot be written. See
 //! `fixtures/client-challenges/`.
 
+use keri_protocol::event::timestamp::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{Challenge, ChallengeOperation};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::event::timestamp::Timestamp;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::sad_error;

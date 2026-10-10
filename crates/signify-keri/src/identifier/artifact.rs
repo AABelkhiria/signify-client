@@ -19,24 +19,24 @@ use keri_cesr::number::CesrNumber;
 use keria_types::api::{AcceptedHab, KeyState, Role, Threshold};
 use serde_json::{Map, Value};
 
-use crate::event::inception::InceptionBuilder;
-use crate::event::interaction::InteractionBuilder;
-use crate::event::reply::{ReplyBuilder, ReplyMessage};
-use crate::event::rotation::{RotationBuilder, RotationKind};
-use crate::event::{
-    EventError, KeyEvent, Timestamp, check_distinct, check_next_threshold, check_signing_threshold,
-    check_witness_threshold,
-};
 use crate::identifier::error::IdentifierError;
 use crate::manager::key_manager::{ManagedSignatures, SignatureForm};
 use crate::manager::{
     DerivationCost, IdentifierKeeper, KeeperRequest, KeeperRotation, KeyMaterial, ManagerError, RandyKeeperRequest,
     SaltyKeeperRequest, SaltySource, SigningPurpose,
 };
-use crate::prefix::{IdentifierPrefix, PrefixDerivation, PrefixError};
-use crate::said::Said;
-use crate::serialization::{Sad, SadError};
-use crate::threshold::SigningThreshold;
+use keri_protocol::event::inception::InceptionBuilder;
+use keri_protocol::event::interaction::InteractionBuilder;
+use keri_protocol::event::reply::{ReplyBuilder, ReplyMessage};
+use keri_protocol::event::rotation::{RotationBuilder, RotationKind};
+use keri_protocol::event::{
+    EventError, KeyEvent, Timestamp, check_distinct, check_next_threshold, check_signing_threshold,
+    check_witness_threshold,
+};
+use keri_protocol::prefix::{IdentifierPrefix, PrefixDerivation, PrefixError};
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadError};
+use keri_protocol::threshold::SigningThreshold;
 
 /// The route an end-role authorization reply travels under.
 pub const END_ROLE_ROUTE: &str = "/end/role/add";
@@ -358,7 +358,7 @@ impl CreateIdentifierRequest {
         check_witness_threshold(self.witness_threshold, self.witnesses.len())?;
         if self.delegator.is_some() && !derivation.is_digestive() {
             return Err(IdentifierError::from(
-                crate::event::EventError::DelegatedPrefixMustBeDigestive {
+                keri_protocol::event::EventError::DelegatedPrefixMustBeDigestive {
                     code: derivation.code().as_str(),
                 },
             ));
@@ -732,10 +732,10 @@ mod tests {
 
     use keri_cesr::crypto::salt::Salt;
 
-    use crate::event::kind::EventKind;
     use crate::manager::KeeperFactory;
     use crate::manager::keeper::GroupKeeper;
-    use crate::serialization::SadValue;
+    use keri_protocol::event::kind::EventKind;
+    use keri_protocol::serialization::SadValue;
 
     const PASSCODE: &str = "0123456789abcdefghijk";
 

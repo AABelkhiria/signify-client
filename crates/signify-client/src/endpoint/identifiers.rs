@@ -30,18 +30,18 @@
 
 use core::marker::PhantomData;
 
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{AcceptedHab, GroupMember, Hab, Operation, Role, UntypedOperation};
 use serde::de::DeserializeOwned;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
 use signify_http::transport::Method;
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::{
     CreateIdentifierRequest, IdentifierArtifact, RotateIdentifierRequest, SignedReply, end_role_reply,
     incept_identifier, interact_identifier, location_scheme_reply, rotate_identifier, sign_reply,
 };
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{insert_algorithm, sad_error, stored_transferability, text_array};
@@ -470,7 +470,7 @@ impl<'client> Identifiers<'client> {
         name: &str,
         segment: &str,
         record: &AcceptedHab,
-        reply: signify_keri::event::reply::ReplyMessage,
+        reply: keri_protocol::event::reply::ReplyMessage,
     ) -> Result<Submission<SignedReply>, ClientError> {
         let keeper = self.client.keepers().keeper_for(&Hab::Accepted(record.clone()))?;
         let signed = sign_reply(keeper.as_ref(), &reply)?;

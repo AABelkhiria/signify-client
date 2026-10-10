@@ -22,7 +22,7 @@ use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence, STATES_
 use signify_client::endpoint::operations::completed;
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use signify_keri::prefix::IdentifierPrefix;
+use keri_protocol::prefix::IdentifierPrefix;
 
 fuzz_target!(|data: &[u8]| {
     let mut parts = data.split(|&byte| byte == 0xff);

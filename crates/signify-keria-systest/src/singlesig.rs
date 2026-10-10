@@ -6,6 +6,9 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::Sad;
 use keria_types::api::{Credential as CredentialRecord, CredentialState, Role};
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::ipex::{Disclosure, IpexRoute};
@@ -16,9 +19,6 @@ use signify_client::endpoint::registries::CreateRegistryRequest;
 use signify_client::presentation::{DisclosureRequest, ReceivedStep, disclosure_of};
 use signify_http::request::ItemRange;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::Sad;
 
 use crate::operation::wait_and_delete;
 

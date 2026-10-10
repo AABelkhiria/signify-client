@@ -70,14 +70,14 @@
 //! the granted one exists only in the caller's hands; [`Presentation::disclose`] documents that it
 //! does not close it.
 
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use keria_types::api::{Credential, ExchangeRecord, ExchangeResource, Hab, Notification};
 use signify_acdc::credential::Credential as AcdcCredential;
 use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_http::request::ItemRange;
-use signify_keri::event::Timestamp;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 
 use crate::client::ConnectedClient;
 use crate::endpoint::credentials::CredentialFilter;

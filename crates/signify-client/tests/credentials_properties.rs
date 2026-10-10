@@ -4,6 +4,8 @@
 
 use std::error::Error;
 
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential as CredentialRecord;
 use proptest::prelude::*;
 use serde_json::{Value, json};
@@ -14,8 +16,6 @@ use signify_client::endpoint::credentials::{
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::REGISTRIES_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const CREDENTIAL: &str = "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo";
 const REGISTRY: &str = "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df";

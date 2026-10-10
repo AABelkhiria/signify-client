@@ -6,9 +6,9 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_keri::prefix::IdentifierPrefix;
 
 #[derive(Debug, Deserialize)]
 struct Captured {

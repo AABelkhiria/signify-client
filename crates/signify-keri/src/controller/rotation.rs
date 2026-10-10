@@ -50,12 +50,12 @@ use keria_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 
 use crate::controller::client::{CONTROLLER_STEM, Controller, CurrentEvent, single_signer};
 use crate::controller::error::ControllerError;
-use crate::event::KeyEvent;
-use crate::event::rotation::RotationBuilder;
 use crate::manager::keeper::security_tier;
 use crate::manager::key_manager::salt_from_passcode;
 use crate::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
-use crate::threshold::SigningThreshold;
+use keri_protocol::event::KeyEvent;
+use keri_protocol::event::rotation::RotationBuilder;
+use keri_protocol::threshold::SigningThreshold;
 
 /// One identifier's key material, re-sealed for the rotation payload.
 #[derive(Debug)]
@@ -414,9 +414,9 @@ mod tests {
     use keria_types::api::Hab;
 
     use crate::controller::{Controller, ControllerOptions};
-    use crate::event::kind::EventKind;
     use crate::manager::{DerivationCost, ManagerError};
-    use crate::serialization::SadValue;
+    use keri_protocol::event::kind::EventKind;
+    use keri_protocol::serialization::SadValue;
 
     const PASSCODE: &str = "0123456789abcdefghijk";
     const NEW_PASSCODE: &str = "abcdefghijk0123456789";
@@ -738,9 +738,12 @@ mod tests {
     #[test]
     fn a_log_at_the_last_sequence_number_cannot_rotate() -> Result<(), Box<dyn Error>> {
         let fresh = ephemeral()?;
-        let last =
-            crate::event::interaction::InteractionBuilder::new(fresh.prefix().clone(), fresh.current_said(), u128::MAX)
-                .build()?;
+        let last = keri_protocol::event::interaction::InteractionBuilder::new(
+            fresh.prefix().clone(),
+            fresh.current_said(),
+            u128::MAX,
+        )
+        .build()?;
         let options = ControllerOptions {
             derivation_cost: DerivationCost::Ephemeral,
             ..ControllerOptions::default()

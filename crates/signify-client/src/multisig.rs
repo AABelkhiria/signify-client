@@ -159,6 +159,13 @@
 //! group's keys come from the participants' key states either way, so nothing rests on it.
 
 use keri_cesr::sequence::SequenceNumber;
+use keri_protocol::attachment::{SignatureSeal, SignedMessageBuilder};
+use keri_protocol::event::Timestamp;
+use keri_protocol::event::exchange::ExchangeEmbed;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::Sad;
+use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::{
     AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
     RegistryInceptionRecord, ReplyRecord, Role, Threshold,
@@ -166,17 +173,10 @@ use keria_types::api::{
 use signify_acdc::credential::Credential;
 use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_acdc::revocation::RevocationEvent;
-use signify_keri::attachment::{SignatureSeal, SignedMessageBuilder};
-use signify_keri::event::Timestamp;
-use signify_keri::event::exchange::ExchangeEmbed;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, END_ROLE_ROUTE, IdentifierArtifact, RotateIdentifierRequest, SignedReply,
     end_role_reply,
 };
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::Sad;
-use signify_keri::threshold::SigningThreshold;
 
 use crate::client::ConnectedClient;
 use crate::endpoint::body::{sad_error, text_array};
@@ -1715,7 +1715,7 @@ fn digest_of(event: &KeyEvent) -> Result<String, ClientError> {
 ///
 /// ```
 /// use signify_client::multisig::delivery_list;
-/// use signify_keri::prefix::IdentifierPrefix;
+/// use keri_protocol::prefix::IdentifierPrefix;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let members = ["ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK", "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"]

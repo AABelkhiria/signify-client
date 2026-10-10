@@ -14,14 +14,14 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::registry::RegistryInceptionBuilder;
+use keri_protocol::serialization::Sad;
 use keria_types::api::{Registry, RegistryOperation};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::{CreateRegistryRequest, REGISTRIES_SEGMENT, RegistryBacking};
 use signify_http::request::ResourcePath;
-use signify_keri::event::ConfigurationTrait;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::registry::RegistryInceptionBuilder;
-use signify_keri::serialization::Sad;
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const NONCE: &str = "0ACDEyMzQ1Njc4OWxtbm9wcXJzdHV2";

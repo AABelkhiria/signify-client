@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use keri_protocol::said::Said;
 use keria_types::api::contact::Notification;
 use serde::Deserialize;
 use serde_json::Value;
@@ -22,7 +23,6 @@ use signify_http::request::{ItemRange, RangeUnit};
 use signify_http::retry::{Clock, TestClock};
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
-use signify_keri::said::Said;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";

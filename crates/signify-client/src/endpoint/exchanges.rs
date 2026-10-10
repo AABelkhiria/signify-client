@@ -61,15 +61,15 @@ pub use message::{
 };
 pub use route::{ExchangeRoute, MultisigRoute, UnknownExchangeRoute};
 
+use keri_protocol::event::exchange::{ExchangeBuilder, ExchangeEmbed, ExchangeMessage};
+use keri_protocol::event::timestamp::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource, Hab};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::event::exchange::{ExchangeBuilder, ExchangeEmbed, ExchangeMessage};
-use signify_keri::event::timestamp::Timestamp;
 use signify_keri::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};
@@ -106,8 +106,8 @@ pub const REGISTRY_TOPIC: &str = "registry";
 ///
 /// ```
 /// use signify_client::endpoint::exchanges::ExchangeDraft;
-/// use signify_keri::prefix::IdentifierPrefix;
-/// use signify_keri::serialization::{Sad, SadValue};
+/// use keri_protocol::prefix::IdentifierPrefix;
+/// use keri_protocol::serialization::{Sad, SadValue};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let addressee = IdentifierPrefix::from_qb64("EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p")?;

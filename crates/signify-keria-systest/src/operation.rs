@@ -5,6 +5,7 @@
 use core::time::Duration;
 use std::error::Error;
 
+use keri_protocol::said::Said;
 use keria_types::api::{Notification, Role};
 use serde_json::Value;
 use signify_client::client::{ClientRequest, ConnectedClient};
@@ -13,7 +14,6 @@ use signify_http::request::{ItemRange, ResourcePath};
 use signify_http::retry::{Clock, TokioClock};
 use signify_http::transport::Method;
 use signify_http::transport::RequestUrl;
-use signify_keri::said::Said;
 
 use crate::preset::Environment;
 
@@ -218,10 +218,10 @@ pub async fn resolve_schema(
 /// Returns an error when one of the configured prefixes is not a qualified identifier.
 pub fn witness_prefixes(
     environment: &Environment,
-) -> Result<Vec<signify_keri::prefix::IdentifierPrefix>, Box<dyn Error>> {
+) -> Result<Vec<keri_protocol::prefix::IdentifierPrefix>, Box<dyn Error>> {
     Ok(environment
         .witness_prefixes
         .iter()
-        .map(|prefix| signify_keri::prefix::IdentifierPrefix::from_qb64(prefix))
+        .map(|prefix| keri_protocol::prefix::IdentifierPrefix::from_qb64(prefix))
         .collect::<Result<Vec<_>, _>>()?)
 }

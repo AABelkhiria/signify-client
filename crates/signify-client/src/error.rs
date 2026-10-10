@@ -10,6 +10,12 @@ use std::error::Error;
 
 use keri_cesr::CesrError;
 use keri_cesr::crypto::CryptoError;
+use keri_protocol::attachment::AttachmentError;
+use keri_protocol::event::{EventError, TimestampError};
+use keri_protocol::prefix::PrefixError;
+use keri_protocol::registry::RegistryError;
+use keri_protocol::said::SaidError;
+use keri_protocol::serialization::SerializationError;
 use keria_types::api::ApiError;
 use signify_acdc::credential::CredentialError;
 use signify_acdc::error::{AnchorError, IpexError, IpexSigningError, TransactionError};
@@ -19,15 +25,9 @@ use signify_http::response::ResponseError;
 use signify_http::signature::authentication::AuthenticationError;
 use signify_http::signature::transport::{ResponseAuthenticationError, SigningError};
 use signify_http::transport::TransportError;
-use signify_keri::attachment::AttachmentError;
 use signify_keri::controller::ControllerError;
-use signify_keri::event::{EventError, TimestampError};
 use signify_keri::identifier::IdentifierError;
 use signify_keri::manager::ManagerError;
-use signify_keri::prefix::PrefixError;
-use signify_keri::registry::RegistryError;
-use signify_keri::said::SaidError;
-use signify_keri::serialization::SerializationError;
 
 /// Largest response body detail kept in an error message, in bytes.
 const MAX_DETAIL_BYTES: usize = 256;

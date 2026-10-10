@@ -10,6 +10,7 @@ use std::sync::Arc;
 use crate::support::{ADMIN, AgentTransport, BOOT, LIFECYCLE_REQUESTS, PASSCODE, agent_state, block_on, clock};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::Timestamp;
 use keria_types::api::Role;
 use proptest::prelude::*;
 use serde_json::Value;
@@ -19,7 +20,6 @@ use signify_client::endpoint::identifiers::{IdentifierUpdate, LocationSchemeRequ
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
 use signify_http::transport::Transport;
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::manager::DerivationCost;
 
@@ -231,8 +231,8 @@ fn a_salty_block_always_carries_the_same_nine_fields_in_order() -> Result<(), Bo
             *current_count = keys;
             *next_count = keys;
         }
-        request.signing_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(1));
-        request.next_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(1));
+        request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
+        request.next_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
         let (client, transport) = connected(&[b"{}"])?;
         let _ = block_on(client.identifiers().create("aid1", &request))?;
 
@@ -332,7 +332,7 @@ fn a_defaulted_location_authorization_writes_every_attribute() -> Result<(), Box
         .reply
         .sad()
         .get("a")
-        .and_then(signify_keri::serialization::SadValue::as_map)
+        .and_then(keri_protocol::serialization::SadValue::as_map)
         .ok_or("the reply carries no attributes")?;
     assert_eq!(
         attributes.entries().map(|(label, _)| label).collect::<Vec<_>>(),

@@ -4,6 +4,9 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Challenge;
 use proptest::prelude::*;
 use serde_json::{Value, json};
@@ -12,9 +15,6 @@ use signify_client::endpoint::challenges::{
 };
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const SOURCE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 

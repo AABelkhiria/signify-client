@@ -12,12 +12,12 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::identifiers::LocationSchemeRequest;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 
 const MAILBOX_URL: &str = "https://mymailbox.com";

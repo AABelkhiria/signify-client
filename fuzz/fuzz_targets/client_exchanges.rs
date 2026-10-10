@@ -32,11 +32,11 @@ use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::EXCHANGES_SEGMENT;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::{ResourcePath, encode_path_component};
-use signify_keri::event::exchange::ExchangeBuilder;
-use signify_keri::event::timestamp::Timestamp;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
+use keri_protocol::event::exchange::ExchangeBuilder;
+use keri_protocol::event::timestamp::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

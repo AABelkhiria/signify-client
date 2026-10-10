@@ -12,6 +12,9 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::{KeyState, Role};
 use serde::Serialize;
 use serde_json::Value;
@@ -22,9 +25,6 @@ use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::multisig::{GroupInceptionRequest, GroupRotationRequest};
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest, rotate_identifier};
 use signify_keri::manager::KeeperRequest;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::group::authorise_agents;
 use signify_keria_systest::{
     Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,

@@ -309,15 +309,15 @@ mod driven {
     use keri_cesr::crypto::cipher::Encrypter;
     use keri_cesr::crypto::salt::{Salt, SecurityTier};
     use keri_cesr::crypto::verifier::KeyTransferability;
+    use keri_protocol::event::Timestamp;
+    use keri_protocol::said::Said;
     use keria_types::api::Role;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::error::ClientError;
     use signify_client::multisig::GroupEndRoleRequest;
     use signify_http::transport::Transport;
-    use signify_keri::event::Timestamp;
     use signify_keri::manager::DerivationCost;
-    use signify_keri::said::Said;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";

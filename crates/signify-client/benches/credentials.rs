@@ -19,13 +19,13 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential;
 use signify_client::endpoint::credentials::{CREDENTIAL_QUERY_SEGMENT, CREDENTIALS_SEGMENT, CredentialFilter};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::REGISTRIES_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const CREDENTIAL: &str = "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo";
 const REGISTRY: &str = "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df";

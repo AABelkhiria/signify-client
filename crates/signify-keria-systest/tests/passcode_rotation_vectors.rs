@@ -10,8 +10,8 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keri_protocol::serialization::SerializedEvent;
 use serde::Deserialize;
-use signify_keri::serialization::SerializedEvent;
 
 #[derive(Debug, Deserialize)]
 struct Captured {

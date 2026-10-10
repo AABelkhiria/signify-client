@@ -25,17 +25,17 @@ use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 
-use crate::event::inception::InceptionBuilder;
-use crate::event::{
-    ConfigurationTrait, EventError, KeyEvent, check_distinct, check_next_threshold, check_signing_threshold,
-    check_witness_threshold,
-};
 use crate::identifier::error::IdentifierError;
 use crate::manager::key_manager::salt_from_passcode;
 use crate::manager::{DerivationCost, InceptionRequest, KeyAlgorithm, KeyManager, ManagerError, Stem};
-use crate::prefix::{IdentifierPrefix, PrefixDerivation};
-use crate::serialization::Sad;
-use crate::threshold::SigningThreshold;
+use keri_protocol::event::inception::InceptionBuilder;
+use keri_protocol::event::{
+    ConfigurationTrait, EventError, KeyEvent, check_distinct, check_next_threshold, check_signing_threshold,
+    check_witness_threshold,
+};
+use keri_protocol::prefix::{IdentifierPrefix, PrefixDerivation};
+use keri_protocol::serialization::Sad;
+use keri_protocol::threshold::SigningThreshold;
 
 /// One local identifier: a name and the inception event that created it.
 ///
@@ -106,7 +106,7 @@ pub struct HabitatRequest {
     /// Witnesses that receipt this identifier's events; the reference's `wits`.
     pub witnesses: Vec<IdentifierPrefix>,
     /// How many witness receipts an event needs; the reference's `toad`, defaulting to
-    /// [`ample`](crate::event::witness::ample) of the witness count.
+    /// [`ample`](keri_protocol::event::witness::ample) of the witness count.
     pub witness_threshold: Option<u32>,
     /// Delegator of this identifier; the reference's `delpre`. Makes the inception delegated.
     pub delegator: Option<IdentifierPrefix>,
@@ -261,7 +261,7 @@ impl HaberyBuilder {
 ///
 /// ```
 /// use keri_cesr::crypto::salt::{Salt, SecurityTier};
-/// use signify_keri::event::kind::EventKind;
+/// use keri_protocol::event::kind::EventKind;
 /// use signify_keri::identifier::{Habery, HabitatRequest};
 /// use signify_keri::manager::DerivationCost;
 ///
@@ -492,8 +492,8 @@ mod tests {
     use super::*;
     use std::error::Error;
 
-    use crate::event::kind::EventKind;
-    use crate::serialization::SadValue;
+    use keri_protocol::event::kind::EventKind;
+    use keri_protocol::serialization::SadValue;
 
     /// The raw salt the pinned `habery.test.ts` builds its salter from.
     const SALT_RAW: &[u8] = b"0123456789abcdef";

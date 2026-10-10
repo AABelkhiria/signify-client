@@ -27,7 +27,7 @@
 //! as the route of an `exn`. So the single literal signify-ts offers is not evidence about reply
 //! escrows at all. There is nothing to enumerate, so the route is a `&str`, which is the decision
 //! Roadmap 3.6 already took for
-//! [`ReplyBuilder`](signify_keri::event::reply::ReplyBuilder)'s own route. Roadmap 8.1's typed
+//! [`ReplyBuilder`](keri_protocol::event::reply::ReplyBuilder)'s own route. Roadmap 8.1's typed
 //! route table covers *exchange* routes, which these are not. keripy is read here as scoped
 //! corroboration only (`PORTING.md` §1.1); signify-ts governs every byte this family sends.
 //!

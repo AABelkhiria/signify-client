@@ -8,10 +8,10 @@
 use std::error::Error;
 
 use keri_cesr::crypto::salt::SecurityTier;
+use keri_protocol::serialization::SerializedEvent;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_keri::controller::{Controller, ControllerOptions};
-use signify_keri::serialization::SerializedEvent;
 
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 const SIGNIFY_TS_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";

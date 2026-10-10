@@ -16,12 +16,12 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use signify_client::endpoint::delegations::{DELEGATION_SEGMENT, InceptionSeal};
 use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT};
 use signify_http::request::ResourcePath;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const DELEGATE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 

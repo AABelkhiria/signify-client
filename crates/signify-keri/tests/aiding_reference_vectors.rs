@@ -10,18 +10,18 @@ use std::error::Error;
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::Sad;
+use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::{Hab, KeyManagerState, KeyState, Role};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, IdentifierError, RotateIdentifierRequest,
     end_role_reply, incept_identifier, interact_identifier, location_scheme_reply, rotate_identifier, sign_reply,
 };
 use signify_keri::manager::{IdentifierKeeper, KeeperFactory, ManagerError};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::Sad;
-use signify_keri::threshold::SigningThreshold;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-aiding/v1.json");
@@ -517,10 +517,10 @@ fn every_interaction_matches_byte_for_byte() -> Result<(), Box<dyn Error>> {
             // parsed JSON map would have lost the field order the SAID commits to.
             let event_sad = Sad::from_json_bytes(case.request.event_raw.as_bytes())?;
             let anchors = match event_sad.get("a") {
-                Some(signify_keri::serialization::SadValue::Array(items)) => items
+                Some(keri_protocol::serialization::SadValue::Array(items)) => items
                     .iter()
                     .map(|item| match item {
-                        signify_keri::serialization::SadValue::Map(sad) => Ok(sad.clone()),
+                        keri_protocol::serialization::SadValue::Map(sad) => Ok(sad.clone()),
                         other => Err(format!("a recorded anchor is not a field map: {other:?}")),
                     })
                     .collect::<Result<Vec<_>, _>>()?,
@@ -538,7 +538,7 @@ fn every_interaction_matches_byte_for_byte() -> Result<(), Box<dyn Error>> {
                 case.name
             );
             let artifact = interact_identifier(keeper.as_ref(), &case.state, Vec::new())?;
-            let empty = signify_keri::serialization::SadValue::Array(Vec::new());
+            let empty = keri_protocol::serialization::SadValue::Array(Vec::new());
             assert_eq!(artifact.event.sad().get("a"), Some(&empty));
             assert_ne!(artifact.event.raw(), case.request.event_raw.as_bytes());
         }

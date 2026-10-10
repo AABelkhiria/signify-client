@@ -17,13 +17,13 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Contact;
 use signify_client::endpoint::contacts::{
     ALIAS_FIELD, CONTACTS_SEGMENT, ContactFilter, FILTER_FIELD_PARAMETER, FILTER_VALUE_PARAMETER, GROUP_PARAMETER,
 };
 use signify_http::request::ResourcePath;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue};
 
 const CONTACT: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";

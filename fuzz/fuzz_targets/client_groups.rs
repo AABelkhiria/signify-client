@@ -24,7 +24,7 @@ use signify_client::endpoint::exchanges::ClassifiedExchange;
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::{ResourcePath, encode_path_component};
-use signify_keri::said::Said;
+use keri_protocol::said::Said;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

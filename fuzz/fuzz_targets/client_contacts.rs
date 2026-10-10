@@ -22,8 +22,8 @@ use signify_client::endpoint::contacts::{
     CONTACTS_SEGMENT, ContactFilter, FILTER_FIELD_PARAMETER, FILTER_VALUE_PARAMETER, GROUP_PARAMETER,
 };
 use signify_http::request::ResourcePath;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadValue};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

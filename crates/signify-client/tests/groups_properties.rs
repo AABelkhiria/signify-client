@@ -4,6 +4,9 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::MultisigExchangeResource;
 use proptest::prelude::*;
 use serde_json::{Map, Value, json};
@@ -11,9 +14,6 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MULTISIG_TOPIC, Mu
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::{ResourcePath, encode_path_component};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

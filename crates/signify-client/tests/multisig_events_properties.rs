@@ -125,7 +125,7 @@ proptest! {
         let multisig = classified.as_multisig()
             .ok_or_else(|| TestCaseError::fail("a multisig route did not classify as one"))?;
 
-        let read = |members: Option<&Vec<signify_keri::prefix::IdentifierPrefix>>| -> Vec<String> {
+        let read = |members: Option<&Vec<keri_protocol::prefix::IdentifierPrefix>>| -> Vec<String> {
             members
                 .map(|list| list.iter().filter_map(|member| member.qb64().ok()).collect())
                 .unwrap_or_default()

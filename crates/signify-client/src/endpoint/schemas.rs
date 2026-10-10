@@ -17,10 +17,10 @@
 //! delimiter; a qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path
 //! byte-identical to what the reference sends. See `fixtures/client-schemas/`.
 
+use keri_protocol::said::Said;
 use keria_types::api::Schema;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::said::Said;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json;

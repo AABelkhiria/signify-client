@@ -11,10 +11,10 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_protocol::said::Said;
 use keria_types::api::Schema;
 use signify_client::endpoint::schemas::SCHEMA_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_keri::said::Said;
 
 const QVI: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 

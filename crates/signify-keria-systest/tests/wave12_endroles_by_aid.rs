@@ -13,12 +13,12 @@
 use std::error::Error;
 
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::multisig::GroupInceptionRequest;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::group::authorise_agents;
 use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{

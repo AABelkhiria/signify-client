@@ -32,11 +32,11 @@
 //!
 //! See `fixtures/client-key-state/` and `PORTING.md` §10.
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadError, SadValue};
 use keria_types::api::{KeyState, QueryOperation, Seal};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadError, SadValue};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json;

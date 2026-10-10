@@ -6,11 +6,11 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+use keri_protocol::prefix::{IdentifierPrefix, PrefixVerification};
+use keri_protocol::said::{Said, SaidVerification};
+use keri_protocol::serialization::Sad;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_keri::prefix::{IdentifierPrefix, PrefixVerification};
-use signify_keri::said::{Said, SaidVerification};
-use signify_keri::serialization::Sad;
 
 const AID1_PASSCODE: &str = "0123456789abcdefghijk";
 const AID2_PASSCODE: &str = "0123456789lmnopqrstuv";

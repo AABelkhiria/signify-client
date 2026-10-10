@@ -9,6 +9,10 @@ use std::sync::Arc;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
@@ -19,12 +23,8 @@ use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue, SerializedEvent};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-ipex/v1.json");
@@ -225,8 +225,8 @@ fn credential(fixture: &Fixture) -> Result<Credential, Box<dyn Error>> {
 }
 
 fn disclosure(fixture: &Fixture) -> Result<Disclosure, Box<dyn Error>> {
+    use keri_protocol::attachment::{AttachmentFraming, SealSourceCouple};
     use signify_acdc::issuance::IssuanceEvent;
-    use signify_keri::attachment::{AttachmentFraming, SealSourceCouple};
 
     let credential = credential(fixture)?;
     let issuance = IssuanceEvent::for_credential(&credential)?;

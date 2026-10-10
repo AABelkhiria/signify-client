@@ -148,7 +148,7 @@ async fn which_base_a_deployment_reads_a_sequence_number_in() -> Result<(), Box<
     owner.poller().wait(authorised.operation()?).await?;
 
     for round in 0..u32::try_from(LAST_SEQUENCE)? {
-        let anchor = signify_keri::serialization::Sad::new();
+        let anchor = keri_protocol::serialization::Sad::new();
         let interaction = owner.identifiers().interact("logowner", vec![anchor]).await?;
         owner.poller().wait(interaction.operation()?).await?;
         let _ = round;

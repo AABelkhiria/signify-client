@@ -9,6 +9,9 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::threshold::SigningThreshold;
 use signify_acdc::credential::{Credential, RegistryIdentifier};
 use signify_acdc::ipex::Disclosure;
 use signify_acdc::revocation::RevocationEventBuilder;
@@ -19,9 +22,6 @@ use signify_client::multisig::{
     GroupAdmittanceRequest, GroupDisclosureRequest, GroupEndRoleRequest, GroupInceptionRequest, GroupIssuanceRequest,
     GroupRegistryRequest, GroupRevocationRequest,
 };
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::threshold::SigningThreshold;
 
 use crate::operation::{await_notification, await_proposals, wait_and_delete};
 use crate::singlesig::{credential_state, state_digest};

@@ -12,13 +12,13 @@
 
 use std::error::Error;
 
+use keri_protocol::said::Said;
 use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::challenges::ChallengeStrength;
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
-use signify_keri::said::Said;
 use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete, witness_prefixes};
 

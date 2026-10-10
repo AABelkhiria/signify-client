@@ -4,12 +4,12 @@
 
 use std::error::Error;
 
+use keri_protocol::said::Said;
 use keria_types::api::{MAX_NESTING_DEPTH, Schema};
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::schemas::SCHEMA_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_keri::said::Said;
 
 const QVI: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 

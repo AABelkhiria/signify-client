@@ -113,6 +113,7 @@ mod live {
     use std::sync::Arc;
 
     use keri_cesr::crypto::salt::SecurityTier;
+    use keri_protocol::prefix::IdentifierPrefix;
     use keria_types::api::Role;
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
@@ -122,7 +123,6 @@ mod live {
     use signify_http::transport::{HttpTransport, Transport};
     use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
     use signify_keri::manager::DerivationCost;
-    use signify_keri::prefix::IdentifierPrefix;
 
     use crate::preset::Environment;
     use crate::recorder::Recorder;
@@ -312,7 +312,7 @@ pub use live::{connect, dump_tails, introduce, ready_identifier, reconnect, reco
 ///
 /// Returns an error when the system clock is before the Unix epoch or the rendered text is not a
 /// KERI timestamp.
-pub fn now() -> Result<signify_keri::event::Timestamp, Box<dyn Error>> {
+pub fn now() -> Result<keri_protocol::event::Timestamp, Box<dyn Error>> {
     let elapsed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?;
     let seconds = i64::try_from(elapsed.as_secs())?;
     let micros = elapsed.subsec_micros();
@@ -341,7 +341,7 @@ pub fn now() -> Result<signify_keri::event::Timestamp, Box<dyn Error>> {
         (time_of_day % 3_600) / 60,
         time_of_day % 60,
     );
-    Ok(text.parse::<signify_keri::event::Timestamp>()?)
+    Ok(text.parse::<keri_protocol::event::Timestamp>()?)
 }
 
 /// Where a recording run writes its evidence.

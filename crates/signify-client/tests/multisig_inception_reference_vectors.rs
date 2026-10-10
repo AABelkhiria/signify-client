@@ -6,12 +6,12 @@ mod support;
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::MultisigExchangeResource;
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT};
-use signify_keri::prefix::IdentifierPrefix;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-multisig-inception/v1.json");
@@ -597,11 +597,11 @@ mod driven {
     use keri_cesr::crypto::verifier::KeyTransferability;
 
     use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+    use keri_protocol::event::Timestamp;
+    use keri_protocol::prefix::IdentifierPrefix;
+    use keri_protocol::threshold::SigningThreshold;
     use signify_http::transport::Transport;
-    use signify_keri::event::Timestamp;
     use signify_keri::manager::DerivationCost;
-    use signify_keri::prefix::IdentifierPrefix;
-    use signify_keri::threshold::SigningThreshold;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";

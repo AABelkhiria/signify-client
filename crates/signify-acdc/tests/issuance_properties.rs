@@ -5,6 +5,11 @@
 //! profile, and the cross-language vectors cover the production one exactly.
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use keri_protocol::event::Timestamp;
+use keri_protocol::event::kind::EventKind;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
+use keri_protocol::serialization::SerializedEvent;
 use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
@@ -12,13 +17,8 @@ use signify_acdc::error::{AnchorError, TransactionError};
 use signify_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
 use signify_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
 use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
-use signify_keri::event::Timestamp;
-use signify_keri::event::kind::EventKind;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
 use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
-use signify_keri::serialization::SerializedEvent;
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";
@@ -214,12 +214,12 @@ proptest! {
         let anchors = event
             .sad()
             .get("a")
-            .and_then(signify_keri::serialization::SadValue::as_array)
+            .and_then(keri_protocol::serialization::SadValue::as_array)
             .ok_or_else(|| TestCaseError::fail("no anchor list"))?;
         prop_assert_eq!(anchors.len(), 1);
         let sealed = anchors
             .first()
-            .and_then(signify_keri::serialization::SadValue::as_map)
+            .and_then(keri_protocol::serialization::SadValue::as_map)
             .ok_or_else(|| TestCaseError::fail("anchor is not a map"))?;
         prop_assert_eq!(sealed.get_text("i"), issuance.sad().get_text("i"));
         prop_assert_eq!(sealed.get_text("s"), Some("0"));

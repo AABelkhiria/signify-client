@@ -12,6 +12,8 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::Sad;
 use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
@@ -19,8 +21,6 @@ use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
 use signify_keri::identifier::RotateIdentifierRequest;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::Sad;
 use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{
     Environment, Recorder, connect, progress, record, recorder, wait_and_delete, witness_prefixes,

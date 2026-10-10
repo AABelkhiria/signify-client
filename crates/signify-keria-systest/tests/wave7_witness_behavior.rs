@@ -12,12 +12,12 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
-use signify_keri::prefix::IdentifierPrefix;
 use signify_keria_systest::preset::WITNESS_PREFIXES;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
 

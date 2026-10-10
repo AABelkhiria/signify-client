@@ -7,12 +7,12 @@
 use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::kind::EventKind;
+use keri_protocol::serialization::{SadValue, SerializedEvent};
 use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_keri::controller::{Agent, Controller, ControllerOptions};
-use signify_keri::event::kind::EventKind;
 use signify_keri::manager::DerivationCost;
-use signify_keri::serialization::{SadValue, SerializedEvent};
 
 /// The Base64 URL-safe alphabet a passcode draws from.
 const ALPHABET: &str = "[A-Za-z0-9_-]{21}";

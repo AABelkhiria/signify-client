@@ -8,10 +8,10 @@
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::{ExchangeEmbed, GroupMember, MultisigExchangeResource};
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL};
 use signify_client::multisig::{REPLY_ROUTE, REPLY_SLOT, member_agents, proposed_end_role};
-use signify_keri::prefix::IdentifierPrefix;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

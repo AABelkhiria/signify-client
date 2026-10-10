@@ -12,10 +12,10 @@
 //! [`ResourcePath`] would encode it exactly once even if it were not. See
 //! `fixtures/client-key-state/`.
 
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::KeyEventRecord;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::prefix::IdentifierPrefix;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::decode_json;

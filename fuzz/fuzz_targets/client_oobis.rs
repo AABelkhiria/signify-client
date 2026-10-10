@@ -25,7 +25,7 @@ use signify_client::endpoint::oobis::{
 };
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
-use signify_keri::prefix::IdentifierPrefix;
+use keri_protocol::prefix::IdentifierPrefix;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

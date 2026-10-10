@@ -4,6 +4,7 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::{EndRole, Oobi, Role};
 use proptest::prelude::*;
 use serde_json::{Value, json};
@@ -13,7 +14,6 @@ use signify_client::endpoint::oobis::{
 };
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
-use signify_keri::prefix::IdentifierPrefix;
 
 const GROUP_AID: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 

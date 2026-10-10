@@ -11,6 +11,9 @@ use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE,
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::Sad;
 use keria_types::api::{AcceptedHab, Hab, Role};
 use serde::Deserialize;
 use serde_json::Value;
@@ -23,11 +26,8 @@ use signify_client::endpoint::identifiers::{
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
 use signify_http::transport::{Method, Request, Transport};
-use signify_keri::event::Timestamp;
 use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keri::manager::DerivationCost;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::Sad;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-identifiers/v1.json");
@@ -640,8 +640,8 @@ fn a_multisig_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "create_multisig")?;
     let mut request = salty_request(MULTISIG_PASSCODE, 3);
-    request.signing_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(2));
-    request.next_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(2));
+    request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(2));
+    request.next_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(2));
 
     let (client, transport) = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("aid2", &request))?;
@@ -724,8 +724,8 @@ fn a_group_creation_writes_both_member_lists_and_the_member_record() -> Result<(
         states,
         next_states,
     });
-    request.signing_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(1));
-    request.next_threshold = Some(signify_keri::threshold::SigningThreshold::numeric(1));
+    request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
+    request.next_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
 
     let (client, transport) = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("group1", &request))?;
@@ -758,7 +758,7 @@ fn an_interaction_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let prefix = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
     let mut seal = Sad::new();
     seal.insert("i", prefix.to_owned())?;
-    seal.insert("s", signify_keri::serialization::SadValue::integer(0)?)?;
+    seal.insert("s", keri_protocol::serialization::SadValue::integer(0)?)?;
     seal.insert("d", prefix.to_owned())?;
     let _ = block_on(client.identifiers().interact("aid1", vec![seal]))?;
 

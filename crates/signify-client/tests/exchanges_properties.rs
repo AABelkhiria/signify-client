@@ -4,17 +4,17 @@
 
 use std::error::Error;
 
+use keri_protocol::event::exchange::ExchangeBuilder;
+use keri_protocol::event::timestamp::Timestamp;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
 use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::exchanges::{EXCHANGES_SEGMENT, ExchangeDraft, MULTISIG_TOPIC, REGISTRY_TOPIC};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::{ResourcePath, encode_path_component};
-use signify_keri::event::exchange::ExchangeBuilder;
-use signify_keri::event::timestamp::Timestamp;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

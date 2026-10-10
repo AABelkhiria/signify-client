@@ -4,13 +4,13 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::Seal;
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::key_events::{EVENTS_SEGMENT, PREFIX_PARAMETER};
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence, STATES_SEGMENT};
 use signify_http::request::{MAX_QUERY_PARAMETERS, ResourcePath};
-use signify_keri::prefix::IdentifierPrefix;
 
 const PREFIX: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 

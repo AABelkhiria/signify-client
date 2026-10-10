@@ -12,11 +12,11 @@
 
 use std::error::Error;
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::threshold::SigningThreshold;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::multisig::GroupInceptionRequest;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::threshold::SigningThreshold;
 use signify_keria_systest::singlesig::create_identifier;
 use signify_keria_systest::{
     Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,

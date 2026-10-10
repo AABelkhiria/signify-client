@@ -21,10 +21,10 @@ use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::{CreateRegistryRequest, REGISTRIES_SEGMENT, RegistryBacking};
 use signify_http::request::ResourcePath;
-use signify_keri::event::ConfigurationTrait;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::registry::RegistryInceptionBuilder;
-use signify_keri::serialization::SerializedEvent;
+use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::registry::RegistryInceptionBuilder;
+use keri_protocol::serialization::SerializedEvent;
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
@@ -127,7 +127,7 @@ fuzz_target!(|data: &[u8]| {
             let traits = inception
                 .sad()
                 .get("c")
-                .and_then(signify_keri::serialization::SadValue::as_array)
+                .and_then(keri_protocol::serialization::SadValue::as_array)
                 .map_or(0, <[_]>::len);
             assert_eq!(traits, usize::from(backers.is_empty()));
         }

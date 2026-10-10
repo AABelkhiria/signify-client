@@ -5,8 +5,8 @@
 //! `Credentials.issue` composition: anchor the event in the issuer's log, signed by its keeper.
 
 use keri_acdc::ipex::Disclosure;
+use keri_protocol::attachment::{AttachmentFraming, SealSourceCouple};
 use keria_types::api::KeyState;
-use signify_keri::attachment::{AttachmentFraming, SealSourceCouple};
 use signify_keri::identifier::artifact::IdentifierArtifact;
 use signify_keri::manager::keeper::IdentifierKeeper;
 

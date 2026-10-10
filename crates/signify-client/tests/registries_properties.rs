@@ -4,6 +4,10 @@
 
 use std::error::Error;
 
+use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::registry::{MAX_BACKERS, RegistryInceptionBuilder};
+use keri_protocol::serialization::Sad;
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
@@ -11,10 +15,6 @@ use signify_client::endpoint::registries::{
     CreateRegistryRequest, NO_BACKERS_TRAIT, REGISTRIES_SEGMENT, RegistryBacking,
 };
 use signify_http::request::ResourcePath;
-use signify_keri::event::ConfigurationTrait;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::registry::{MAX_BACKERS, RegistryInceptionBuilder};
-use signify_keri::serialization::Sad;
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
@@ -120,7 +120,7 @@ proptest! {
         let traits = inception
             .sad()
             .get("c")
-            .and_then(signify_keri::serialization::SadValue::as_array)
+            .and_then(keri_protocol::serialization::SadValue::as_array)
             .map(<[_]>::len);
         prop_assert_eq!(traits, Some(usize::from(!backed)));
     }

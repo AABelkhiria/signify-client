@@ -25,8 +25,8 @@ use signify_client::endpoint::delegations::{
 };
 use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT};
 use signify_http::request::{ResourcePath, encode_path_component};
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

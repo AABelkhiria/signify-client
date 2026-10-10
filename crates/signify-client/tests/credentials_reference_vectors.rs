@@ -11,6 +11,9 @@ use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE,
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential as CredentialRecord;
 use serde::Deserialize;
 use serde_json::Value;
@@ -25,9 +28,6 @@ use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
 use signify_keri::manager::DerivationCost;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::said::Said;
-use signify_keri::serialization::{Sad, SadValue};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-credentials/v1.json");

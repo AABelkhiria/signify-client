@@ -206,9 +206,10 @@ impl IdentifierKeeper for RandyKeeper {
 ///
 /// Returns a layered [`ManagerError::Crypto`] when the prefix is not a usable identifier.
 pub(crate) fn transferability_of(prefix: &str) -> Result<KeyTransferability, ManagerError> {
-    let parsed = crate::prefix::IdentifierPrefix::from_qb64(prefix).map_err(|_| ManagerError::NoSigningKeys {
-        prefix: prefix.to_owned(),
-    })?;
+    let parsed =
+        keri_protocol::prefix::IdentifierPrefix::from_qb64(prefix).map_err(|_| ManagerError::NoSigningKeys {
+            prefix: prefix.to_owned(),
+        })?;
     Ok(if parsed.is_transferable() {
         KeyTransferability::Transferable
     } else {

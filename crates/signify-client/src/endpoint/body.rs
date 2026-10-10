@@ -12,10 +12,10 @@
 //! `fixtures/client-registries/`.
 
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadError, SadValue};
 use keria_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
 use signify_keri::manager::IdentifierKeeper;
-use signify_keri::prefix::IdentifierPrefix;
-use signify_keri::serialization::{Sad, SadError, SadValue};
 
 use crate::error::ClientError;
 
