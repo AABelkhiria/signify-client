@@ -10,8 +10,8 @@ use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keria_types::api::{AcceptedHab, Hab};
 use proptest::prelude::*;
-use signify_keri::controller::{Controller, ControllerOptions};
-use signify_keri::manager::DerivationCost;
+use signify_keys::controller::{Controller, ControllerOptions};
+use signify_keys::manager::DerivationCost;
 
 const ALPHABET: &str = "[0-9a-zA-Z_-]{21}";
 
@@ -89,7 +89,7 @@ proptest! {
             .rotate_passcode(&second, std::slice::from_ref(&record))
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
 
-        let Some((_, signify_keri::controller::ReEncryptedKeyState::Randy { signing_keys, .. })) =
+        let Some((_, signify_keys::controller::ReEncryptedKeyState::Randy { signing_keys, .. })) =
             rotation.re_encrypted.first()
         else {
             return Err(TestCaseError::fail("the randy record was not re-encrypted"));

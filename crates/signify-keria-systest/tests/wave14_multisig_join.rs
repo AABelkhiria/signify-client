@@ -23,12 +23,12 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::endpoint::groups::GroupJoin;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::multisig::{GroupInceptionRequest, GroupRotationRequest};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest, rotate_identifier};
-use signify_keri::manager::KeeperRequest;
 use signify_keria_systest::group::authorise_agents;
 use signify_keria_systest::{
     Environment, agent_oobi, await_notification, connect, progress, record, recorder, resolve_oobi, wait_and_delete,
 };
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest, rotate_identifier};
+use signify_keys::manager::KeeperRequest;
 
 const GROUP_NAME: &str = "multisigGroup";
 

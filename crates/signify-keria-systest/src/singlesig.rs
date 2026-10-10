@@ -18,7 +18,7 @@ use signify_client::endpoint::credentials::CredentialFilter;
 use signify_client::endpoint::registries::CreateRegistryRequest;
 use signify_client::presentation::{DisclosureRequest, ReceivedStep, disclosure_of};
 use signify_http::request::ItemRange;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 
 use crate::operation::wait_and_delete;
 

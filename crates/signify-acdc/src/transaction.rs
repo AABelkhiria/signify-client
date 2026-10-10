@@ -12,10 +12,10 @@ use keri_protocol::event::KeyEvent;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keria_types::api::KeyState;
-use signify_keri::identifier::IdentifierError;
-use signify_keri::identifier::artifact::IdentifierArtifact;
-use signify_keri::manager::keeper::IdentifierKeeper;
-use signify_keri::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
+use signify_keys::identifier::IdentifierError;
+use signify_keys::identifier::artifact::IdentifierArtifact;
+use signify_keys::manager::keeper::IdentifierKeeper;
+use signify_keys::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 
 use crate::error::AnchorError;
 

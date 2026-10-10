@@ -19,7 +19,7 @@ use signify_client::error::ClientError;
 use signify_client::operation::{Dependency, PollPolicy, PollableMetadata, PollingLimit};
 use signify_http::retry::{Backoff, Clock, Jitter, RetryDecision, TestClock};
 use signify_http::transport::{Method, Transport};
-use signify_keri::manager::DerivationCost;
+use signify_keys::manager::DerivationCost;
 
 const NAME: &str = "witness.EABC.0";
 

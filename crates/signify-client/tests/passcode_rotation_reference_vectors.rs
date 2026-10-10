@@ -431,7 +431,7 @@ mod driven {
     use keri_protocol::prefix::IdentifierPrefix;
     use keria_types::api::AcceptedHab;
     use signify_http::transport::Transport;
-    use signify_keri::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
+    use signify_keys::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
 
     fn connected(passcode: &str, bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
         let configuration = || {

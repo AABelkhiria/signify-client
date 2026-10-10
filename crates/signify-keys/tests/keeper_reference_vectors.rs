@@ -12,8 +12,8 @@ use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::SignaturePlacement;
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use serde::Deserialize;
-use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
-use signify_keri::manager::{
+use signify_keys::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
+use signify_keys::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, KeyAlgorithm,
     ManagerError, RandyKeeperRequest, SaltyKeeper, SaltyKeeperRequest, SignatureForm, SigningPurpose, Stem,
 };
@@ -404,7 +404,7 @@ fn every_salty_variant_derives_the_same_keys() -> Result<(), Box<dyn Error>> {
     for variant in &fixture.salty_variants {
         let stem = match &variant.input.stem {
             Some(stem) => Stem::new(stem.clone())?,
-            None => Stem::new(signify_keri::manager::keeper::salty::DEFAULT_STEM)?,
+            None => Stem::new(signify_keys::manager::keeper::salty::DEFAULT_STEM)?,
         };
         let mut keeper = walk_keeper(
             &fixture,
@@ -473,7 +473,7 @@ fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         &SignatureForm::Indexed(vec![SignaturePlacement::current_list(shape.current_only_index)]),
         SigningPurpose::Current,
     )?;
-    let signify_keri::manager::ManagedSignatures::Indexed(indexed) = &signatures else {
+    let signify_keys::manager::ManagedSignatures::Indexed(indexed) = &signatures else {
         return Err("an indexed request produced unindexed signatures".into());
     };
     let signature = indexed.first().ok_or("no signature was produced")?;
@@ -543,7 +543,7 @@ fn the_group_keeper_places_signatures_where_the_reference_places_them() -> Resul
             &SignatureForm::IndexedByPosition,
             purpose,
         )?;
-        let signify_keri::manager::ManagedSignatures::Indexed(indexed) = &signatures else {
+        let signify_keys::manager::ManagedSignatures::Indexed(indexed) = &signatures else {
             return Err("a group signature was not indexed".into());
         };
         let signature = indexed.first().ok_or("no signature was produced")?;

@@ -14,7 +14,7 @@ use super::error::ManagerError;
 /// variants and [`KeyAlgorithm::creator_kind`] returns an error for the rest.
 ///
 /// ```
-/// use signify_keri::manager::KeyAlgorithm;
+/// use signify_keys::manager::KeyAlgorithm;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(KeyAlgorithm::Salty.as_str(), "salty");

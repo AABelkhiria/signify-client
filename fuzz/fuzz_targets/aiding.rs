@@ -18,11 +18,11 @@ use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
-use signify_keri::identifier::{
+use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,
 };
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 use keri_protocol::serialization::SerializedEvent;
 
 /// The key-state fields the fuzzer replaces, selected by the first input byte.
@@ -62,7 +62,7 @@ fn keeper() -> Option<Box<dyn IdentifierKeeper>> {
 }
 
 /// Asserts an accepted event is self-consistent.
-fn assert_event(artifact: &signify_keri::identifier::IdentifierArtifact) {
+fn assert_event(artifact: &signify_keys::identifier::IdentifierArtifact) {
     assert_eq!(artifact.event.serialized().size(), artifact.event.raw().len());
     let Ok(reparsed) = SerializedEvent::parse(artifact.event.raw()) else {
         assert!(artifact.event.raw().is_empty(), "an accepted event does not reparse");
@@ -137,7 +137,7 @@ fuzz_target!(|data: &[u8]| {
         .and_then(|keeper_request| {
             let factory = KeeperFactory::new(
                 Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)
-                    .map_err(signify_keri::manager::ManagerError::from)?,
+                    .map_err(signify_keys::manager::ManagerError::from)?,
             );
             let mut keeper = factory.create(keeper_request)?;
             incept_identifier(keeper.as_mut(), &request)

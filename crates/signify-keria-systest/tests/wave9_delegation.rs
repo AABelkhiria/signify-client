@@ -20,8 +20,8 @@ use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::delegations::InceptionSeal;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keria_systest::{Environment, connect, progress, record, recorder, resolve_oobi, wait_and_delete};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 
 #[derive(Debug, Serialize)]
 struct Captured {

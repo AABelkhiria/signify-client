@@ -65,7 +65,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -81,7 +81,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -97,7 +97,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -113,7 +113,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -129,7 +129,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -145,7 +145,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -160,7 +160,7 @@
         "4.6"
       ],
       "evidence": [
-        "crates/signify-keri/src/identifier.rs"
+        "crates/signify-keys/src/identifier.rs"
       ],
       "note": "A TypeScript type test with no assertions: it declares values of the argument type and compiles. Rust has no equivalent test to write \u2014 `CreateIdentifierRequest` either compiles at every call site or the crate does not build. The misspelling `CreateIdentiferArgs` is corrected in the Rust name, which \u00a75.7 records."
     },
@@ -173,7 +173,7 @@
         "4.6"
       ],
       "evidence": [
-        "crates/signify-keri/src/identifier.rs"
+        "crates/signify-keys/src/identifier.rs"
       ],
       "note": "As above, for `RotateIdentifierRequest`: a zero-assertion TypeScript type test, asserting only that a literal is assignable to the argument type. Rust has no equivalent test to write \u2014 the type either compiles at every call site or the crate does not build."
     },
@@ -187,7 +187,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -203,7 +203,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -219,7 +219,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -235,7 +235,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -251,7 +251,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -267,7 +267,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -283,7 +283,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -299,7 +299,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -315,7 +315,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -331,7 +331,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -347,7 +347,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -363,7 +363,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -379,7 +379,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -395,7 +395,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -411,7 +411,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -427,7 +427,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -443,7 +443,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -459,7 +459,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -475,7 +475,7 @@
         "6.6"
       ],
       "evidence": [
-        "crates/signify-keri/tests/aiding_reference_vectors.rs",
+        "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
         "fixtures/client-identifiers/v1.json"
       ],
@@ -572,8 +572,8 @@
         "4.5"
       ],
       "evidence": [
-        "crates/signify-keri/tests/controller_reference_vectors.rs",
-        "crates/signify-keri/tests/controller_properties.rs",
+        "crates/signify-keys/tests/controller_reference_vectors.rs",
+        "crates/signify-keys/tests/controller_properties.rs",
         "fixtures/keri-controller/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -587,8 +587,8 @@
         "4.5"
       ],
       "evidence": [
-        "crates/signify-keri/tests/controller_reference_vectors.rs",
-        "crates/signify-keri/tests/controller_properties.rs",
+        "crates/signify-keys/tests/controller_reference_vectors.rs",
+        "crates/signify-keys/tests/controller_properties.rs",
         "fixtures/keri-controller/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1014,8 +1014,8 @@
         "4.4"
       ],
       "evidence": [
-        "crates/signify-keri/tests/habery_reference_vectors.rs",
-        "crates/signify-keri/tests/habery_properties.rs",
+        "crates/signify-keys/tests/habery_reference_vectors.rs",
+        "crates/signify-keys/tests/habery_properties.rs",
         "fixtures/keri-habery/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1029,8 +1029,8 @@
         "4.4"
       ],
       "evidence": [
-        "crates/signify-keri/tests/habery_reference_vectors.rs",
-        "crates/signify-keri/tests/habery_properties.rs",
+        "crates/signify-keys/tests/habery_reference_vectors.rs",
+        "crates/signify-keys/tests/habery_properties.rs",
         "fixtures/keri-habery/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1089,8 +1089,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/keeper_reference_vectors.rs",
-        "crates/signify-keri/tests/keeper_properties.rs",
+        "crates/signify-keys/tests/keeper_reference_vectors.rs",
+        "crates/signify-keys/tests/keeper_properties.rs",
         "fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1104,8 +1104,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/keeper_reference_vectors.rs",
-        "crates/signify-keri/tests/keeper_properties.rs",
+        "crates/signify-keys/tests/keeper_reference_vectors.rs",
+        "crates/signify-keys/tests/keeper_properties.rs",
         "fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1119,8 +1119,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/keeper_reference_vectors.rs",
-        "crates/signify-keri/tests/keeper_properties.rs",
+        "crates/signify-keys/tests/keeper_reference_vectors.rs",
+        "crates/signify-keys/tests/keeper_properties.rs",
         "fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1134,8 +1134,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/keeper_reference_vectors.rs",
-        "crates/signify-keri/tests/keeper_properties.rs",
+        "crates/signify-keys/tests/keeper_reference_vectors.rs",
+        "crates/signify-keys/tests/keeper_properties.rs",
         "fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1150,8 +1150,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1166,8 +1166,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1182,8 +1182,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1198,8 +1198,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1214,8 +1214,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1230,8 +1230,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1246,8 +1246,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1262,8 +1262,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1278,8 +1278,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1294,8 +1294,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."
@@ -1310,8 +1310,8 @@
         "4.3"
       ],
       "evidence": [
-        "crates/signify-keri/tests/manager_reference_vectors.rs",
-        "crates/signify-keri/tests/manager_properties.rs",
+        "crates/signify-keys/tests/manager_reference_vectors.rs",
+        "crates/signify-keys/tests/manager_properties.rs",
         "fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the roadmap item that ported this module, with the fixture and tests named; see `PORTING.md` \u00a74 and \u00a75 for the per-capability ledger."

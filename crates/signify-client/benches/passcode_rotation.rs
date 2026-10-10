@@ -18,8 +18,8 @@ use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keria_types::api::{AcceptedHab, Hab};
-use signify_keri::controller::{Controller, ControllerOptions};
-use signify_keri::manager::DerivationCost;
+use signify_keys::controller::{Controller, ControllerOptions};
+use signify_keys::manager::DerivationCost;
 
 const PASSCODE: &str = "0123456789abcdefghijk";
 const SECOND_PASSCODE: &str = "abcdefghijk0123456789";

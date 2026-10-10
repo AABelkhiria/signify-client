@@ -5,7 +5,7 @@ members = [
     "crates/signify-acdc",
     "crates/signify-client",
     "crates/signify-http",
-    "crates/signify-keri",
+    "crates/signify-keys",
     "crates/signify-keria-systest",
 ]
 

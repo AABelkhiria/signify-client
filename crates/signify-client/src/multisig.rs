@@ -173,7 +173,7 @@ use keria_types::api::{
 use signify_acdc::credential::Credential;
 use signify_acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_acdc::revocation::RevocationEvent;
-use signify_keri::identifier::{
+use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, END_ROLE_ROUTE, IdentifierArtifact, RotateIdentifierRequest, SignedReply,
     end_role_reply,
 };
@@ -1774,10 +1774,10 @@ fn qb64_all(members: &[IdentifierPrefix]) -> Result<Vec<String>, ClientError> {
 
 /// Demands the indexed signatures a group proposal must attach.
 fn indexed(
-    signatures: &signify_keri::manager::ManagedSignatures,
+    signatures: &signify_keys::manager::ManagedSignatures,
 ) -> Result<Vec<keri_cesr::crypto::signature::IndexedSignature>, ClientError> {
     match signatures {
-        signify_keri::manager::ManagedSignatures::Indexed(indexed) if !indexed.is_empty() => Ok(indexed.clone()),
+        signify_keys::manager::ManagedSignatures::Indexed(indexed) if !indexed.is_empty() => Ok(indexed.clone()),
         _ => Err(ClientError::UnsignedGroupRequest),
     }
 }
@@ -2701,7 +2701,7 @@ mod tests {
 
     #[test]
     fn an_unsigned_creation_cannot_be_proposed() {
-        use signify_keri::manager::ManagedSignatures;
+        use signify_keys::manager::ManagedSignatures;
         // A group proposal carries its member's signature; without one there is nothing to relay.
         assert!(matches!(
             indexed(&ManagedSignatures::Indexed(Vec::new())),
@@ -2977,7 +2977,7 @@ impl Multisig<'_> {
         group_name: &str,
     ) -> Result<
         (
-            Box<dyn signify_keri::manager::keeper::IdentifierKeeper>,
+            Box<dyn signify_keys::manager::keeper::IdentifierKeeper>,
             IdentifierPrefix,
         ),
         ClientError,

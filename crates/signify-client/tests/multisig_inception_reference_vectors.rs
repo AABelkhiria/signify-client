@@ -601,7 +601,7 @@ mod driven {
     use keri_protocol::prefix::IdentifierPrefix;
     use keri_protocol::threshold::SigningThreshold;
     use signify_http::transport::Transport;
-    use signify_keri::manager::DerivationCost;
+    use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";

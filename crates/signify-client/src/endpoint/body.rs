@@ -15,7 +15,7 @@ use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadError, SadValue};
 use keria_types::api::{AcceptedHab, KeyManagerState, RandyState, SaltyState};
-use signify_keri::manager::IdentifierKeeper;
+use signify_keys::manager::IdentifierKeeper;
 
 use crate::error::ClientError;
 

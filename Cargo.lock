@@ -1272,7 +1272,7 @@ dependencies = [
  "signify-acdc",
  "signify-client",
  "signify-http",
- "signify-keri",
+ "signify-keys",
 ]
 
 [[package]]
@@ -1287,7 +1287,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
- "signify-keri",
+ "signify-keys",
 ]
 
 [[package]]
@@ -1304,7 +1304,7 @@ dependencies = [
  "serde_json",
  "signify-acdc",
  "signify-http",
- "signify-keri",
+ "signify-keys",
  "tokio",
 ]
 
@@ -1328,19 +1328,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "signify-keri"
-version = "0.0.0"
-dependencies = [
- "criterion",
- "keri-cesr",
- "keri-protocol",
- "keria-types",
- "proptest",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "signify-keria-systest"
 version = "0.0.0"
 dependencies = [
@@ -1352,8 +1339,21 @@ dependencies = [
  "signify-acdc",
  "signify-client",
  "signify-http",
- "signify-keri",
+ "signify-keys",
  "tokio",
+]
+
+[[package]]
+name = "signify-keys"
+version = "0.0.0"
+dependencies = [
+ "criterion",
+ "keri-cesr",
+ "keri-protocol",
+ "keria-types",
+ "proptest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

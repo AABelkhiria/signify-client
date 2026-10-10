@@ -16,7 +16,7 @@ keri-http-auth.workspace = true
 keri-protocol.workspace = true
 signify-client = { path = "../signify-client" }
 signify-http = { path = "../signify-http" }
-signify-keri = { path = "../signify-keri" }
+signify-keys = { path = "../signify-keys" }
 keria-types.workspace = true
 
 [lints]

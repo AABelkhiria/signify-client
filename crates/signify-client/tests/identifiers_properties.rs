@@ -20,8 +20,8 @@ use signify_client::endpoint::identifiers::{IdentifierUpdate, LocationSchemeRequ
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
 use signify_http::transport::Transport;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
-use signify_keri::manager::DerivationCost;
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
+use signify_keys::manager::DerivationCost;
 
 const STAMP: &str = "2021-06-27T21:26:21.233257+00:00";
 

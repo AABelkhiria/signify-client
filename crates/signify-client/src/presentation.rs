@@ -502,7 +502,7 @@ impl<'client> Presentation<'client> {
     async fn signer(
         &self,
         alias: &str,
-    ) -> Result<(Box<dyn signify_keri::manager::IdentifierKeeper>, IdentifierPrefix), ClientError> {
+    ) -> Result<(Box<dyn signify_keys::manager::IdentifierKeeper>, IdentifierPrefix), ClientError> {
         let record = self.client.identifiers().get(alias).await?;
         let sender = IdentifierPrefix::from_qb64(&record.common.prefix)?;
         let keeper = self.client.keepers().keeper_for(&Hab::Accepted(record))?;

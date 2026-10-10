@@ -26,8 +26,8 @@ use signify_acdc::ipex::{
 };
 use signify_acdc::issuance::issue_credential;
 use keri_protocol::event::Timestamp;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
 use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};

@@ -365,7 +365,7 @@ impl RandyKeyCreator {
 /// ```
 /// use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 /// use keri_cesr::crypto::verifier::KeyTransferability;
-/// use signify_keri::manager::{KeyCreator, KeyIndices, SaltyKeyCreator, Stem};
+/// use signify_keys::manager::{KeyCreator, KeyIndices, SaltyKeyCreator, Stem};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?;

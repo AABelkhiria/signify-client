@@ -11,8 +11,8 @@ use keri_protocol::event::kind::EventKind;
 use keri_protocol::serialization::{SadValue, SerializedEvent};
 use keria_types::api::KeyState;
 use proptest::prelude::*;
-use signify_keri::controller::{Agent, Controller, ControllerOptions};
-use signify_keri::manager::DerivationCost;
+use signify_keys::controller::{Agent, Controller, ControllerOptions};
+use signify_keys::manager::DerivationCost;
 
 /// The Base64 URL-safe alphabet a passcode draws from.
 const ALPHABET: &str = "[A-Za-z0-9_-]{21}";
@@ -334,7 +334,7 @@ proptest! {
         let rotation = controller
             .rotate_passcode(&second, std::slice::from_ref(&record))
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let Some((_, signify_keri::controller::ReEncryptedKeyState::Randy { signing_keys, .. })) =
+        let Some((_, signify_keys::controller::ReEncryptedKeyState::Randy { signing_keys, .. })) =
             rotation.re_encrypted.first()
         else {
             return Err(TestCaseError::fail("the randy record was not re-encrypted"));

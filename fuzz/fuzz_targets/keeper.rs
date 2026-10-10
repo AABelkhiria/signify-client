@@ -13,8 +13,8 @@
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use libfuzzer_sys::fuzz_target;
-use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
-use signify_keri::manager::{
+use signify_keys::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
+use signify_keys::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, ManagedSignatures,
     ManagerError, RandyKeeperRequest, SaltyKeeper, SignatureForm, SigningPurpose, Stem,
 };

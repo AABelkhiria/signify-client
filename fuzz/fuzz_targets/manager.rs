@@ -15,7 +15,7 @@
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use libfuzzer_sys::fuzz_target;
-use signify_keri::manager::{
+use signify_keys::manager::{
     DerivationPath, InceptionRequest, KeyIndices, KeyManager, MAX_KEYS_PER_SET, MAX_STEM_BYTES, ManagerError,
     RotationKey, SaltyKeyCreator, SignatureForm, Stem,
 };

@@ -10,8 +10,8 @@ use keri_protocol::event::kind::EventKind;
 use keri_protocol::serialization::{SadValue, SerializedEvent};
 use keri_protocol::threshold::SigningThreshold;
 use proptest::prelude::*;
-use signify_keri::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
-use signify_keri::manager::DerivationCost;
+use signify_keys::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
+use signify_keys::manager::DerivationCost;
 
 fn salt() -> Result<Salt, TestCaseError> {
     Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).map_err(|error| TestCaseError::fail(error.to_string()))

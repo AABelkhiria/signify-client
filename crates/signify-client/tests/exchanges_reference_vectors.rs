@@ -23,7 +23,7 @@ use signify_client::endpoint::challenges::{CHALLENGE_RESPONSE_ROUTE, CHALLENGE_T
 use signify_client::endpoint::exchanges::{ExchangeDraft, MULTISIG_TOPIC, REGISTRY_TOPIC};
 use signify_client::error::ClientError;
 use signify_http::transport::Transport;
-use signify_keri::manager::DerivationCost;
+use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-exchanges/v1.json");

@@ -4,8 +4,8 @@
 //! anchor the event in the issuer's log, signed by its keeper.
 
 use keria_types::api::KeyState;
-use signify_keri::identifier::artifact::IdentifierArtifact;
-use signify_keri::manager::keeper::IdentifierKeeper;
+use signify_keys::identifier::artifact::IdentifierArtifact;
+use signify_keys::manager::keeper::IdentifierKeeper;
 
 pub use keri_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEvent, RevocationEventBuilder};
 

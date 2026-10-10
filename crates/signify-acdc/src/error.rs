@@ -8,8 +8,8 @@ use core::fmt;
 use std::error::Error;
 
 pub use keri_acdc::error::{IpexError, TransactionError};
-use signify_keri::identifier::IdentifierError;
-use signify_keri::manager::ManagerError;
+use signify_keys::identifier::IdentifierError;
+use signify_keys::manager::ManagerError;
 
 /// Stable failures of anchoring a transaction event through the issuer's keeper.
 #[derive(Debug)]

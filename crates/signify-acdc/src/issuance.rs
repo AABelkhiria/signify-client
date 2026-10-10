@@ -7,8 +7,8 @@
 use keri_acdc::ipex::Disclosure;
 use keri_protocol::attachment::{AttachmentFraming, SealSourceCouple};
 use keria_types::api::KeyState;
-use signify_keri::identifier::artifact::IdentifierArtifact;
-use signify_keri::manager::keeper::IdentifierKeeper;
+use signify_keys::identifier::artifact::IdentifierArtifact;
+use signify_keys::manager::keeper::IdentifierKeeper;
 
 pub use keri_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent};
 

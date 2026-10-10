@@ -697,7 +697,7 @@ dependencies = [
  "keri-cesr",
  "keri-protocol",
  "keria-types",
- "signify-keri",
+ "signify-keys",
 ]
 
 [[package]]
@@ -712,7 +712,7 @@ dependencies = [
  "serde_json",
  "signify-acdc",
  "signify-http",
- "signify-keri",
+ "signify-keys",
 ]
 
 [[package]]
@@ -727,7 +727,7 @@ dependencies = [
  "signify-acdc",
  "signify-client",
  "signify-http",
- "signify-keri",
+ "signify-keys",
 ]
 
 [[package]]
@@ -740,7 +740,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "signify-keri"
+name = "signify-keys"
 version = "0.0.0"
 dependencies = [
  "keri-cesr",

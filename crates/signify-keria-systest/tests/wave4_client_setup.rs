@@ -21,8 +21,8 @@ use signify_client::config::ClientConfig;
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::retry::TokioClock;
 use signify_http::transport::{HttpTransport, RequestUrl, Transport};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keria_systest::{Environment, Recorder, progress, record, wait_and_delete};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 
 const PINNED_PASSCODE_UPSTREAM: &str = "0ADF2TpptgqcDE5IQUF1HeTp";
 const PINNED_PASSCODE: &str = "0ADF2TpptgqcDE5IQUF1H";

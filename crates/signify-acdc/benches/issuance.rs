@@ -21,8 +21,8 @@ use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuild
 use signify_acdc::issuance::{IssuanceEvent, issue_credential};
 use signify_acdc::revocation::RevocationEventBuilder;
 use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";

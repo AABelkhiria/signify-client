@@ -38,7 +38,7 @@ use keri_protocol::event::kind::EventKind;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::Sad;
-use signify_keri::identifier::IdentifierArtifact;
+use signify_keys::identifier::IdentifierArtifact;
 
 use crate::client::ConnectedClient;
 use crate::endpoint::body::sad_error;
@@ -238,8 +238,8 @@ mod tests {
 
     fn artifact(delegator: Option<&str>) -> Result<IdentifierArtifact, Box<dyn Error>> {
         use keri_cesr::crypto::salt::{Salt, SecurityTier};
-        use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-        use signify_keri::manager::{DerivationCost, KeeperFactory};
+        use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
+        use signify_keys::manager::{DerivationCost, KeeperFactory};
 
         let request = CreateIdentifierRequest {
             delegator: delegator.map(IdentifierPrefix::from_qb64).transpose()?,

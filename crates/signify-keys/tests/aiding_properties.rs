@@ -11,11 +11,11 @@ use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::KeyState;
 use proptest::prelude::*;
-use signify_keri::identifier::{
+use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,
 };
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
 
 const PASSCODE: &str = "0123456789abcdefghijk";
 
@@ -47,7 +47,7 @@ fn keeper_for(request: &CreateIdentifierRequest) -> Result<Box<dyn IdentifierKee
 
 /// The key state an incepted artifact's event describes, with optional overrides.
 fn state_of(
-    artifact: &signify_keri::identifier::IdentifierArtifact,
+    artifact: &signify_keys::identifier::IdentifierArtifact,
     mutate: impl FnOnce(&mut serde_json::Value),
 ) -> Result<KeyState, TestCaseError> {
     let event: serde_json::Value = serde_json::from_slice(artifact.event.raw()).map_err(fail)?;

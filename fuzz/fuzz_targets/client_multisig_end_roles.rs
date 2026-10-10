@@ -15,7 +15,7 @@
 use keria_types::api::{GroupMember, ReplyRecord};
 use libfuzzer_sys::fuzz_target;
 use signify_client::multisig::{member_agents, proposed_end_role};
-use signify_keri::identifier::end_role_reply;
+use signify_keys::identifier::end_role_reply;
 use keri_protocol::prefix::IdentifierPrefix;
 
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";

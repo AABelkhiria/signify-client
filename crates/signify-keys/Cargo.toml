@@ -1,5 +1,5 @@
 [package]
-name = "signify-keri"
+name = "signify-keys"
 version = "0.0.0"
 description = "Signify key management: keepers, identifier habitats, and the client identity"
 edition.workspace = true

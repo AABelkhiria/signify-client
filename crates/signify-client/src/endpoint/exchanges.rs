@@ -69,7 +69,7 @@ use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource, Hab};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
+use signify_keys::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};
@@ -474,7 +474,7 @@ impl<'client> Exchanges<'client> {
 
 /// Reads a message's attachment stream as the text the body carries it as.
 ///
-/// A CESR stream is text by definition and this one was produced by `signify-keri`, so a failure
+/// A CESR stream is text by definition and this one was produced by `signify-keys`, so a failure
 /// here would be a defect rather than hostile input; it is still typed rather than assumed.
 fn attachment_text(message: &SignedExchange) -> Result<&str, ClientError> {
     core::str::from_utf8(message.attachments()).map_err(|error| ClientError::Decode {

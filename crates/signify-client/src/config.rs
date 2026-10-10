@@ -10,7 +10,7 @@ use core::fmt;
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_protocol::prefix::IdentifierPrefix;
 use signify_http::request::BaseUrl;
-use signify_keri::manager::DerivationCost;
+use signify_keys::manager::DerivationCost;
 
 use crate::error::ClientError;
 

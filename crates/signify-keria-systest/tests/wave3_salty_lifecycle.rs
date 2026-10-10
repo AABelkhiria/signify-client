@@ -21,9 +21,9 @@ use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::identifiers::IdentifierUpdate;
 use signify_http::request::ItemRange;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
-use signify_keri::manager::DerivationCost;
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
+use signify_keys::manager::DerivationCost;
 
 const AID1_PASSCODE: &str = "0123456789abcdefghijk";
 const AID2_PASSCODE: &str = "0123456789lmnopqrstuv";

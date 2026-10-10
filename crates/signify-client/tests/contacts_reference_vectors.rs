@@ -22,7 +22,7 @@ use signify_client::endpoint::contacts::{
 use signify_client::error::ClientError;
 use signify_http::retry::{Clock, TestClock};
 use signify_http::transport::Transport;
-use signify_keri::manager::DerivationCost;
+use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-contacts/v1.json");

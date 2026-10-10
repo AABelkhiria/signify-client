@@ -11,7 +11,7 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
-use signify_keri::manager::{
+use signify_keys::manager::{
     InceptionRequest, KeyIndices, KeyManager, RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
 };
 
@@ -194,8 +194,8 @@ fn salt_placeholder() -> Salt {
 /// 64 MiB pass per key — which is what a deployed client actually pays. The ephemeral profile is
 /// measured alongside it to separate the bookkeeping from the derivation.
 fn benchmark_keepers(criterion: &mut Criterion) {
-    use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
-    use signify_keri::manager::{
+    use signify_keys::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
+    use signify_keys::manager::{
         DerivationCost, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, RandyKeeperRequest,
         SaltyKeeper, SigningPurpose,
     };

@@ -317,7 +317,7 @@ mod driven {
     use signify_client::error::ClientError;
     use signify_client::multisig::GroupEndRoleRequest;
     use signify_http::transport::Transport;
-    use signify_keri::manager::DerivationCost;
+    use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";

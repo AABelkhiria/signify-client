@@ -5,7 +5,7 @@
 //! keri-acdc builds every artifact unsigned and knows nothing about keepers or agents. This crate
 //! reads the issuer's [`KeyState`](keria_types::api::KeyState) as KERIA reports it, builds the
 //! artifact through keri-acdc, and signs it through an
-//! [`IdentifierKeeper`](signify_keri::manager::keeper::IdentifierKeeper). Submitting the result is
+//! [`IdentifierKeeper`](signify_keys::manager::keeper::IdentifierKeeper). Submitting the result is
 //! `signify-client`'s.
 
 #![forbid(unsafe_code)]

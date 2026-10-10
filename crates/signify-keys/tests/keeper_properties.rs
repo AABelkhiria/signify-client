@@ -10,8 +10,8 @@ use keri_cesr::crypto::signer::SignaturePlacement;
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use keria_types::api::KeyManagerState;
 use proptest::prelude::*;
-use signify_keri::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
-use signify_keri::manager::{
+use signify_keys::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
+use signify_keys::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, KeyAlgorithm,
     ManagedSignatures, ManagerError, RandyKeeperRequest, SaltyKeeper, SignatureForm, SigningPurpose, Stem,
 };

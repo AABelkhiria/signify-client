@@ -20,5 +20,5 @@ pub use signify_acdc as acdc_signing;
 pub use signify_client as client;
 /// HTTP transport and authentication.
 pub use signify_http as http;
-/// KERI protocol support.
-pub use signify_keri as keri;
+/// Signify key management: keepers, identifier habitats, and the client identity.
+pub use signify_keys as keys;

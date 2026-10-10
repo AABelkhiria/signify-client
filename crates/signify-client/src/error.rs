@@ -25,9 +25,9 @@ use signify_http::response::ResponseError;
 use signify_http::signature::authentication::AuthenticationError;
 use signify_http::signature::transport::{ResponseAuthenticationError, SigningError};
 use signify_http::transport::TransportError;
-use signify_keri::controller::ControllerError;
-use signify_keri::identifier::IdentifierError;
-use signify_keri::manager::ManagerError;
+use signify_keys::controller::ControllerError;
+use signify_keys::identifier::IdentifierError;
+use signify_keys::manager::ManagerError;
 
 /// Largest response body detail kept in an error message, in bytes.
 const MAX_DETAIL_BYTES: usize = 256;

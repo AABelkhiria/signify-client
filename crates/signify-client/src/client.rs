@@ -47,8 +47,8 @@ use signify_http::signature::authentication::{RequestSigner, ResponseVerifier};
 use signify_http::signature::input::{RequestTarget, SIGNIFY_RESOURCE_HEADER_NAME};
 use signify_http::signature::transport::{Freshness, ResponseAuthenticator, SigningTransport};
 use signify_http::transport::{Method, Request, RequestUrl, Response, StatusCode, Transport};
-use signify_keri::controller::{Agent, Controller, ControllerOptions, PasscodeRotation, ReEncryptedKeyState};
-use signify_keri::manager::{KeeperFactory, salt_from_passcode};
+use signify_keys::controller::{Agent, Controller, ControllerOptions, PasscodeRotation, ReEncryptedKeyState};
+use signify_keys::manager::{KeeperFactory, salt_from_passcode};
 
 use crate::config::{ClientConfig, Passcode};
 use crate::endpoint::challenges::Challenges;
@@ -268,7 +268,7 @@ impl SignifyClient {
             .map_err(sad_error)?;
         body.insert("sig", SadValue::Text(signature.qb64().map_err(ClientError::from)?))
             .map_err(sad_error)?;
-        body.insert("stem", SadValue::text(signify_keri::controller::CONTROLLER_STEM))
+        body.insert("stem", SadValue::text(signify_keys::controller::CONTROLLER_STEM))
             .map_err(sad_error)?;
         body.insert("pidx", SadValue::integer(BOOT_PREFIX_INDEX).map_err(sad_error)?)
             .map_err(sad_error)?;
@@ -786,7 +786,7 @@ impl ConnectedClient {
     /// passcode. Each one's material is opened with the old passcode's key, checked against the
     /// key state the agent reports for it, and sealed again under the **new** passcode's key —
     /// which the reference does not do, and which is the whole point of rotating. See
-    /// [`signify_keri::controller::rotation`] and ADR `0033`.
+    /// [`signify_keys::controller::rotation`] and ADR `0033`.
     ///
     /// **Nothing moves locally until the agent accepts.** The rotation is computed first, sent
     /// second, and adopted third: if the request fails, this client is exactly as it was and the

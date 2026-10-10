@@ -17,8 +17,8 @@ use signify_acdc::error::{AnchorError, TransactionError};
 use signify_acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
 use signify_acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
 use signify_acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 
 const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";

@@ -39,7 +39,7 @@ use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{GroupOperation, MultisigExchangeResource};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::identifier::IdentifierArtifact;
+use signify_keys::identifier::IdentifierArtifact;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{sad_error, text_array};

@@ -16,7 +16,7 @@ use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::serialization::{SadValue, SerializedEvent};
 use keria_types::api::{Hab, KeyState};
 use serde::Deserialize;
-use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions, ReEncryptedKeyState};
+use signify_keys::controller::{Agent, Controller, ControllerError, ControllerOptions, ReEncryptedKeyState};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-controller/v1.json");

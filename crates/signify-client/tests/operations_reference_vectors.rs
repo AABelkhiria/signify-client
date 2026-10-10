@@ -17,7 +17,7 @@ use signify_http::request::ResourcePath;
 use signify_http::retry::{Clock, TestClock};
 use signify_http::signature::transport::Freshness;
 use signify_http::transport::{Response, ScriptedTransport, StatusCode};
-use signify_keri::manager::DerivationCost;
+use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-operations/v1.json");

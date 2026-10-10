@@ -20,8 +20,8 @@ use keria_types::api::KeyState;
 use signify_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use signify_acdc::ipex::{IpexEnvelope, admit, agree, apply, grant, offer};
 use signify_acdc::issuance::issue_credential;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";

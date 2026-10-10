@@ -10,7 +10,7 @@ use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::error::ClientError;
 use signify_client::multisig::{member_agents, proposed_end_role};
-use signify_keri::identifier::end_role_reply;
+use signify_keys::identifier::end_role_reply;
 
 /// Qualified self-addressing prefixes to draw members and agents from.
 const PREFIXES: [&str; 6] = [

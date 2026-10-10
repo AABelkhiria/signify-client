@@ -121,8 +121,8 @@ mod live {
     use signify_http::retry::TokioClock;
     use signify_http::transport::RequestUrl;
     use signify_http::transport::{HttpTransport, Transport};
-    use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
-    use signify_keri::manager::DerivationCost;
+    use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
+    use signify_keys::manager::DerivationCost;
 
     use crate::preset::Environment;
     use crate::recorder::Recorder;

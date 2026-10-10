@@ -23,7 +23,7 @@ use keri_protocol::threshold::SigningThreshold;
 /// exactly one, and a delegator. Everything else is refused at construction.
 ///
 /// ```
-/// use signify_keri::controller::Agent;
+/// use signify_keys::controller::Agent;
 /// use keria_types::api::KeyState;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -26,8 +26,8 @@ use signify_client::endpoint::identifiers::{
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
 use signify_http::transport::{Method, Request, Transport};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
-use signify_keri::manager::DerivationCost;
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
+use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/client-identifiers/v1.json");

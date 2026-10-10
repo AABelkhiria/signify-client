@@ -9,7 +9,7 @@ use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
-use signify_keri::manager::{
+use signify_keys::manager::{
     DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, MAX_KEYS_PER_SET, MAX_STEM_BYTES,
     ManagedSignatures, ManagerError, RetiredKeyPolicy, RotationKey, RotationRequest, SaltyKeyCreator, SignatureForm,
     Stem,

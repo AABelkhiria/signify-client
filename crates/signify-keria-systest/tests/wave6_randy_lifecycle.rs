@@ -18,8 +18,8 @@ use serde::Serialize;
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_http::request::ItemRange;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 
 #[derive(Debug, Serialize)]
 struct EventCapture {

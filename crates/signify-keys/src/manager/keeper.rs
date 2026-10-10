@@ -24,7 +24,7 @@
 //!
 //! Every method on the reference's `IdentifierManager` is `async`, but nothing in the three
 //! implementations awaits anything: no key operation here performs I/O. `ARCHITECTURE.md` §4.4
-//! forbids `signify-keri` from acquiring an async runtime, so the trait is synchronous. An external
+//! forbids `signify-keys` from acquiring an async runtime, so the trait is synchronous. An external
 //! module backed by a network HSM has to bridge that itself; an asynchronous external contract, if
 //! one is ever needed, belongs with the client phases that own transport.
 //!

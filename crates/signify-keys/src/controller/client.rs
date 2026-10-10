@@ -127,8 +127,8 @@ impl DerivedKeys {
 ///
 /// ```
 /// use keri_cesr::crypto::salt::SecurityTier;
-/// use signify_keri::controller::{Controller, ControllerOptions};
-/// use signify_keri::manager::DerivationCost;
+/// use signify_keys::controller::{Controller, ControllerOptions};
+/// use signify_keys::manager::DerivationCost;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let controller = Controller::with_options(

@@ -451,8 +451,8 @@ impl RotateIdentifierRequest {
 ///
 /// ```
 /// use keri_cesr::crypto::salt::{Salt, SecurityTier};
-/// use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-/// use signify_keri::manager::{DerivationCost, KeeperFactory};
+/// use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
+/// use signify_keys::manager::{DerivationCost, KeeperFactory};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {

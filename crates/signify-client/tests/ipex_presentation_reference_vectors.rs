@@ -685,7 +685,7 @@ mod driven {
     use signify_client::config::ClientConfig;
     use signify_client::multisig::GroupDisclosureRequest;
     use signify_http::transport::Transport;
-    use signify_keri::manager::DerivationCost;
+    use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";

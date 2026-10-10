@@ -15,8 +15,8 @@
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use libfuzzer_sys::fuzz_target;
-use signify_keri::identifier::{Habery, HabitatRequest, IdentifierError};
-use signify_keri::manager::DerivationCost;
+use signify_keys::identifier::{Habery, HabitatRequest, IdentifierError};
+use signify_keys::manager::DerivationCost;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::SerializedEvent;
 use keri_protocol::threshold::SigningThreshold;

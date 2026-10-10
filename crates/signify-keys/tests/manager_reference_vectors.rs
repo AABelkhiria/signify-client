@@ -11,7 +11,7 @@ use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
-use signify_keri::manager::{
+use signify_keys::manager::{
     DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError, RotationKey,
     RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
 };
@@ -491,7 +491,7 @@ fn the_randy_creator_shape_matches() -> Result<(), Box<dyn Error>> {
     assert_eq!(shape.tier, "");
     assert_ne!(shape.note, "");
 
-    let keys = signify_keri::manager::RandyKeyCreator::new().create(shape.count, KeyTransferability::Transferable)?;
+    let keys = signify_keys::manager::RandyKeyCreator::new().create(shape.count, KeyTransferability::Transferable)?;
     assert_eq!(keys.len(), shape.count);
     assert!(keys.into_entries().iter().all(|(_, path)| path.is_none()));
     Ok(())

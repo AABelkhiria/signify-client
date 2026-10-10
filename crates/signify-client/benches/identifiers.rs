@@ -19,8 +19,8 @@ use signify_client::endpoint::identifiers::{
     EVENTS_SEGMENT, IDENTIFIER_RANGE_UNIT, IDENTIFIERS_SEGMENT, IdentifierUpdate,
 };
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-use signify_keri::manager::{DerivationCost, KeeperFactory};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
+use signify_keys::manager::{DerivationCost, KeeperFactory};
 
 const ALIAS: &str = "aid1";
 const AWKWARD_ALIAS: &str = "a name with ñ!";

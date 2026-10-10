@@ -21,8 +21,8 @@ use signify_client::client::ConnectedClient;
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence};
 use signify_client::endpoint::oobis::OobiResolution;
 use signify_http::transport::RequestUrl;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 
 #[derive(Debug, Serialize)]
 struct DelegatedStep {

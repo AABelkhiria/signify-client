@@ -17,11 +17,11 @@ use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::{Hab, KeyManagerState, KeyState, Role};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_keri::identifier::{
+use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierArtifact, IdentifierError, RotateIdentifierRequest,
     end_role_reply, incept_identifier, interact_identifier, location_scheme_reply, rotate_identifier, sign_reply,
 };
-use signify_keri::manager::{IdentifierKeeper, KeeperFactory, ManagerError};
+use signify_keys::manager::{IdentifierKeeper, KeeperFactory, ManagerError};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!("../../../fixtures/keri-aiding/v1.json");
@@ -258,7 +258,7 @@ fn creation_request(fixture: &Fixture, case: &CreationCase) -> Result<CreateIden
         tier: SecurityTier::Low,
         current_count: current,
         next_count: next,
-        cost: signify_keri::manager::DerivationCost::Production,
+        cost: signify_keys::manager::DerivationCost::Production,
     };
     let mut request = match case.name.as_str() {
         "salty_default" | "salty_witnessed" | "salty_delegated_with_data" => {

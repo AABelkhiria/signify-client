@@ -27,7 +27,7 @@ use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{Hab, Registry, RegistryOperation};
 use signify_http::request::ResourcePath;
 use signify_http::transport::Method;
-use signify_keri::identifier::interact_identifier;
+use signify_keys::identifier::interact_identifier;
 
 use crate::client::{ClientRequest, ConnectedClient};
 use crate::endpoint::body::{insert_algorithm, sad_error, stored_transferability, text_array};
@@ -132,7 +132,7 @@ pub struct CreatedRegistry {
     /// The issuer's interaction event anchoring it; the reference's `serder`.
     pub anchor: keri_protocol::event::KeyEvent,
     /// The issuer's signatures over that interaction event.
-    pub signatures: signify_keri::manager::ManagedSignatures,
+    pub signatures: signify_keys::manager::ManagedSignatures,
     response: Vec<u8>,
 }
 

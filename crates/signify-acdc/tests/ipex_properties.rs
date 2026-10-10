@@ -19,8 +19,8 @@ use signify_acdc::ipex::{
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, SCHEMA_LABEL, admit, agree, apply, grant, offer,
 };
 use signify_acdc::issuance::{IssuanceEvent, issue_credential};
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-use signify_keri::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";

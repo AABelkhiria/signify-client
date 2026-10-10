@@ -17,8 +17,8 @@ use keria_types::api::Role;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::identifiers::LocationSchemeRequest;
-use signify_keri::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keria_systest::{Environment, connect, progress, record, recorder, wait_and_delete};
+use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 
 const MAILBOX_URL: &str = "https://mymailbox.com";
 

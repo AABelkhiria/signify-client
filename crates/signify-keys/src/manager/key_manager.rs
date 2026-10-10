@@ -310,7 +310,7 @@ impl KeyManagerBuilder {
 ///
 /// ```
 /// use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-/// use signify_keri::manager::{InceptionRequest, KeyManager};
+/// use signify_keys::manager::{InceptionRequest, KeyManager};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?;

@@ -262,8 +262,8 @@ impl HaberyBuilder {
 /// ```
 /// use keri_cesr::crypto::salt::{Salt, SecurityTier};
 /// use keri_protocol::event::kind::EventKind;
-/// use signify_keri::identifier::{Habery, HabitatRequest};
-/// use signify_keri::manager::DerivationCost;
+/// use signify_keys::identifier::{Habery, HabitatRequest};
+/// use signify_keys::manager::DerivationCost;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?;

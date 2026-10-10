@@ -7,8 +7,8 @@
 use keri_protocol::event::exchange::ExchangeMessage;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::Sad;
-use signify_keri::manager::keeper::IdentifierKeeper;
-use signify_keri::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
+use signify_keys::manager::keeper::IdentifierKeeper;
+use signify_keys::manager::{ManagedSignatures, SignatureForm, SigningPurpose};
 
 pub use keri_acdc::ipex::{
     ANCHOR_EMBED, ATTRIBUTES_LABEL, CREDENTIAL_EMBED, Disclosure, ISSUANCE_EMBED, IpexEnvelope, IpexRoute,

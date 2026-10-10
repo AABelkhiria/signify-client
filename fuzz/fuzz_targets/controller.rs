@@ -17,8 +17,8 @@
 use keri_cesr::crypto::salt::SecurityTier;
 use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
-use signify_keri::controller::{Agent, Controller, ControllerError, ControllerOptions};
-use signify_keri::manager::DerivationCost;
+use signify_keys::controller::{Agent, Controller, ControllerError, ControllerOptions};
+use signify_keys::manager::DerivationCost;
 use keri_protocol::serialization::SerializedEvent;
 
 /// The fields of an agent key state the fuzzer replaces, selected by the first input byte.

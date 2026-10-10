@@ -6,7 +6,7 @@
 //! `interact`, `rotate`, `add_end_role`, `add_location_scheme`, and `members`.
 //!
 //! This ports the HTTP half of the pinned `src/keri/app/aiding.ts`. The artifacts themselves are
-//! Roadmap 4.6's, in `signify_keri::identifier`: this module supplies the keeper, assembles the
+//! Roadmap 4.6's, in `signify_keys::identifier`: this module supplies the keeper, assembles the
 //! request body around what that module returns, and addresses the resource. Nothing here builds
 //! an event.
 //!
@@ -38,7 +38,7 @@ use serde::de::DeserializeOwned;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
 use signify_http::transport::Method;
-use signify_keri::identifier::{
+use signify_keys::identifier::{
     CreateIdentifierRequest, IdentifierArtifact, RotateIdentifierRequest, SignedReply, end_role_reply,
     incept_identifier, interact_identifier, location_scheme_reply, rotate_identifier, sign_reply,
 };

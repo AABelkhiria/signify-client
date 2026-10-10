@@ -7,8 +7,8 @@
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use signify_keri::identifier::{Habery, HabitatRequest};
-use signify_keri::manager::DerivationCost;
+use signify_keys::identifier::{Habery, HabitatRequest};
+use signify_keys::manager::DerivationCost;
 
 fn registry(cost: DerivationCost) -> Option<Habery> {
     let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).ok()?;

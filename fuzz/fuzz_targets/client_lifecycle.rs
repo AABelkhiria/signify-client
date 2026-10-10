@@ -25,7 +25,7 @@ use signify_client::error::ClientError;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, TestClock};
 use signify_http::transport::{Response, ScriptedTransport, StatusCode};
-use signify_keri::manager::DerivationCost;
+use signify_keys::manager::DerivationCost;
 
 const ADMIN: &str = "http://127.0.0.1:3901";
 const BOOT: &str = "http://127.0.0.1:3903";

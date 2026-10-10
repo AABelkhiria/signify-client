@@ -66,7 +66,7 @@ the recorded paths are the ones a real deployment sees.
   but `Schemas.get` does not, so a misrouted or substituted answer is returned unchallenged.
   **Reproduced rather than fixed**, and a test demonstrates it: asking for one SAID and answering
   with another succeeds on both sides. Inventing the check would diverge from the reference for a
-  guarantee only digest verification can actually give, which is `signify-keri::said`'s job and not
+  guarantee only digest verification can actually give, which is `keri-protocol::said`'s job and not
   an endpoint's. The method's own documentation tells a caller to make it.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.
