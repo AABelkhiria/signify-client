@@ -184,7 +184,7 @@ impl<'client> Ipex<'client> {
 
 /// Reads a message's attachment stream as the text the body carries it as.
 ///
-/// A CESR stream is text by definition and this one was produced by `signify-acdc`, so a failure
+/// A CESR stream is text by definition and this one was produced by `keri-acdc`, so a failure
 /// here would be a defect rather than hostile input; it is still typed rather than assumed.
 fn attachment_text(message: &IpexMessage) -> Result<&str, ClientError> {
     core::str::from_utf8(message.attachments()).map_err(|error| ClientError::Decode {

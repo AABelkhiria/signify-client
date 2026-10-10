@@ -6,7 +6,7 @@
 //! anchoring it in the issuer's key event log.
 //!
 //! This ports `Credentials` from the pinned `src/keri/app/credentialing.ts`. The artifacts
-//! themselves are Roadmap 6.1's and 6.2's, in `signify_acdc`: this module supplies the keeper,
+//! themselves are `keri-acdc`'s, signed through `signify_acdc`: this module supplies the keeper,
 //! assembles the request body around what those modules return, and addresses the resource.
 //! Nothing here builds a credential or an event.
 //!
