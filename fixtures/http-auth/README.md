@@ -18,16 +18,17 @@ node tools/reference-vectors/http_auth.mjs --check   # verify determinism
 
 ## The clock is pinned, so nothing is masked
 
-Roadmap 5.1, 5.3, and 5.4's fixtures all had to record `Signature`, `Signature-Input`, and
-`Signify-Timestamp` as `masked: true` with a null value, because each is a clock reading or covers
-one. **This generator replaces `globalThis.Date`** with a subclass whose no-argument constructor
-returns a fixed instant (`1700000000123`, or `2023-11-14T22:13:20.123Z`), so the entire pipeline
-becomes deterministic and all three are recorded with their exact bytes.
+The `http-transport`, `http-request-response`, and `http-retry` fixtures all had to record
+`Signature`, `Signature-Input`, and `Signify-Timestamp` as `masked: true` with a null value, because
+each is a clock reading or covers one. **This generator replaces `globalThis.Date`** with a subclass
+whose no-argument constructor returns a fixed instant (`1700000000123`, or
+`2023-11-14T22:13:20.123Z`), so the entire pipeline becomes deterministic and all three are recorded
+with their exact bytes.
 
-That makes this the first byte-exact evidence for the **composed** request. Roadmap 3.10 verified
-`siginput` and `Authenticater` in isolation with `created` supplied as a parameter; what is proven
-here is everything `SignifyClient.fetch` does around them — stamp the resource and the timestamp,
-declare the content type, sign, and then check the response.
+That makes this the first byte-exact evidence for the **composed** request. The `authing` port
+verified `siginput` and `Authenticater` in isolation with `created` supplied as a parameter; what is
+proven here is everything `SignifyClient.fetch` does around them — stamp the resource and the
+timestamp, declare the content type, sign, and then check the response.
 
 ## What the fixture holds
 
@@ -66,12 +67,12 @@ declare the content type, sign, and then check the response.
   request, and nothing signed covers what was sent. Reproduced; inventing a body digest would
   produce a signature KERIA cannot verify.
 - **Signature headers are appended, not set.** `sign` uses `headers.append`, so signing the same
-  collection twice yields two comma-joined values instead of an error. Roadmap 3.9's `Headers`
-  refuses a duplicate name, so a request signed twice does not build.
+  collection twice yields two comma-joined values instead of an error. `keri-http-auth`'s
+  `Headers` refuses a duplicate name, so a request signed twice does not build.
 - **A missing header and a bad signature are the same outcome.** `verify` returns `false` for an
   absent header and throws for an invalid signature, and `SignifyClient.fetch` collapses both into
   the single message `response verification failed`. Each is a distinct typed error in Rust, as
-  Roadmap 3.10 already decided.
+  request authentication already decided.
 - **The resource check is an equality on an untyped header.**
   `this.agent?.pre === res.headers.get('signify-resource')` compares a prefix against a raw header,
   so an absent header compares against `null` and a client with no agent compares `undefined` —

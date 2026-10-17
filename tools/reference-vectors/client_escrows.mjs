@@ -1,23 +1,23 @@
 // Records the pinned signify-ts checkout's escrows endpoint.
 //
-// Roadmap 7.6 ports the whole of `src/keri/app/escrowing.ts`: one class with one method,
+// This fixture ports the whole of `src/keri/app/escrowing.ts`: one class with one method,
 // `Escrows.listReply`, and one type alias, `Rpy`. An escrow is a message the agent received but
 // could not yet accept — a reply whose signer it cannot verify, or whose prior it has not seen —
 // and this is the only window the reference offers onto one.
 //
 // `Escrows` takes a whole `SignifyClient`, as `Config`, `KeyEvents`, and `KeyStates` do, so this
-// generator drives the reference the way Roadmap 6.8's did: `globalThis.fetch` is replaced with a
-// recorder that answers and signs as a KERIA agent would, and the real client is walked through
-// boot, connect, and each call.
+// generator drives the reference the way `client_config.mjs` does: `globalThis.fetch` is replaced
+// with a recorder that answers and signs as a KERIA agent would, and the real client is walked
+// through boot, connect, and each call.
 //
 // Two things make the evidence here worth recording rather than assuming.
 //
 // The **request** carries exactly one caller value, and it is a query parameter rather than a path
-// component — so unlike Roadmap 7.1's `Oobis`, which interpolates four values raw, this one builds
-// its query with `URLSearchParams` and the value *is* encoded. The pinned unit test asserts the
-// encoded form directly, which makes it the clearest statement in the pinned tree that the two
-// implementations agree here. The generator drives eight routes, including the ones that would
-// climb, inject, or split if they were not encoded.
+// component — so unlike `Oobis`, which interpolates four values raw, this one builds its query with
+// `URLSearchParams` and the value *is* encoded. The pinned unit test asserts the encoded form
+// directly, which makes it the clearest statement in the pinned tree that the two implementations
+// agree here. The generator drives eight routes, including the ones that would climb, inject, or
+// split if they were not encoded.
 //
 // The **answer** is `res.json()` cast to `Rpy[]`, so an agent's escrow listing is whatever it says
 // it is. The generator records five answers of shapes the reference accepts unchecked, and builds
@@ -40,7 +40,7 @@ await libsodium.ready;
 
 const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
-/** The scoped secondary reference (`PORTING.md` §1.1, ADR `0009`), read only as corroboration. */
+/** The scoped secondary reference, read only as corroboration. */
 const keripySha = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 
 /** The passcode and URLs the pinned `escrowing.test.ts` publishes. */
@@ -249,9 +249,9 @@ const declarations = {
   exchanging_imports_rpy: firstText(exchanging.source, (node) => ts.isImportDeclaration(node) && node.getText().includes("escrowing")),
   notes: {
     query:
-      "the query is built with `URLSearchParams`, so the one caller value in this file *is* encoded — the opposite of what Roadmap 7.1 found in `Oobis.get`, which interpolates four values raw into the same position",
+      "the query is built with `URLSearchParams`, so the one caller value in this file *is* encoded — the opposite of what `client-oobis` found in `Oobis.get`, which interpolates four values raw into the same position",
     bare_question_mark:
-      "the path concatenates `'?' + params.toString()` unconditionally, so a listing with no route addresses `/escrows/rpy?` — the same bare question mark ADR `0028` argued about for an unfiltered `/operations` listing",
+      "the path concatenates `'?' + params.toString()` unconditionally, so a listing with no route addresses `/escrows/rpy?` — the same bare question mark an unfiltered `/operations` listing carries",
     absent_versus_empty:
       "the guard is `route !== undefined`, so an empty string is a route: `listReply('')` asks for `?route=` and `listReply()` asks for nothing at all",
     response:
@@ -275,7 +275,7 @@ if (declarations.escrows_members.join(",") !== "client,<constructor>,listReply")
 }
 
 // ---------------------------------------------------------------------------
-// 1b. keripy, as corroboration only (`PORTING.md` §1.1, ADR `0009`).
+// 1b. keripy, as corroboration only.
 // ---------------------------------------------------------------------------
 //
 // signify-ts names one escrow route and only in a test, so the vocabulary question cannot be
@@ -350,7 +350,7 @@ const keripyCorroboration = {
   presentation_request_is_a_reply_route: keripyReplyRoutes.includes(PINNED_ROUTE),
   note: "keripy's `Revery.escrowReply` is the escrow this endpoint reads out of, and its three `registerReplyRoutes` methods declare every route a reply may carry. `/presentation/request` is not among them: it appears in keripy once, in a specification document, as the route of an **`exn`**. So the one literal signify-ts offers is not evidence about reply escrows at all, which is the strongest form of the reason this port does not turn the filter into an enum.",
   scoping:
-    "corroboration only. `PORTING.md` §1.1 scopes keripy to capabilities signify-ts cannot emit; this is not one, so signify-ts governs every byte here and keripy is read for context (ADR `0009`), exactly as Roadmap 7.4 and 7.5 read it.",
+    "corroboration only. keripy is consulted only for capabilities signify-ts cannot emit; this is not one, so signify-ts governs every byte here and keripy is read for context, exactly as `client-challenges` and `client-notifications` read it.",
 };
 
 if (keripyCorroboration.reply_routes.length === 0) {
@@ -361,7 +361,7 @@ if (keripyCorroboration.presentation_request_is_a_reply_route) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -529,7 +529,7 @@ await drive("loc_scheme_route", "the other reply route the reference produces", 
 
 await drive(
   "route_with_query_delimiters",
-  "a route holding `&` and `=`, which `URLSearchParams` escapes — so unlike Roadmap 7.1's `Oobis.get` no second parameter can be injected here",
+  "a route holding `&` and `=`, which `URLSearchParams` escapes — so unlike `Oobis.get` no second parameter can be injected here",
   ["a&b=c"],
   [],
 );
@@ -631,7 +631,7 @@ const quirks = {
     request: called("no_route")?.request ?? null,
     note: "`path` concatenates `'?' + params.toString()` unconditionally, so a listing with no route addresses `/escrows/rpy?`",
     rust_decision:
-      "not reproduced, on ADR `0028`'s three grounds: Roadmap 3.10 strips the query before signing so the signed path is identical either way, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell a bare `?` without a knob whose only users would be this call and three others like it. Roadmap 9.2 owes it a live confirmation.",
+      "not reproduced, on the same three grounds as an unfiltered `/operations` listing: request signing strips the query so the signed path is identical either way, an empty query is not a distinguishable resource, and the request builder cannot spell a bare `?` without a knob whose only users would be this call and three others like it. A live KERIA run still owes it a confirmation.",
   },
   the_answer_is_never_validated: {
     declaration: declarations.list_reply_return,
@@ -640,14 +640,14 @@ const quirks = {
     incomplete: called("incomplete_answer")?.result ?? null,
     note: "`listReply` returns `res.json()` cast to `Rpy[]`, so an object, a list of inception events, and a reply with no timestamp are all handed to the caller as escrowed replies. `Rpy` types `t` as a bare `string`, so even a correct-looking cast would not have caught the first.",
     rust_decision:
-      "decoded into `Vec<ReplyRecord>`, whose `t` is Roadmap 4.1's `ReplyIlk` marker — so a message that is not a reply is refused rather than counted as one. All three recorded answers are proven refused.",
+      "decoded into `Vec<ReplyRecord>`, whose `t` is the `ReplyIlk` marker — so a message that is not a reply is refused rather than counted as one. All three recorded answers are proven refused.",
   },
   an_undeclared_field_is_kept: {
     answer: called("unknown_field_answer")?.answer ?? null,
     result: called("unknown_field_answer")?.result ?? null,
     note: "`res.json()` returns whatever the agent sent, so a field the schema does not declare survives into the caller's value",
     rust_decision:
-      "ignored, which is Roadmap 4.1's rule for a schema with no index signature (ADR `0012`). A reply's own attribute block `a` is open and *is* captured, because the schema types it `unknown`.",
+      "ignored, which is the rule for a schema with no index signature. A reply's own attribute block `a` is open and *is* captured, because the schema types it `unknown`.",
   },
   the_route_is_encoded: {
     declaration: declarations.list_reply_params,
@@ -657,7 +657,7 @@ const quirks = {
       arguments: called(name)?.arguments ?? null,
       path: called(name)?.request?.path ?? null,
     })),
-    note: "the query is built with `URLSearchParams`, so `&`, `=`, `/`, and a space are all escaped — this file agrees with the port, which is worth pinning because Roadmap 7.1 found the opposite in the same position in `Oobis.get`, and Roadmap 7.3 found this same agreement in `Contacts.list`",
+    note: "the query is built with `URLSearchParams`, so `&`, `=`, `/`, and a space are all escaped — this file agrees with the port, which is worth pinning because `client-oobis` found the opposite in the same position in `Oobis.get`, and `client-contacts` found this same agreement in `Contacts.list`",
     rust_decision: "reproduced exactly; a route reaches the query encoded once and can add no second parameter",
   },
   an_empty_route_is_a_route: {
@@ -678,7 +678,7 @@ const quirks = {
     },
     note: "the pinned tree names exactly one escrow route and only inside a unit test; the two reply routes the reference actually produces are never used to filter an escrow. keripy, which is where the escrow lives, declares the routes a reply may carry — and `/presentation/request` is not one of them, appearing there as the route of an `exn` in a specification document.",
     rust_decision:
-      "the route stays borrowed text rather than becoming an enum, which is the decision Roadmap 3.6 already took for `ReplyBuilder`'s own route and for the same reason: there is no closed set to enumerate. Roadmap 8.1's typed route table covers *exchange* routes, which these are not.",
+      "the route stays borrowed text rather than becoming an enum, which is the decision already taken for `ReplyBuilder`'s own route and for the same reason: there is no closed set to enumerate. The typed exchange route table covers *exchange* routes, which these are not.",
   },
 };
 

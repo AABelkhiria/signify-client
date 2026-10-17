@@ -30,7 +30,7 @@
       "error": "the operation \"query.EPmZdO4cx1c8pnfZzc6xeLeyyxiCSaBtU-4GtHwNFUyt.16\" was still running after 11 attempts over 21.597628375s: the total deadline elapsed"
     }
   ],
-  "conclusion": "**Hexadecimal.** Against a log of 11 events (sequences 0 through 10), `a` resolved and answered about event Some(\"a\"), while `10` never resolved (the operation \"query.EPmZdO4cx1c8pnfZzc6xeLeyyxiCSaBtU-4GtHwNFUyt.10\" was still running after 11 attempts over 29.155725333s: the total deadline elapsed). Read as hexadecimal, `a` is event 10 — which exists — and `10` is event 16, which does not; read as decimal the two swap, and the opposite spelling would have resolved. So this deployment reads the query's `sn` in base sixteen. ADR `0030` still keeps both variants and no default: one deployment is evidence about that deployment, not a licence to choose for every caller.",
+  "conclusion": "**Hexadecimal.** Against a log of 11 events (sequences 0 through 10), `a` resolved and answered about event Some(\"a\"), while `10` never resolved (the operation \"query.EPmZdO4cx1c8pnfZzc6xeLeyyxiCSaBtU-4GtHwNFUyt.10\" was still running after 11 attempts over 29.155725333s: the total deadline elapsed). Read as hexadecimal, `a` is event 10 — which exists — and `10` is event 16, which does not; read as decimal the two swap, and the opposite spelling would have resolved. So this deployment reads the query's `sn` in base sixteen. `QuerySequence` still keeps both variants and no default: one deployment is evidence about that deployment, not a licence to choose for every caller.",
   "transcript": [
     {
       "sequence": 0,

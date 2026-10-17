@@ -90,7 +90,7 @@
     "derived_event": "{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EL3Ur82_CUqNtGL6IUVJzPEx6nJciS1b9cNfVXuHupYs\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"2\",\"p\":\"EBQABdRgaxJONrSLcgrdtbASflkvLxJkiDO0H-XmuhGg\",\"a\":[{\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\",\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"}]}",
     "derived_said": "EL3Ur82_CUqNtGL6IUVJzPEx6nJciS1b9cNfVXuHupYs",
     "agent_event": "{\"a\":[{\"d\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"s\":\"0\"}],\"d\":\"EL3Ur82_CUqNtGL6IUVJzPEx6nJciS1b9cNfVXuHupYs\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"p\":\"EBQABdRgaxJONrSLcgrdtbASflkvLxJkiDO0H-XmuhGg\",\"s\":\"2\",\"t\":\"ixn\",\"v\":\"KERI10JSON00013a_\"}",
-    "note": "upstream anchors the bare string [icp.pre]; anchors here are typed Vec<Sad> (Roadmap 4.6), so this run anchors a seal of the same inception and the SAID differs by design"
+    "note": "upstream anchors the bare string [icp.pre]; anchors here are typed Vec<Sad>, so this run anchors a seal of the same inception and the SAID differs by design"
   },
   "state": {
     "sequence": "2",

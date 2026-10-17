@@ -20,7 +20,7 @@ node tools/reference-vectors/client_identifiers.mjs --check   # verify determini
 
 Two things are pinned to make this reproducible.
 
-The **clock**, as Roadmap 5.5's and 6.4's fixtures pinned it, so the signature
+The **clock**, as the `http-auth` and `client-lifecycle` fixtures pinned it, so the signature
 `createSignedRequest` produces is exact rather than masked.
 
 **Sealed salts are masked.** A salty keeper seals its salt with a fresh ephemeral key on every
@@ -28,7 +28,7 @@ call, so its `sxlt` differs run to run. Every occurrence in a recorded body is r
 `<SXLT>` and the salt it opens to is recorded beside it in `sxlt_opens_to`. The Rust test does the
 same to its own body before comparing, and asserts each sealed value opens to the recorded salt —
 so the comparison is byte for byte everywhere except the ciphertext, which cannot be pinned by
-construction. Roadmap 4.5 established that convention.
+construction. The `keri-controller` fixture established that convention.
 
 **Randy material is recorded by shape.** Random keys cannot be pinned, so `randy_shape` and
 `randy_reload_shape` record the field set, counts, and the transferability written back rather than
@@ -39,19 +39,19 @@ several seconds.
 
 ## What the evidence is
 
-Roadmap 6.6 ports the HTTP half of `aiding.ts` — everything `list`, `get`, `update`, `create`,
+This port covers the HTTP half of `aiding.ts` — everything `list`, `get`, `update`, `create`,
 `interact`, `rotate`, `addEndRole`, `addLocScheme`, and `members` do around the artifacts
-Roadmap 4.6 already verified — together with the `EventResult` class and
-`SignifyClient.createSignedRequest`, which `PORTING.md` §5.6 assigns here.
+the `keri-aiding` fixture already verified — together with the `EventResult` class and
+`SignifyClient.createSignedRequest`, which reaches an identifier's keeper.
 
-As with Roadmap 6.5's fixture, this one **drives the reference** rather than re-expressing it.
-`Identifier` takes an `IdentifierDeps` — one `fetch` method, a `pidx`, and a manager — so the
-generator hands the real class a recorder, exactly as the pinned `aiding.test.ts` does, and every
-request it makes is captured.
+As with the `client-operations` fixture, this one **drives the reference** rather than
+re-expressing it. `Identifier` takes an `IdentifierDeps` — one `fetch` method, a `pidx`, and a
+manager — so the generator hands the real class a recorder, exactly as the pinned `aiding.test.ts`
+does, and every request it makes is captured.
 
 `createSignedRequest` needs a whole connected client, so the second half of the generator replaces
-`globalThis.fetch` and pins the agent's key as Roadmap 6.4's fixture did, and drives the real
-`SignifyClient` through `connect` and then the signing call.
+`globalThis.fetch` and pins the agent's key as the `client-lifecycle` fixture did, and drives the
+real `SignifyClient` through `connect` and then the signing call.
 
 `declarations` holds the nine path expressions, the `Range` header, the two body literals, the
 `pidx` increment, the `EventResult` members, and all three keeper `params()` literals, read out of
@@ -78,16 +78,18 @@ every `/identifiers…` path `aiding.test.ts` asserts is produced here by the re
 - **Only two of seven paths encode their name.** `get` and `update` call `encodeURIComponent`;
   `interact`, `rotate`, `addEndRole`, `addLocScheme`, and `members` concatenate the alias raw, so
   `interact("a/b", …)` addresses `/identifiers/a/b/events` — a different resource, and, because
-  Roadmap 3.10 signs `@path`, a different signed path. **Refused by construction**: Roadmap 5.3's
-  `ResourcePath` encodes every dynamic component exactly once and offers no way to skip it.
+  request authentication signs `@path`, a different signed path. **Refused by construction**: the
+  request builder's `ResourcePath` encodes every dynamic component exactly once and offers no way
+  to skip it.
 - **A listing's window is unvalidated.** `list(start, end)` interpolates both into
-  `aids=${start}-${end}` with no checks at all. Roadmap 5.3's `ItemRange` carries unsigned integers
-  and validates `start ≤ end` at construction, so an unsatisfiable window is unrepresentable.
+  `aids=${start}-${end}` with no checks at all. The request builder's `ItemRange` carries unsigned
+  integers and validates `start ≤ end` at construction, so an unsatisfiable window is
+  unrepresentable.
 - **An absent `content-range` reads as `{0, 0, 0}`**, so a listing carrying entries reports a total
-  of zero. **Not reproduced**: the window is an `Option`, which Roadmap 5.3 already decided.
+  of zero. **Not reproduced**: the window is an `Option`, which the request builder already decided.
 - **`requireKeyState` is a boolean parameter with three overloads**, and throws
   `No key state for identifier <name>`. Two methods here instead: `get` returns an `AcceptedHab`
-  and `get_any` returns Roadmap 4.1's `Hab`, whose pending variant has no key state to demand.
+  and `get_any` returns the shared `Hab` type, whose pending variant has no key state to demand.
 - **A body's optional fields are dropped rather than nulled.** The literal always names `proxy`,
   `smids`, and `rmids`, but `JSON.stringify` drops an `undefined` value. Reproduced exactly: a
   non-group creation without a proxy sends four fields and a group creation sends seven.
@@ -97,8 +99,9 @@ every `/identifiers…` path `aiding.test.ts` asserts is produced here by the re
 - **A non-transferable record stores the prefix code as its digest code.** `create` reuses one
   `dcode` variable for the prefix derivation and for the stored digest code, so the record names
   `B` in the field that says which digest algorithm commits to the next keys. **Not reproduced**:
-  Roadmap 4.6 recorded this and stores the digest actually used (`E`). This is the **only field in
-  any recorded body that differs**, and the cross-language test asserts it is exactly one field.
+  the `keri-aiding` fixture recorded this and stores the digest actually used (`E`). This is the
+  **only field in any recorded body that differs**, and the cross-language test asserts it is
+  exactly one field.
 - **A randy keeper writes a field the schema does not declare.** `params()` returns
   `{nxts, prxs, transferable}` while `RandyKeyState` declares only the first two; on reload the
   reference reads transferability from the identifier's *prefix* instead. Reproduced from the same
@@ -112,7 +115,7 @@ every `/identifiers…` path `aiding.test.ts` asserts is produced here by the re
 - **`createSignedRequest` mutates the caller's `RequestInit` in place.** The Rust method takes a
   built request and returns a new one.
 - **`test-utils.ts`'s `createMockIdentifierState` names two key managers**, writing
-  `extern: extern ?? {}` beside the algorithm's own field. Roadmap 4.1's `Hab` requires exactly
+  `extern: extern ?? {}` beside the algorithm's own field. The shared `Hab` type requires exactly
   one, so the reference's own test utility produces records this port refuses; the records here
   name one, as a KERIA response does.
 

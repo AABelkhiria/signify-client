@@ -1061,7 +1061,7 @@
     "path": "/identifiers/chosen-by-the-agent/credentials",
     "method": "POST",
     "requests": 2,
-    "note": "`issue` interpolates `hab.name`, the alias the agent answered with, so the resource the credential is posted to — and the path Roadmap 3.10 signs — is chosen by the server rather than by the caller"
+    "note": "`issue` interpolates `hab.name`, the alias the agent answered with, so the resource the credential is posted to — and the path request authentication signs — is chosen by the server rather than by the caller"
   },
   "issue_establishment_only": {
     "identifier_configuration": [
@@ -1310,8 +1310,8 @@
         "issue": "path = `/identifiers/${hab.name}/credentials`",
         "revoke": "path = `/identifiers/${name}/credentials/${said}`"
       },
-      "note": "five of the six methods interpolate their arguments raw — seven dynamic values in all — so a SAID holding `/`, `?`, or `#` addresses a different resource, and Roadmap 3.10 signs `@path`, so it also changes what the signature commits to",
-      "rust_decision": "refused by construction: a SAID and a registry identifier are Roadmap 3.3's and 6.1's validated types, which cannot hold a delimiter, and Roadmap 5.3's `ResourcePath` encodes an alias exactly once"
+      "note": "five of the six methods interpolate their arguments raw — seven dynamic values in all — so a SAID holding `/`, `?`, or `#` addresses a different resource, and request authentication signs `@path`, so it also changes what the signature commits to",
+      "rust_decision": "refused by construction: a SAID and a registry identifier are validated types, which cannot hold a delimiter, and `ResourcePath` encodes an alias exactly once"
     },
     "issue_addresses_the_agents_own_alias": {
       "detail": {
@@ -1320,7 +1320,7 @@
         "path": "/identifiers/chosen-by-the-agent/credentials",
         "method": "POST",
         "requests": 2,
-        "note": "`issue` interpolates `hab.name`, the alias the agent answered with, so the resource the credential is posted to — and the path Roadmap 3.10 signs — is chosen by the server rather than by the caller"
+        "note": "`issue` interpolates `hab.name`, the alias the agent answered with, so the resource the credential is posted to — and the path request authentication signs — is chosen by the server rather than by the caller"
       },
       "expression": "path = `/identifiers/${hab.name}/credentials`",
       "note": "`issue` posts to `/identifiers/${hab.name}/credentials`, where `hab` is the record the **agent** answered with — so a server that answers under a different alias chooses the resource the credential is written to and the path the request's signature covers",
@@ -1331,7 +1331,7 @@
       "anchoring_identifier": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
       "expression": "[, acdc] = Saider.saidify({ v: versify(Protocols.ACDC, undefined, Serials.JSON, 0), d: '', u: args.u, i: args.i ?? hab.prefix, ri: args.ri, s: args.s, a: subject, e: args.e, r: args.r, })",
       "note": "the credential's issuer is `args.i ?? hab.prefix`, and nothing compares a supplied one with the identifier whose keeper signs the anchor — so a credential can claim an issuer whose key event log contains no anchor for it, which no verifier can ever resolve",
-      "rust_decision": "refused: the credential arrives already built (Roadmap 6.1), so its issuer is compared with the identifier being used to anchor it and a mismatch is a typed refusal before anything is signed"
+      "rust_decision": "refused: the credential arrives already built, so its issuer is compared with the identifier being used to anchor it and a mismatch is a typed refusal before anything is signed"
     },
     "revoke_reads_its_registry_from_the_server": {
       "detail": {
@@ -1349,7 +1349,7 @@
       "lookup": "if ('ri' in cred.sad && cred.sad.ri !== undefined) { registryId = cred.sad.ri; } else if ('rd' in cred.sad && cred.sad.rd !== undefined) { registryId = cred.sad.rd; } else { throw new Error('Neither ri nor rd property found in credential'); }",
       "rev": "_rev = { v: vs, t: Ilks.rev, d: '', i: said, s: '1', ri: registryId, p: cred.status.d, dt: dt, }",
       "note": "`revoke` fetches the credential to learn both the registry it commits to and the prior digest it supersedes, so a revocation cannot be built offline and both values are the agent's rather than the caller's; the sequence number is the literal `'1'`, wrong in any registry whose log has moved on",
-      "rust_decision": "the revocation event is an input built by Roadmap 6.2, where all three are ordinary values defaulting to the reference's; the endpoint sends it and looks up nothing"
+      "rust_decision": "the revocation event is an input built by the `revocation` module, where all three are ordinary values defaulting to the reference's; the endpoint sends it and looks up nothing"
     },
     "get_returns_two_unrelated_types": {
       "json": "application/json",
@@ -1462,7 +1462,7 @@
         }
       },
       "note": "`get`, `list`, and `state` all return `res.json()` cast to a generated type, so whatever the agent sends is read as a credential. The reference's own `mockCredential` proves the gap: it is missing seven of the eleven fields `Credential` declares, carries two the schema does not, and its status has no `vn` at all — and `Credentials.get` hands it over as a credential",
-      "rust_decision": "decoded rather than cast, as Roadmap 6.8 and 6.10 decided; the recorded mock is proven refused, and a well-formed record beside it is proven accepted"
+      "rust_decision": "decoded rather than cast, as the config and schemas endpoints decided; the recorded mock is proven refused, and a well-formed record beside it is proven accepted"
     },
     "a_listing_writes_every_field_it_was_not_given": {
       "defaults": {
@@ -1494,7 +1494,7 @@
       "declaration": "estOnly = hab.state.c !== undefined && hab.state.c.includes('EO')",
       "thrown": "throw new Error('Establishment only not implemented');",
       "note": "`issue` refuses an establishment-only identifier by throwing a string, and `revoke` declares the same `estOnly` flag twice with `var` in one scope before doing the same",
-      "rust_decision": "a typed `ClientError::EstablishmentOnlyIssuer` checked before anything derives, which is Roadmap 6.2's and 6.9's decision applied again"
+      "rust_decision": "a typed `ClientError::EstablishmentOnlyIssuer` checked before anything derives, which is the decision the `issuance` module and the registries endpoint made, applied again"
     }
   }
 }

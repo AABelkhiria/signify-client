@@ -22,9 +22,9 @@ node tools/reference-vectors/client_passcode_rotation.mjs --check   # verify det
 
 ## What the evidence is
 
-Roadmap 8.9 ports `SignifyClient.rotate` — the client half of moving to a new passcode. The
-artifact half is Roadmap 4.5's `Controller.rotate`, recorded in `fixtures/keri-controller/`. This
-fixture adds the request that carries it and the comparison that decided what the port should do.
+This port covers `SignifyClient.rotate` — the client half of moving to a new passcode. The artifact
+half is `Controller.rotate`, recorded in `fixtures/keri-controller/`. This fixture adds the request
+that carries it and the comparison that decided what the port should do.
 
 ## The finding: the payload is sealed to the passcode being left behind
 
@@ -68,9 +68,8 @@ Its docstring: *"aeid may be different not empty which reencrypts."* So this is 
 choice signify-ts made differently — it is a defect against the protocol's own reference
 implementation, in the direction that does not work.
 
-**This port follows keripy.** Maintainer decision of 2026-08-27, recorded in ADR `0033`, closing
-`PORTING.md` §10's open row. The wire contract is unchanged: only the ciphertext differs, and the
-agent stores it opaquely.
+**This port follows keripy.** Maintainer decision of 2026-08-27. The wire contract is unchanged:
+only the ciphertext differs, and the agent stores it opaquely.
 
 ## Two smaller findings
 
@@ -82,9 +81,9 @@ keys, so the second rotation reveals the key the first pre-committed to — whic
 requires, and which the sealing fix depends on.
 
 **The rotation travels unsigned.** `rotate` calls the global `fetch` directly rather than the
-client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature —
-the same bypass Roadmap 6.4 recorded for the delegation approval and both passcode calls.
-Reproduced, because a signed request is not what KERIA expects here.
+client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature — the
+same bypass the `client-lifecycle` fixture recorded for the delegation approval and both passcode
+calls. Reproduced, because a signed request is not what KERIA expects here.
 
 ## Nothing upstream exercises any of it
 
@@ -104,8 +103,8 @@ Four assertions cover the rotation event and nothing else.
   `Encrypter`/`Decrypter` construction with the argument it is given, the pinned test's one call,
   and keripy's contrasting lines read from its own checkout.
 - `request` pins the exact `PUT`: its path, that the reference sends it unsigned (this port signs
-  it with the key the rotation introduces, ADR `0034`), its four body fields in order, and the
-  per-identifier shapes.
+  it with the key the rotation introduces), its four body fields in order, and the per-identifier
+  shapes.
 - `sealing` records what each of the three sealed values opens to, under each passcode.
 - `kel` holds the connected client's log as raw events with their signatures — the inception and
   the delegation-approval interaction the connection sent — and three rotations over it: the
@@ -116,7 +115,7 @@ Four assertions cover the rotation event and nothing else.
   own construction. `fixtures/client-passcode-rotation-keripy/` records keripy's verdict on each.
 - `reference_quirks` pins six behaviours, each with what the reference does and what this port
   does instead. The sixth, `the_rotation_always_claims_sequence_one`, is why a live KERIA answers
-  the reference's rotation with `500` (ADR `0034`).
+  the reference's rotation with `500`.
 
 ## Determinism
 

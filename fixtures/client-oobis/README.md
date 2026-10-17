@@ -18,16 +18,16 @@ node tools/reference-vectors/client_oobis.mjs --check   # verify determinism
 
 ## Determinism
 
-The clock and the agent's key are pinned, as Roadmap 6.4's fixture pinned them. Nothing here
-derives an identifier key, so the generator is fast.
+The clock and the agent's key are pinned, as the `client-lifecycle` fixture pinned them. Nothing
+here derives an identifier key, so the generator is fast.
 
 ## What the evidence is
 
-Roadmap 7.1 ports `Oobis.{get,resolve,endroles}` — two reads and one write. `get` publishes the
+This port covers `Oobis.{get,resolve,endroles}` — two reads and one write. `get` publishes the
 OOBIs a managed identifier advertises for a role, `resolve` asks the agent to fetch somebody else's,
 and `endroles` reads the endpoint authorizations an identifier has granted.
 
-Unlike Roadmap 6.9's and 6.10's families, this one has real pinned unit coverage: three cases in
+Unlike the registries and schemas families, this one has real pinned unit coverage: three cases in
 `test/app/coring.test.ts` assert **four exact paths, both `resolve` body fields, and both HTTP
 methods**. So the vectors are the reference **driven directly** — `globalThis.fetch` replaced with a
 recorder that answers and signs as a KERIA agent would — through those calls and through every
@@ -57,37 +57,38 @@ an OOBI must reach the body byte for byte.
 
 - **The alias is not encoded.** `get('a/b?c=d', 'agent')` addresses
   `/identifiers/a/b?c=d/oobis?role=agent` — one argument becoming two segments and a query, and a
-  different `@path` for Roadmap 3.10 to sign. **Refused by construction**, which is the rule
-  Roadmap 6.6 applied to the same alias in the same path.
+  different `@path` for request authentication to sign. **Refused by construction**, which is the
+  rule the identifiers endpoint applied to the same alias in the same path.
 - **The role is interpolated into the query.** The query is built by string interpolation rather
   than with `URLSearchParams`, so `get('aid', 'agent&extra=1')` sends `?role=agent&extra=1` — a
   second query parameter of the caller's choosing. **Refused by construction**: the role is written
-  through Roadmap 5.3's `parameter`, which encodes the value exactly once.
+  through the request builder's `parameter`, which encodes the value exactly once.
 - **The role defaults to `agent`.** `get(name, role = 'agent')` writes the default into the query,
   so an omitted role is still an observable request. Exactly one call site in the pinned tree takes
   it. The role is a **required argument** here and `DEFAULT_ROLE` names the reference's value, so
-  what reaches the query is visible at the call site — Roadmap 6.7 made the same choice for
-  `QuerySequence`, and Roadmap 3.6 for a reply's timestamp.
+  what reaches the query is visible at the call site — the key states endpoint made the same choice
+  for `QuerySequence`, and the reply event builder for a reply's timestamp.
 - **The OOBI is never validated.** `resolve` takes `oobi: string` and sends it unchallenged, so
   `''`, `'not a url at all'`, and a value carrying a newline all become `{"url":…}` and the agent is
   asked to fetch them. **Refused here**: the argument is `signify_http::transport::RequestUrl`, the
-  same non-normalizing validator Roadmap 5.1 built — an absolute `http`/`https` URL of visible
+  same non-normalizing validator the transport uses — an absolute `http`/`https` URL of visible
   ASCII, no fragment, bounded at 2 KiB. It preserves its bytes exactly, which matters because the
-  agent fetches what it is given and because the reference's own integration test splits a
-  published OOBI apart before resolving it. Every OOBI the pinned tree resolves is accepted.
+  agent fetches what it is given and because the reference's own integration test splits a published
+  OOBI apart before resolving it. Every OOBI the pinned tree resolves is accepted.
 - **An empty alias is written.** The alias is dropped only when it is `undefined`; an explicitly
   empty one is written as `"oobialias":""`. **Reproduced**: `Option<&str>` tells the two apart
   exactly as `undefined` does.
 - **The AID is not encoded.** `endroles('a/b?c=d')` addresses `/endroles/a/b?c=d`. **Refused twice
-  over**: the argument is Roadmap 3.4's validated `IdentifierPrefix`, and the builder would encode
-  it exactly once regardless.
+  over**: the argument is a validated `IdentifierPrefix`, and the builder would encode it exactly
+  once regardless.
 - **The unknown AID the reference asks about is not a prefix.** `endroles-by-aid.test.ts` asks about
   `EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`, which is **43 characters** where a qualified `E`
   prefix is 44 — so the value the reference's own integration test sends is not an identifier at
-  all, and it reaches the path unchecked. **Recorded verbatim and proven refused**, as Roadmap 3.8
-  and 6.9 did with the same situation; the case that test is making — an unknown AID answers with an
-  empty list rather than a failure — is reproduced with `EAXXX…X`, one character longer and a valid
-  prefix, whose recorded path is in the fixture beside it.
+  all, and it reaches the path unchecked. **Recorded verbatim and proven refused**, as exchange
+  message construction and the registries endpoint did with the same situation; the case that test
+  is making — an unknown AID answers with an empty list rather than a failure — is reproduced with
+  `EAXXX…X`, one character longer and a valid prefix, whose recorded path is in the fixture beside
+  it.
 - **The role filter is a raw path segment.** `endroles(aid, '../identifiers')` addresses a resource
   two levels up. **Refused by construction.**
 - **The answers are cast rather than decoded.** All three methods return `res.json()` cast to a
@@ -95,6 +96,7 @@ an OOBI must reach the body byte for byte.
   an `EndRole[]`. **Decoded here**, and both recorded wrong-shaped answers are proven refused.
 - **Resolving does not wait.** `resolve` returns the operation the agent created and never polls it;
   all thirty-four callers hand it straight to `waitOperation`. **Reproduced exactly** — polling is
-  Roadmap 7.2's item, and Roadmap 5.4 already built and pinned the schedule `Operations.wait` uses.
+  operation waiting's concern, and the retry policy already built and pinned the schedule
+  `Operations.wait` uses.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.

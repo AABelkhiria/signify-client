@@ -18,7 +18,7 @@
     "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
     "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
     "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
-    "note": "Two of the three units live in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. The third, `multisigRevoke`, is written inline in a test body and is driven through the reference's own `revoke` and `send` in the same order. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+    "note": "Two of the three units live in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as the `client-multisig-inception` generator does. The third, `multisigRevoke`, is written inline in a test body and is driven through the reference's own `revoke` and `send` in the same order. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
   },
   "declarations": {
     "create_registry_multisig": "export async function createRegistryMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, registryName: string, nonce: string, isInitiator: boolean = false ) { if (!isInitiator) await waitAndMarkNotification(client, '/multisig/vcp'); const vcpResult = await client.registries().create({ name: multisigAID.name, registryName: registryName, nonce: nonce, }); const op = await vcpResult.op(); const serder = vcpResult.regser; const anc = vcpResult.serder; const sigs = vcpResult.sigs; const sigers = sigs.map((sig) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(anc, sigers)); const atc = ims.substring(anc.size); const regbeds = { vcp: [serder, ''], anc: [anc, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, 'registry', aid, '/multisig/vcp', { gid: multisigAID.prefix }, regbeds, recp ); return op; }",
@@ -850,7 +850,7 @@
   "calls": [
     {
       "name": "incept_the_group",
-      "note": "the group that will own the registry, from Roadmap 8.3's own helper",
+      "note": "the group that will own the registry, from the multisig inception helper",
       "requests": [
         {
           "path": "/identifiers/member1",
@@ -1203,8 +1203,8 @@
         "anc"
       ],
       "embedded_ilk": "rev",
-      "note": "the route says revocation and the embed carries the revocation event under the issuance label. A reader narrowing through the reference's own `assertMultisigRev` — which declares `e: { rev, d? }` — finds no `rev` at all. Roadmap 8.4's route-and-embed scan turned this up and left it here.",
-      "rust_decision": "the revocation travels in `rev`, which is the slot Roadmap 8.1's table names for this route and the one Roadmap 4.1's schema declares. The reference's own pairing does not classify here."
+      "note": "the route says revocation and the embed carries the revocation event under the issuance label. A reader narrowing through the reference's own `assertMultisigRev` — which declares `e: { rev, d? }` — finds no `rev` at all. The `client-multisig-events` route-and-embed scan turned this up and left it here.",
+      "rust_decision": "the revocation travels in `rev`, which is the slot the exchange route table names for this route and the one the KERIA API schema declares. The reference's own pairing does not classify here."
     },
     "the_issuance_result_drops_its_signatures": {
       "declaration": [
@@ -1240,7 +1240,7 @@
         }
       ],
       "note": "`issue` computes the anchor's signatures and posts them, then returns `{ acdc, anc, iss, op }` without them — so `issueCredentialMultisig` fetches the group identifier again, rebuilds its keeper, and signs the same bytes a second time just to build the attachment. `revoke` returns `{ anc, rev, op }` and has the same gap.",
-      "rust_decision": "Roadmap 6.11's `IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event with its signatures — so the attachment is built from what the endpoint already returned and nothing is signed twice."
+      "rust_decision": "`IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event with its signatures — so the attachment is built from what the endpoint already returned and nothing is signed twice."
     },
     "one_round_is_filed_under_a_different_topic": {
       "declaration": [
@@ -1368,7 +1368,7 @@
         "multisig"
       ],
       "note": "a registry proposal is sent under the topic `registry` where every other multisig round uses `multisig` — and the pinned tree is not even consistent with itself: of its three `/multisig/vcp` sends, two use `registry` and one uses `multisig`. A member filtering notifications by topic therefore sees registry proposals in two places.",
-      "rust_decision": "the majority form is reproduced — Roadmap 7.7's own `REGISTRY_TOPIC` for this one route — because it is what `createRegistryMultisig`, the ported unit, sends. The disagreement is recorded rather than resolved, since nothing in the pinned tree settles which is intended."
+      "rust_decision": "the majority form is reproduced — the exchanges endpoint's own `REGISTRY_TOPIC` for this one route — because it is what `createRegistryMultisig`, the ported unit, sends. The disagreement is recorded rather than resolved, since nothing in the pinned tree settles which is intended."
     }
   }
 }

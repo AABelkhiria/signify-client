@@ -579,14 +579,14 @@
         }
       ],
       "note": "a bare string is wrapped, anchored, and signed exactly as a seal would be; two seals in one event are equally accepted. Nothing upstream looks at the shape.",
-      "rust_decision": "a seal is Roadmap 3.1's `Sad`, so an anchor is a block rather than anything at all; `InceptionSeal` names the three fields a delegated inception's seal carries. A list of more than one is still permitted, because the event format permits it."
+      "rust_decision": "a seal is a `Sad`, so an anchor is a block rather than anything at all; `InceptionSeal` names the three fields a delegated inception's seal carries. A list of more than one is still permitted, because the event format permits it."
     },
     "one_alias_is_encoded_on_the_read_and_raw_on_the_write": {
       "declaration": "'/identifiers/' + name + '/delegation'",
       "read_path": "/identifiers/a%2Fb%3Fc%3Dd",
       "write_path": "/identifiers/a/b?c=d/delegation",
-      "note": "one call, one alias, two treatments. `approve` reads the identifier first through `identifiers().get`, which encodes its path component, and then writes to `'/identifiers/' + name + '/delegation'`, which concatenates — so `a/b?c=d` is one segment on the read and two segments and a query on the write. The reference disagrees with itself inside a single method, which is a sharper form of the raw interpolation Roadmap 7.1 and 8.2 recorded.",
-      "rust_decision": "closed by Roadmap 5.3's path builder, which percent-encodes every component of both addresses; the read and the write cannot diverge because they are built the same way."
+      "note": "one call, one alias, two treatments. `approve` reads the identifier first through `identifiers().get`, which encodes its path component, and then writes to `'/identifiers/' + name + '/delegation'`, which concatenates — so `a/b?c=d` is one segment on the read and two segments and a query on the write. The reference disagrees with itself inside a single method, which is a sharper form of the raw interpolation `client-oobis` and `client-groups` recorded.",
+      "rust_decision": "closed by `ResourcePathBuilder`, which percent-encodes every component of both addresses; the read and the write cannot diverge because they are built the same way."
     }
   }
 }

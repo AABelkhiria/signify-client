@@ -45,5 +45,5 @@
   ],
   "startup_command": "started outside this repository; a local KERIA has no compose file to hash",
   "timeout_policy": "the production transport's default deadline covers each exchange; no scenario sleeps, and every wait polls a condition",
-  "note": "A `local` run cannot close PORTING.md §10's `Target KERIA integration version` row: that row asks for an image digest, and a KERIA on the host has no image. What this records is the strongest identity available — the document the agent serves about itself — which also answers §10:9799's residual, whose text claims that document `carries no version`."
+  "note": "A `local` run cannot close the `Target KERIA integration version` question: that question asks for an image digest, and a KERIA on the host has no image. What this records is the strongest identity available — the document the agent serves about itself — which also answers the `KERIA OpenAPI source revision/generator` residual, whose text claims that document `carries no version`."
 }

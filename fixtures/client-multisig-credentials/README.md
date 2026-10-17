@@ -20,11 +20,12 @@ SHOW_ERRORS=1 node tools/reference-vectors/client_multisig_credentials.mjs   # t
 
 ## What the evidence is
 
-Roadmap 8.7 ports the three rounds a group runs over a credential registry: creating one, issuing a
+This port covers the three rounds a group runs over a credential registry: creating one, issuing a
 credential from it, and revoking that credential. Two of the units — `createRegistryMultisig` and
 `issueCredentialMultisig` — live in the reference's integration utilities and are **transpiled in
-memory** as Roadmap 8.3's are. The third, `multisigRevoke`, is written inline in a test body and is
-driven through the reference's own `revoke` and `send` in the same order with the same arguments.
+memory** as the multisig inception helpers are. The third, `multisigRevoke`, is written inline in a
+test body and is driven through the reference's own `revoke` and `send` in the same order with the
+same arguments.
 
 Eight rounds are driven and all eight succeed. Three of them should not have.
 
@@ -69,10 +70,10 @@ const embeds = { iss: [rev, ''], anc: [anc, atc] };
 and sends it on `/multisig/rev`. The recorded announcement confirms it: route `/multisig/rev`, slots
 `["iss","anc"]`, and the event in that `iss` slot has ilk `rev`. So a reader narrowing through the
 reference's own `assertMultisigRev` — which declares `e: { rev, d? }` — finds **no `rev` at all**.
-Roadmap 8.4's route-and-embed scan turned this up and left it here.
+The `client-multisig-events` route-and-embed scan turned this up and left it here.
 
 The exact body the reference sent is proven not to classify in this port, and the revocation
-travels in `rev`, which is what the route names and what Roadmap 4.1's schema declares.
+travels in `rev`, which is what the route names and what the KERIA API schema declares.
 
 ## Two smaller findings
 
@@ -81,8 +82,8 @@ travels in `rev`, which is what the route names and what Roadmap 4.1's schema de
 second time, rebuilds its keeper, and signs the same anchor bytes again just to build the
 attachment. Driven: the issuance round reads `/identifiers/multisig` **twice** where the registry
 round, whose endpoint does return its signatures, reads it once. `RevokeCredentialResult` has the
-same gap. Roadmap 6.11's `IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event *with*
-its signatures — so nothing is signed twice here.
+same gap. `IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event *with* its signatures —
+so nothing is signed twice here.
 
 **One round is filed under a different topic**, and the pinned tree is not consistent with itself:
 of its four `/multisig/vcp` sends, three use `registry` and one uses `multisig`. The ported helper
@@ -99,10 +100,10 @@ Every other multisig route is named for the slot it embeds. These are not:
 | `/multisig/iss` | **`acdc`** | `iss`, `anc` |
 | `/multisig/rev` | `rev` | `anc` |
 
-An issuance is named for its transaction event and discriminated by its credential, because Roadmap
-4.1's union is told apart by field names and an issuance carries three messages. Only the anchor is
-signed: the attachment names all three paths but attaches a signature to `anc` alone, because that
-signature is what authorizes the rest.
+An issuance is named for its transaction event and discriminated by its credential, because the
+KERIA API schema's union is told apart by field names and an issuance carries three messages. Only
+the anchor is signed: the attachment names all three paths but attaches a signature to `anc` alone,
+because that signature is what authorizes the rest.
 
 ## Contents
 

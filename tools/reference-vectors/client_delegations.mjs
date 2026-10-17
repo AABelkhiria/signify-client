@@ -1,16 +1,16 @@
 // Records the pinned signify-ts checkout's delegation endpoint.
 //
-// Roadmap 8.5 ports the whole of `src/keri/app/delegating.ts`: one class with one method,
+// This fixture ports the whole of `src/keri/app/delegating.ts`: one class with one method,
 // `Delegations.approve`, in thirty-three lines including its documentation. It is the smallest
-// application module in the port, three lines shorter than Roadmap 7.6's `escrowing.ts`.
+// application module in the port, three lines shorter than `escrowing.ts`.
 //
 // A delegated identifier cannot come into existence alone. Its inception names a delegator and
 // stays pending until that delegator anchors a **seal of it** in its own key event log. This one
 // call is that anchoring, and it is an ordinary interaction event posted to a different address.
 //
 // `Delegations` takes a whole `SignifyClient`, so this generator drives the real client the way
-// Roadmap 7.6's did: `globalThis.fetch` is replaced with a recorder that answers and signs as a
-// KERIA agent would, the clock is pinned, and every recorded byte is the reference's own.
+// `client_escrows.mjs` does: `globalThis.fetch` is replaced with a recorder that answers and signs
+// as a KERIA agent would, the clock is pinned, and every recorded byte is the reference's own.
 //
 // Three things fall out.
 //
@@ -285,7 +285,7 @@ const CALLS = [
 const DISCOVERY = prefixDiscovery(integration.source);
 const WRAPPING = wrappingLine();
 
-// The premise of this item: one class, one method, one address.
+// The premise of this fixture: one class, one method, one address.
 if (MEMBERS.length !== 2 || !MEMBERS.includes("approve")) {
   throw new Error(`Delegations no longer has a constructor and one method: ${MEMBERS.join(", ")}`);
 }
@@ -393,9 +393,9 @@ const MOCK_GET_AID = objectLiteral(testUtils.source, "mockGetAID");
 if (MOCK_GET_AID === null) {
   throw new Error("mockGetAID is no longer where this generator expects it");
 }
-// `mockGetAID` carries no `icp_dt`, which the reference never reads and Roadmap 4.1's typed record
-// requires. Roadmap 8.3's fixture added it the same way: the field is supplied here so the record
-// is decodable on both sides, and nothing upstream behaves differently for it.
+// `mockGetAID` carries no `icp_dt`, which the reference never reads and the typed identifier record
+// requires. The `client-multisig-inception` fixture added it the same way: the field is supplied
+// here so the record is decodable on both sides, and nothing upstream behaves differently for it.
 const ADDED_INCEPTION_STAMP = "2023-08-21T22:30:46.473545+00:00";
 const DELEGATOR = { ...MOCK_GET_AID, name: "delegator", icp_dt: MOCK_GET_AID.icp_dt ?? ADDED_INCEPTION_STAMP };
 const DELEGATOR_PREFIX = DELEGATOR.prefix;
@@ -586,7 +586,7 @@ const quirks = {
     two_seals: bodyOf("approve_two_delegates_at_once")?.ixn.a ?? null,
     note: "a bare string is wrapped, anchored, and signed exactly as a seal would be; two seals in one event are equally accepted. Nothing upstream looks at the shape.",
     rust_decision:
-      "a seal is Roadmap 3.1's `Sad`, so an anchor is a block rather than anything at all; `InceptionSeal` names the three fields a delegated inception's seal carries. A list of more than one is still permitted, because the event format permits it.",
+      "a seal is a `Sad`, so an anchor is a block rather than anything at all; `InceptionSeal` names the three fields a delegated inception's seal carries. A list of more than one is still permitted, because the event format permits it.",
   },
   one_alias_is_encoded_on_the_read_and_raw_on_the_write: {
     declaration: PATHS[0].path,
@@ -595,8 +595,8 @@ const quirks = {
       return call?.requests.find((entry) => entry.method === "GET")?.path ?? null;
     })(),
     write_path: pathOf("approve_under_an_alias_holding_delimiters"),
-    note: "one call, one alias, two treatments. `approve` reads the identifier first through `identifiers().get`, which encodes its path component, and then writes to `'/identifiers/' + name + '/delegation'`, which concatenates — so `a/b?c=d` is one segment on the read and two segments and a query on the write. The reference disagrees with itself inside a single method, which is a sharper form of the raw interpolation Roadmap 7.1 and 8.2 recorded.",
-    rust_decision: "closed by Roadmap 5.3's path builder, which percent-encodes every component of both addresses; the read and the write cannot diverge because they are built the same way.",
+    note: "one call, one alias, two treatments. `approve` reads the identifier first through `identifiers().get`, which encodes its path component, and then writes to `'/identifiers/' + name + '/delegation'`, which concatenates — so `a/b?c=d` is one segment on the read and two segments and a query on the write. The reference disagrees with itself inside a single method, which is a sharper form of the raw interpolation `client-oobis` and `client-groups` recorded.",
+    rust_decision: "closed by `ResourcePathBuilder`, which percent-encodes every component of both addresses; the read and the write cannot diverge because they are built the same way.",
   },
 };
 

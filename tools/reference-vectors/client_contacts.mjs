@@ -1,15 +1,17 @@
 // Records the pinned signify-ts checkout's contacts endpoint.
 //
-// Roadmap 7.3 ports `Contacts` from `src/keri/app/contacting.ts`: five methods over one resource,
+// This ports `Contacts` from `src/keri/app/contacting.ts`: five methods over one resource,
 // two of which write an open bag of caller-chosen fields as the request body.
 //
 // The pinned `test/app/contacting.test.ts` has one `Contacts` case, and it is unusually complete —
 // it asserts all five paths, all five methods, both write bodies, and that a delete carries no body
-// at all. So the generator drives the reference's own class through exactly those calls, as Roadmap
-// 6.5's and 7.2's fixtures do, and `pinned_confirmations` recomputes every one of those assertions.
+// at all. So the generator drives the reference's own class through exactly those calls, as the
+// `client-operations` and `client-operation-wait` fixtures do, and `pinned_confirmations` recomputes
+// every one of those assertions.
 //
 // `Contacts` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch`
-// replaced by a recorder and the clock and the agent's key pinned — Roadmap 6.4's arrangement.
+// replaced by a recorder and the clock and the agent's key pinned — the `client-lifecycle` fixture's
+// arrangement.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
@@ -236,15 +238,15 @@ for (const [name, value] of Object.entries(declarations)) {
   }
 }
 
-// The two halves of this file belong to two roadmap items; naming the class members proves which
-// capabilities 7.3 owns and which stay with 7.4.
+// The two halves of this file belong to two endpoints; naming the class members proves which
+// capabilities `Contacts` owns and which stay with `Challenges`.
 const CONTACTS_MEMBERS = ["client", "<constructor>", "list", "get", "add", "delete", "update"];
 if (JSON.stringify(declarations.class_members) !== JSON.stringify(CONTACTS_MEMBERS)) {
   throw new Error(`the Contacts class no longer declares ${CONTACTS_MEMBERS.join(", ")}`);
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -388,7 +390,7 @@ await drive(
 
 await drive(
   "list_unfiltered",
-  "no arguments at all, which appends a bare question mark to the path — the same shape Roadmap 6.5 recorded for an unfiltered `/operations?`",
+  "no arguments at all, which appends a bare question mark to the path — the same shape the `client-operations` fixture recorded for an unfiltered `/operations?`",
   [contactRecord(CONTACT, "John Doe"), contactRecord(OTHER, "Jane Roe")],
   () => contacts.list(),
 );
@@ -535,7 +537,7 @@ const quirks = {
     expression: declarations.list_path,
     note: "`path` is `'/contacts' + '?' + params.toString()`, concatenated unconditionally, so a listing with no arguments addresses `/contacts?`",
     rust_decision:
-      "this port sends `/contacts`, on ADR `0028`'s three grounds applied again: Roadmap 3.10 strips the query before signing so the **signed path is identical**, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell a bare `?` without a knob whose only users would be this call and `Operations.list`. Roadmap 9.2 owes it a live confirmation, as it does 6.5's.",
+      "this port sends `/contacts`, on the operations endpoint's three grounds applied again: request authentication strips the query before signing so the **signed path is identical**, an empty query is not a distinguishable resource, and the request builder cannot spell a bare `?` without a knob whose only users would be this call and `Operations.list`. The KERIA integration matrix owes it a live confirmation, as it does `Operations.list`.",
   },
   half_a_filter_is_silently_dropped: {
     guard: declarations.list_filter_guard,
@@ -548,21 +550,21 @@ const quirks = {
   the_prefix_is_not_encoded: {
     path: call("get_prefix_needing_encoding")?.request?.path ?? null,
     expression: declarations.get_path,
-    note: "all four single-contact paths are `'/contacts/' + pre`, so a value carrying `/` or `?` addresses a different resource — and Roadmap 3.10 signs `@path`, so it changes what the signature commits to. Roadmap 5.3's own fixture already recorded `contacts().delete('a/b')` reaching two segments.",
+    note: "all four single-contact paths are `'/contacts/' + pre`, so a value carrying `/` or `?` addresses a different resource — and request authentication signs `@path`, so it changes what the signature commits to. The `http-request-response` fixture already recorded `contacts().delete('a/b')` reaching two segments.",
     rust_decision:
-      "refused twice over: the argument is Roadmap 3.4's validated `IdentifierPrefix` rather than a string, and Roadmap 5.3's builder would encode it exactly once regardless. A qualified prefix's alphabet is URL-safe Base64, so every real contact identifier reaches the path byte-identical.",
+      "refused twice over: the argument is the validated `IdentifierPrefix` rather than a string, and the request builder would encode it exactly once regardless. A qualified prefix's alphabet is URL-safe Base64, so every real contact identifier reaches the path byte-identical.",
   },
   the_filter_value_is_encoded: {
     path: call("list_filter_needing_encoding")?.request?.path ?? null,
     expression: declarations.list_path,
-    note: "the query is built with `URLSearchParams` rather than by interpolation, so a filter value holding `&` **is** encoded — one of the few dynamic values the reference encodes anywhere, and the opposite of what Roadmap 7.1 found in `Oobis.get`",
-    rust_decision: "reproduced exactly; Roadmap 5.3's builder encodes every query value exactly once",
+    note: "the query is built with `URLSearchParams` rather than by interpolation, so a filter value holding `&` **is** encoded — one of the few dynamic values the reference encodes anywhere, and the opposite of what the `client-oobis` fixture found in `Oobis.get`",
+    rust_decision: "reproduced exactly; the request builder encodes every query value exactly once",
   },
   a_delete_carries_no_body: {
     fetch: declarations.delete_fetch,
     body_is_undefined: call("delete")?.request?.body_is_undefined ?? null,
     note: "`delete` passes `undefined` where the writes pass `info`, and the pinned test asserts the request's body is `undefined` rather than an empty object",
-    rust_decision: "reproduced: no body is set on the request at all, which is what Roadmap 6.11's delete already does",
+    rust_decision: "reproduced: no body is set on the request at all, which is what `Credentials::delete` already does",
   },
   the_info_is_an_open_bag: {
     declaration: declarations.contact_info_interface,
@@ -571,7 +573,7 @@ const quirks = {
     empty: call("add_empty_info")?.request?.body ?? null,
     note: "`ContactInfo` is `{[key: string]: unknown}` handed straight to `JSON.stringify`, so the body's field order is the caller's object literal's and any shape at all is accepted",
     rust_decision:
-      "an **ordered document** — Roadmap 3.2's `Sad`, which is what Roadmap 6.6 settled a request body is here, so a caller controls the bytes exactly. The one narrowing is ADR `0008`'s number space: an exact integer is representable and a float is not, which is recorded as a limitation rather than worked around.",
+      "an **ordered document** — `Sad`, which is what the identifier endpoint settled a request body is here, so a caller controls the bytes exactly. The one narrowing is `Sad`'s number space: an exact integer is representable and a float is not, which is recorded as a limitation rather than worked around.",
   },
   the_answers_are_cast_rather_than_decoded: {
     declaration: declarations.get_return,
@@ -579,13 +581,13 @@ const quirks = {
     list_wrong_shape: call("list_wrong_shape")?.result ?? null,
     note: "all four reading methods return `res.json()` cast to `Contact` or `Contact[]`, so an answer of any shape reaches the caller as a contact",
     rust_decision:
-      "decoded: both recorded wrong-shaped answers are proven refused, which is the rule Roadmap 6.8, 6.10, and 7.1 applied to their own answers. `id` is the one field the schema requires, and every other field the agent sends survives a round trip through Roadmap 4.1's open map.",
+      "decoded: both recorded wrong-shaped answers are proven refused, which is the rule the config, schemas, and OOBI endpoints applied to their own answers. `id` is the one field the schema requires, and every other field the agent sends survives a round trip through the shared API types' open map.",
   },
   a_listing_has_no_paging: {
     parameters: declarations.list_parameters,
-    note: "no range, no limit, no cursor: an agent holding many contacts answers with all of them in one body, where Roadmap 6.6's identifier listing at least accepts a `Range` header",
+    note: "no range, no limit, no cursor: an agent holding many contacts answers with all of them in one body, where the identifier endpoint's listing at least accepts a `Range` header",
     rust_decision:
-      "reproduced; the response is bounded only by Roadmap 5.1's transport limit, recorded as a limitation rather than a filter this port invents",
+      "reproduced; the response is bounded only by the transport's limit, recorded as a limitation rather than a filter this port invents",
   },
 };
 

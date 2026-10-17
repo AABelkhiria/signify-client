@@ -1,10 +1,10 @@
 // Records the pinned signify-ts checkout's credentials endpoint.
 //
-// Roadmap 6.11 ports `Credentials.{list,get,delete,state,issue,revoke}` from
+// This ports `Credentials.{list,get,delete,state,issue,revoke}` from
 // `src/keri/app/credentialing.ts`, together with the `CredentialFilter` declaration `list` sends as
 // a body and the two result interfaces `issue` and `revoke` return.
 //
-// Unlike Roadmap 6.9's registries, this family **is** exercised by the pinned unit tree: the single
+// Unlike the registries endpoint, this family **is** exercised by the pinned unit tree: the single
 // `Credentials` case in `test/app/credentialing.test.ts` calls all six methods and asserts their
 // paths, methods, and body fields. So this generator drives the reference through that test's own
 // mocks — `mockGetAID` and `mockCredential`, read out of `test/app/test-utils.ts` by the
@@ -12,8 +12,8 @@
 // the reference's own suite asserts against rather than one this generator invented.
 //
 // Two things are pinned so `issue` and `revoke` are reproducible at all: the **clock**, because
-// both default their timestamp to a clock reading, and the **agent's key**, as Roadmap 6.4's
-// fixture pinned it. `issue` and `revoke` sign with a real keeper at the reference's production
+// both default their timestamp to a clock reading, and the **agent's key**, as the
+// `client-lifecycle` fixture pinned it. `issue` and `revoke` sign with a real keeper at the reference's production
 // Argon2 profile, so this generator takes several seconds.
 //
 // One field is **added** to the reference's own mock: `mockGetAID` carries no `icp_dt`, which its
@@ -411,7 +411,7 @@ const REGISTRYLESS_CREDENTIAL = {
 };
 
 // ---------------------------------------------------------------------------
-// 3. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 3. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -696,7 +696,7 @@ const renamedByAgent = await (async () => {
     path: request.path,
     method: request.method,
     requests: recorded.length - before,
-    note: "`issue` interpolates `hab.name`, the alias the agent answered with, so the resource the credential is posted to — and the path Roadmap 3.10 signs — is chosen by the server rather than by the caller",
+    note: "`issue` interpolates `hab.name`, the alias the agent answered with, so the resource the credential is posted to — and the path request authentication signs — is chosen by the server rather than by the caller",
   };
 })();
 if (renamedByAgent.path !== `/identifiers/${RENAMED_BY_AGENT.name}/credentials`) {
@@ -969,9 +969,9 @@ const quirks = {
       issue: declarations.issue_path,
       revoke: declarations.revoke_path,
     },
-    note: "five of the six methods interpolate their arguments raw — seven dynamic values in all — so a SAID holding `/`, `?`, or `#` addresses a different resource, and Roadmap 3.10 signs `@path`, so it also changes what the signature commits to",
+    note: "five of the six methods interpolate their arguments raw — seven dynamic values in all — so a SAID holding `/`, `?`, or `#` addresses a different resource, and request authentication signs `@path`, so it also changes what the signature commits to",
     rust_decision:
-      "refused by construction: a SAID and a registry identifier are Roadmap 3.3's and 6.1's validated types, which cannot hold a delimiter, and Roadmap 5.3's `ResourcePath` encodes an alias exactly once",
+      "refused by construction: a SAID and a registry identifier are validated types, which cannot hold a delimiter, and `ResourcePath` encodes an alias exactly once",
   },
   issue_addresses_the_agents_own_alias: {
     detail: renamedByAgent,
@@ -987,7 +987,7 @@ const quirks = {
     expression: declarations.issue_acdc,
     note: "the credential's issuer is `args.i ?? hab.prefix`, and nothing compares a supplied one with the identifier whose keeper signs the anchor — so a credential can claim an issuer whose key event log contains no anchor for it, which no verifier can ever resolve",
     rust_decision:
-      "refused: the credential arrives already built (Roadmap 6.1), so its issuer is compared with the identifier being used to anchor it and a mismatch is a typed refusal before anything is signed",
+      "refused: the credential arrives already built, so its issuer is compared with the identifier being used to anchor it and a mismatch is a typed refusal before anything is signed",
   },
   revoke_reads_its_registry_from_the_server: {
     detail: revokeWithoutRegistry,
@@ -995,7 +995,7 @@ const quirks = {
     rev: declarations.revoke_rev,
     note: "`revoke` fetches the credential to learn both the registry it commits to and the prior digest it supersedes, so a revocation cannot be built offline and both values are the agent's rather than the caller's; the sequence number is the literal `'1'`, wrong in any registry whose log has moved on",
     rust_decision:
-      "the revocation event is an input built by Roadmap 6.2, where all three are ordinary values defaulting to the reference's; the endpoint sends it and looks up nothing",
+      "the revocation event is an input built by the `revocation` module, where all three are ordinary values defaulting to the reference's; the endpoint sends it and looks up nothing",
   },
   get_returns_two_unrelated_types: {
     json: calls.find((call) => call.name === "get_json")?.request?.accept ?? null,
@@ -1017,7 +1017,7 @@ const quirks = {
     recorded_answer: calls.find((call) => call.name === "get_mock_credential")?.result ?? null,
     note: "`get`, `list`, and `state` all return `res.json()` cast to a generated type, so whatever the agent sends is read as a credential. The reference's own `mockCredential` proves the gap: it is missing seven of the eleven fields `Credential` declares, carries two the schema does not, and its status has no `vn` at all — and `Credentials.get` hands it over as a credential",
     rust_decision:
-      "decoded rather than cast, as Roadmap 6.8 and 6.10 decided; the recorded mock is proven refused, and a well-formed record beside it is proven accepted",
+      "decoded rather than cast, as the config and schemas endpoints decided; the recorded mock is proven refused, and a well-formed record beside it is proven accepted",
   },
   a_listing_writes_every_field_it_was_not_given: {
     defaults: {
@@ -1043,7 +1043,7 @@ const quirks = {
     thrown: declarations.issue_est_only_throw,
     note: "`issue` refuses an establishment-only identifier by throwing a string, and `revoke` declares the same `estOnly` flag twice with `var` in one scope before doing the same",
     rust_decision:
-      "a typed `ClientError::EstablishmentOnlyIssuer` checked before anything derives, which is Roadmap 6.2's and 6.9's decision applied again",
+      "a typed `ClientError::EstablishmentOnlyIssuer` checked before anything derives, which is the decision the `issuance` module and the registries endpoint made, applied again",
   },
 };
 

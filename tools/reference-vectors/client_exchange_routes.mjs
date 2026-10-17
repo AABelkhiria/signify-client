@@ -1,11 +1,11 @@
 // Records the pinned signify-ts checkout's exchange route table, resource variants, and guards.
 //
-// Roadmap 8.1 ports the half of `src/keri/app/exchanging.ts` that Roadmap 7.7 left: thirteen route
-// constants, thirteen `*Exchange` resource variants, eight `*Group` variants, thirteen `is*` type
-// guards, and thirteen `assert*` assertions — forty-seven exported symbols, plus the private
-// `assertRoute` they all funnel through.
+// This fixture ports the half of `src/keri/app/exchanging.ts` that `client-exchanges` left:
+// thirteen route constants, thirteen `*Exchange` resource variants, eight `*Group` variants,
+// thirteen `is*` type guards, and thirteen `assert*` assertions — forty-seven exported symbols,
+// plus the private `assertRoute` they all funnel through.
 //
-// Unlike every other item in this port, the unit under test is a **type system**. The thirteen
+// Unlike every other fixture in this port, the unit under test is a **type system**. The thirteen
 // guards and thirteen assertions have one line of run-time behaviour between them — compare
 // `msg.exn.r` with a constant — and everything else they do is a compile-time claim. So the
 // evidence has two halves, and the second is the interesting one.
@@ -329,20 +329,20 @@ const shapeFindings = {
     generated_schema: declarations.schema_multisig_revoke_embeds,
     note: "`MultisigRevExchange` declares `e: { rev, d? }` where the generated schema's `MultisigRevokeEmbeds` declares `{ rev, anc }`. The hand-written variant hides the anchoring key event, so a caller who narrows through `assertMultisigRev` cannot reach it — while `assertMultisigVcp` and `assertMultisigIss`, whose schema counterparts carry the same field, both expose it.",
     rust_decision:
-      "Roadmap 4.1 modelled the schema, so `ExchangeEmbed::Revocation` carries the anchor and this port keeps it. The schema is generated from a live KERIA and the hand-written variant is the outlier; nothing is hidden.",
+      "`ExchangeEmbed` models the schema, so `ExchangeEmbed::Revocation` carries the anchor and this port keeps it. The schema is generated from a live KERIA and the hand-written variant is the outlier; nothing is hidden.",
   },
   a_grant_and_an_issuance_share_one_embed: {
     grant: variantShapes.find((shape) => shape.variant === "IpexGrantExchange")?.embed_block ?? null,
     issuance: variantShapes.find((shape) => shape.variant === "MultisigIssExchange")?.embed_block ?? null,
     note: "`IpexGrantExchange.e` and `MultisigIssExchange.e` declare the same three fields, so one embed shape serves two routes on opposite sides of the table",
     rust_decision:
-      "reused rather than duplicated: Roadmap 4.1's `MultisigIssuanceEmbed` decodes both, which is why eight schema embed shapes cover nine of the thirteen routes.",
+      "reused rather than duplicated: `MultisigIssuanceEmbed` decodes both, which is why eight schema embed shapes cover nine of the thirteen routes.",
   },
   the_schema_models_no_ipex_embed: {
     schema_union: declarations.schema_exn_embeds,
     note: "the schema's `ExnEmbeds` union has exactly eight members, all multisig; an IPEX offer's `e: { acdc }` is not among them, and apply, agree, and admit declare `e: object`",
     rust_decision:
-      "the IPEX payloads are modelled here rather than added to Roadmap 4.1's enum, because they were never part of the schema's union and widening a verified untagged enum would change how existing documents decode.",
+      "the IPEX payloads are modelled here rather than added to `ExchangeEmbed`, because they were never part of the schema's union and widening a verified untagged enum would change how existing documents decode.",
   },
   the_schema_names_no_group_attribute: {
     counts: declarations.attribute_labels_in_schema.in_generated_schema,
@@ -530,7 +530,7 @@ const quirks = {
     example: executed[0].assertion_on_other_route,
     note: "`Expected ${label} but got route: ${msg.exn?.r}` interpolates a value that came from the agent into the error a caller logs",
     rust_decision:
-      "the refusal names the route it expected and the route it found, both bounded — the found one is the message's own field, already length-bounded by Roadmap 5.1's response limit, and neither is formatted into a message a caller is invited to trust.",
+      "the refusal names the route it expected and the route it found, both bounded — the found one is the message's own field, already length-bounded by the transport's response limit, and neither is formatted into a message a caller is invited to trust.",
   },
   the_route_table_is_not_closed: {
     unknown_route: hostile.find((entry) => entry.name === "an_unknown_route") ?? null,

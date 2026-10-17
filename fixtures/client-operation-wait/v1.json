@@ -13,7 +13,7 @@
     "operation_name": "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0",
     "dependency_name": "witness.EABC.0",
     "registry_name": "registry.EREG",
-    "note": "`Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is driven against a recorder, exactly as the pinned `coring.test.ts` drives it, with the **global timer replaced** so every delay is captured and nothing waits. Both techniques are Roadmap 6.5's and 5.4's. Nothing here derives a key, reads a clock, or is secret."
+    "note": "`Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is driven against a recorder, exactly as the pinned `coring.test.ts` drives it, with the **global timer replaced** so every delay is captured and nothing waits. Both techniques come from the `client-operations` and `http-retry` generators. Nothing here derives a key, reads a clock, or is secret."
   },
   "declarations": {
     "wait_body": "{ const minSleep = options.minSleep ?? 10; const maxSleep = options.maxSleep ?? 10000; const increaseFactor = options.increaseFactor ?? 50; if ( this.hasDepends(op) && op.metadata.depends && !op.metadata.depends.done ) { await this.wait(op.metadata.depends, options); } if (op.done === true) { this.throwIfFailed(op); return op; } let retries = 0; while (true) { op = await this.get(op.name); if (op.done === true) { this.throwIfFailed(op); return op; } const delay = Math.max( minSleep, Math.min(maxSleep, 2 ** retries * increaseFactor) ); retries++; await new Promise((resolve) => setTimeout(resolve, delay)); options.signal?.throwIfAborted(); } }",
@@ -385,7 +385,7 @@
     },
     {
       "name": "long_run_reaches_the_ceiling",
-      "note": "twelve sleeps, far enough for the 10 s ceiling to bind — the schedule Roadmap 5.4 already reproduces, recorded here beside its request count",
+      "note": "twelve sleeps, far enough for the 10 s ceiling to bind — the schedule the retry policy already reproduces, recorded here beside its request count",
       "options": {},
       "requests": [
         {
@@ -642,7 +642,7 @@
       "loop": "while (true) { op = await this.get(op.name); if (op.done === true) { this.throwIfFailed(op); return op; } const delay = Math.max( minSleep, Math.min(maxSleep, 2",
       "long_run": 13,
       "note": "`while (true)` with no deadline, no attempt cap, and no total budget: an operation the agent never finishes is polled forever, ten seconds apart, for as long as the process lives",
-      "rust_decision": "bounded by construction. `PollPolicy` carries Roadmap 5.4's `RetryPolicy` — the same schedule, so every recorded delay still reproduces — plus a maximum attempt count and a total deadline, defaulting to the 30 seconds the reference's *own* integration helper supplies through `AbortSignal.timeout(30000)`. Giving up is a typed `ClientError::PollingStopped` naming which bound was reached."
+      "rust_decision": "bounded by construction. `PollPolicy` carries the retry policy's `RetryPolicy` — the same schedule, so every recorded delay still reproduces — plus a maximum attempt count and a total deadline, defaulting to the 30 seconds the reference's *own* integration helper supplies through `AbortSignal.timeout(30000)`. Giving up is a typed `ClientError::PollingStopped` naming which bound was reached."
     },
     "the_abort_is_read_only_after_sleeping": {
       "statement": "options.signal?.throwIfAborted();",
@@ -652,7 +652,7 @@
       ],
       "error": "Aborted",
       "note": "`options.signal?.throwIfAborted()` sits *after* the `await` on the sleep, so a caller who aborts during a wait still waits out the full delay — up to the ten-second ceiling — before anything notices. The signal is also never read before the first request, so an already-aborted signal still costs one poll.",
-      "rust_decision": "**unrepresentable**: there is no signal. Cancellation is dropping the future, which is ADR `0019`'s decision for the whole crate, and dropping it cancels the outstanding sleep or request immediately. A test polls the future once, drops it mid-sleep, and asserts no further request is made."
+      "rust_decision": "**unrepresentable**: there is no signal. Cancellation is dropping the future, as it is throughout the crate, and dropping it cancels the outstanding sleep or request immediately. A test polls the future once, drops it mid-sleep, and asserts no further request is made."
     },
     "a_failed_dependency_is_skipped_in_silence": {
       "guard": "if ( this.hasDepends(op) && op.metadata.depends && !op.metadata.depends.done ) { await this.wait(op.metadata.depends, options); }",
@@ -697,7 +697,7 @@
       "requests": 0,
       "error": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 400]: bad witness threshold",
       "note": "`throwIfFailed` runs on the snapshot too, so waiting on an operation that already failed raises without contacting the agent",
-      "rust_decision": "reproduced, through Roadmap 6.5's `completed`, which keeps the failure's four parts apart"
+      "rust_decision": "reproduced, through the operations endpoint's `completed`, which keeps the failure's four parts apart"
     },
     "a_null_error_is_not_a_failure": {
       "throw_if_failed": "{ if ('error' in op && op.error !== null) { const details = op.error.details ? ` Details: ${JSON.stringify(op.error.details)}` : ''; throw new Error( `Operation '${op.name}' failed [Code ${op.error.code}]: ${op.error.message}${details}` ); } }",
@@ -709,19 +709,19 @@
       },
       "error": null,
       "note": "`'error' in op && op.error !== null` — a completed operation carrying an explicit `null` error is *not* a failure, which is the shape a KERIA agent sends for a successful long-running operation",
-      "rust_decision": "reproduced by Roadmap 4.1's decoder, which reads `done`, `response`, and `error` into one three-state outcome and refuses the combinations the schema does not admit"
+      "rust_decision": "reproduced by the KERIA API types' decoder, which reads `done`, `response`, and `error` into one three-state outcome and refuses the combinations the schema does not admit"
     },
     "the_failure_message_is_one_interpolated_string": {
       "plain": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 500]: witness receipts timed out",
       "with_details": "Operation 'witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0' failed [Code 500]: witness receipts timed out Details: {\"witnesses\":[\"BABC\"],\"received\":1}",
       "note": "`Operation '<name>' failed [Code <code>]: <message>` with ` Details: <JSON>` appended when the structured block is present — four values a caller can only recover by parsing a sentence",
-      "rust_decision": "Roadmap 6.5 already keeps the four apart in `ClientError::OperationFailed`, with the remote message bounded at 512 bytes; `wait` reuses it unchanged and adds no variant of its own for failure"
+      "rust_decision": "The operations endpoint already keeps the four apart in `ClientError::OperationFailed`, with the remote message bounded at 512 bytes; `wait` reuses it unchanged and adds no variant of its own for failure"
     },
     "the_integration_helper_deletes_what_it_waited_for": {
       "helper": "export async function waitOperation( client: SignifyClient, op: Operation | string, signal?: AbortSignal ): Promise<Operation> { if (typeof op === 'string') { op = await client.operations().get(op); } op = await client .operations() .wait(op, { signal: signal ?? AbortSignal.timeout(30000) }); await deleteOperations(client, op); return op; }",
       "deleter": "async function deleteOperations(client: SignifyClient, op: Operation) { if (op.metadata && 'depends' in op.metadata && op.metadata.depends) { await deleteOperations(client, op.metadata.depends); } await client.operations().delete(op.name); }",
       "note": "`waitOperation` supplies a 30-second `AbortSignal.timeout` and then deletes the operation *and its whole dependency chain* — the only place the pinned tree recursively walks `depends` for anything other than waiting",
-      "rust_decision": "the timeout becomes `PollPolicy`'s default deadline, because it is the reference's own statement of how long polling should take. The deletion is **not** ported: it is a test helper's cleanup, `Operations::delete` is Roadmap 6.5's and already available, and a wait that silently deleted its subject would be a surprising side effect. Recorded here so the omission is a decision rather than an oversight."
+      "rust_decision": "the timeout becomes `PollPolicy`'s default deadline, because it is the reference's own statement of how long polling should take. The deletion is **not** ported: it is a test helper's cleanup, `Operations::delete` is the operations endpoint's and already available, and a wait that silently deleted its subject would be a surprising side effect. Recorded here so the omission is a decision rather than an oversight."
     }
   }
 }

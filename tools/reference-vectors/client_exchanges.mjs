@@ -1,17 +1,18 @@
 // Records the pinned signify-ts checkout's exchange endpoint family.
 //
-// Roadmap 7.7 ports the `Exchanges` class of `src/keri/app/exchanging.ts` — `createExchangeMessage`,
-// `send`, `sendFromEvents`, and `get` — plus `Challenges.respond` of `src/keri/app/contacting.ts`,
-// which Roadmap 7.4 moved here on evidence because it is a five-line wrapper over `send` and
-// nothing else. Delivering these closes `contacting.ts`; `exchanging.ts` stays open for Roadmap
-// 8.1's route table, resource variants, and type guards.
+// This fixture ports the `Exchanges` class of `src/keri/app/exchanging.ts` —
+// `createExchangeMessage`, `send`, `sendFromEvents`, and `get` — plus `Challenges.respond` of
+// `src/keri/app/contacting.ts`, which `client-challenges` moved here on evidence because it is a
+// five-line wrapper over `send` and nothing else. Delivering these closes `contacting.ts`;
+// `exchanging.ts` stays open for the route table, resource variants, and type guards that
+// `client-exchange-routes` covers.
 //
-// The pure `exchange(...)` function this class wraps is Roadmap 3.8's and is already byte-exact;
-// what is new here is the signing, the request body, and the two addresses.
+// The pure `exchange(...)` function this class wraps is already byte-exact; what is new here is
+// the signing, the request body, and the two addresses.
 //
 // `Exchanges` takes a whole `SignifyClient`, so this generator drives the real client the way
-// Roadmap 6.11's did: `globalThis.fetch` is replaced with a recorder that answers and signs as a
-// KERIA agent would, and the identifier is the reference's own `mockGetAID`, read out of
+// `client_credentials.mjs` does: `globalThis.fetch` is replaced with a recorder that answers and
+// signs as a KERIA agent would, and the identifier is the reference's own `mockGetAID`, read out of
 // `test/app/test-utils.ts` by its own compiler — which is what makes `exn.i` here the very literal
 // the pinned `contacting.test.ts` asserts.
 //
@@ -336,7 +337,7 @@ const declarations = {
     return_types:
       "`sendFromEvents` declares `Promise<Exn>` while the sibling `Ipex.submit*` methods declare `Promise<ExchangeOperation>` for the same shape of POST to the same agent. Both are `res.json()` casts, so at most one can be right and neither is checked.",
     routes:
-      "the thirteen exported route constants are Roadmap 8.1's, not this item's: they are recorded here to pin the split, and because `send`'s route argument is the plain `string` they are values of",
+      "the thirteen exported route constants are `client-exchange-routes`'s, not this fixture's: they are recorded here to pin the split, and because `send`'s route argument is the plain `string` they are values of",
   },
 };
 
@@ -364,8 +365,8 @@ if (MOCK_GET_AID === null) {
 }
 
 // `mockGetAID` carries no `icp_dt`, which its own generated schema declares required, so the Rust
-// side would refuse the record. Roadmap 6.11 recorded the same shortfall and added the same field;
-// nothing derived reads it, so no recorded byte changes.
+// side would refuse the record. `client-credentials` recorded the same shortfall and added the same
+// field; nothing derived reads it, so no recorded byte changes.
 const ADDED_INCEPTION_STAMP = "2023-08-21T22:30:46.473545+00:00";
 const HAB = { ...MOCK_GET_AID, icp_dt: MOCK_GET_AID.icp_dt ?? ADDED_INCEPTION_STAMP };
 
@@ -379,8 +380,8 @@ function openSealed(bran, sealed) {
 
 /**
  * Replaces a record's sealed salt with what it opens to, so a Rust test can re-seal it under its
- * own key rather than transcribing a blob that only this controller can open. Roadmap 6.11 did the
- * same.
+ * own key rather than transcribing a blob that only this controller can open.
+ * `client_credentials.mjs` does the same.
  */
 function sanitizeRecord(record) {
   const copy = JSON.parse(JSON.stringify(record));
@@ -396,11 +397,11 @@ const mockShortfall = {
   identifier_record_fields: Object.keys(MOCK_GET_AID),
   identifier_record_missing: ["icp_dt"].filter((field) => !(field in MOCK_GET_AID)),
   added_inception_stamp: ADDED_INCEPTION_STAMP,
-  note: "`mockGetAID` omits `icp_dt`, which the generated `HabState` schema declares required. The field is added here so the record decodes on the Rust side; nothing derived reads it. Roadmap 6.11 recorded the same omission.",
+  note: "`mockGetAID` omits `icp_dt`, which the generated `HabState` schema declares required. The field is added here so the record decodes on the Rust side; nothing derived reads it. `client-credentials` recorded the same omission.",
 };
 
 // ---------------------------------------------------------------------------
-// 3. A connected client, answering and signing as Roadmap 6.4's fixture did.
+// 3. A connected client, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -672,7 +673,7 @@ await drive(
 
 await drive(
   "respond_pinned",
-  "the pinned `contacting.test.ts` call, which is the capability Roadmap 7.4 deferred to this item",
+  "the pinned `contacting.test.ts` call, which is the capability `client-challenges` deferred to this fixture",
   async () => await challenges.respond("aid1", PINNED_RECIPIENT, PINNED_WORDS),
 );
 
@@ -748,7 +749,7 @@ const quirks = {
     signature: declarations.send_signature,
     request: submission("send_alias_disagrees_with_sender"),
     sender_prefix: HAB.prefix,
-    note: "`send(name, topic, sender, ...)` posts under `/identifiers/{name}/exchanges` while signing with `sender`'s keeper; nothing compares them, so a message signed by one identifier can be posted under another's resource — and Roadmap 3.10 signs `@path`, so the two also disagree about what the HTTP signature covers.",
+    note: "`send(name, topic, sender, ...)` posts under `/identifiers/{name}/exchanges` while signing with `sender`'s keeper; nothing compares them, so a message signed by one identifier can be posted under another's resource — and request signing covers `@path`, so the two also disagree about what the HTTP signature covers.",
     rust_decision:
       "one alias. The sending identifier's record is looked up from the alias the message is posted under, so the resource, the signer, and the message's own `i` field are the same identifier by construction.",
   },
@@ -756,7 +757,7 @@ const quirks = {
     declaration: declarations.create_exchange_call,
     note: declarations.notes.clock,
     rust_decision:
-      "a required parameter, which is the decision Roadmap 3.8 took for `exchange(...)` itself and Roadmap 4.6 for the authorization replies. A caller that wants `now` says so.",
+      "a required parameter, which is the decision taken for `exchange(...)` itself and for the authorization replies. A caller that wants `now` says so.",
   },
   the_submission_answer_has_two_declared_types: {
     send_from_events: declarations.send_from_events_return_type,
@@ -766,27 +767,27 @@ const quirks = {
     exchange_answer: called("send_answered_with_an_exchange")?.result ?? null,
     note: "`sendFromEvents` declares `Promise<Exn>` and `Ipex.submitGrant` declares `Promise<ExchangeOperation>` for the same shape of POST to the same agent, and both are unchecked `res.json()` casts. At most one is right; the pinned tree contains no assertion either way, because its only unit case ignores the answer.",
     rust_decision:
-      "the answer is kept as owned bytes with a decoder for each shape, so neither reading is imposed and a wrong-shaped answer is refused rather than cast. The question of which one a live KERIA sends is raised to §10 for Roadmap 9.2, as Roadmap 6.7 raised the sequence-number base.",
+      "the answer is kept as owned bytes with a decoder for each shape, so neither reading is imposed and a wrong-shaped answer is refused rather than cast. The question of which one a live KERIA sends is left for a live run to settle, as `client-key-state` left the sequence-number base.",
   },
   the_said_is_interpolated_raw: {
     declaration: declarations.get_path,
     request: submission("get_escaping_said"),
-    note: "`get(said)` concatenates its argument into the path, so a value carrying `/` or `?` addresses a different resource — and changes the path Roadmap 3.10 signs",
+    note: "`get(said)` concatenates its argument into the path, so a value carrying `/` or `?` addresses a different resource — and changes the signed path",
     rust_decision:
-      "the argument is Roadmap 3.3's validated `Said`, which cannot hold a delimiter, and Roadmap 5.3's builder would encode it exactly once even if it could. The recorded input is proven refused.",
+      "the argument is the validated `Said`, which cannot hold a delimiter, and the request builder would encode it exactly once even if it could. The recorded input is proven refused.",
   },
   the_pinned_unit_call_is_three_empty_values: {
     request: sendFromEventsRequest,
     body: JSON.parse(sendFromEventsRequest?.body ?? "null"),
     note: "`sendFromEvents('aid1', '', serder, [''], '', [])` sends an empty topic, a single empty string where a qualified signature belongs, and an empty recipient list — asking the agent to file a notification under no topic and deliver it to nobody. The reference validates none of the three; its own `send` refuses only the last, and only because the loop cannot run.",
     rust_decision:
-      "all three are unrepresentable: the topic is refused when empty, the signatures come from a keeper rather than from the caller, and an empty recipient list is refused as Roadmap 6.12 refuses it. The recorded request is therefore reproduced in shape rather than byte for byte, and each input is proven refused — the pattern Roadmap 3.8, 6.9, and 7.1 used for a pinned vector their types cannot express.",
+      "all three are unrepresentable: the topic is refused when empty, the signatures come from a keeper rather than from the caller, and an empty recipient list is refused as `client-ipex` refuses it. The recorded request is therefore reproduced in shape rather than byte for byte, and each input is proven refused — the pattern used for `exchange(...)` and in `client-registries` and `client-oobis` for a pinned vector their types cannot express.",
   },
-  the_route_table_belongs_to_8_1: {
+  the_route_table_belongs_to_client_exchange_routes: {
     constants: declarations.route_constants,
-    note: "thirteen exported route constants and the resource variants and type guards over them are Roadmap 8.1's, not this item's; `send`'s route parameter is the bare `string` they are values of",
+    note: "thirteen exported route constants and the resource variants and type guards over them are `client-exchange-routes`'s, not this fixture's; `send`'s route parameter is the bare `string` they are values of",
     rust_decision:
-      "the route stays borrowed text here, exactly as Roadmap 3.8 left it in `ExchangeBuilder` and 7.6 left the escrow filter. 8.1 owns the typed table.",
+      "the route stays borrowed text here, exactly as `ExchangeBuilder` left it and `client-escrows` left the escrow filter. `client-exchange-routes` owns the typed table.",
   },
 };
 

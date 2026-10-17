@@ -1,16 +1,16 @@
 // Records the pinned signify-ts checkout's registry endpoint.
 //
-// Roadmap 6.9 ports `Registries.{list,create,createFromEvents,rename}` and `RegistryResult` from
+// This port covers `Registries.{list,create,createFromEvents,rename}` and `RegistryResult` from
 // `src/keri/app/credentialing.ts`.
 //
 // The pinned unit tree exercises this family in `test/app/registry.test.ts`, whose two cases
 // publish an exact `vcp` and `ixn` pair and the establishment-only refusal. **Those two vectors are
 // not reproducible here**: their issuer prefix is the literal `'hab prefix'`, which no
 // `IdentifierPrefix` can express, so they are recorded verbatim and the input is proven refused —
-// the arrangement Roadmap 3.8 established. Byte parity comes from driving the reference instead,
-// the way Roadmap 6.7's and 6.8's fixtures do: `globalThis.fetch` is replaced with a recorder that
-// answers and signs as a KERIA agent would, and the real client is walked through boot, connect,
-// and every registry call.
+// the arrangement exchange message construction established. Byte parity comes from driving the
+// reference instead, the way the `client-key-state` and `client-config` fixtures do:
+// `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent would, and
+// the real client is walked through boot, connect, and every registry call.
 //
 // `create` derives real keys at the reference's production Argon2 profile and signs the anchoring
 // interaction event, so this generator takes several seconds. The nonce is pinned for the exact
@@ -247,7 +247,7 @@ for (const [name, value] of Object.entries(declarations)) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -658,9 +658,9 @@ const quirks = {
       rename: declarations.rename_path,
     },
     published_by_the_unit_test: "/identifiers/a name/registries",
-    note: "all three paths concatenate their names raw, so `list('a/b')` addresses `/identifiers/a/b/registries` and `rename('a/b','c/d',…)` addresses `/identifiers/a/b/registries/c/d` — four unencoded dynamic values, and Roadmap 3.10 signs `@path`. The pinned unit test asserts the unencoded form itself, with a literal space in `/identifiers/a name/registries`.",
+    note: "all three paths concatenate their names raw, so `list('a/b')` addresses `/identifiers/a/b/registries` and `rename('a/b','c/d',…)` addresses `/identifiers/a/b/registries/c/d` — four unencoded dynamic values, and request authentication signs `@path`. The pinned unit test asserts the unencoded form itself, with a literal space in `/identifiers/a name/registries`.",
     rust_decision:
-      "refused by construction: Roadmap 5.3's `ResourcePath` encodes every dynamic component exactly once, as Roadmap 6.6 decided for the identifier family",
+      "refused by construction: the request builder's `ResourcePath` encodes every dynamic component exactly once, as the identifiers endpoint decided for the identifier family",
   },
   establishment_only_is_built_then_thrown_away: {
     detail: establishmentOnly,
@@ -668,7 +668,7 @@ const quirks = {
     thrown: declarations.create_est_only_throw,
     note: "an establishment-only identifier has `EO` pushed into the registry configuration and the whole registry inception built from it, and only then does `create` throw — so the derivation is wasted and the identifier lookup has already gone out",
     rust_decision:
-      "a typed refusal checked **before** anything is built, which is what Roadmap 6.2 decided for an establishment-only issuer; no request is sent at all",
+      "a typed refusal checked **before** anything is built, which is what credential issuance decided for an establishment-only issuer; no request is sent at all",
   },
   no_backers_defaults_to_true: {
     declaration: declarations.create_defaults,
@@ -689,7 +689,7 @@ const quirks = {
   the_anchor_seals_the_registry_to_itself: {
     declaration: declarations.create_anchor,
     note: "the interaction event anchors `{i: regser.pre, s: '0', d: regser.pre}` — the registry's identifier in both the identifier and the digest slot, because a registry inception's SAID *is* its prefix",
-    rust_decision: "reproduced exactly; Roadmap 4.7's inception yields both from one event",
+    rust_decision: "reproduced exactly; the TEL registry inception yields both from one event",
   },
   create_builds_its_keeper_twice: {
     body: declarations.from_events_algorithm,

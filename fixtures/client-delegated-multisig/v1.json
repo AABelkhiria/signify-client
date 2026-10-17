@@ -18,7 +18,7 @@
     "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
     "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
     "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
-    "note": "The ported unit is `delegateMultisig`, which lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a three-entry module shim exactly as Roadmap 8.3's generator does. Nothing is written into the submodule, and what runs is the reference's own code. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+    "note": "The ported unit is `delegateMultisig`, which lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a three-entry module shim exactly as the `client-multisig-inception` generator does. Nothing is written into the submodule, and what runs is the reference's own code. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
   },
   "declarations": {
     "delegate_multisig": "export async function delegateMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, anchor: { i: string; s: string; d: string }, isInitiator: boolean = false ) { if (!isInitiator) { const msgSaid = await waitAndMarkNotification(client, '/multisig/ixn'); console.log( `${aid.name}(${aid.prefix}) received exchange message to join the interaction event` ); const res = await client.groups().getRequest(msgSaid); const groupExn = assertMultisigIxn(res[0]); const exn = groupExn.exn; const ixn = exn.e.ixn; anchor = (ixn.a as Array<{ i: string; s: string; d: string }>)[0]; } // const {delResult, delOp} = await retry(async () => { const delResult = await client .delegations() .approve(multisigAID.name, anchor); const appOp = await delResult.op(); console.log( `Delegator ${aid.name}(${aid.prefix}) approved delegation for ${ multisigAID.name } with anchor ${JSON.stringify(anchor)}` ); const expectedAnchor = Array.isArray(delResult.serder.sad.a) ? delResult.serder.sad.a[0] : delResult.serder.sad.a; assert.equal(JSON.stringify(expectedAnchor), JSON.stringify(anchor)); const serder = delResult.serder; const sigs = delResult.sigs; const sigers = sigs.map((sig) => new signify.Siger({ qb64: sig })); const ims = signify.d(signify.messagize(serder, sigers)); const atc = ims.substring(serder.size); const xembeds = { ixn: [serder, atc], }; const smids = [aid.prefix, ...otherMembersAIDs.map((aid) => aid.prefix)]; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, multisigAID.name, aid, '/multisig/ixn', { gid: serder.pre, smids: smids, rmids: smids }, xembeds, recp ); if (isInitiator) { console.log( `${aid.name}(${aid.prefix}) initiates delegation interaction event, waiting for others to join...` ); } else { console.log(`${aid.name}(${aid.prefix}) joins interaction event`); } return appOp; }",
@@ -241,8 +241,8 @@
     },
     "scanned_files": 117,
     "notes": {
-      "composition": "8.3's group inception with a delegator, 8.4's interaction announcement, and 8.5's approval address",
-      "one_seal": "the joining half reads `ixn.a[0]`; Roadmap 8.4's plain interaction round reads `ixn.a`"
+      "composition": "the group inception with a delegator, the interaction announcement, and the delegation approval address",
+      "one_seal": "the joining half reads `ixn.a[0]`; the plain interaction round reads `ixn.a`"
     }
   },
   "key_states": {
@@ -772,7 +772,7 @@
       "joiner_event": "EF1XPU4hDq_XMm4f0HC7o-8ag8XEEwWAmKpRfcwRonfI",
       "events_agree": false,
       "joiner_error": null,
-      "note": "the initiator anchors both seals; the joining member reads `ixn.a[0]` and anchors one. The two members sign different interaction events, the group never reaches its threshold, and the second delegation is never approved — with no error on either side. Roadmap 8.4's plain interaction round reads the same field whole, so the pinned tree contains both readings of one shape.",
+      "note": "the initiator anchors both seals; the joining member reads `ixn.a[0]` and anchors one. The two members sign different interaction events, the group never reaches its threshold, and the second delegation is never approved — with no error on either side. the plain interaction round reads the same field whole, so the pinned tree contains both readings of one shape.",
       "rust_decision": "the whole seal list is read. `accept_delegation_approval` anchors every seal the proposal names, and then compares the event it built with the digest the proposal carries — so a disagreement is a typed error rather than a group that never converges."
     },
     "the_rotation_set_is_the_signing_set_a_third_time": {
@@ -848,7 +848,7 @@
         "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
       ],
       "identical": true,
-      "note": "Roadmap 8.3 recorded this in the accepting half of an inception and 8.4 found it again at one of two rotation call sites. Here it is unconditional: the rotation set is written as the signing set with no rotation set consulted at all.",
+      "note": "`client-multisig-inception` recorded this in the accepting half of an inception and `client-multisig-events` found it again at one of two rotation call sites. Here it is unconditional: the rotation set is written as the signing set with no rotation set consulted at all.",
       "rust_decision": "the two sets are separate arguments and neither defaults to the other."
     },
     "the_member_list_is_hand_assembled": {
@@ -862,14 +862,14 @@
       ],
       "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
       "sender_is_a_recipient": false,
-      "note": "the members are whatever the caller passed, in the caller's order, rather than read from the group's own key states — so a member omitted from `otherMembersAIDs` is omitted from the message the group is agreeing on. The delivery list does exclude the sender here, which is what Roadmap 8.3's *proposing* half fails to do.",
-      "rust_decision": "the members are read from the group's record and the delivery list is Roadmap 8.3's `delivery_list`, which excludes the sender and refuses a member that is not one."
+      "note": "the members are whatever the caller passed, in the caller's order, rather than read from the group's own key states — so a member omitted from `otherMembersAIDs` is omitted from the message the group is agreeing on. The delivery list does exclude the sender here, which is what the group inception's *proposing* half fails to do.",
+      "rust_decision": "the members are read from the group's record and the delivery list is `delivery_list`, which excludes the sender and refuses a member that is not one."
     },
     "the_reference_checks_its_own_work_exactly_once": {
       "declaration": [
         "assert.equal(JSON.stringify(expectedAnchor), JSON.stringify(anchor))"
       ],
-      "note": "`delegateMultisig` reads the anchor back out of the event it built and asserts it equals the anchor it was given. It is the only comparison of its kind in the multisig tree — Roadmap 8.4 recorded that the rotation round compares nothing — and it lives in a test helper, so no consumer of the library gets it.",
+      "note": "`delegateMultisig` reads the anchor back out of the event it built and asserts it equals the anchor it was given. It is the only comparison of its kind in the multisig tree — `client-multisig-events` recorded that the rotation round compares nothing — and it lives in a test helper, so no consumer of the library gets it.",
       "rust_decision": "reproduced and moved into the port: the joining half compares the event it built with the digest the proposal carries, on every round, and refuses rather than asserting."
     },
     "the_check_fires_after_the_approval_is_already_posted": {
@@ -926,8 +926,8 @@
       "delegator": "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk",
       "ilk": "dip",
       "undelegated_ilk": "icp",
-      "note": "the same helper builds both, and the only difference in the request is `delpre` — which becomes the event's `di` and changes its ilk from `icp` to `dip`. This is the first item in the port to drive a delegated group inception at all; Roadmap 8.3's fixture drove only undelegated ones.",
-      "rust_decision": "reproduced. Roadmap 8.3's `GroupInceptionRequest` already carries a delegator, and Roadmap 8.1's inception embed accepts both ilks, so a delegated group proposal classifies as an inception like any other."
+      "note": "the same helper builds both, and the only difference in the request is `delpre` — which becomes the event's `di` and changes its ilk from `icp` to `dip`. This is the first fixture in the port to drive a delegated group inception at all; `client-multisig-inception` drove only undelegated ones.",
+      "rust_decision": "reproduced. `GroupInceptionRequest` already carries a delegator, and the exchange-route inception embed accepts both ilks, so a delegated group proposal classifies as an inception like any other."
     }
   }
 }

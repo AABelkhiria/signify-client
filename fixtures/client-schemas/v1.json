@@ -369,13 +369,13 @@
     "the_said_is_not_encoded": {
       "path": "/schema/E/../schema?x=1#y",
       "expression": "path = `/schema/${said}`",
-      "note": "`get` interpolates its SAID straight into the path, so a value carrying `/`, `?`, or `#` addresses a different resource — and Roadmap 3.10 signs `@path`, so it changes what a signature commits to",
-      "rust_decision": "refused twice over: the argument is Roadmap 3.3's validated `Said` rather than a string, and Roadmap 5.3's builder would encode it exactly once even if it were not. A qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path byte-identical."
+      "note": "`get` interpolates its SAID straight into the path, so a value carrying `/`, `?`, or `#` addresses a different resource — and request authentication signs `@path`, so it changes what a signature commits to",
+      "rust_decision": "refused twice over: the argument is a validated `Said` rather than a string, and the request builder would encode it exactly once even if it were not. A qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path byte-identical."
     },
     "the_segment_is_singular": {
       "get": "path = `/schema/${said}`",
       "list": "path = `/schema`",
-      "note": "both paths address `/schema`, singular, while the class, the accessor, and the roadmap item are all plural — the one place in this file where the resource name and its accessor disagree",
+      "note": "both paths address `/schema`, singular, while the class, the accessor, and the module are all plural — the one place in this file where the resource name and its accessor disagree",
       "rust_decision": "reproduced exactly, and pinned as a named constant so the plural module name cannot drift into the path"
     },
     "the_answer_is_never_validated": {
@@ -391,7 +391,7 @@
       "declaration": "path = `/schema`",
       "empty": [],
       "note": "`list` addresses a constant path with no filter, range, or paging of any kind, so an agent holding many schemas returns all of them in one body",
-      "rust_decision": "reproduced; the response is bounded only by Roadmap 5.1's transport limit, which is recorded as a limitation rather than a filter this port invents"
+      "rust_decision": "reproduced; the response is bounded only by the transport's limit, which is recorded as a limitation rather than a filter this port invents"
     },
     "nothing_checks_the_said_came_back": {
       "scan": {
@@ -406,7 +406,7 @@
         "scanned_files": 117
       },
       "note": "the reference's own integration test asserts `schema.$id` equals the SAID it asked for, which is the check that matters — but `Schemas.get` itself does not make it, so a misrouted or substituted answer is returned unchallenged",
-      "rust_decision": "reproduced rather than fixed: `get` returns what the agent sent and a caller compares. Inventing the check would diverge from the reference for a guarantee only a digest verification can actually give, which is Roadmap 3.3's job and not an endpoint's."
+      "rust_decision": "reproduced rather than fixed: `get` returns what the agent sent and a caller compares. Inventing the check would diverge from the reference for a guarantee only a digest verification can actually give, which is SAID verification's job and not an endpoint's."
     }
   }
 }

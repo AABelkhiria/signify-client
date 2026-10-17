@@ -1,12 +1,13 @@
 // Records how the pinned signify-ts checkout builds a request URL and reads a response.
 //
-// Roadmap 5.3 has two halves and this generator has two kinds of evidence for them.
+// The request builder and response decoder are two halves, and this generator has two kinds of
+// evidence for them.
 //
 // The *request* half has no single upstream function: `app/clienting.ts` concatenates a base URL
 // with a path its endpoint modules assembled, so the evidence is the reference's own output —
 // `encodeURIComponent` for a path segment, `URLSearchParams` for a query, and the exact URL,
 // `Accept`, `Content-Type`, and `Range` header of real endpoint calls captured by replacing the
-// global `fetch`, exactly as Roadmap 5.1's generator does.
+// global `fetch`, exactly as the `http-transport` generator does.
 //
 // The *response* half does have one: `parseRangeHeaders` in `core/httping.ts`, the last capability
 // of that file left unported. It is called directly across a matrix of well-formed and malformed
@@ -33,7 +34,10 @@ const BRAN = "0123456789abcdefghijk";
 const ADMIN_URL = "http://localhost:3901";
 const BOOT_URL = "http://localhost:3903";
 
-/** Headers whose values are a clock read or cover one; recorded by name only, as Roadmap 5.1 did. */
+/**
+ * Headers whose values are a clock read or cover one; recorded by name only, as `http-transport`
+ * does.
+ */
 const MASKED_HEADERS = new Set(["signify-timestamp", "signature", "signature-input"]);
 
 // ---------------------------------------------------------------------------
@@ -258,7 +262,10 @@ for (const [name, body, status, headers, note] of DECODE_INPUTS) {
 
 const recorded = [];
 
-/** Records one fetch call and answers it with a canned response, as Roadmap 5.1's generator does. */
+/**
+ * Records one fetch call and answers it with a canned response, as the `http-transport` generator
+ * does.
+ */
 function recordingFetch(nextResponse) {
   return async (url, init = {}) => {
     const headers = [];
@@ -339,8 +346,8 @@ const requests = [];
 /** Drives one reference call and keeps the request it sent, even when it rejects the canned answer.
  *
  * After `connect`, `SignifyClient.fetch` requires an agent signature over the response, which is
- * Roadmap 5.5's subject. The request is already recorded by the time the reference inspects the
- * answer, and the request is what this half of the fixture is about.
+ * the `http-auth` fixture's subject. The request is already recorded by the time the reference
+ * inspects the answer, and the request is what this half of the fixture is about.
  */
 async function drive(name, note, run) {
   const before = recorded.length;
@@ -461,7 +468,7 @@ for (const [status, body, note] of STATUS_INPUTS) {
     body,
     ok: status >= 200 && status <= 299,
     // A response the reference accepts still fails afterwards on the missing agent signature,
-    // which is Roadmap 5.5's; only the status branch is this fixture's evidence.
+    // which is the `http-auth` fixture's; only the status branch is this fixture's evidence.
     message,
     note,
   });
@@ -535,7 +542,7 @@ const quirks = {
       contact_delete_url: slash?.request?.url ?? null,
       notification_mark_url: query?.request?.url ?? null,
       key_states_url: value?.request?.url ?? null,
-      note: "only `aiding.get` and `aiding.update` call encodeURIComponent; every other dynamic path component and every query value built outside URLSearchParams is interpolated raw, so a value holding `/`, `?`, `#`, or `..` changes which resource is addressed — and Roadmap 3.10 signs `@path`, so it changes what the signature covers too",
+      note: "only `aiding.get` and `aiding.update` call encodeURIComponent; every other dynamic path component and every query value built outside URLSearchParams is interpolated raw, so a value holding `/`, `?`, `#`, or `..` changes which resource is addressed — and request authentication signs `@path`, so it changes what the signature covers too",
       rust_decision: "every dynamic component is encoded exactly once by the URL builder, so a name can never open a segment, a query, or a fragment; the reference's raw paths are recorded here rather than reproduced",
     };
   })(),
@@ -614,7 +621,7 @@ const quirks = {
     return {
       names: (list?.request?.headers ?? []).map((header) => header.name),
       note: "the reference hands `fetch` a WHATWG `Headers`, whose iteration order is sorted by lowercased name rather than insertion — so the order recorded here is the platform's, not a choice the reference made",
-      rust_decision: "this crate's `Headers` preserves insertion order, and the request builder emits its own headers before a caller's; the wire order of the authentication headers is Roadmap 5.5's composition and does not affect a signature, whose base order comes from the covered-fields list",
+      rust_decision: "this crate's `Headers` preserves insertion order, and the request builder emits its own headers before a caller's; the wire order of the authentication headers is the authenticated transport's composition and does not affect a signature, whose base order comes from the covered-fields list",
     };
   })(),
   empty_query_still_emits_a_delimiter: (() => {
@@ -650,7 +657,7 @@ const fixture = {
     boot_url: BOOT_URL,
     controller_prefix: controllerPrefix,
     masked_headers: [...MASKED_HEADERS],
-    note: "path and query encodings come from the platform functions the reference calls; `content_ranges` come from `parseRangeHeaders` directly, with NaN recorded as the string \"NaN\"; requests and status outcomes are captured by replacing the global fetch and driving the reference's own endpoint code, as Roadmap 5.1's generator does",
+    note: "path and query encodings come from the platform functions the reference calls; `content_ranges` come from `parseRangeHeaders` directly, with NaN recorded as the string \"NaN\"; requests and status outcomes are captured by replacing the global fetch and driving the reference's own endpoint code, as the `http-transport` generator does",
   },
   media_types: {
     request_content_type: "application/json",

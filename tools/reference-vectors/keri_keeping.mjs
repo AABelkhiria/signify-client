@@ -368,7 +368,7 @@ const quirks = {
   },
   every_method_is_async_without_awaiting: {
     note: "the whole `IdentifierManager` interface is async, but no implementation awaits anything: none of them performs I/O",
-    rust_decision: "the Rust trait is synchronous, because ARCHITECTURE.md forbids this crate an async runtime",
+    rust_decision: "the Rust trait is synchronous, because this crate takes no async runtime",
   },
 };
 

@@ -415,12 +415,12 @@ const quirks = {
     return {
       overridden_arguments_change_nothing: JSON.stringify(left) === JSON.stringify(right),
       note: "`create` silently forces ncount = 0, nsith = 0, and dcode = Ed25519N for a non-transferable identifier, whatever was passed",
-      rust_decision: "the forced values are the defaults; explicit contradictions are refused, as Roadmap 4.4 decided",
+      rust_decision: "the forced values are the defaults; explicit contradictions are refused, as habitat creation refuses them",
     };
   })(),
   interact_without_data_anchors_null: {
     note: "`createInteract` wraps a missing data argument as [undefined], which serializes as [null]: a seal that seals nothing, committed into the SAID. The event is recorded in the interactions section as `no_data_anchors_null`.",
-    rust_decision: "unrepresentable: an anchor is a field map (Roadmap 3.5); an anchor-less interaction writes a: []",
+    rust_decision: "unrepresentable: an anchor is a field map; an anchor-less interaction writes a: []",
   },
   create_wraps_data_even_when_it_is_a_list: await (async () => {
     const { calls, identifiers } = mockClient(BRAN);
@@ -439,7 +439,7 @@ const quirks = {
   },
   end_role_default_stamp_reads_the_clock: {
     note: "`addEndRole` and `addLocScheme` default their reply timestamp to the system clock when no stamp is passed",
-    rust_decision: "the timestamp is a required parameter, continuing Roadmap 3.6",
+    rust_decision: "the timestamp is a required parameter, as in the reply event builder",
   },
 };
 

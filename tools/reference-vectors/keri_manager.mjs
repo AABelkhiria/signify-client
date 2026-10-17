@@ -4,7 +4,7 @@
 // the ones the pinned `manager.test.ts` uses, and the temporary Argon2 profile is selected wherever
 // a key would otherwise take a second to derive. The one nondeterministic field the reference
 // writes — `PubLot.dt`, which is `new Date().toString()` — is recorded with every digit masked, as
-// Roadmap 3.6 did for the reply timestamp, because it is written and never read.
+// was done for the reply timestamp, because it is written and never read.
 import { readFileSync, writeFileSync } from "node:fs";
 
 import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
@@ -445,11 +445,11 @@ const quirks = {
   public_key_lot_timestamp: {
     shape: encryptedAfterIncept.identifiers[encryptedIncept.prefix].situation.new.dt_shape,
     note: "`new Date().toString()` is written into every PubLot and read nowhere in the pinned source",
-    rust_decision: "omitted; a protocol crate does not read the clock, as Roadmap 3.6 decided for the reply timestamp",
+    rust_decision: "omitted; a protocol crate does not read the clock, as was decided for the reply timestamp",
   },
   update_aeid_is_unreachable: {
     note: "updateAeid is private and called only from the constructor, which calls it only when `this.aeid` is undefined and after setting `_decrypter` to undefined; both of its guarded blocks — the last-seed check and the whole re-encryption loop — can therefore never run",
-    rust_decision: "not ported; re-keying a manager is Roadmap 8.9, and encryption here is one optional value derived from the seed rather than four fields that can disagree",
+    rust_decision: "not ported; re-keying a manager belongs to passcode rotation, and encryption here is one optional value derived from the seed rather than four fields that can disagree",
   },
   two_signing_entry_points: {
     by_public_key: encryptedSignatures.indexed_by_position,
@@ -467,7 +467,7 @@ const quirks = {
     declaration: "const path = this.stem == '' ? pidx.toString(16) : this.stem + ridx.toString(16) + (kidx + idx).toString(16);",
     ...collision,
     note: "the path concatenates two variable-length hexadecimal numbers with no delimiter between them, so distinct positions can spell the same string. Driven through the reference's own `SaltyCreator`: rotation 1 at key 16 writes 'red' + '1' + '10' and rotation 17 at key 0 writes 'red' + '11' + '0', both 'red110', and both derive the same private key. It is a second way pre-rotation can commit to a key already in use, beside the empty-stem branch this fixture already pins.",
-    rust_decision: "reproduced exactly, because diverging would derive a different identifier from identical inputs — a delimiter here would change every salty key in existence. `signify-keri`'s `distinct_positions_can_collide_onto_one_path` pins it against the reference's own public key, and Roadmap 4.2's record states the consequence rather than hiding it.",
+    rust_decision: "reproduced exactly, because diverging would derive a different identifier from identical inputs — a delimiter here would change every salty key in existence. `signify-keri`'s `distinct_positions_can_collide_onto_one_path` pins it against the reference's own public key, and this fixture states the consequence rather than hiding it.",
   },
 };
 

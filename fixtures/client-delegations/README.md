@@ -19,26 +19,26 @@ node tools/reference-vectors/client_delegations.mjs --check   # verify determini
 
 ## Determinism
 
-The clock and the agent's key are pinned, as Roadmap 6.4's fixture pinned them — a signed request's
-`Signify-Timestamp` is a clock reading, and every recorded request here is signed. The identifier is
-the reference's own `mockGetAID`, with one field supplied: `icp_dt`, which the reference never reads
-and Roadmap 4.1's typed record requires. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are
-the pinned tests' own, and the salt is recorded as what it opens to rather than as a blob only the
-reference's controller can open.
+The clock and the agent's key are pinned, as the `client-lifecycle` fixture pinned them — a signed
+request's `Signify-Timestamp` is a clock reading, and every recorded request here is signed. The
+identifier is the reference's own `mockGetAID`, with one field supplied: `icp_dt`, which the
+reference never reads and the typed identifier record requires. `PUBLIC TEST MATERIAL`: the passcode
+and sealed salt are the pinned tests' own, and the salt is recorded as what it opens to rather than
+as a blob only the reference's controller can open.
 
 ## What the evidence is
 
-Roadmap 8.5 ports the whole of `delegating.ts`: one class, one method, thirty-three lines including
-its documentation — the smallest application module in the port, three lines shorter than Roadmap
-7.6's `escrowing.ts`.
+This fixture ports the whole of `delegating.ts`: one class, one method, thirty-three lines
+including its documentation — the smallest application module in the port, three lines shorter
+than `escrowing.ts`.
 
 A delegated identifier cannot come into existence alone. Its inception names a delegator and stays
 pending until that delegator **anchors a seal of it** in its own key event log. `approve` is that
 anchoring.
 
-`Delegations` takes a whole `SignifyClient`, so this fixture drives the real client the way Roadmap
-7.6's did: `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent
-would, and the client is walked through boot, connect, and each call.
+`Delegations` takes a whole `SignifyClient`, so this fixture drives the real client the way
+`client-escrows` did: `globalThis.fetch` is replaced with a recorder that answers and signs as a
+KERIA agent would, and the client is walked through boot, connect, and each call.
 
 `declarations` holds the method read from the reference's own syntax tree — its whole text, its
 signature with each parameter's declared type and whether it is optional, its one `fetch` call, the
@@ -94,7 +94,7 @@ the alias `a/b?c=d`:
 | write | `/identifiers/a/b?c=d/delegation` |
 
 One segment on the read, two segments and a query on the write — the reference disagreeing with
-itself inside a single method. **Closed by Roadmap 5.3's path builder**, which builds both the same
+itself inside a single method. **Closed by `ResourcePathBuilder`**, which builds both the same
 way; a property states that the two agree for any alias.
 
 ## Contents
@@ -112,8 +112,8 @@ All seven calls **succeed** upstream. Three of them should not have.
 
 - **The pinned test approves nothing**, as above. **Refused here.**
 - **An anchor may be anything.** `data?: any`, so a bare string is wrapped, anchored, and signed
-  exactly as a seal would be — recorded. **A seal is Roadmap 3.1's `Sad` here**, and `InceptionSeal`
-  names the three fields a delegated inception's seal carries. More than one seal is still
+  exactly as a seal would be — recorded. **A seal is a `Sad` here**, and `InceptionSeal` names the
+  three fields a delegated inception's seal carries. More than one seal is still
   permitted, because the event format permits it.
 - **The delegate reads its own prefix out of an operation's name.** The integration test does
   `op2.name.split('.')[1]` to learn the identifier it just created, then hand-assembles the seal

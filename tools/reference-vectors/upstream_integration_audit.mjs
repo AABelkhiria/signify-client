@@ -1,15 +1,15 @@
 // Inventories the pinned signify-ts checkout's KERIA integration suite.
 //
-// Roadmap 9.2 must answer every upstream integration scenario with Rust evidence or a documented
-// reason. Roadmap 9.1 did the same for the unit suite, and its unit was the `it`/`test` case — one
-// row per case, 139 of them, each mapping cleanly onto a Rust test.
+// The integration matrix must answer every upstream integration scenario with Rust evidence or a
+// documented reason. The unit audit did the same for the unit suite, and its unit was the
+// `it`/`test` case — one row per case, 139 of them, each mapping cleanly onto a Rust test.
 //
 // **That unit is useless here.** `multisig.test.ts` is 1,342 lines and *one* case;
 // `multisig-vlei-issuance.test.ts` is 1,335 lines and one case. Counting cases would report
 // "35 of 35 answered" while hundreds of behaviours went unexamined — an audit that passes while
 // certifying nothing. So this inventory records a finer unit: **every `client.<family>().<method>()`
 // call site**, which decomposes a monolith into a behaviour list and maps onto the endpoint
-// families `PORTING.md` §5 already tracks.
+// families this port already tracks.
 //
 // It also records the suite's defects mechanically rather than in prose, so that every "this port
 // does better" claim in the ledger cites a generated file and line instead of a memory.

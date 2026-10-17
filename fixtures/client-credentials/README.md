@@ -21,7 +21,8 @@ node tools/reference-vectors/client_credentials.mjs --check   # verify determini
 Two things are pinned. The **clock**, because `issue` and `revoke` both default their timestamp to
 `new Date().toISOString()`, so nothing either of them derives is reproducible without it — the
 credential's SAID, the issuance event's SAID, and the anchoring interaction event all commit to it.
-And the **agent's key**, as Roadmap 6.4's fixture pinned it, so every response authenticates.
+And the **agent's key**, as the `client-lifecycle` fixture pinned it, so every response
+authenticates.
 
 **Sealed salts are masked.** A salty keeper seals its salt with a fresh ephemeral key each time, so
 every `sxlt` in a recorded body or record is replaced with `<SXLT>` and the salt it opens to is
@@ -34,10 +35,10 @@ generator takes several seconds.
 
 ## What the evidence is
 
-Roadmap 6.11 ports `Credentials.{list,get,delete,state,issue,revoke}` together with the
+This ports `Credentials.{list,get,delete,state,issue,revoke}` together with the
 `CredentialFilter` declaration `list` sends as a body.
 
-**The pinned unit tree exercises this family properly**, which Roadmap 6.9's and 6.10's did not:
+**The pinned unit tree exercises this family properly**, which the registries' and schemas' did not:
 the single `Credentials` case in `test/app/credentialing.test.ts` calls all six methods and asserts
 each path, each method, and — for `issue` and `revoke` — the fields of each body. What it does not
 assert is any exact *bytes*: both of those methods read the clock, so the test checks fields.
@@ -87,10 +88,10 @@ two the schema does not, and is handed to a caller as a credential regardless.
 - **No path encodes its names.** Five of the six methods interpolate raw — seven dynamic values in
   all — so `get('E/../identifiers?x=1#y')` addresses `/credentials/E/../identifiers?x=1#y`, three
   extra segments plus a query and a fragment; `state('a/b','c/d')` addresses `/registries/a/b/c/d`;
-  and `revoke('a/b','c/d')` addresses `/identifiers/a/b/credentials/c/d`. Roadmap 3.10 signs
-  `@path`, so each also changes what the signature commits to. **Refused by construction**: a SAID
-  and a registry identifier are Roadmap 3.3's and 6.1's validated types, and Roadmap 5.3's
-  `ResourcePath` encodes an alias exactly once.
+  and `revoke('a/b','c/d')` addresses `/identifiers/a/b/credentials/c/d`. Request authentication
+  signs `@path`, so each also changes what the signature commits to. **Refused by construction**: a
+  SAID and a registry identifier are validated types, and `ResourcePath` encodes an alias exactly
+  once.
 - **`issue` addresses the agent's own alias.** It posts to `/identifiers/${hab.name}/credentials`,
   where `hab` is the record the **agent** answered with — so a server answering under a different
   alias chooses both the resource the credential is written to and the path the request's signature
@@ -99,15 +100,15 @@ two the schema does not, and is handed to a caller as a credential regardless.
 - **`issue` never checks the issuer it was given.** The credential's issuer is `args.i ?? hab.prefix`
   and nothing compares a supplied one against the identifier whose keeper signs the anchor, so a
   credential can claim an issuer whose key event log contains no anchor for it — unresolvable by any
-  verifier. The fixture records one built that way. Here the credential arrives already built
-  (Roadmap 6.1), so its issuer is compared with the identifier anchoring it and a mismatch is a
-  typed refusal before anything is signed.
+  verifier. The fixture records one built that way. Here the credential arrives already built, so
+  its issuer is compared with the identifier anchoring it and a mismatch is a typed refusal before
+  anything is signed.
 - **`revoke` reads its registry from the server.** It fetches the credential back to learn both the
   registry the revocation commits to and the prior digest it supersedes, so a revocation cannot be
   built offline and both values are the agent's rather than the caller's. Its sequence number is the
   literal `'1'`, wrong in any registry whose log has moved on. Here the revocation event is an input
-  built by Roadmap 6.2, where all three are ordinary values defaulting to the reference's, and the
-  endpoint looks up nothing.
+  built by the `revocation` module, where all three are ordinary values defaulting to the
+  reference's, and the endpoint looks up nothing.
 - **An unqualified SAID becomes a credential identifier.** `revoke('a/b','c/d')` writes
   `"i":"c/d"` into the revocation event itself, which is recorded here and is unrepresentable in
   Rust, because `Said` is validated before it is anything.

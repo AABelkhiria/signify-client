@@ -1,18 +1,18 @@
 // Records the pinned signify-ts checkout's challenges endpoint.
 //
-// Roadmap 7.4 ports `Challenges.{generate,verify,responded}` from `src/keri/app/contacting.ts`.
+// This ports `Challenges.{generate,verify,responded}` from `src/keri/app/contacting.ts`.
 //
 // **`respond` is not here, and its absence is the first thing this fixture records.** It is a
 // five-line wrapper — read the habitat, then call
 // `exchanges.send(name, 'challenge', hab, '/challenge/response', {words}, {}, [recipient])` — so it
-// needs `Exchanges.{createExchangeMessage,send,sendFromEvents}` whole, which `PORTING.md` §5.10
-// assigns to Roadmap 7.7. `deferred_capability` below reads that call out of the reference's own
-// syntax tree and asserts the three methods it reaches, so the deferral is a machine-checked fact
-// rather than a claim.
+// needs `Exchanges.{createExchangeMessage,send,sendFromEvents}` whole, which belong to the exchange
+// endpoint. `deferred_capability` below reads that call out of the reference's own syntax tree and
+// asserts the three methods it reaches, so the deferral is a machine-checked fact rather than a
+// claim.
 //
 // The pinned `contacting.test.ts` `Challenges` case covers all four methods; the three in scope
-// here are driven through the reference's own class, exactly as Roadmap 7.3's fixture drives
-// `Contacts`.
+// here are driven through the reference's own class, exactly as the `client-contacts` fixture
+// drives `Contacts`.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
@@ -223,7 +223,7 @@ if (JSON.stringify(declarations.class_members) !== JSON.stringify(CHALLENGES_MEM
 }
 
 // ---------------------------------------------------------------------------
-// 1b. Why `respond` is not in this item, read from the reference itself.
+// 1b. Why `respond` is not in this endpoint, read from the reference itself.
 // ---------------------------------------------------------------------------
 
 const respondBody = text(respondMethod.body);
@@ -233,7 +233,7 @@ const exchangesSendFromEvents = method(exchanging.source, "Exchanges", "sendFrom
 
 const deferredCapability = {
   capability: "Challenges.respond",
-  deferred_to: "Roadmap 7.7 — Exchange endpoint retrieval and submission",
+  deferred_to: "the exchange endpoint — exchange retrieval and submission",
   body: respondBody,
   reaches: ["Exchanges.send", "Exchanges.createExchangeMessage", "Exchanges.sendFromEvents"],
   send_body: text(exchangesSend?.body ?? null),
@@ -242,9 +242,9 @@ const deferredCapability = {
   send_from_events_body: localDeclaration(exchangesSendFromEvents, "data"),
   topic: "challenge",
   route: "/challenge/response",
-  note: "`respond` reads the habitat and calls `exchanges.send(...)`; `send` calls `createExchangeMessage`, which signs with the identifier's keeper, and then `sendFromEvents`, which POSTs `{tpc, exn, sigs, atc, rec}` to `/identifiers/{name}/exchanges`. All three are `Exchanges` methods, which `PORTING.md` §5.10 assigns to Roadmap 7.7 and which Roadmap 7.4 does not list as a prerequisite.",
+  note: "`respond` reads the habitat and calls `exchanges.send(...)`; `send` calls `createExchangeMessage`, which signs with the identifier's keeper, and then `sendFromEvents`, which POSTs `{tpc, exn, sigs, atc, rec}` to `/identifiers/{name}/exchanges`. All three are `Exchanges` methods, which belong to the exchange endpoint rather than the challenges endpoint.",
   rust_decision:
-    "moved to Roadmap 7.7 in §5.13 rather than duplicated here. Reproducing `sendFromEvents` would mean implementing the next roadmap item alongside this one: the generic exchange submission is 7.7's whole write half, not scaffolding for this single caller.",
+    "moved to the exchange endpoint rather than duplicated here. Reproducing `sendFromEvents` would mean implementing that endpoint alongside this one: the generic exchange submission is its whole write half, not scaffolding for this single caller.",
 };
 
 for (const [name, value] of Object.entries(deferredCapability)) {
@@ -263,7 +263,7 @@ for (const expected of ["'challenge'", "'/challenge/response'", "words: words", 
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -557,21 +557,21 @@ const quirks = {
     negative: call("generate_negative")?.request?.path ?? null,
     note: "`strength: number` is stringified straight into the query, so a fraction reaches the wire as `1.5`, `NaN` as `NaN`, and a negative as `-1` — none of which any BIP39 generator accepts, and all of which the agent is asked for",
     rust_decision:
-      "**refused**: `ChallengeStrength` accepts only the five entropy sizes BIP39 defines, so a request that could not produce a mnemonic cannot be written. keripy's own generator is the corroboration — it hands the value to `mnemonic.Mnemonic.generate(strength=…)`, which raises outside that set — recorded as corroboration rather than as a governing reference (ADR `0009`).",
+      "**refused**: `ChallengeStrength` accepts only the five entropy sizes BIP39 defines, so a request that could not produce a mnemonic cannot be written. keripy's own generator is the corroboration — it hands the value to `mnemonic.Mnemonic.generate(strength=…)`, which raises outside that set — recorded as corroboration rather than as a governing reference.",
   },
   the_strength_default_is_observable: {
     parameters: declarations.generate_parameters,
     path: call("generate_default")?.request?.path ?? null,
     note: "`generate(strength = 128)` writes the default into the query, so an omitted strength is still a request that names one",
     rust_decision:
-      "the strength is a required argument and `ChallengeStrength::BITS_128` names the reference's value, so what reaches the query is visible at the call site — Roadmap 7.1's `DEFAULT_ROLE` decision applied again",
+      "the strength is a required argument and `ChallengeStrength::BITS_128` names the reference's value, so what reaches the query is visible at the call site — the OOBI endpoint's `DEFAULT_ROLE` decision applied again",
   },
   the_source_is_not_encoded: {
     path: call("verify_source_needing_encoding")?.request?.path ?? null,
     expression: declarations.verify_path,
-    note: "both verification paths are `/challenges_verify/${source}`, so a value carrying `/` or `?` addresses a different resource — and Roadmap 3.10 signs `@path`",
+    note: "both verification paths are `/challenges_verify/${source}`, so a value carrying `/` or `?` addresses a different resource — and request authentication signs `@path`",
     rust_decision:
-      "refused twice over: the argument is Roadmap 3.4's validated `IdentifierPrefix`, and Roadmap 5.3's builder would encode it exactly once regardless",
+      "refused twice over: the argument is the validated `IdentifierPrefix`, and the request builder would encode it exactly once regardless",
   },
   the_two_verification_calls_share_one_address: {
     verify: declarations.verify_path,
@@ -585,14 +585,14 @@ const quirks = {
     result: call("responded")?.result ?? null,
     note: "`responded` is the only method in the family that does not call `res.json()`: it returns the platform `Response` object itself, so a caller receives an unread body and a transport type",
     rust_decision:
-      "returns `()`, which is what Roadmap 6.5's `delete` and Roadmap 7.3's do for the same reason — a non-success status is already `ClientError::Status`, and leaking a transport type across the SDK boundary is what `ARCHITECTURE.md` §4.7 exists to prevent",
+      "returns `()`, which is what `Operations::delete` and `Contacts::delete` do for the same reason — a non-success status is already `ClientError::Status`, and transport types stay off the SDK boundary",
   },
   an_empty_word_list_is_accepted: {
     path: call("verify_empty_words")?.request?.path ?? null,
     body: call("verify_empty_words")?.request?.body ?? null,
     note: "`verify(source, [])` sends `{\"words\":[]}`, asking the agent to confirm that an identifier signed nothing",
     rust_decision:
-      "**refused**, which is what Roadmap 6.12 did for an empty recipient list on the same reasoning: it is a caller mistake rather than a request, and a verification that trivially matches is worse than one that fails",
+      "**refused**, which is what the IPEX submission endpoint did for an empty recipient list on the same reasoning: it is a caller mistake rather than a request, and a verification that trivially matches is worse than one that fails",
   },
   the_answers_are_cast_rather_than_decoded: {
     declaration: declarations.verify_return,
@@ -600,14 +600,14 @@ const quirks = {
     generate_wrong_shape: call("generate_wrong_shape")?.result ?? null,
     note: "`generate` and `verify` return `res.json()` cast to `Challenge` and `ChallengeOperation`, so an answer of any shape reaches the caller — including one carrying no words at all",
     rust_decision:
-      "decoded: both recorded wrong-shaped answers are proven refused, which is the rule Roadmap 6.8, 6.10, 7.1, and 7.3 applied to their own answers",
+      "decoded: both recorded wrong-shaped answers are proven refused, which is the rule the config, schemas, OOBI, and contacts endpoints applied to their own answers",
   },
   the_said_reaches_the_body_not_the_path: {
     body: call("responded_said_needing_encoding")?.request?.body ?? null,
     expression: declarations.responded_body,
     note: "`responded`'s `said` is written into the JSON body rather than the path, so unlike the source it cannot change an address whatever it holds",
     rust_decision:
-      "still typed as Roadmap 3.3's validated `Said`, because what it names is a specific exchange message and an unparseable one records an acceptance of nothing — the narrowing costs nothing the reference can usefully send",
+      "still typed as the validated `Said`, because what it names is a specific exchange message and an unparseable one records an acceptance of nothing — the narrowing costs nothing the reference can usefully send",
   },
 };
 

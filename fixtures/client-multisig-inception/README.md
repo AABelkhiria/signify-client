@@ -20,8 +20,8 @@ node tools/reference-vectors/client_multisig_inception.mjs --check   # verify de
 
 The reference writes this orchestration **only in its own integration helpers** —
 `startMultisigIncept` and `acceptMultisigIncept` in `test-integration/utils/multisig-utils.ts`. There
-is no exported API to port and no unit test to reproduce, which makes this a Rust-only module
-(`PORTING.md` §4.5). The generator records that as a scan rather than a claim:
+is no exported API to port and no unit test to reproduce, which makes this a Rust-only module. The
+generator records that as a scan rather than a claim:
 `startMultisigIncept` is called eight times across the pinned tree and `acceptMultisigIncept` nine,
 every call site under `test-integration/`, and neither name appears under `src` at all.
 
@@ -38,16 +38,16 @@ reach a unit that upstream never exported; the technique is available to any lat
 position.
 
 `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent would, the
-clock and the agent's key are pinned as Roadmap 6.4's fixture pinned them, and the local member is
-the reference's own `mockGetAID`.
+clock and the agent's key are pinned as the `client-lifecycle` fixture pinned them, and the local
+member is the reference's own `mockGetAID`.
 
 ## Determinism
 
 The proposal's `dt` is inside its SAID and every signature over it, so the clock is pinned. The
 sealed salt is recorded as **what it opens to** rather than as the blob itself — only the
 reference's controller can open that blob — and the Rust test re-seals it under its own key, which
-is the shape Roadmap 6.11 established. `PUBLIC TEST MATERIAL`: the passcode and salt are the pinned
-tests' own.
+is the shape the `client-credentials` fixture established. `PUBLIC TEST MATERIAL`: the passcode and
+salt are the pinned tests' own.
 
 ## Contents
 
@@ -88,10 +88,10 @@ string to read in the wrong base at all.
 ## Reference behavior recorded as deliberate divergences
 
 - **The initiator addresses its proposal to itself.** `startMultisigIncept` passes `participants` as
-  the recipient list and the scenario puts the local member first, so through the loop Roadmap 7.7
-  recorded, the message's `rp` is its own `i` and it is delivered back to its own sender. The
-  *accepting* helper already filters itself out, which is the asymmetry. **Both halves filter here**,
-  and the addressee is a separate argument from the delivery list.
+  the recipient list and the scenario puts the local member first, so through the loop the
+  `client-exchanges` fixture recorded, the message's `rp` is its own `i` and it is delivered back to
+  its own sender. The *accepting* helper already filters itself out, which is the asymmetry. **Both
+  halves filter here**, and the addressee is a separate argument from the delivery list.
 - **The joining member discards the rotation set it read.** `acceptMultisigIncept` computes
   `rmids` from the proposal, derives the group's next keys from it, and then relays
   `{ gid, smids, rmids: smids }` — so a third member joining from that message is told the signing
@@ -106,11 +106,11 @@ string to read in the wrong base at all.
 ## What this port does that the reference does not
 
 One thing, recorded here so the request counts can be compared honestly: **this port reads the
-member record twice.** Roadmap 7.7's `send` resolves its own sender from the alias rather than
-taking a record the caller is already holding — which is what keeps a message's `i` field and the
-key that signed it one identifier — where the reference passes the hab it already has. So a proposal
-makes six requests here and five upstream, and the reference's five are these six with that read
-removed. Nothing else differs in what is read or in what order.
+member record twice.** The exchanges endpoint's `send` resolves its own sender from the alias rather
+than taking a record the caller is already holding — which is what keeps a message's `i` field and
+the key that signed it one identifier — where the reference passes the hab it already has. So a
+proposal makes six requests here and five upstream, and the reference's five are these six with that
+read removed. Nothing else differs in what is read or in what order.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access. The
 cross-language test also **drives this port through the same inputs** and asserts the thing the

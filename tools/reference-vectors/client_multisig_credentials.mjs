@@ -1,11 +1,12 @@
 // Records the pinned signify-ts checkout's multisig registry, issuance, and revocation rounds.
 //
-// Roadmap 8.7 ports the three rounds a group runs over a credential registry: creating one,
+// This port covers the three rounds a group runs over a credential registry: creating one,
 // issuing a credential from it, and revoking that credential. The units are
 // `createRegistryMultisig` and `issueCredentialMultisig` in
 // `test-integration/utils/multisig-utils.ts`, and `multisigRevoke`, which is written inline in
-// `test-integration/multisig.test.ts`. As in Roadmap 8.3, 8.4, and 8.6 there is no source file,
-// so the helper module is transpiled in memory and driven against a recording agent.
+// `test-integration/multisig.test.ts`. As for multisig inception, rotation and interaction, and
+// delegated multisig, there is no source file, so the helper module is transpiled in memory and
+// driven against a recording agent.
 //
 // Four things fall out, and the first is the largest defect in the multisig tree.
 //
@@ -17,8 +18,8 @@
 //      credentials; and in both cases the group silently never reaches its threshold.
 //   2. **A revocation travels in the issuance slot.** `multisigRevoke` builds
 //      `{ iss: [rev, ''], anc: [...] }` and sends it on `/multisig/rev`, so a reader narrowing
-//      through the reference's own `assertMultisigRev` finds no `rev` at all. Roadmap 8.4's scan
-//      turned this up and left it here.
+//      through the reference's own `assertMultisigRev` finds no `rev` at all. The
+//      `client-multisig-events` scan turned this up and left it here.
 //   3. **The issuance result drops the signatures it computed.** `IssueCredentialResult` declares
 //      `{ acdc, anc, iss, op }` and no `sigs`, so every multisig caller signs the same anchor bytes
 //      a second time to build the attachment.
@@ -591,7 +592,7 @@ async function drive(name, note, run) {
 
 await drive(
   "incept_the_group",
-  "the group that will own the registry, from Roadmap 8.3's own helper",
+  "the group that will own the registry, from the multisig inception helper",
   async () =>
     await startMultisigIncept(client, {
       groupName: "multisig",
@@ -820,16 +821,16 @@ const quirks = {
     announced_route: revocationAnnouncement.exn.r,
     announced_slots: Object.keys(revocationAnnouncement.exn.e).filter((slot) => slot !== "d"),
     embedded_ilk: revocationAnnouncement.exn.e.iss?.t ?? null,
-    note: "the route says revocation and the embed carries the revocation event under the issuance label. A reader narrowing through the reference's own `assertMultisigRev` — which declares `e: { rev, d? }` — finds no `rev` at all. Roadmap 8.4's route-and-embed scan turned this up and left it here.",
+    note: "the route says revocation and the embed carries the revocation event under the issuance label. A reader narrowing through the reference's own `assertMultisigRev` — which declares `e: { rev, d? }` — finds no `rev` at all. The `client-multisig-events` route-and-embed scan turned this up and left it here.",
     rust_decision:
-      "the revocation travels in `rev`, which is the slot Roadmap 8.1's table names for this route and the one Roadmap 4.1's schema declares. The reference's own pairing does not classify here.",
+      "the revocation travels in `rev`, which is the slot the exchange route table names for this route and the one the KERIA API schema declares. The reference's own pairing does not classify here.",
   },
   the_issuance_result_drops_its_signatures: {
     declaration: ISSUE_RESULT,
     revoke_declaration: REVOKE_RESULT,
     note: "`issue` computes the anchor's signatures and posts them, then returns `{ acdc, anc, iss, op }` without them — so `issueCredentialMultisig` fetches the group identifier again, rebuilds its keeper, and signs the same bytes a second time just to build the attachment. `revoke` returns `{ anc, rev, op }` and has the same gap.",
     rust_decision:
-      "Roadmap 6.11's `IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event with its signatures — so the attachment is built from what the endpoint already returned and nothing is signed twice.",
+      "`IssuanceArtifacts.anchor` is an `IdentifierArtifact` — the event with its signatures — so the attachment is built from what the endpoint already returned and nothing is signed twice.",
   },
   one_round_is_filed_under_a_different_topic: {
     declaration: SENDS.filter((call) => call.route.startsWith("/multisig/")).map((call) => ({
@@ -839,7 +840,7 @@ const quirks = {
     vcp_topics: SENDS.filter((call) => call.route === "/multisig/vcp").map((call) => call.topic),
     note: "a registry proposal is sent under the topic `registry` where every other multisig round uses `multisig` — and the pinned tree is not even consistent with itself: of its three `/multisig/vcp` sends, two use `registry` and one uses `multisig`. A member filtering notifications by topic therefore sees registry proposals in two places.",
     rust_decision:
-      "the majority form is reproduced — Roadmap 7.7's own `REGISTRY_TOPIC` for this one route — because it is what `createRegistryMultisig`, the ported unit, sends. The disagreement is recorded rather than resolved, since nothing in the pinned tree settles which is intended.",
+      "the majority form is reproduced — the exchanges endpoint's own `REGISTRY_TOPIC` for this one route — because it is what `createRegistryMultisig`, the ported unit, sends. The disagreement is recorded rather than resolved, since nothing in the pinned tree settles which is intended.",
   },
 };
 
@@ -886,7 +887,7 @@ const fixture = {
     agent_prefix: agentPrefix,
     local_member_prefix: LOCAL_PREFIX,
     peer_prefix: PEER_PREFIX,
-    note: "Two of the three units live in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. The third, `multisigRevoke`, is written inline in a test body and is driven through the reference's own `revoke` and `send` in the same order. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
+    note: "Two of the three units live in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as the `client-multisig-inception` generator does. The third, `multisigRevoke`, is written inline in a test body and is driven through the reference's own `revoke` and `send` in the same order. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
   },
   declarations,
   key_states: {

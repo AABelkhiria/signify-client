@@ -18,9 +18,9 @@ node tools/reference-vectors/client_registries.mjs --check   # verify determinis
 
 ## Determinism
 
-Three things are pinned. The **clock** and the **agent's key**, as Roadmap 6.4's fixture pinned
-them. And the **nonce**: `vdr.incept` defaults it to `randomNonce()`, so without pinning it the
-registry identifier — which is the inception's own SAID — could not be reproduced. One case
+Three things are pinned. The **clock** and the **agent's key**, as the `client-lifecycle` fixture
+pinned them. And the **nonce**: `vdr.incept` defaults it to `randomNonce()`, so without pinning it
+the registry identifier — which is the inception's own SAID — could not be reproduced. One case
 deliberately omits it and records the generated shape instead.
 
 **Sealed salts are masked.** A salty keeper seals its salt with a fresh ephemeral key each time, so
@@ -33,7 +33,7 @@ seconds.
 
 ## What the evidence is
 
-Roadmap 6.9 ports `Registries.{list,create,createFromEvents,rename}` and `RegistryResult`.
+This port covers `Registries.{list,create,createFromEvents,rename}` and `RegistryResult`.
 
 **The pinned unit tree does exercise this family**, in `test/app/registry.test.ts` — two cases that
 publish an exact `vcp` and `ixn` pair, the establishment-only refusal, and the path
@@ -41,9 +41,9 @@ publish an exact `vcp` and `ixn` pair, the establishment-only refusal, and the p
 
 **Those two event vectors are not reproducible here.** Their issuer prefix is the literal
 `'hab prefix'`, which no qualified `IdentifierPrefix` can be, so they are recorded verbatim in
-`pinned_confirmations` and the input is proven refused on the Rust side — the arrangement Roadmap
-3.8 established for exactly this situation. Their nonce, `''`, *is* representable, so the issuer is
-the only obstacle and the test says so.
+`pinned_confirmations` and the input is proven refused on the Rust side — the arrangement exchange
+message construction established for exactly this situation. Their nonce, `''`, *is* representable,
+so the issuer is the only obstacle and the test says so.
 
 Byte parity therefore comes from the reference **driven directly**: `globalThis.fetch` is replaced
 with a recorder that answers and signs as a KERIA agent would, the identifier lookup `create`
@@ -52,7 +52,7 @@ connect, and every call. `credentialing.test.ts` has no registry case and `clien
 asserts only the accessor's type; the generator checks all three files and fails if that changes.
 
 `create` is the only call in the crate that builds **two** events: the registry's own inception
-(Roadmap 4.7) and the interaction event anchoring it in the issuer's log (Roadmap 4.6).
+and the interaction event anchoring it in the issuer's log.
 
 ## Contents
 
@@ -75,12 +75,12 @@ asserts only the accessor's type; the generator checks all three files and fails
   `rename('a/b','c/d',…)` addresses `/identifiers/a/b/registries/c/d`, four segments where two were
   meant. The pinned unit test **asserts the unencoded form itself**, with a literal space in
   `/identifiers/a name/registries`, so this is confirmed from the reference's own suite rather than
-  argued from this port's side. **Refused by construction**, as Roadmap 6.6 decided for the
-  identifier family.
+  argued from this port's side. **Refused by construction**, as the identifiers endpoint decided
+  for the identifier family.
 - **An establishment-only issuer is built and then thrown away.** `create` pushes the `EO` trait
   into the registry configuration, builds the whole registry inception from it, and *only then*
   throws `establishment only not implemented` — after the identifier lookup has already gone out.
-  Here it is a typed refusal checked first, which is what Roadmap 6.2 decided for an
+  Here it is a typed refusal checked first, which is what credential issuance decided for an
   establishment-only issuer: no derivation, no second request.
 - **`noBackers` defaults to true while `baks` and `toad` sit beside it.** A caller who names
   backers without also clearing the flag gets a registry declaring `NB` — configured to have no

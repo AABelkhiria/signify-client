@@ -18,7 +18,7 @@
       "signature",
       "signature-input"
     ],
-    "note": "the global fetch is replaced by a recorder and the reference's own client and endpoint code is driven through it; `Signify-Timestamp` is a clock read and `Signature` covers it, so both are recorded by name with the value masked — their exact bytes are Roadmap 3.10's evidence"
+    "note": "the global fetch is replaced by a recorder and the reference's own client and endpoint code is driven through it; `Signify-Timestamp` is a clock read and `Signature` covers it, so both are recorded by name with the value masked — their exact bytes are request authentication's evidence"
   },
   "requests": [
     {
@@ -276,7 +276,7 @@
         }
       ],
       "body": "[]",
-      "note": "a list response whose Content-Range drives Roadmap 5.3's paging"
+      "note": "a list response whose Content-Range drives the response decoder's paging"
     },
     {
       "name": "accepted_operation",
@@ -318,13 +318,13 @@
     },
     "headers_are_joined_on_duplicates": {
       "note": "the reference builds headers with the WHATWG `Headers` class, whose `append` joins a repeated name into one comma-separated value, silently changing what a signature covers",
-      "rust_decision": "Roadmap 3.9's `Headers` refuses a duplicate name; a request carrying one does not build"
+      "rust_decision": "`keri-http-auth`'s `Headers` refuses a duplicate name; a request carrying one does not build"
     },
     "boot_uses_a_second_base_url": {
       "boot_url": "http://localhost:3903/boot",
       "admin_url": "http://localhost:3901/agent/ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
       "note": "boot goes to a separate boot interface, so a client holds two base URLs and the transport must carry whichever it is given",
-      "rust_decision": "the transport takes a whole absolute URL; choosing between the two is Roadmap 6.4's"
+      "rust_decision": "the transport takes a whole absolute URL; choosing between the two is the client lifecycle's"
     },
     "delegation_approval_is_unauthenticated": {
       "headers": [
@@ -332,11 +332,11 @@
       ],
       "carries_signature": false,
       "note": "`approveDelegation` calls the global fetch directly instead of `SignifyClient.fetch`, so the PUT that anchors the agent's delegation carries no Signature, Signature-Input, Signify-Resource, or Signify-Timestamp header at all — the payload's own KERI signatures are the only thing authenticating it",
-      "rust_decision": "recorded, not reproduced or corrected here: the transport sends whatever request it is handed, and whether this call is signed is Roadmap 6.4's composition decision"
+      "rust_decision": "recorded, not reproduced or corrected here: the transport sends whatever request it is handed, and whether this call is signed is the client lifecycle's composition decision"
     },
     "no_timeout_anywhere": {
       "note": "no fetch call in the pinned source sets a signal or a timeout, so a request can hang until the platform's own default gives up",
-      "rust_decision": "a timeout is a transport outcome (`TransportError::Timeout`) and the policy that sets one is Roadmap 5.4"
+      "rust_decision": "a timeout is a transport outcome (`TransportError::Timeout`) and the policy that sets one is the retry policy"
     }
   }
 }

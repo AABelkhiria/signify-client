@@ -18,9 +18,6 @@
   "scenarios": [
     {
       "row": "Client setup, single/multiple clients",
-      "roadmap_gates": [
-        "6.4"
-      ],
       "upstream_files": [
         "test-integration/test-setup-clients.test.ts",
         "test-integration/test-setup-single-client.test.ts"
@@ -40,16 +37,12 @@
         "fixtures/keria-integration/environment.json"
       ],
       "status": "observed",
-      "outcome": "Recorded 2026-08-28 by wave 4, whole. The pinned passcode derives the pinned controller prefix EB3UGWwIMq7ppzcQ697ImQIuXlBG5jzh-baSx-YG3-tY against a live agent — the reference passes 24 characters and silently derives from the first 21, so the recording carries both spellings and the truncation is explicit. The witnessed identifier's agent and witness OOBIs match the upstream case's local-branch literals exactly, and two further clients cross-resolve each other's agent OOBIs, each resolution answering with the other's prefix. Two findings: the deployment serves six introduction URLs where upstream's `validate config` deep-equals exactly three, so the reference's own assertion would refuse the deployment its suite targets; and the first witnessed record broke the port's decoder — `windexes` arrives as JSON numbers where the reference's schema declares strings — now widened to `WitnessIndex` and pinned in §10.",
+      "outcome": "Recorded 2026-08-28 by wave 4, whole. The pinned passcode derives the pinned controller prefix EB3UGWwIMq7ppzcQ697ImQIuXlBG5jzh-baSx-YG3-tY against a live agent — the reference passes 24 characters and silently derives from the first 21, so the recording carries both spellings and the truncation is explicit. The witnessed identifier's agent and witness OOBIs match the upstream case's local-branch literals exactly, and two further clients cross-resolve each other's agent OOBIs, each resolution answering with the other's prefix. Two findings: the deployment serves six introduction URLs where upstream's `validate config` deep-equals exactly three, so the reference's own assertion would refuse the deployment its suite targets; and the first witnessed record broke the port's decoder — `windexes` arrives as JSON numbers where the reference's schema declares strings — now widened to `WitnessIndex`.",
       "reason": "settled",
       "note": "Boot and connect one client and two, derive a controller prefix from a pinned passcode, and cross-resolve agent OOBIs as contacts."
     },
     {
       "row": "Endpoint smoke coverage",
-      "roadmap_gates": [
-        "6.5",
-        "7.7"
-      ],
       "upstream_files": [
         "test-integration/endpoints.test.ts"
       ],
@@ -71,10 +64,6 @@
     },
     {
       "row": "Witness behavior",
-      "roadmap_gates": [
-        "3.5",
-        "9.2"
-      ],
       "upstream_files": [
         "test-integration/witness.test.ts"
       ],
@@ -90,17 +79,12 @@
         "fixtures/keria-integration/observations/witness_behavior.json"
       ],
       "status": "observed",
-      "outcome": "Recorded 2026-08-28 by wave 7, whole. The witness's controller OOBI resolves, then four establishment events run at sequences zero to three — incept with Wan at threshold one, rotate keeping it, cut it, add it back — each completing only once the named witness set receipted it, with the key state's witness list evolving [Wan], [Wan], [], [Wan] and the threshold 1, 1, 0, 1 exactly as the upstream case asserts. One finding pinned live: bt changes JSON type with its value inside this single log — text \"1\" on the inception, bare number 1 on the non-zero rotations, text \"0\" at zero — which is Roadmap 8.4's discovery reproduced deliberately by this port (Roadmap 3.5), and a real KERIA accepts all four spellings interleaved. Every event's bytes appear verbatim in a successful POST, and every SAID re-verifies hermetically.",
+      "outcome": "Recorded 2026-08-28 by wave 7, whole. The witness's controller OOBI resolves, then four establishment events run at sequences zero to three — incept with Wan at threshold one, rotate keeping it, cut it, add it back — each completing only once the named witness set receipted it, with the key state's witness list evolving [Wan], [Wan], [], [Wan] and the threshold 1, 1, 0, 1 exactly as the upstream case asserts. One finding pinned live: bt changes JSON type with its value inside this single log — text \"1\" on the inception, bare number 1 on the non-zero rotations, text \"0\" at zero — which is the multisig rotation's finding reproduced deliberately by this port's event builders, and a real KERIA accepts all four spellings interleaved. Every event's bytes appear verbatim in a successful POST, and every SAID re-verifies hermetically.",
       "reason": "settled",
       "note": "Incept with one witness, rotate, cut the witness, and add it back — the only scenario that exercises a witness receipt end to end."
     },
     {
       "row": "Salty identifier lifecycle",
-      "roadmap_gates": [
-        "4.2",
-        "4.6",
-        "6.6"
-      ],
       "upstream_files": [
         "test-integration/salty.test.ts"
       ],
@@ -116,17 +100,12 @@
         "fixtures/keria-integration/observations/salty_lifecycle.json"
       ],
       "status": "observed",
-      "outcome": "Recorded 2026-08-28 against the local preset, whole: three creations, the listing ladder with both paged windows, the rotation, the interaction, the key state, the three-event log, the rename, and the operations postcondition. Sixteen of the eighteen pinned qb64 values reproduce exactly — both prefixes, all four keys, all four next-key digests, both thresholds, and the rotation SAID — with the port's exact bytes accepted verbatim by the agent. The two that do not are one decision seen twice: the upstream interaction anchors the bare string [icp.pre], which the port's Vec<Sad> anchors cannot spell (Roadmap 4.6), so the recording anchors a seal of the same inception and the interaction SAID and the state digest repeating it differ by design, with both values recorded.",
+      "outcome": "Recorded 2026-08-28 against the local preset, whole: three creations, the listing ladder with both paged windows, the rotation, the interaction, the key state, the three-event log, the rename, and the operations postcondition. Sixteen of the eighteen pinned qb64 values reproduce exactly — both prefixes, all four keys, all four next-key digests, both thresholds, and the rotation SAID — with the port's exact bytes accepted verbatim by the agent. The two that do not are one decision seen twice: the upstream interaction anchors the bare string [icp.pre], which the port's Vec<Sad> anchors cannot spell, so the recording anchors a seal of the same inception and the interaction SAID and the state digest repeating it differ by design, with both values recorded.",
       "reason": "settled",
       "note": "The richest golden vectors in the suite: eighteen pinned qb64 values from fixed passcodes, plus paging and rename. Needs KERIA alone."
     },
     {
       "row": "Randy identifier lifecycle",
-      "roadmap_gates": [
-        "4.2",
-        "4.6",
-        "6.6"
-      ],
       "upstream_files": [
         "test-integration/randy.test.ts"
       ],
@@ -148,9 +127,6 @@
     },
     {
       "row": "Single-signature inception",
-      "roadmap_gates": [
-        "6.6"
-      ],
       "upstream_files": [
         "test-integration/test-setup-single-client.test.ts",
         "test-integration/salty.test.ts"
@@ -176,9 +152,6 @@
     },
     {
       "row": "Single-signature rotation",
-      "roadmap_gates": [
-        "6.6"
-      ],
       "upstream_files": [
         "test-integration/singlesig-rot.test.ts"
       ],
@@ -200,9 +173,6 @@
     },
     {
       "row": "Single-signature interaction",
-      "roadmap_gates": [
-        "6.6"
-      ],
       "upstream_files": [
         "test-integration/singlesig-ixn.test.ts"
       ],
@@ -224,9 +194,6 @@
     },
     {
       "row": "Single-signature delegated inception/rotation",
-      "roadmap_gates": [
-        "8.5"
-      ],
       "upstream_files": [
         "test-integration/singlesig-dip.test.ts",
         "test-integration/singlesig-drt.test.ts"
@@ -244,15 +211,12 @@
         "fixtures/keria-integration/observations/singlesig_drt.json"
       ],
       "status": "observed",
-      "outcome": "Recorded 2026-08-29 by wave 10, both files whole. Two delegated inceptions — one unwitnessed, one witnessed by the whole triple at threshold three — and a delegated rotation, every establishment pending under its delegation.{said} operation until the delegator anchored its seal with a plain interaction (byte-identical to wave 9's delegation-address approval but for the path, which is Roadmap 8.5's finding used in the other direction). The delegate's agent saw the first anchor through a sequence query and the second through an anchor query, whose idempotence the upstream case asserts and this recording repeats. The drt is itself a delegated event, completing as t=drt at s=1. The wave found the port's third live-only defect: the agent echoes an anchor query's seal back in the caller's own {i,s,d} shape with no sn at all, so QueryMetadata's required sn and Anchor-typed anchor refused the first anchor-query answer ever received — widened to Option<EchoedSequence> and EchoedAnchor, pinned in §10.",
+      "outcome": "Recorded 2026-08-29 by wave 10, both files whole. Two delegated inceptions — one unwitnessed, one witnessed by the whole triple at threshold three — and a delegated rotation, every establishment pending under its delegation.{said} operation until the delegator anchored its seal with a plain interaction (byte-identical to wave 9's delegation-address approval but for the path, which is the delegation approval's finding used in the other direction). The delegate's agent saw the first anchor through a sequence query and the second through an anchor query, whose idempotence the upstream case asserts and this recording repeats. The drt is itself a delegated event, completing as t=drt at s=1. The wave found the port's third live-only defect: the agent echoes an anchor query's seal back in the caller's own {i,s,d} shape with no sn at all, so QueryMetadata's required sn and Anchor-typed anchor refused the first anchor-query answer ever received — widened to Option<EchoedSequence> and EchoedAnchor.",
       "reason": "settled",
       "note": "A delegator anchoring a delegate's inception and then its rotation, with and without witnesses."
     },
     {
       "row": "Delegation",
-      "roadmap_gates": [
-        "8.5"
-      ],
       "upstream_files": [
         "test-integration/delegation.test.ts"
       ],
@@ -270,14 +234,10 @@
       "status": "observed",
       "outcome": "Recorded 2026-08-29 by wave 9, whole. A delegated inception's operation is proven pending before approval — the identifier does not exist until the delegator anchors a seal of it — then the approving interaction (built through InceptionSeal, whose fields cannot disagree, where upstream hand-assembles the anchor and reads the delegate's prefix out of an operation name) lands at the delegation address, the delegate's key-state query at sequence one lets its agent see the anchor, and the creation completes with the artifact's own prefix. The tail reproduces upstream's odd contact resolution: the delegate's agent OOBI truncated at /agent/ still resolves and answers the delegate's prefix. One operational fact recorded: a delegation approval spawns a witness operation inside its own metadata.depends, so the zero-operations postcondition requires the dependency walk upstream's deleteOperations performs.",
       "reason": "settled",
-      "note": "The single-signature approval round. Roadmap 8.5's record says this half needs two connected clients and a live agent."
+      "note": "The single-signature approval round. Its port records that this half needs two connected clients and a live agent."
     },
     {
       "row": "Multisig inception/join",
-      "roadmap_gates": [
-        "8.2",
-        "8.3"
-      ],
       "upstream_files": [
         "test-integration/multisig-inception.test.ts",
         "test-integration/multisig-join.test.ts"
@@ -303,9 +263,6 @@
     },
     {
       "row": "Multisig rotation/interaction",
-      "roadmap_gates": [
-        "8.4"
-      ],
       "upstream_files": [
         "test-integration/multisig.test.ts"
       ],
@@ -323,9 +280,6 @@
     },
     {
       "row": "Delegated multisig",
-      "roadmap_gates": [
-        "8.6"
-      ],
       "upstream_files": [
         "test-integration/delegation-multisig.test.ts"
       ],
@@ -339,15 +293,10 @@
       "status": "unobserved",
       "outcome": null,
       "reason": "not_yet_recorded",
-      "note": "Both sides of a delegation as groups. Roadmap 8.6's record says the round is not driven end to end because it needs four connected clients."
+      "note": "Both sides of a delegation as groups. Its port records that the round is not driven end to end because it needs four connected clients."
     },
     {
       "row": "Single-signature vLEI issuance",
-      "roadmap_gates": [
-        "6.9",
-        "6.12",
-        "8.8"
-      ],
       "upstream_files": [
         "test-integration/singlesig-vlei-issuance.test.ts"
       ],
@@ -365,10 +314,6 @@
     },
     {
       "row": "Multisig vLEI issuance",
-      "roadmap_gates": [
-        "8.7",
-        "8.8"
-      ],
       "upstream_files": [
         "test-integration/multisig-vlei-issuance.test.ts"
       ],
@@ -386,11 +331,6 @@
     },
     {
       "row": "Credential/IPEX flows",
-      "roadmap_gates": [
-        "6.11",
-        "6.12",
-        "8.8"
-      ],
       "upstream_files": [
         "test-integration/credentials.test.ts"
       ],
@@ -408,10 +348,6 @@
     },
     {
       "row": "Multisig holder flow",
-      "roadmap_gates": [
-        "8.7",
-        "8.8"
-      ],
       "upstream_files": [
         "test-integration/multisig-holder.test.ts"
       ],
@@ -425,14 +361,10 @@
       "status": "unobserved",
       "outcome": null,
       "reason": "not_yet_recorded",
-      "note": "A group acting as credential holder, admitting a grant from a single-signature issuer over `/multisig/exn`. The scenario exists as `wave16_multisig_credentials` and the QVI schema it needs is served. Driven four times on 2026-09-16 to record the correction of the joining member's peer resolution (PORTING.md §10, `Group IPEX announcements carry member lists`): it now runs through the group's registry and issuance rounds and stops on four live-only decode defects ahead of the grant and admit — an integer anchor-seal sequence in the credential state, a registry operation without `pre`, the schema OOBI's operation shape, and a read credential that does not re-serialize to its SAID — each an open §10 row. Blocked on those, not on infrastructure."
+      "note": "A group acting as credential holder, admitting a grant from a single-signature issuer over `/multisig/exn`. The scenario exists as `wave16_multisig_credentials` and the QVI schema it needs is served. Driven four times on 2026-09-16 to record the correction of the joining member's peer resolution (the decision that group IPEX announcements carry member lists): it now runs through the group's registry and issuance rounds and stops on four live-only decode defects ahead of the grant and admit — an integer anchor-seal sequence in the credential state, a registry operation without `pre`, the schema OOBI's operation shape, and a read credential that does not re-serialize to its SAID — each an open question. Blocked on those, not on infrastructure."
     },
     {
       "row": "Challenge and response",
-      "roadmap_gates": [
-        "7.4",
-        "7.7"
-      ],
       "upstream_files": [
         "test-integration/challenge.test.ts"
       ],
@@ -450,13 +382,10 @@
       "status": "observed",
       "outcome": "Recorded 2026-08-29 by wave 11, whole. Both generations answer BIP39's own arithmetic — twelve words at 128 bits, twenty-four at 256, through ChallengeStrength's closed set where upstream stringifies any number. Bob's response travels as an exchange message on /challenge/response, and the message Alice's verification answers with is the very one Bob sent, tied by SAID across two clients; after the acknowledgement, Bob's contact carries the twelve words authenticated and naming that SAID. One operational fact recorded: the respond submission's operation is born done — wave 2's finding — yet stays listed until deleted, and upstream's own case never waits its respond, which would leave its assertOperations one message behind.",
       "reason": "settled",
-      "note": "Two clients exchange challenge words, sign them back, verify, and mark the response accepted. **This row did not exist in §7**: the audit found `challenge.test.ts` claimed by no scenario row, so the table omitted a whole capability. Roadmap 9.2 adds it."
+      "note": "Two clients exchange challenge words, sign them back, verify, and mark the response accepted. **This row did not exist in the scenario table**: the audit found `challenge.test.ts` claimed by no scenario row, so the table omitted a whole capability. This audit adds it."
     },
     {
       "row": "End roles by AID",
-      "roadmap_gates": [
-        "6.6"
-      ],
       "upstream_files": [
         "test-integration/endroles-by-aid.test.ts"
       ],
@@ -472,16 +401,12 @@
         "fixtures/keria-integration/observations/endroles_by_aid.json"
       ],
       "status": "observed",
-      "outcome": "Recorded 2026-08-29 by wave 12, whole — and the first live drive of the port's multisig machinery: a two-member witnessed group incepted through propose_inception/accept_inception with both members deriving the same prefix, then the group end-role round expressed through public API alone (add_end_role on the group alias signing with the member's indexed key, the reply travelling as an rpy embed under the group's establishment seal on /multisig/rpy, one shared stamp so both members derive the same reply SAID — Roadmap 8.8's one-clock lesson applied). Alice, a third party, resolves the group's truncated OOBI and asks five questions: the group's roles name exactly both agents (all cid the group, all role agent), the agent filter answers the same set, a role nobody granted and a well-formed identifier nobody owns answer empty rather than erroring, and her own identifier answers exactly her agent. One wire fact recorded: the rpy relay must carry the {gid} payload — without it, no /multisig/rpy notification is ever raised, which is how the first run stalled.",
+      "outcome": "Recorded 2026-08-29 by wave 12, whole — and the first live drive of the port's multisig machinery: a two-member witnessed group incepted through propose_inception/accept_inception with both members deriving the same prefix, then the group end-role round expressed through public API alone (add_end_role on the group alias signing with the member's indexed key, the reply travelling as an rpy embed under the group's establishment seal on /multisig/rpy, one shared stamp so both members derive the same reply SAID — the group IPEX rounds' one-clock lesson applied). Alice, a third party, resolves the group's truncated OOBI and asks five questions: the group's roles name exactly both agents (all cid the group, all role agent), the agent filter answers the same set, a role nobody granted and a well-formed identifier nobody owns answer empty rather than erroring, and her own identifier answers exactly her agent. One wire fact recorded: the rpy relay must carry the {gid} payload — without it, no /multisig/rpy notification is ever raised, which is how the first run stalled.",
       "reason": "settled",
       "note": "A third party reading the end roles of a group it is not a member of."
     },
     {
       "row": "External module behavior",
-      "roadmap_gates": [
-        "4.2",
-        "4.3"
-      ],
       "upstream_files": [
         "test-integration/externalModule.test.ts"
       ],
@@ -495,25 +420,23 @@
       "status": "unobserved",
       "outcome": null,
       "reason": "api_missing",
-      "note": "Registering an external key manager and incepting under `Algos.extern`. **Blocked on this port, not on infrastructure:** `ConnectedClient::keepers()` lends the factory immutably and `KeeperFactory::with_module` consumes `self`, so an external module cannot be registered on a client at all. `signify-client` never names `ExternalKeeperModule`. Owned by Roadmap 9.5."
+      "note": "Registering an external key manager and incepting under `Algos.extern`. **Blocked on this port, not on infrastructure:** `ConnectedClient::keepers()` lends the factory immutably and `KeeperFactory::with_module` consumes `self`, so an external module cannot be registered on a client at all. `signify-client` never names `ExternalKeeperModule`. Owned by the API consistency review."
     }
   ],
   "open_questions": [
     {
       "topic": "Target KERIA integration version",
-      "porting_line": 10076,
-      "due": "6.4 → 9.2",
-      "experiment": "Record the deployment's identity to §7's six-element standard. On `docker` that is the image digest, the compose file's hash, the witness configuration, the schema source, the environment variables, the startup command, and the timeout policy. On `localhost` there is no image, so the strongest available identity is the agent's own OpenAPI document, captured verbatim with its SHA-256.",
+      "due": "client lifecycle → integration matrix",
+      "experiment": "Record the deployment's identity to the six-element deployment-identity standard. On `docker` that is the image digest, the compose file's hash, the witness configuration, the schema source, the environment variables, the startup command, and the timeout policy. On `localhost` there is no image, so the strongest available identity is the agent's own OpenAPI document, captured verbatim with its SHA-256.",
       "observation": "deployment",
-      "outcome": "Recorded for the `local` preset: `spec_digest`, version 1.0.1, three witnesses observed serving the expected prefixes, and the six §7 elements. **Not closed** — the row asks for an image digest, which a localhost deployment has none of.",
+      "outcome": "Recorded for the `local` preset: `spec_digest`, version 1.0.1, three witnesses observed serving the expected prefixes, and the six deployment-identity elements. **Not closed** — the row asks for an image digest, which a localhost deployment has none of.",
       "status": "partly_observed",
       "reason": "not_yet_recorded",
-      "note": "A localhost run yields observations but not a pin: the row's own text asks for an image digest. The audit test must therefore refuse to let a localhost run close this row. Already in hand: the live agent serves `info.version: 1.0.1`, OpenAPI 3.1.0 — which also corrects §10's `KERIA OpenAPI source revision/generator` row, whose text says the document 'carries no version'. It does; the version sits at line 2237 of 2240, where a reader checking the head would miss it."
+      "note": "A localhost run yields observations but not a pin: the row's own text asks for an image digest. The audit test must therefore refuse to let a localhost run close this row. Already in hand: the live agent serves `info.version: 1.0.1`, OpenAPI 3.1.0 — which also corrects the `KERIA OpenAPI source revision/generator` record, whose text says the document 'carries no version'. It does; the version sits at line 2237 of 2240, where a reader checking the head would miss it."
     },
     {
       "topic": "KERIA's own `Content-Range` discipline",
-      "porting_line": 10077,
-      "due": "9.2",
+      "due": "integration matrix",
       "experiment": "Six observations at least: `identifiers().list` and `notifications().list`, each on an empty page, a partial page, and a complete one, recording the literal header bytes and the status. Then two the reference never tries — a range past the end of the collection, and one whose start exceeds its end — because that is where an unknown total spelled `*` would surface if anywhere.",
       "observation": "content_range",
       "outcome": "**Closed.** Five values captured across both endpoints. Every one parses; none spells its total `*`, so the grammar needs no widening — and the decision not to enforce RFC 9110 is vindicated, because asked past the end of a collection KERIA answers `aids 100-0/4`, start greater than end. A parser that had imposed the rule would refuse a response a deployment genuinely sends. A second finding came free: on an empty collection `/identifiers` answers `aids 0-0/1` with status 206 while `/notifications` answers `notes 0-0/0` with status 200.",
@@ -523,14 +446,13 @@
     },
     {
       "topic": "`KeyStates.query`'s sequence-number base",
-      "porting_line": 10079,
-      "due": "6.7 → 9.2",
+      "due": "key events and key states endpoints → integration matrix",
       "experiment": "Build a log of eleven events (sequence 0 through 10, hexadecimal 0x0 through 0xa) by rotating an identifier ten times, then query sequence ten spelled `\"10\"` and spelled `\"a\"`, and record which returns the event actually asked for. Query a **remote** prefix — a second client's identifier resolved by OOBI — because querying your own may be answered from the agent's local key event log without the mailbox query happening at all, which would make the experiment vacuous.",
       "observation": "sequence_base",
-      "outcome": "**Closed: hexadecimal.** One client built an eleven-event log and a second, which had learned the prefix through an OOBI, asked about event ten both ways. `a` resolved and returned the key state for event ten; `10` and `16` never resolved, each running until the 30-second deadline — read in base sixteen they name events 16 and 22, which that log does not have. So this deployment reads the query's `sn` in base sixteen, and a caller who spells event ten `\"10\"` waits until the deadline rather than getting an error. `QuerySequence` keeps both variants and no default: one deployment is evidence about that deployment, and keripy's base-ten reader is still in the tree. **The run also found a port defect**: `QueryMetadata.sn` was `u64` on the reference schema's authority, but KERIA echoes the request's `sn` back verbatim as the string it was sent, so every live query answer failed to decode — including the successful one. Widened to `EchoedSequence`. See PORTING.md §10.",
+      "outcome": "**Closed: hexadecimal.** One client built an eleven-event log and a second, which had learned the prefix through an OOBI, asked about event ten both ways. `a` resolved and returned the key state for event ten; `10` and `16` never resolved, each running until the 30-second deadline — read in base sixteen they name events 16 and 22, which that log does not have. So this deployment reads the query's `sn` in base sixteen, and a caller who spells event ten `\"10\"` waits until the deadline rather than getting an error. `QuerySequence` keeps both variants and no default: one deployment is evidence about that deployment, and keripy's base-ten reader is still in the tree. **The run also found a port defect**: `QueryMetadata.sn` was `u64` on the reference schema's authority, but KERIA echoes the request's `sn` back verbatim as the string it was sent, so every live query answer failed to decode — including the successful one. Widened to `EchoedSequence`.",
       "status": "observed",
       "reason": "settled",
-      "note": "Whatever the answer, ADR `0030` keeps both `QuerySequence` variants: one deployment does not justify a default, and adding one would undo that ADR's argument. The evidence changes the documentation and adds a recommendation at the call site; a default would need its own ADR.",
+      "note": "Whatever the answer, both `QuerySequence` variants stay: one deployment does not justify a default, and adding one would undo the argument for having none. The evidence changes the documentation and adds a recommendation at the call site; a default would need a decision of its own.",
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave1_sequence_base.rs",
         "crates/signify-keria-systest/tests/sequence_base_vectors.rs",
@@ -540,14 +462,13 @@
     },
     {
       "topic": "The exchange submission's answer has two declared types",
-      "porting_line": 10084,
-      "due": "7.7 → 9.2",
+      "due": "exchange endpoint → integration matrix",
       "experiment": "Post one exchange to `/identifiers/{name}/exchanges` and one to `/identifiers/{name}/ipex/{route}`, record both answers verbatim, and run each recorded body through `SentExchange::operation()` and `SentExchange::exchange()`. The two shapes are already proven disjoint, so exactly one decoder must succeed per body; the ledger records which, and whether the two paths agree.",
       "observation": "exchange_answer",
       "outcome": "**Closed: both paths answer with an `ExchangeOperation`.** One exchange was posted to `/identifiers/{name}/exchanges` and one apply to `/identifiers/{name}/ipex/apply`, and **both** decoders were run over **both** answers rather than stopping at the first success. Both bodies decode as an operation and neither as an exchange message — `{\"name\": \"exchange.EDOG…\", \"metadata\": {\"said\": \"EDOG…\"}, \"done\": true, \"response\": {\"said\": \"EDOG…\"}}` — which is exactly `Operation<ExchangeMetadata, ExchangeMetadata>`. So `Exchanges.sendFromEvents`'s declared `Promise<Exn>` is **wrong**, and `Ipex.submit*`'s `Promise<ExchangeOperation>` is right. A port that had believed either declaration in isolation had even odds of typing a caller's answer as something it is not. `SentExchange` keeps the body and both decoders, so nothing needs to change; what changes is that `exchange()` is now known never to have succeeded against a deployment.",
       "status": "observed",
       "reason": "settled",
-      "note": "The `/exchanges` half is reachable today through `Challenges::respond`, which §5.13 records as a wrapper over `Exchanges::send` and needs two clients and no vLEI. The ipex half likely needs a schema, so it waits on the vLEI container. **Observed 2026-08-28.** The ipex half did not need the vLEI container after all: an apply names a schema SAID but does not require it to be resolvable, and it carries neither an attachment nor an embedded credential.",
+      "note": "The `/exchanges` half is reachable today through `Challenges::respond`, which is recorded as a wrapper over `Exchanges::send` and needs two clients and no vLEI. The ipex half likely needs a schema, so it waits on the vLEI container. **Observed 2026-08-28.** The ipex half did not need the vLEI container after all: an apply names a schema SAID but does not require it to be resolvable, and it carries neither an attachment nor an embedded credential.",
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave2_exchange_answer.rs",
         "crates/signify-keria-systest/tests/exchange_answer_vectors.rs",
@@ -556,291 +477,259 @@
     },
     {
       "topic": "KERIA OpenAPI schema's required fields",
-      "porting_line": 10066,
-      "due": "4.1 → 9.2",
+      "due": "shared API data types → integration matrix",
       "experiment": "Capture `GET /spec.yaml` verbatim and diff its `required` arrays against the 150 schemas pinned in `fixtures/types-keria-api/v1.json`, recording every field the port requires that the deployment does not send, and every field the deployment declares required that the port treats as optional.",
       "observation": "deployment",
       "outcome": "The document is captured and **it carries a version**: `info.version: 1.0.1`, OpenAPI 3.1.0, at line 2239 of a 72,450-byte file — which corrects the row's claim that it 'carries no version'. The `required`-array diff against the 150 pinned schemas is still to do. **Second live reading, 2026-08-28:** the served document has **no `components:` section at all** — its only top-level blocks are `paths` and `info` — so the 150 named schemas the reference's `keria-api-schema.ts` indexes out of `components['schemas'][…]` cannot have been generated from what this deployment serves. The document does declare 127 `required:` arrays, all inline under `paths`, so the diff the residual asks for is still possible but is against inline request and response bodies rather than against named schemas. Recorded in `environment.json` as `spec_sections`, `spec_required_arrays`, and `spec_defines_components`. The residual stays open, now with a known shape.",
       "status": "partly_observed",
       "reason": "not_yet_recorded",
-      "note": "The §10 row is RESOLVED but left this residual explicitly. Capturing the document also gives a localhost deployment its only reproducible identity, recorded in `environment.json` with its digest."
+      "note": "The OpenAPI source question is resolved but left this residual explicitly. Capturing the document also gives a localhost deployment its only reproducible identity, recorded in `environment.json` with its digest."
     }
   ],
   "obligations": [
     {
-      "porting_line": 420,
-      "record": "(§3 prose)",
-      "claim": "ts` is recorded `N/A`**, closing the §10 question that fell due here; the target KERIA version stays open, since pinning an image is Roadmap 9.2's.",
+      "record": "Signify client lifecycle (summary)",
+      "claim": "`src/ready.ts` is recorded `N/A`; the target KERIA version stays open, since pinning an image belongs to the integration matrix.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 440,
-      "record": "(§3 prose)",
-      "claim": "Roadmap 9.2 owes it a live confirmation.",
+      "record": "Operations endpoint (summary)",
+      "claim": "The operations listing's one byte difference from the reference is argued rather than asserted; the integration matrix owes it a live confirmation.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 479,
-      "record": "(§3 prose)",
-      "claim": "`QuerySequence` is a two-variant enum with no `From<u64>` and no default, the rendering is visible at the call site, and the question is raised to §10 for Roadmap 9.2, with keripy's base-ten `get_para",
+      "record": "Key events and key states endpoints (summary)",
+      "claim": "`QuerySequence` is a two-variant enum with no `From<u64>` and no default, the rendering is visible at the call site, and the sequence-number base is left as an open question for the integration matrix.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 829,
-      "record": "(§3 prose)",
-      "claim": "The answer is kept as bytes with a decoder for each shape, and the question is raised to §10 for Roadmap 9.2 — which is Roadmap 6.",
+      "record": "Exchange endpoint retrieval and submission (summary)",
+      "claim": "The exchange submission's answer is kept as bytes with a decoder for each shape, and which shape a deployment sends is left as an open question for the integration matrix.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 2271,
-      "record": "8.6 — Delegated multisig",
-      "claim": "the list names an identifier that actually asked for this delegator — which needs the delegatee's   event and is Roadmap 9.2's to exercise.",
+      "record": "Delegated multisig",
+      "claim": "The seals are not checked against the delegatee's own inception: that the list names an identifier that actually asked for this delegator needs the delegatee's event and is the integration matrix's to exercise.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 2291,
-      "record": "8.6 — Delegated multisig",
-      "claim": "helper and this port's halves are covered by unit, property, and classifier tests, because a full   round needs four connected clients and a live agent; Roadmap 9.2 should exercise it.",
+      "record": "Delegated multisig",
+      "claim": "The delegated multisig round is not driven end to end: the fixture drives the reference's own helper and this port's halves are covered by unit, property, and classifier tests, because a full round needs four connected clients and a live agent; the integration matrix should exercise it.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 2429,
-      "record": "8.5 — Delegation endpoint and single-signature delegation",
-      "claim": "the endpoint, and the delegate's half of the scenario (create with a delegator, wait for the seal   to appear) needs two connected clients and a live agent; Roadmap 9.2 should exercise it.",
+      "record": "Delegation endpoint and single-signature delegation",
+      "claim": "The single-signature delegation round is not driven end to end: the fixture drives the endpoint, and the delegate's half of the scenario (create with a delegator, wait for the seal to appear) needs two connected clients and a live agent; the integration matrix should exercise it.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 2568,
-      "record": "8.4 — Multisig rotation and interaction",
-      "claim": "Roadmap 9.2 should exercise both against a   live agent.",
+      "record": "Multisig rotation and interaction",
+      "claim": "The joining halves of the multisig rotation and interaction rounds are covered by unit and property tests rather than a recorded round trip, because a full round needs three connected clients; the integration matrix should exercise both against a live agent.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 2861,
-      "record": "8.2 — Group endpoint basics",
-      "claim": "Roadmap 9.2 should exercise both   against a live agent.",
+      "record": "Group endpoint basics",
+      "claim": "`sendRequest` and `join` have no upstream consumer, so their shapes rest on their own declarations rather than on traffic; the integration matrix should exercise both against a live agent.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3014,
-      "record": "8.1 — Exchange route typing and message classifiers",
-      "claim": "hand-written variants checked against thirty-eight integration call sites — a KERIA sending a   different block would be refused rather than misread, but Roadmap 9.2 should confirm the labels   agains",
+      "record": "Exchange route typing and message classifiers",
+      "claim": "The `gid`, `smids`, and `rmids` shapes come from the reference's hand-written variants checked against thirty-eight integration call sites — a KERIA sending a different block would be refused rather than misread, but the integration matrix should confirm the labels against a live deployment.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3182,
-      "record": "7.7 — Exchange endpoint retrieval and submission",
-      "claim": "§10 raises it for Roadmap 9.2.",
+      "record": "Exchange endpoint retrieval and submission",
+      "claim": "The submission answer's two declared types are left unresolved, with a decoder for each, as an open question for the integration matrix.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3348,
-      "record": "7.6 — Escrows endpoint",
-      "claim": "So the port has no example of a filter   that would actually match, and what routes a live KERIA escrows is unknown; Roadmap 9.2 should   record them, and if KERIA turns out to match by prefix rather ",
+      "record": "Escrows endpoint",
+      "claim": "The port has no example of an escrow filter that would actually match, and what routes a live KERIA escrows is unknown; the integration matrix should record them.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3349,
-      "record": "7.6 — Escrows endpoint",
-      "claim": "that would actually match, and what routes a live KERIA escrows is unknown; Roadmap 9.2 should   record them, and if KERIA turns out to match by prefix rather than exactly, that is 9.",
+      "record": "Escrows endpoint",
+      "claim": "If KERIA turns out to match escrow routes by prefix rather than exactly, that is the integration matrix's to find as well.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3352,
-      "record": "7.6 — Escrows endpoint",
-      "claim": "reply escrows are exposed**, because the reference exposes only `/escrows/rpy`; whether a real   agent serves other escrow kinds under `/escrows` is likewise 9.2's to find out.",
+      "record": "Escrows endpoint",
+      "claim": "Only reply escrows are exposed, because the reference exposes only `/escrows/rpy`; whether a real agent serves other escrow kinds under `/escrows` is the integration matrix's to find out.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3488,
-      "record": "7.5 — Notifications endpoint",
-      "claim": "literal is not an identifier of any kind, so the argument's type rests on `randomNonce` and on   keripy's `Dicter`; Roadmap 9.2 should confirm against a live deployment which of the two nonce   codes ",
+      "record": "Notifications endpoint",
+      "claim": "A notification identifier's type rests on `randomNonce` and on keripy's `Dicter`; the integration matrix should confirm against a live deployment which of the two nonce codes a real KERIA writes.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3675,
-      "record": "7.3 — Contacts endpoint",
-      "claim": "Roadmap 9.2 owes it a live   confirmation, as it does 6.",
+      "record": "Contacts endpoint",
+      "claim": "An unfiltered contacts listing addresses `/contacts` where the reference addresses `/contacts?`; the integration matrix owes it a live confirmation, as it does the operations listing's.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 3761,
-      "record": "7.3 — Contacts endpoint",
-      "claim": "Roadmap 9.2 should confirm the matching semantics against a live deployment.",
+      "record": "Contacts endpoint",
+      "claim": "A contacts filter's value is passed to the agent uninterpreted, which matches it as a regular expression; the integration matrix should confirm the matching semantics against a live deployment.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 4071,
-      "record": "7.1 — OOBI endpoint and resolution workflow",
-      "claim": "Roadmap 9.2 should confirm what a live KERIA   actually emits in an `oobis` list.",
+      "record": "OOBI endpoint and resolution workflow",
+      "claim": "An OOBI must be a lowercase-scheme, visible-ASCII `http`/`https` URL, which is narrower than RFC 3986; the integration matrix should confirm what a live KERIA actually emits in an `oobis` list.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 4648,
-      "record": "6.9 — Registries endpoint",
-      "claim": "integration tests only ever create unbacked registries, so nothing upstream proves a KERIA agent   accepts a backed one; Roadmap 9.2 owns that.",
+      "record": "Registries endpoint",
+      "claim": "The reference's integration tests only ever create unbacked registries, so nothing upstream proves a KERIA agent accepts a backed one; the integration matrix owns that.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 4902,
-      "record": "6.7 — Key events and key states endpoints",
-      "claim": "- Known limitations: **the sequence number's base was unresolved** when this record was written,",
+      "record": "Key events and key states endpoints",
+      "claim": "The sequence number's base was unresolved when this record was written, and a live KERIA has since been observed reading it in hexadecimal.",
       "status": "observed",
       "reason": "settled",
       "settling_observation": "sequence_base",
       "note": "Collected by the maintainer decision of 2026-08-28, and settled the same day by the `sequence_base` observation: a live KERIA reads the base as hexadecimal. The claim quoted here is the record's wording after it was updated with the answer — the original said the base 'is unresolved'."
     },
     {
-      "porting_line": 5153,
-      "record": "6.5 — Operations endpoint",
-      "claim": "Roadmap 9.2 should confirm it against a live deployment.",
+      "record": "Operations endpoint",
+      "claim": "An unfiltered operations listing addresses `/operations` where the reference addresses `/operations?`; the integration matrix should confirm it against a live deployment.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 5246,
-      "record": "6.5 — Operations endpoint",
-      "claim": "listing path is the one deliberate byte difference in this crate**, argued in ADR `0028` and   owed a live confirmation at Roadmap 9.2.",
+      "record": "Operations endpoint",
+      "claim": "The unfiltered listing path is the one deliberate byte difference in the operations endpoint, owed a live confirmation in the integration matrix.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 5409,
-      "record": "6.4 — Signify client lifecycle",
-      "claim": "**The target KERIA version is still unpinned** — the §10 question that also fell   due here stays open, because pinning an image is a live-integration decision Roadmap 9.2 owns and   nothing in this i",
+      "record": "Signify client lifecycle",
+      "claim": "The target KERIA version is still unpinned, because pinning an image is a live-integration decision the integration matrix owns and nothing in the client lifecycle can settle it from a fixture.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 5915,
-      "record": "6.1 — Credential domain types and SAID construction",
-      "claim": "tree produces — its largest credential has three attribute fields and two levels — but a real   deployment issuing something larger would be refused here and accepted upstream; Roadmap 9.2   should co",
+      "record": "Credential domain types and SAID construction",
+      "claim": "The credential bounds are far above anything the pinned tree produces — its largest credential has three attribute fields and two levels — but a real deployment issuing something larger would be refused here and accepted upstream; the integration matrix should confirm them against a live KERIA.",
       "status": "out_of_scope",
-      "moves_to": "9.3",
+      "moves_to": "fuzz and security review",
       "settling_observation": null,
-      "note": "No deployment confirms a bound. A live run can only show KERIA accepting something larger than this port allows, which is a resource-limit question rather than a parity one — alongside the two §10 rows already owed to 9.3."
+      "note": "No deployment confirms a bound. A live run can only show KERIA accepting something larger than this port allows, which is a resource-limit question rather than a parity one — alongside the two open questions already owed to the fuzz and security review."
     },
     {
-      "porting_line": 6061,
-      "record": "5.5 — Authenticated transport composition",
-      "claim": "turns a working deployment into one that refuses its own agent; what a real deployment's skew   actually is belongs to Roadmap 9.2, and until then a caller whose agent is further out must widen   it o",
+      "record": "Authenticated transport composition",
+      "claim": "A freshness window too tight turns a working deployment into one that refuses its own agent; what a real deployment's skew actually is belongs to the integration matrix, and until then a caller whose agent is further out must widen it or switch it off.",
       "status": "out_of_scope",
-      "moves_to": "9.2, narrowed",
+      "moves_to": "integration matrix, narrowed",
       "settling_observation": null,
       "note": "A loopback run measures approximately zero skew, which says nothing about deployments in general. What a run can do is record the observed spread of `Signify-Timestamp` against local time and confirm the default window is not too tight **for the pinned deployment**. The row may make that narrowed claim and no more."
     },
     {
-      "porting_line": 6221,
-      "record": "5.4 — Retry and clock policy",
-      "claim": "the tokio clock is that it compiles and satisfies the trait; that it sleeps for the right   duration belongs to Roadmap 9.2's integration matrix.",
+      "record": "Retry and clock policy",
+      "claim": "What is proven about the tokio clock is that it compiles and satisfies the trait; that it sleeps for the right duration belongs to the integration matrix.",
       "status": "out_of_scope",
-      "moves_to": "9.2, hermetically",
+      "moves_to": "integration matrix, hermetically",
       "settling_observation": null,
-      "note": "The claim is that `TokioClock::sleep` delegates to `tokio::time::sleep`. A paused-time tokio test proves that deterministically; asserting real elapsed time against a live agent is flakier and proves less, and any upper bound would be a wall-clock-dependent test that `AGENTS.md` §8 rules out."
+      "note": "The claim is that `TokioClock::sleep` delegates to `tokio::time::sleep`. A paused-time tokio test proves that deterministically; asserting real elapsed time against a live agent is flakier and proves less, and any upper bound would make the test depend on the wall clock, which tests here must not."
     },
     {
-      "porting_line": 6266,
-      "record": "5.3 — Request builder and response decoder",
-      "claim": "unit is not `bytes` and no evidence here establishes it follows RFC 9110's ordering — inventing   the constraint could reject a valid response, and confirming it is Roadmap 9.2's.",
+      "record": "Request builder and response decoder",
+      "claim": "`ContentRange` cross-field consistency is not checked, because KERIA's unit is not `bytes` and no evidence here establishes it follows RFC 9110's ordering — inventing the constraint could reject a valid response, and confirming it is the integration matrix's.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 6386,
-      "record": "5.3 — Request builder and response decoder",
-      "claim": "answers a range this crate would refuse — an unknown total as `*`, say — is a question only   Roadmap 9.2's integration matrix can settle; the reference would have read such a value as a   `NaN` and c",
+      "record": "Request builder and response decoder",
+      "claim": "Whether a real deployment ever answers a range this crate would refuse — an unknown total as `*`, say — is a question only the integration matrix can settle; the reference would have read such a value as a `NaN` and carried on.",
       "status": "observed",
       "reason": "settled",
       "settling_observation": "content_range",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded. **Settled 2026-08-28 by the `content_range` observation.** No recorded value spells its total `*`, and every one parses — but the deployment does send a start greater than its end (`aids 100-0/4`), which is the stricter grammar's failure mode rather than the unknown total this row anticipated."
     },
     {
-      "porting_line": 6498,
-      "record": "5.2 — Production HTTP transport",
-      "claim": "need a certificate authority of its own, so what the tests prove is that the stack is wired and   that plaintext can be refused; verifying a real handshake belongs to Roadmap 9.2's integration   matri",
+      "record": "Production HTTP transport",
+      "claim": "A loopback TLS test would need a certificate authority of its own, so what the tests prove is that the stack is wired and that plaintext can be refused; verifying a real handshake belongs to the integration matrix.",
       "status": "out_of_scope",
-      "moves_to": "9.3",
+      "moves_to": "fuzz and security review",
       "settling_observation": null,
       "note": "KERIA listens on `127.0.0.1:3901` over **plain HTTP**, so a live run exercises no TLS whatsoever. A row claiming the integration matrix closes this would be false. The record itself notes a loopback test would need a certificate authority of its own — which is one dev-dependency, and proves more than a live run could."
     },
     {
-      "porting_line": 7553,
-      "record": "4.1 — Shared KERIA/KERI API data types",
-      "claim": "schema requires; **whether a live KERIA always sends every required field is unproven here** and   belongs to Roadmap 9.2.",
+      "record": "Shared KERIA/KERI API data types",
+      "claim": "The only KERIA-shaped documents in the pinned repository are test mocks, two of which omit fields the schema requires; whether a live KERIA always sends every required field is unproven here and belongs to the integration matrix.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",
       "note": "Collected here by the maintainer decision of 2026-08-28 so it is tracked rather than buried in prose; the scenario that settles it is named when its wave is recorded."
     },
     {
-      "porting_line": 8069,
-      "record": "3.7 — CESR attachment composition utilities",
-      "claim": "Witness and receipt wire bytes are proven against keripy only; Roadmap 9.2's witness scenarios   should close the loop against a live deployment.",
+      "record": "CESR attachment composition utilities",
+      "claim": "Witness and receipt wire bytes are proven against keripy only; the integration matrix's witness scenarios   should close the loop against a live deployment.",
       "status": "unobserved",
       "reason": "not_yet_recorded",
       "settling_observation": "a recorded live run of the scenario that exercises this record's capability",

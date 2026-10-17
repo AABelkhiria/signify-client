@@ -1,4 +1,4 @@
-//! Roadmap 9.1 — every upstream unit case is answered, and every answer exists.
+//! The upstream unit audit — every upstream unit case is answered, and every answer exists.
 //!
 //! All 139 upstream unit cases answered by Rust evidence or a documented `N/A`, every named path on disk.
 
@@ -88,7 +88,6 @@ struct Finding {
     name: String,
     module: String,
     importing_files: usize,
-    porting_status: String,
     owner: String,
     note: String,
     consequence: String,
@@ -100,7 +99,6 @@ struct LedgerEntry {
     group: String,
     title: String,
     status: String,
-    roadmap: Vec<String>,
     evidence: Vec<String>,
     note: String,
 }
@@ -231,7 +229,6 @@ fn every_answer_names_evidence_that_exists() -> Result<(), Box<dyn Error>> {
             entry.title,
             entry.status
         );
-        assert!(!entry.roadmap.is_empty(), "{} names no roadmap item", entry.title);
         assert!(!entry.evidence.is_empty(), "{} names no evidence", entry.title);
         assert!(entry.note.len() > 40, "{} explains too little", entry.title);
 
@@ -415,10 +412,9 @@ fn the_audit_states_what_it_found_and_the_counts_hold() -> Result<(), Box<dyn Er
     assert_eq!(ledger.findings.len(), 2);
     for finding in &ledger.findings {
         assert_ne!(finding.name, "");
-        assert_eq!(finding.owner, "9.5", "{} is owned by someone else now", finding.name);
-        assert!(
-            matches!(finding.porting_status.as_str(), "TODO" | "IN_PROGRESS"),
-            "{} is recorded against a settled row",
+        assert_eq!(
+            finding.owner, "the API consistency review",
+            "{} is owned by someone else now",
             finding.name
         );
         assert!(finding.note.len() > 200, "{} explains too little", finding.name);

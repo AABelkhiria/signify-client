@@ -26,7 +26,7 @@
     "subject_prefix": "EEXekkGu9IAzav6pZVJhkLnjtjM5v3AcyA-pdKUcaGei",
     "verifier_prefix": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
     "notified_grant": "EL7y8q-Cc2MO8s4aiJX5MC05m2BTIYvoX5lgUhFo5ZYF",
-    "note": "The single-signature conversation is written inline in `credentials.test.ts`, so each step is driven through the reference's own `Ipex` method with the same arguments in the same order. The group rounds live in `multisig-utils.ts`, which is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+    "note": "The single-signature conversation is written inline in `credentials.test.ts`, so each step is driven through the reference's own `Ipex` method with the same arguments in the same order. The group rounds live in `multisig-utils.ts`, which is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as the `client-multisig-inception` generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
   },
   "declarations": {
     "grant_multisig": "export async function grantMultisig( client: SignifyClient, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, recipientAID: HabState, credential: any, timestamp: string, isInitiator: boolean = false ): Promise<string> { if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn'); const [grant, sigs, end] = await client.ipex().grant({ senderName: multisigAID.name, acdc: new Serder(credential.sad), anc: new Serder(credential.anc), iss: new Serder(credential.iss), recipient: recipientAID.prefix, datetime: timestamp, }); await client .ipex() .submitGrant(multisigAID.name, grant, sigs, end, [recipientAID.prefix]); const mstate = multisigAID.state; const seal = [ 'SealEvent', { i: multisigAID.prefix, s: mstate['ee']['s'], d: mstate['ee']['d'] }, ]; const sigers = sigs.map((sig) => new signify.Siger({ qb64: sig })); const gims = signify.d(signify.messagize(grant, sigers, seal)); let atc = gims.substring(grant.size); atc += end; const gembeds = { exn: [grant, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, 'multisig', aid, '/multisig/exn', { gid: multisigAID.prefix }, gembeds, recp ); return grant.said; }",
@@ -1073,7 +1073,7 @@
     },
     {
       "name": "incept_the_group",
-      "note": "the group that will disclose and admit, from Roadmap 8.3's own helper",
+      "note": "the group that will disclose and admit, from the same helper the `client-multisig-inception` fixture drives",
       "requests": [
         {
           "path": "/identifiers/member1",
@@ -1364,7 +1364,7 @@
         "/exn/ipex/grant"
       ],
       "group_requests_made": false,
-      "note": "the same shape Roadmap 8.7 pinned for the transaction rounds, in all three group IPEX helpers. Driven across six group rounds, not one fetches a group request.",
+      "note": "the same shape the `client-multisig-credentials` fixture pinned for the transaction rounds, in all three group IPEX helpers. Driven across six group rounds, not one fetches a group request.",
       "rust_decision": "the proposed message is read out of the `/multisig/exn` proposal and rebuilt from its own fields."
     },
     "a_notification_need_not_name_a_message": {
@@ -1433,7 +1433,7 @@
       "with_attachment": "EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC",
       "without_attachment": "EKNecyu8lkApdTiY26XEJdnL80JYqze7-heyiIG0TAjC",
       "note": "the presentation grant passes all three attachments, the issuance grant passes the anchor's only, and `multisig-holder.test.ts` passes none. Passing none reaches the branch that signs `args.anc.raw` with the *sender's* keeper — correct only when the sender is the issuer, and reached in the tree where it is not.",
-      "rust_decision": "Roadmap 6.11 refused that branch: a `Disclosure` carries its own three attachments, derived from the issuance artifacts or read off the credential. `presentation::disclosure_of` assembles them from a credential in hand, and re-serializes each of the three events to check its bytes still reproduce the SAID that names it."
+      "rust_decision": "the credentials endpoint refused that branch: a `Disclosure` carries its own three attachments, derived from the issuance artifacts or read off the credential. `presentation::disclosure_of` assembles them from a credential in hand, and re-serializes each of the three events to check its bytes still reproduce the SAID that names it."
     },
     "an_announcement_names_only_the_group": {
       "declaration": "export type MultisigExnExchange = ExchangeResourceV1 & { exn: ExnV1 & { r: typeof MULTISIG_EXN_ROUTE; e: { exn: ExnV1; d?: string; }; a: { gid: string; [key: string]: unknown; }; }; };",
@@ -1466,7 +1466,7 @@
         "scanned_files": 117
       },
       "note": "a `/multisig/exn` proposal carries `{ gid }` and nothing else — `MultisigExnExchange` declares no `smids` — and both group IPEX helpers take the peers as an argument, so a joining member is told who to answer by its caller rather than by the message. Where the reference's own tests derive the members themselves (`multisigIssue`, `multisigRevoke`) they ask the agent's members endpoint for `signing[].aid`; the group record's `keys` are the members' signing keys and never stand in for them.",
-      "rust_decision": "the IPEX rounds announce `smids` and `rmids` exactly as the six event rounds do, so a joining member reads its peers from the proposal it was shown; a proposal that names nobody — the reference's — is answered by `identifiers().members(group)`, never by the record's keys. The classifier accepts both shapes on `/multisig/exn`. PORTING.md §10."
+      "rust_decision": "the IPEX rounds announce `smids` and `rmids` exactly as the six event rounds do, so a joining member reads its peers from the proposal it was shown; a proposal that names nobody — the reference's — is answered by `identifiers().members(group)`, never by the record's keys. The classifier accepts both shapes on `/multisig/exn`."
     }
   }
 }

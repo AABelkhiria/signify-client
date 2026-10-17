@@ -1,18 +1,18 @@
 // Records the pinned signify-ts checkout's operation polling loop.
 //
-// Roadmap 7.2 ports `Operations.wait` from `src/keri/app/coring.ts`, together with the private
+// This port covers `Operations.wait` from `src/keri/app/coring.ts`, together with the private
 // `hasDepends` it consults and the `throwIfFailed` it applies at every exit.
 //
-// Roadmap 5.4 already recorded this function's **delay schedule** by executing it with the global
-// timer replaced, and reproduces all five recorded schedules exactly (`fixtures/http-retry/`). So
-// what this fixture adds is everything else the loop does: how many requests each shape costs, in
-// what order, when the dependency chain is walked and when it is skipped, which exits throw, and
-// what the thrown message says.
+// The `http-retry` fixture already recorded this function's **delay schedule** by executing it with
+// the global timer replaced, and reproduces all five recorded schedules exactly
+// (`fixtures/http-retry/`). So what this fixture adds is everything else the loop does: how many
+// requests each shape costs, in what order, when the dependency chain is walked and when it is
+// skipped, which exits throw, and what the thrown message says.
 //
 // `Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is
 // driven against a recorder, exactly as the pinned `coring.test.ts` drives it, and the global
-// timer is replaced so nothing waits in wall-clock time. Both techniques are Roadmap 5.4's and
-// 6.5's; neither is new here.
+// timer is replaced so nothing waits in wall-clock time. Both techniques come from the
+// `http-retry` and `client-operations` generators; neither is new here.
 //
 // The five pinned `wait` cases in `coring.test.ts` each assert an exact request count, and
 // `pinned_confirmations.unit_test_cases` reproduces every one of those counts from the reference's
@@ -288,7 +288,7 @@ const operations = new Operations(deps);
  *
  * `coring.ts` sleeps with `new Promise((resolve) => setTimeout(resolve, delay))` against the
  * **global** timer, so replacing it records the real schedule with no wall-clock waiting — the
- * technique Roadmap 5.4's fixture established.
+ * technique the `http-retry` fixture established.
  */
 async function drive(name, note, operation, queued, options = {}) {
   recorded.length = 0;
@@ -504,7 +504,7 @@ calls.push(
 calls.push(
   await drive(
     "long_run_reaches_the_ceiling",
-    "twelve sleeps, far enough for the 10 s ceiling to bind — the schedule Roadmap 5.4 already reproduces, recorded here beside its request count",
+    "twelve sleeps, far enough for the 10 s ceiling to bind — the schedule the retry policy already reproduces, recorded here beside its request count",
     { name: NAME, done: false },
     [
       ...Array.from({ length: 12 }, () => ({ name: NAME, done: false })),
@@ -623,7 +623,7 @@ const quirks = {
     long_run: call("long_run_reaches_the_ceiling")?.request_count ?? null,
     note: "`while (true)` with no deadline, no attempt cap, and no total budget: an operation the agent never finishes is polled forever, ten seconds apart, for as long as the process lives",
     rust_decision:
-      "bounded by construction. `PollPolicy` carries Roadmap 5.4's `RetryPolicy` — the same schedule, so every recorded delay still reproduces — plus a maximum attempt count and a total deadline, defaulting to the 30 seconds the reference's *own* integration helper supplies through `AbortSignal.timeout(30000)`. Giving up is a typed `ClientError::PollingStopped` naming which bound was reached.",
+      "bounded by construction. `PollPolicy` carries the retry policy's `RetryPolicy` — the same schedule, so every recorded delay still reproduces — plus a maximum attempt count and a total deadline, defaulting to the 30 seconds the reference's *own* integration helper supplies through `AbortSignal.timeout(30000)`. Giving up is a typed `ClientError::PollingStopped` naming which bound was reached.",
   },
   the_abort_is_read_only_after_sleeping: {
     statement: declarations.wait_abort,
@@ -632,7 +632,7 @@ const quirks = {
     error: call("aborted_during_sleep")?.error ?? null,
     note: "`options.signal?.throwIfAborted()` sits *after* the `await` on the sleep, so a caller who aborts during a wait still waits out the full delay — up to the ten-second ceiling — before anything notices. The signal is also never read before the first request, so an already-aborted signal still costs one poll.",
     rust_decision:
-      "**unrepresentable**: there is no signal. Cancellation is dropping the future, which is ADR `0019`'s decision for the whole crate, and dropping it cancels the outstanding sleep or request immediately. A test polls the future once, drops it mid-sleep, and asserts no further request is made.",
+      "**unrepresentable**: there is no signal. Cancellation is dropping the future, as it is throughout the crate, and dropping it cancels the outstanding sleep or request immediately. A test polls the future once, drops it mid-sleep, and asserts no further request is made.",
   },
   a_failed_dependency_is_skipped_in_silence: {
     guard: declarations.wait_dependency_guard,
@@ -668,7 +668,7 @@ const quirks = {
     requests: call("already_failed")?.request_count ?? null,
     error: call("already_failed")?.error ?? null,
     note: "`throwIfFailed` runs on the snapshot too, so waiting on an operation that already failed raises without contacting the agent",
-    rust_decision: "reproduced, through Roadmap 6.5's `completed`, which keeps the failure's four parts apart",
+    rust_decision: "reproduced, through the operations endpoint's `completed`, which keeps the failure's four parts apart",
   },
   a_null_error_is_not_a_failure: {
     throw_if_failed: declarations.throw_if_failed_body,
@@ -676,21 +676,21 @@ const quirks = {
     error: call("error_null_is_not_a_failure")?.error ?? null,
     note: "`'error' in op && op.error !== null` — a completed operation carrying an explicit `null` error is *not* a failure, which is the shape a KERIA agent sends for a successful long-running operation",
     rust_decision:
-      "reproduced by Roadmap 4.1's decoder, which reads `done`, `response`, and `error` into one three-state outcome and refuses the combinations the schema does not admit",
+      "reproduced by the KERIA API types' decoder, which reads `done`, `response`, and `error` into one three-state outcome and refuses the combinations the schema does not admit",
   },
   the_failure_message_is_one_interpolated_string: {
     plain: call("fails_while_polling")?.error ?? null,
     with_details: call("fails_with_details")?.error ?? null,
     note: "`Operation '<name>' failed [Code <code>]: <message>` with ` Details: <JSON>` appended when the structured block is present — four values a caller can only recover by parsing a sentence",
     rust_decision:
-      "Roadmap 6.5 already keeps the four apart in `ClientError::OperationFailed`, with the remote message bounded at 512 bytes; `wait` reuses it unchanged and adds no variant of its own for failure",
+      "The operations endpoint already keeps the four apart in `ClientError::OperationFailed`, with the remote message bounded at 512 bytes; `wait` reuses it unchanged and adds no variant of its own for failure",
   },
   the_integration_helper_deletes_what_it_waited_for: {
     helper: declarations.integration_wait_operation,
     deleter: declarations.integration_delete_operations,
     note: "`waitOperation` supplies a 30-second `AbortSignal.timeout` and then deletes the operation *and its whole dependency chain* — the only place the pinned tree recursively walks `depends` for anything other than waiting",
     rust_decision:
-      "the timeout becomes `PollPolicy`'s default deadline, because it is the reference's own statement of how long polling should take. The deletion is **not** ported: it is a test helper's cleanup, `Operations::delete` is Roadmap 6.5's and already available, and a wait that silently deleted its subject would be a surprising side effect. Recorded here so the omission is a decision rather than an oversight.",
+      "the timeout becomes `PollPolicy`'s default deadline, because it is the reference's own statement of how long polling should take. The deletion is **not** ported: it is a test helper's cleanup, `Operations::delete` is the operations endpoint's and already available, and a wait that silently deleted its subject would be a surprising side effect. Recorded here so the omission is a decision rather than an oversight.",
   },
 };
 
@@ -713,7 +713,7 @@ const fixture = {
     operation_name: NAME,
     dependency_name: DEPENDENCY,
     registry_name: REGISTRY,
-    note: "`Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is driven against a recorder, exactly as the pinned `coring.test.ts` drives it, with the **global timer replaced** so every delay is captured and nothing waits. Both techniques are Roadmap 6.5's and 5.4's. Nothing here derives a key, reads a clock, or is secret.",
+    note: "`Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is driven against a recorder, exactly as the pinned `coring.test.ts` drives it, with the **global timer replaced** so every delay is captured and nothing waits. Both techniques come from the `client-operations` and `http-retry` generators. Nothing here derives a key, reads a clock, or is secret.",
   },
   declarations,
   calls,

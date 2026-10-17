@@ -21,28 +21,28 @@ node tools/reference-vectors/client_exchanges.mjs --check   # verify determinism
 
 Three things are pinned. The **clock**, because `send` passes no timestamp and `exchange(...)` then
 reads the system clock — without this nothing the class sends is reproducible at all. The **agent's
-key**, as Roadmap 6.4's fixture pinned it. And the **identifier**, which is the reference's own
-`mockGetAID` read out of `test/app/test-utils.ts` by its own compiler.
+key**, as the `client-lifecycle` fixture pinned it. And the **identifier**, which is the reference's
+own `mockGetAID` read out of `test/app/test-utils.ts` by its own compiler.
 
 Signing uses a real keeper at the reference's production Argon2 profile, so the generator takes
 several seconds.
 
 The record's sealed salt is replaced by what it **opens to**, because only the reference's own
-controller can open the blob; a Rust test re-seals it under its own key. Roadmap 6.11 established
-that shape.
+controller can open the blob; a Rust test re-seals it under its own key. The `client-credentials`
+fixture established that shape.
 
 ## What the evidence is
 
-Roadmap 7.7 ports the `Exchanges` class — `createExchangeMessage`, `send`, `sendFromEvents`, `get` —
-plus `Challenges.respond`, which Roadmap 7.4 moved here on evidence because it is a five-line
-wrapper over `send` and nothing else. Delivering these **closes `contacting.ts`** — 7.3's
-`Contacts`, 7.4's three challenge methods, and this one. It does **not** close `exchanging.ts`:
-Roadmap 3.8 verified the pure `exchange(...)` and this item the whole `Exchanges` class, but the
-thirteen route constants, the eight resource variants, and the type guards over them are Roadmap
-8.1's, so `PORTING.md` §5.10 keeps that row below `VERIFIED`.
+This fixture ports the `Exchanges` class — `createExchangeMessage`, `send`, `sendFromEvents`,
+`get` — plus `Challenges.respond`, which `client-challenges` moved here on evidence because it is a
+five-line wrapper over `send` and nothing else. Delivering these **closes `contacting.ts`** —
+`Contacts`, the three challenge methods, and this one. It does **not** close `exchanging.ts`: the
+pure `exchange(...)` was verified earlier and this fixture verifies the whole `Exchanges` class, but
+the thirteen route constants, the eight resource variants, and the type guards over them belong to
+`client-exchange-routes`.
 
-The pure `exchange(...)` this class wraps is Roadmap 3.8's and already byte-exact; what is new is
-the signing, the request body, and the two addresses.
+The pure `exchange(...)` this class wraps is already byte-exact; what is new is the signing, the
+request body, and the two addresses.
 
 `declarations` holds all four methods read from the reference's own syntax tree — the keeper
 lookup, the `exchange(...)` call, the signing, the loop, the `throw` after it, the path
@@ -98,23 +98,25 @@ The fixture drives it: `send_two_recipients` records the `rp` produced and the `
   caller can still address one member and deliver to all — but has to say so.
 - **The alias and the signer are two arguments.** `send(name, topic, sender, …)` posts under
   `/identifiers/{name}/exchanges` while signing with `sender`'s keeper, and nothing compares them;
-  Roadmap 3.10 signs `@path`, so the resource, the key, and the message's own `i` can all disagree.
-  **One alias here**, and the record is looked up from it.
+  request signing covers `@path`, so the resource, the key, and the message's own `i` can all
+  disagree. **One alias here**, and the record is looked up from it.
 - **The timestamp is a clock reading.** `send` passes no datetime, so the message's `dt` — inside
   its SAID and every signature over it — depends on when it was built. **A required parameter**,
-  which is Roadmap 3.8's decision applied again.
+  which is the decision taken for `exchange(...)` applied again.
 - **The submission answer has two declared types.** `sendFromEvents` says `Promise<Exn>`;
   `Ipex.submitGrant` says `Promise<ExchangeOperation>` for the same shape of POST to the same
   agent. Both are unchecked casts, so at most one is right. **Neither is imposed**: the answer is
-  owned bytes with a decoder for each shape, and the question is raised to `PORTING.md` §10 for
-  Roadmap 9.2.
+  owned bytes with a decoder for each shape, and the question is left for a live KERIA run to
+  settle.
 - **The SAID is interpolated raw** into `/exchanges/${said}`. **Validated here**, so the recorded
   `../identifiers/aid1?x=1` has no representable input.
 - **The pinned unit call is three empty values.** `sendFromEvents('aid1', '', serder, [''], '', [])`
   sends an empty topic, an empty string where a qualified signature belongs, and an empty delivery
   list. All three are unrepresentable here, so that request is reproduced in shape rather than byte
-  for byte and each input is proven refused — the pattern Roadmap 3.8, 6.9, and 7.1 used.
-- **The route table belongs to Roadmap 8.1.** Thirteen exported constants and the resource variants
-  and guards over them are that item's; a route is borrowed text here, as Roadmap 3.8 left it.
+  for byte and each input is proven refused — the pattern used for `exchange(...)` and in
+  `client-registries` and `client-oobis`.
+- **The route table belongs to `client-exchange-routes`.** Thirteen exported constants and the
+  resource variants and guards over them are that fixture's; a route is borrowed text here, as
+  `ExchangeBuilder` left it.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.

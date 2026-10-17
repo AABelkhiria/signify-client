@@ -16,10 +16,10 @@
     "boot_url": "http://127.0.0.1:3903",
     "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
     "agent_verification_key": "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark",
-    "agent_seed_note": "PUBLIC TEST MATERIAL: the agent's seed is the fixed array in this generator, as Roadmap 5.5's fixture used",
+    "agent_seed_note": "PUBLIC TEST MATERIAL: the agent's seed is the fixed array in this generator, as the `http-auth` fixture used",
     "fixed_clock_ms": 1700000000123,
     "fixed_clock_iso": "2023-11-14T22:13:20.123Z",
-    "note": "the clock is pinned as Roadmap 5.5's fixture pinned it, so the signed requests reproduce byte for byte including their signatures; the agent's key is fixed so its response signatures do too"
+    "note": "the clock is pinned as the `http-auth` fixture pinned it, so the signed requests reproduce byte for byte including their signatures; the agent's key is fixed so its response signatures do too"
   },
   "declarations": {
     "default_boot_url": "DEFAULT_BOOT_URL = 'http://localhost:3903'",
@@ -36,7 +36,7 @@
     "notes": {
       "boot": "boot posts the controller's inception event, its signature, the derivation stem, a hardcoded `pidx: 1`, and the tier — to the *boot* URL, unauthenticated, because no agent exists yet to authenticate to",
       "connect": "connect reads the agent state, rebuilds the controller against the returned establishment event, refuses an agent whose inception does not anchor this controller, approves the delegation when the controller is still at sequence zero, and only then builds the key manager and the authenticator",
-      "fetch": "the signed pipeline is Roadmap 5.5's; what the client adds is the controller prefix it stamps and the agent key it verifies against"
+      "fetch": "the signed pipeline is the authenticated transport's; what the client adds is the controller prefix it stamps and the agent key it verifies against"
     }
   },
   "lifecycle": [
@@ -289,7 +289,7 @@
         ],
         "body": "{\"ixn\":{\"v\":\"KERI10JSON00013a_\",\"t\":\"ixn\",\"d\":\"EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8\",\"i\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"s\":\"1\",\"p\":\"ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose\",\"a\":[{\"i\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\",\"s\":\"0\",\"d\":\"EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY\"}]},\"sigs\":[\"AAAMAEVf8iVtRL0t2GhdEKNXh7QaIriFSHKAdaMb1y56HDGD4rJ7Dev9YPqj40LTdzG4Et3UHKwdCv_16lSeSMEC\"]}"
       },
-      "note": "the PUT that anchors the agent's delegation carries no HTTP signature at all — it bypasses `fetch` and calls the global directly, which Roadmap 5.1 also recorded",
+      "note": "the PUT that anchors the agent's delegation carries no HTTP signature at all — it bypasses `fetch` and calls the global directly, which the `http-transport` fixture also recorded",
       "rust_decision": "reproduced: the call is made on the unsigned transport, and the API says so. Changing it would produce a request KERIA does not expect."
     },
     "passcode_save_and_delete_are_unauthenticated": {
@@ -328,7 +328,7 @@
     "connect_assigns_ridx_without_rederiving": {
       "expression": "this.controller.ridx = state.ridx !== undefined ? state.ridx : 0",
       "note": "connect assigns `controller.ridx` after construction without re-deriving any key, so the field and the keys it names can disagree",
-      "rust_decision": "unrepresentable: Roadmap 4.5 fixes the rotation index at construction, so the controller is rebuilt with the returned index rather than mutated after the fact."
+      "rust_decision": "unrepresentable: the controller fixes the rotation index at construction, so the controller is rebuilt with the returned index rather than mutated after the fact."
     },
     "ready_is_libsodium_initialization": {
       "source": "import _sodium from 'libsodium-wrappers-sumo';\n\nexport const ready: () => Promise<void> = async () => {\n    await _sodium.ready;\n};",

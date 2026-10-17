@@ -19,7 +19,7 @@
     "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
     "recipient": "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k",
     "second_recipient": "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby",
-    "note": "`Ipex` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The sender's habitat is derived by the same route the pinned `test/app/test-utils.ts` derives its mock, at the reference's production Argon2 cost, so every signature in a recorded body is real. Each message is built by the reference's own Roadmap 6.3 builder before being submitted, so every recorded `exn` is one `fixtures/acdc-ipex/v1.json` has already proven byte-exact. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
+    "note": "`Ipex` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The sender's habitat is derived by the same route the pinned `test/app/test-utils.ts` derives its mock, at the reference's production Argon2 cost, so every signature in a recorded body is real. Each message is built by the reference's own IPEX artifact builder before being submitted, so every recorded `exn` is one `fixtures/acdc-ipex/v1.json` has already proven byte-exact. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything."
   },
   "declarations": {
     "class_members": [
@@ -142,7 +142,7 @@
     "anchor_attachment": "-AABAADMtDfNihvCSXJNp1VronVojcPGo--0YZ4Kh6CAnowRnn4Or4FgZQqaqCEv6XVS413qfZoVp8j2uxTTPkItO7ED",
     "schema": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
     "lei": "5493001KJTIIGC8Y1R17",
-    "note": "the same three the Roadmap 6.3 fixture embeds, rebuilt here from `mockCredential` by the reference's own `Saider` and `interact`"
+    "note": "the same three the `acdc-ipex` fixture embeds, rebuilt here from `mockCredential` by the reference's own `Saider` and `interact`"
   },
   "messages": {
     "apply": {
@@ -678,8 +678,8 @@
         "grant": "`/identifiers/${name}/ipex/grant`",
         "admit": "`/identifiers/${name}/ipex/admit`"
       },
-      "note": "all five paths interpolate the sender's alias raw, so an alias holding a slash addresses a different identifier's IPEX resource — and Roadmap 3.10 signs `@path`, so it changes what the signature covers",
-      "rust_decision": "refused by construction: Roadmap 5.3's `ResourcePath` encodes the alias exactly once"
+      "note": "all five paths interpolate the sender's alias raw, so an alias holding a slash addresses a different identifier's IPEX resource — and request authentication signs `@path`, so it changes what the signature covers",
+      "rust_decision": "refused by construction: the request builder's `ResourcePath` encodes the alias exactly once"
     },
     "the_answer_is_cast_rather_than_decoded": {
       "returns": "return response.json();",
@@ -694,7 +694,7 @@
         }
       },
       "note": "every submitter returns `response.json()` cast to `ExchangeOperation`, so whatever the agent sends is read as an operation",
-      "rust_decision": "decoded rather than cast, as Roadmap 6.8, 6.10, and 6.11 decided"
+      "rust_decision": "decoded rather than cast, as the config, schemas, and credentials endpoints decided"
     }
   }
 }

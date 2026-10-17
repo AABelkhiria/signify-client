@@ -1,14 +1,16 @@
 // Records the pinned signify-ts checkout's five IPEX submissions.
 //
-// Roadmap 6.12 ports `Ipex.{submitApply,submitOffer,submitAgree,submitGrant,submitAdmit}` from
-// `src/keri/app/credentialing.ts`. The five artifact builders beside them are Roadmap 6.3's and are
-// already `VERIFIED`, so this generator builds each message through the reference's own builder and
-// then submits it through the reference's own submitter, recording the request that leaves.
+// The Rust port covers `Ipex.{submitApply,submitOffer,submitAgree,submitGrant,submitAdmit}` from
+// `src/keri/app/credentialing.ts`. The five artifact builders beside them are the `acdc-ipex`
+// fixture's and are already `VERIFIED`, so this generator builds each message through the
+// reference's own builder and then submits it through the reference's own submitter, recording
+// the request that leaves.
 //
 // The pinned unit tree exercises **all five**: the three IPEX cases in
 // `test/app/credentialing.test.ts` call every submitter and assert each path. Those messages are
-// the ones rebuilt here, from the same `mockCredential`-derived artifacts Roadmap 6.3's fixture
-// uses, so each recorded body carries an `exn` that fixture has already proven byte-exact.
+// the ones rebuilt here, from the same `mockCredential`-derived artifacts the
+// `acdc-ipex` fixture uses, so each recorded body carries an `exn` that fixture has already proven
+// byte-exact.
 //
 // Everything is deterministic: every message's timestamp is supplied and the sender's keys derive
 // from the passcode the pinned tests publish, at the reference's **production** Argon2 cost, so the
@@ -348,7 +350,7 @@ if (client.manager === null) {
 }
 
 // ---------------------------------------------------------------------------
-// 3. The artifacts the IPEX messages carry, exactly as Roadmap 6.3's fixture builds them.
+// 3. The artifacts the IPEX messages carry, exactly as the `acdc-ipex` fixture builds them.
 // ---------------------------------------------------------------------------
 
 const MOCK_CREDENTIAL_SAD = {
@@ -656,14 +658,14 @@ const quirks = {
       grant: declarations.submit_grant.path,
       admit: declarations.submit_admit.path,
     },
-    note: "all five paths interpolate the sender's alias raw, so an alias holding a slash addresses a different identifier's IPEX resource — and Roadmap 3.10 signs `@path`, so it changes what the signature covers",
-    rust_decision: "refused by construction: Roadmap 5.3's `ResourcePath` encodes the alias exactly once",
+    note: "all five paths interpolate the sender's alias raw, so an alias holding a slash addresses a different identifier's IPEX resource — and request authentication signs `@path`, so it changes what the signature covers",
+    rust_decision: "refused by construction: the request builder's `ResourcePath` encodes the alias exactly once",
   },
   the_answer_is_cast_rather_than_decoded: {
     returns: declarations.submit_apply.returns,
     recorded_answer: EXCHANGE_OPERATION,
     note: "every submitter returns `response.json()` cast to `ExchangeOperation`, so whatever the agent sends is read as an operation",
-    rust_decision: "decoded rather than cast, as Roadmap 6.8, 6.10, and 6.11 decided",
+    rust_decision: "decoded rather than cast, as the config, schemas, and credentials endpoints decided",
   },
 };
 
@@ -688,7 +690,7 @@ const fixture = {
     sender: hab.prefix,
     recipient: HOLDER,
     second_recipient: SECOND_RECIPIENT,
-    note: "`Ipex` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The sender's habitat is derived by the same route the pinned `test/app/test-utils.ts` derives its mock, at the reference's production Argon2 cost, so every signature in a recorded body is real. Each message is built by the reference's own Roadmap 6.3 builder before being submitted, so every recorded `exn` is one `fixtures/acdc-ipex/v1.json` has already proven byte-exact. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything.",
+    note: "`Ipex` takes a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would. The sender's habitat is derived by the same route the pinned `test/app/test-utils.ts` derives its mock, at the reference's production Argon2 cost, so every signature in a recorded body is real. Each message is built by the reference's own IPEX artifact builder before being submitted, so every recorded `exn` is one `fixtures/acdc-ipex/v1.json` has already proven byte-exact. `PUBLIC TEST MATERIAL`: the passcode is the pinned tests' own and has never protected anything.",
   },
   declarations,
   // The three artifacts a grant embeds, so the Rust side can rebuild the same messages.
@@ -699,7 +701,7 @@ const fixture = {
     anchor_attachment: ANC_ATTACHMENT,
     schema: MOCK_CREDENTIAL_SAD.s,
     lei: MOCK_CREDENTIAL_SAD.a.LEI,
-    note: "the same three the Roadmap 6.3 fixture embeds, rebuilt here from `mockCredential` by the reference's own `Saider` and `interact`",
+    note: "the same three the `acdc-ipex` fixture embeds, rebuilt here from `mockCredential` by the reference's own `Saider` and `interact`",
   },
   messages: Object.fromEntries(
     Object.entries(built).map(([name, [exn, sigs, atc]]) => [

@@ -7,7 +7,7 @@ with 500. This generator replays the log ``client_passcode_rotation.mjs`` record
 interaction -- into a fresh keripy database and asks keripy's ``Kevery`` to process each candidate
 rotation from ``fixtures/client-passcode-rotation/v1.json``: the reference's own, the corrected one
 this port builds, and a third at the right sequence number with the wrong prior. It records what
-keripy did with each. ADR 0034.
+keripy did with each.
 
 Every event and signature is read from the signify-ts fixture; nothing is signed here, so the
 verdicts are keripy's judgement of the reference's bytes. Run with a Python 3.12+ environment that

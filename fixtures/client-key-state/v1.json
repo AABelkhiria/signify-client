@@ -18,7 +18,7 @@
     "fixed_clock_ms": 1700000000123,
     "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
     "controller_prefix": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose",
-    "note": "`KeyEvents` and `KeyStates` each take a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the arrangement Roadmap 6.4's fixture established. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the one `coring.test.ts` publishes and has never protected anything."
+    "note": "`KeyEvents` and `KeyStates` each take a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the arrangement the `client-lifecycle` fixture established. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the one `coring.test.ts` publishes and has never protected anything."
   },
   "declarations": {
     "events_path": "path = `/events?pre=${pre}`",
@@ -380,18 +380,18 @@
         "states": "path = `/states?pre=${pre}`",
         "list": "path = `/states?${pres.map((pre) => `pre=${pre}`).join('&')}`"
       },
-      "note": "all three read paths interpolate their prefix straight into the query with no encoding, so a prefix carrying `&` or `#` adds parameters or truncates the query — the fourth such family Roadmap 5.3 counted",
-      "rust_decision": "refused twice over: the parameter is a validated `IdentifierPrefix` rather than a string, and Roadmap 5.3's builder would encode it exactly once even if it were not"
+      "note": "all three read paths interpolate their prefix straight into the query with no encoding, so a prefix carrying `&` or `#` adds parameters or truncates the query — the fourth such family the request builder counted",
+      "rust_decision": "refused twice over: the parameter is a validated `IdentifierPrefix` rather than a string, and the request builder would encode it exactly once even if it were not"
     },
     "an_empty_listing_addresses_a_bare_question_mark": {
       "path": "/states?",
       "expression": "path = `/states?${pres.map((pre) => `pre=${pre}`).join('&')}`",
-      "note": "`list([])` joins nothing and still interpolates `?`, so an empty listing addresses `/states?` — the same defect Roadmap 6.5 recorded for `/operations?`",
-      "rust_decision": "not reproduced, on Roadmap 6.5's own three grounds: the signed path is identical because Roadmap 3.10 strips the query, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell it. An empty listing is refused outright here, because asking for no key states is a caller mistake rather than a request."
+      "note": "`list([])` joins nothing and still interpolates `?`, so an empty listing addresses `/states?` — the same defect the `client-operations` fixture recorded for `/operations?`",
+      "rust_decision": "not reproduced, on the `client-operations` fixture's own three grounds: the signed path is identical because request authentication strips the query, an empty query is not a distinguishable resource, and the request builder cannot spell it. An empty listing is refused outright here, because asking for no key states is a caller mistake rather than a request."
     },
     "a_listing_is_unbounded": {
       "note": "`list` maps and joins however many prefixes it is handed, so a caller can build a query no server will accept",
-      "rust_decision": "Roadmap 5.3's builder bounds a query at 32 parameters and 1,024 bytes, so a listing of more than about twenty prefixes is a typed refusal rather than a request that fails remotely"
+      "rust_decision": "the request builder bounds a query at 32 parameters and 1,024 bytes, so a listing of more than about twenty prefixes is a typed refusal rather than a request that fails remotely"
     },
     "the_sequence_number_has_three_spellings": {
       "parameter": [
@@ -804,7 +804,7 @@
           "note": "keripy's own HTTP surface reads an `sn` query parameter with falcon's `get_param_as_int`, which parses base ten. KERIA is a different service, so this is corroboration rather than proof."
         },
         "note": "the reference passes whatever string it is handed straight into the body, so its own evidence cannot distinguish the base",
-        "rust_decision": "**not guessed.** The Rust request takes a two-variant `QuerySequence` — `Decimal(u64)` or `Hexadecimal(u64)` — so the caller chooses the rendering and the ambiguity is visible in the type rather than hidden behind a default. Both variants reproduce every recorded call byte for byte, because every one of them is below ten. Roadmap 9.2 owes this a live confirmation; `PORTING.md` §10 carries it as an open question."
+        "rust_decision": "**not guessed.** The Rust request takes a two-variant `QuerySequence` — `Decimal(u64)` or `Hexadecimal(u64)` — so the caller chooses the rendering and the ambiguity is visible in the type rather than hidden behind a default. Both variants reproduce every recorded call byte for byte, because every one of them is below ten. It stays an open question, owed a live confirmation against KERIA."
       },
       "note": "the parameter is declared `string`, the JSDoc directly above it says `number`, and the schema's own `QueryMetadata.sn` is a `number` — while the value actually sent is a string",
       "rust_decision": "a `u64` rendered in base ten, which is the string every recorded caller sends. The request writes text because that is what the reference sends and what the pinned test asserts."
@@ -1160,7 +1160,7 @@
       ],
       "jsdoc": "* @param {any} [anchor] Optional anchor",
       "note": "`anchor` is `any`. The pinned unit test passes a bare SAID string; every integration caller passes a Seal (`{i, s, d}`); the schema's `QueryMetadata.anchor` is an `Anchor` (`{pre, sn, d}`). Only the integration shape ever reaches a live KERIA.",
-      "rust_decision": "the request takes a `Seal`, which is the shape proven against a running agent. The unit test's bare string is recorded verbatim here and is unrepresentable in Rust; the schema's `Anchor` stays what it always was — the *response* metadata's type, which Roadmap 4.1 already carries."
+      "rust_decision": "the request takes a `Seal`, which is the shape proven against a running agent. The unit test's bare string is recorded verbatim here and is unrepresentable in Rust; the schema's `Anchor` stays what it always was — the *response* metadata's type, which the shared API types already carry."
     },
     "a_query_body_omits_what_it_was_not_given": {
       "expression": "data: any = { pre: pre, }",
@@ -1182,7 +1182,7 @@
         "scanned_files": 117
       },
       "note": "`KeyEvents` and `KeyStates` each hold a whole `SignifyClient`, where `Operations` takes a narrow `OperationsDeps` and `Identifier` an `IdentifierDeps` — so neither can be unit-tested without a full client",
-      "rust_decision": "both are borrowed handles over a `ConnectedClient`, as Roadmap 6.5 settled; a family knows paths and shapes and nothing else"
+      "rust_decision": "both are borrowed handles over a `ConnectedClient`, as the operations endpoint settled; a family knows paths and shapes and nothing else"
     }
   }
 }

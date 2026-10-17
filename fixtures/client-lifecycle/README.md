@@ -20,7 +20,7 @@ node tools/reference-vectors/client_lifecycle.mjs --check   # verify determinism
 ## Determinism
 
 Two things are pinned that make the whole walk reproducible. The **clock** is replaced by a
-`Date` subclass returning a fixed instant, as Roadmap 5.5's fixture did, so a signed request's
+`Date` subclass returning a fixed instant, as the `http-auth` fixture did, so a signed request's
 `Signify-Timestamp` and the signature covering it are exact. The **agent's key** is a fixed seed,
 so its response signatures are too. Everything else — the controller, its inception, its
 delegation approval — derives from the passcode the pinned test publishes.
@@ -31,7 +31,7 @@ distinctness.
 
 ## What the evidence is
 
-Roadmap 6.4 ports what a client does before any endpoint family exists. As with Roadmap 6.3's
+This port covers what a client does before any endpoint family exists. As with the IPEX artifact
 fixture, this one **drives the reference rather than re-expressing it**: `globalThis.fetch` is
 replaced with a recorder that answers as a KERIA agent would — signing every response so
 `SignifyClient.fetch` accepts it — and the real client is walked through `boot`, `state`,
@@ -62,8 +62,8 @@ checks, the approval URL, the error-message template, both random helpers, and t
 - **`boot` hardcodes `pidx: 1`** while the client's own field is zero, and nothing reads the value
   back. Reproduced as a constant, so the two cannot disagree.
 - **The delegation approval is unauthenticated.** The `PUT` anchoring the agent bypasses the signed
-  path and calls the global `fetch` directly, so it carries no HTTP signature; Roadmap 5.1 recorded
-  the same defect from the transport side. Reproduced, and the method says so.
+  path and calls the global `fetch` directly, so it carries no HTTP signature; the `http-transport`
+  fixture recorded the same defect from the transport side. Reproduced, and the method says so.
 - **Both passcode calls are unauthenticated too.** `saveOldPasscode` writes a passcode to the agent
   over an unsigned request. Reproduced and named, so a caller cannot mistake either for a signed
   call.
@@ -71,12 +71,11 @@ checks, the approval URL, the error-message template, both random helpers, and t
   it were the agent state. Here a 404 is `AgentNotFound`, any other non-success status is `Status`,
   and neither is parsed.
 - **`connect` assigns `controller.ridx` after construction without re-deriving any key**, so the
-  field and the keys it names can disagree. Roadmap 4.5 fixed the index at construction, so here
+  field and the keys it names can disagree. The controller fixes the index at construction, so here
   the controller is rebuilt with the returned index rather than mutated.
 - **`src/ready.ts` is libsodium's WebAssembly initialization** — four lines awaiting
   `_sodium.ready`, imported from exactly one place, the export surface. Recorded `N/A`: the Rust
-  cryptographic stack needs no asynchronous initialization, so there is nothing to port. This
-  closes the `PORTING.md` §10 question that fell due here.
+  cryptographic stack needs no asynchronous initialization, so there is nothing to port.
 - **`fetch` throws `client need to call connect first`** when its authenticator is still null.
   Unrepresentable here: connecting consumes the unconnected client and returns a connected one, so
   there is no `fetch` to call before connecting.

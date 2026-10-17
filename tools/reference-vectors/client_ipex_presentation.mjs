@@ -1,10 +1,10 @@
 // Records the pinned signify-ts checkout's IPEX presentation workflow.
 //
-// Roadmap 8.8 ports the conversation that discloses a credential: apply, offer, agree, grant, and
-// admit, plus the shorter issuer path where a grant opens the exchange and an admit closes it.
-// Roadmap 6.3 builds those five messages and Roadmap 6.12 submits them; what this item ports is
-// the part between — reading what arrived, checking it belongs to the conversation it claims to,
-// and building the answer from it.
+// The Rust port covers the conversation that discloses a credential: apply, offer, agree, grant,
+// and admit, plus the shorter issuer path where a grant opens the exchange and an admit closes it.
+// The IPEX artifact builders build those five messages and the IPEX submitters send them; what this
+// generator records is the part between — reading what arrived, checking it belongs to the
+// conversation it claims to, and building the answer from it.
 //
 // There is no source file. The single-signature conversation is written inline in
 // `test-integration/credentials.test.ts`, and the group rounds are `grantMultisig` and
@@ -19,8 +19,9 @@
 //      `multisig-holder.test.ts` reads a module-level `const TIME = createTimestamp()`. Its own
 //      `assert.equal(admitResult1.admitSaid, admitResult2.admitSaid)` therefore passes in the test
 //      process and would fail between two real members. Driven here both ways.
-//   2. **A joining member never reads the proposal**, the same defect Roadmap 8.7 pinned for the
-//      transaction rounds: `if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn')`
+//   2. **A joining member never reads the proposal**, the same defect the
+//      `client-multisig-credentials` fixture pinned for the transaction rounds:
+//      `if (!isInitiator) await waitAndMarkNotification(client, '/multisig/exn')`
 //      discards the SAID, and neither helper contains a `getRequest`.
 //   3. **A notification's SAID is not required to exist.** `waitAndMarkNotification` ends
 //      `return notes[notes.length - 1]?.a.d ?? '';`, so a notification carrying no `a.d` yields the
@@ -859,7 +860,7 @@ await drive(
 
 await drive(
   "incept_the_group",
-  "the group that will disclose and admit, from Roadmap 8.3's own helper",
+  "the group that will disclose and admit, from the same helper the `client-multisig-inception` fixture drives",
   async () =>
     await startMultisigIncept(client, {
       groupName: "multisig",
@@ -1050,7 +1051,7 @@ const quirks = {
     group_requests_made: calls.some((entry) =>
       entry.requests.some((request) => request.path.startsWith("/multisig/request/")),
     ),
-    note: "the same shape Roadmap 8.7 pinned for the transaction rounds, in all three group IPEX helpers. Driven across six group rounds, not one fetches a group request.",
+    note: "the same shape the `client-multisig-credentials` fixture pinned for the transaction rounds, in all three group IPEX helpers. Driven across six group rounds, not one fetches a group request.",
     rust_decision: "the proposed message is read out of the `/multisig/exn` proposal and rebuilt from its own fields.",
   },
   a_notification_need_not_name_a_message: {
@@ -1076,7 +1077,7 @@ const quirks = {
     without_attachment: unattached === null ? null : unattached.said,
     note: "the presentation grant passes all three attachments, the issuance grant passes the anchor's only, and `multisig-holder.test.ts` passes none. Passing none reaches the branch that signs `args.anc.raw` with the *sender's* keeper — correct only when the sender is the issuer, and reached in the tree where it is not.",
     rust_decision:
-      "Roadmap 6.11 refused that branch: a `Disclosure` carries its own three attachments, derived from the issuance artifacts or read off the credential. `presentation::disclosure_of` assembles them from a credential in hand, and re-serializes each of the three events to check its bytes still reproduce the SAID that names it.",
+      "the credentials endpoint refused that branch: a `Disclosure` carries its own three attachments, derived from the issuance artifacts or read off the credential. `presentation::disclosure_of` assembles them from a credential in hand, and re-serializes each of the three events to check its bytes still reproduce the SAID that names it.",
   },
   an_announcement_names_only_the_group: {
     declaration: typeText(exchanging.source, "MultisigExnExchange"),
@@ -1086,7 +1087,7 @@ const quirks = {
     members_endpoint_uses: scan("client.identifiers().members("),
     note: "a `/multisig/exn` proposal carries `{ gid }` and nothing else — `MultisigExnExchange` declares no `smids` — and both group IPEX helpers take the peers as an argument, so a joining member is told who to answer by its caller rather than by the message. Where the reference's own tests derive the members themselves (`multisigIssue`, `multisigRevoke`) they ask the agent's members endpoint for `signing[].aid`; the group record's `keys` are the members' signing keys and never stand in for them.",
     rust_decision:
-      "the IPEX rounds announce `smids` and `rmids` exactly as the six event rounds do, so a joining member reads its peers from the proposal it was shown; a proposal that names nobody — the reference's — is answered by `identifiers().members(group)`, never by the record's keys. The classifier accepts both shapes on `/multisig/exn`. PORTING.md §10.",
+      "the IPEX rounds announce `smids` and `rmids` exactly as the six event rounds do, so a joining member reads its peers from the proposal it was shown; a proposal that names nobody — the reference's — is answered by `identifiers().members(group)`, never by the record's keys. The classifier accepts both shapes on `/multisig/exn`.",
   },
 };
 
@@ -1149,7 +1150,7 @@ const fixture = {
     subject_prefix: SUBJECT_PREFIX,
     verifier_prefix: VERIFIER_PREFIX,
     notified_grant: NOTIFIED_GRANT,
-    note: "The single-signature conversation is written inline in `credentials.test.ts`, so each step is driven through the reference's own `Ipex` method with the same arguments in the same order. The group rounds live in `multisig-utils.ts`, which is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
+    note: "The single-signature conversation is written inline in `credentials.test.ts`, so each step is driven through the reference's own `Ipex` method with the same arguments in the same order. The group rounds live in `multisig-utils.ts`, which is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as the `client-multisig-inception` generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
   },
   declarations,
   key_states: {

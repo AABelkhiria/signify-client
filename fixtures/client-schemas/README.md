@@ -18,12 +18,12 @@ node tools/reference-vectors/client_schemas.mjs --check   # verify determinism
 
 ## Determinism
 
-The clock and the agent's key are pinned, as Roadmap 6.4's fixture pinned them. Nothing here
-derives an identifier key, so the generator is fast.
+The clock and the agent's key are pinned, as the `client-lifecycle` fixture pinned them. Nothing
+here derives an identifier key, so the generator is fast.
 
 ## What the evidence is
 
-Roadmap 6.10 ports `Schemas.{get,list}` — two reads, one addressing a SAID and one a constant path.
+This port covers `Schemas.{get,list}` — two reads, one addressing a SAID and one a constant path.
 
 A scan of every pinned `.ts` file finds this family in exactly four, and **no unit test exercises
 either call**: `test/app/clienting.test.ts` asserts only that `client.schemas()` is a `Schemas`.
@@ -47,20 +47,20 @@ the recorded paths are the ones a real deployment sees.
 
 - **The SAID is not encoded.** `get` interpolates it straight into the path, so
   `get("E/../schema?x=1#y")` addresses `/schema/E/../schema?x=1#y` — three extra segments, a query,
-  and a fragment from one argument, and Roadmap 3.10 signs `@path`. **Refused twice over**: the
-  argument is Roadmap 3.3's validated `Said`, and Roadmap 5.3's builder would encode it exactly once
+  and a fragment from one argument, and request authentication signs `@path`. **Refused twice
+  over**: the argument is a validated `Said`, and the request builder would encode it exactly once
   even if it were not. A qualified digest's alphabet is URL-safe Base64, so every real SAID reaches
   the path byte-identical to what the reference sends.
 - **The segment is singular.** Both addresses are `/schema` while the class, the accessor, and the
-  roadmap item are plural. Reproduced exactly, and pinned as a named constant so the plural module
+  module are plural. Reproduced exactly, and pinned as a named constant so the plural module
   name cannot drift into the path.
 - **The answer is never validated.** `get` returns `res.json()` cast to `Schema`, so an object
   carrying only `$id` — missing all nine other required fields — is handed to the caller as a
   schema. **Decoded here**: such an answer is `ClientError::Api`, and the recorded one is proven
   refused.
 - **A listing carries no input.** No filter, no range, no paging, so an agent holding many schemas
-  returns all of them in one body. Reproduced; the response is bounded only by Roadmap 5.1's
-  transport limit, which is recorded as a limitation rather than a filter this port invents.
+  returns all of them in one body. Reproduced; the response is bounded only by the transport's
+  limit, which is recorded as a limitation rather than a filter this port invents.
 - **Nothing checks the schema came back under the SAID asked for.** The reference's own integration
   test makes that check at the call site — `assert.equal(issuerQviSchema.$id, QVI_SCHEMA_SAID)` —
   but `Schemas.get` does not, so a misrouted or substituted answer is returned unchallenged.

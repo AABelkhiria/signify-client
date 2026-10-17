@@ -1,13 +1,13 @@
 // Records the pinned signify-ts checkout's key-event and key-state endpoints.
 //
-// Roadmap 6.7 ports `KeyEvents.get` and `KeyStates.{get,list,query}` from
-// `src/keri/app/coring.ts`. `Config` lives in the same file and is Roadmap 6.8; nothing here
-// touches it.
+// The Rust port covers `KeyEvents.get` and `KeyStates.{get,list,query}` from
+// `src/keri/app/coring.ts`. `Config` lives in the same file and has its own `client-config`
+// fixture; nothing here touches it.
 //
 // Both classes take a whole `SignifyClient` rather than a narrow dependency interface, so this
-// generator **drives the reference** the way Roadmap 6.4's fixture did: `globalThis.fetch` is
-// replaced with a recorder that answers and signs as a KERIA agent would, and the real client is
-// walked through boot, connect, and then every call of both families.
+// generator **drives the reference** the way the `client-lifecycle` fixture did:
+// `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent would, and
+// the real client is walked through boot, connect, and then every call of both families.
 //
 // The clock and the agent's key are pinned, so a request's signature is exact; the calls recorded
 // here are compared by path, method, and body.
@@ -248,9 +248,9 @@ for (const [name, value] of Object.entries(declarations)) {
 // ---------------------------------------------------------------------------
 //
 // Every `sn` the reference's own callers pass is a single digit, where decimal and hexadecimal
-// agree — so signify-ts cannot settle which base KERIA reads. ADR `0009` scopes keripy as a
-// *governing* reference only for capabilities signify-ts cannot emit, and this is not one of
-// those; what follows is corroborating evidence, recorded as such.
+// agree — so signify-ts cannot settle which base KERIA reads. keripy is a *governing* reference
+// only for capabilities signify-ts cannot emit, and this is not one of those; what follows is
+// corroborating evidence, recorded as such.
 
 function keripyLines(relativePath, needle) {
   const url = new URL(`../../reference/keripy/${relativePath}`, import.meta.url);
@@ -293,7 +293,7 @@ const sequenceNumberBase = {
   },
   note: "the reference passes whatever string it is handed straight into the body, so its own evidence cannot distinguish the base",
   rust_decision:
-    "**not guessed.** The Rust request takes a two-variant `QuerySequence` — `Decimal(u64)` or `Hexadecimal(u64)` — so the caller chooses the rendering and the ambiguity is visible in the type rather than hidden behind a default. Both variants reproduce every recorded call byte for byte, because every one of them is below ten. Roadmap 9.2 owes this a live confirmation; `PORTING.md` §10 carries it as an open question.",
+    "**not guessed.** The Rust request takes a two-variant `QuerySequence` — `Decimal(u64)` or `Hexadecimal(u64)` — so the caller chooses the rendering and the ambiguity is visible in the type rather than hidden behind a default. Both variants reproduce every recorded call byte for byte, because every one of them is below ten. It stays an open question, owed a live confirmation against KERIA.",
 };
 sequenceNumberBase.every_recorded_sn_is_one_digit = sequenceNumberBase.reference_call_sites
   .flatMap((site) => site.arguments.slice(1, 2))
@@ -301,7 +301,7 @@ sequenceNumberBase.every_recorded_sn_is_one_digit = sequenceNumberBase.reference
   .every((argument) => /^'[0-9]'$/.test(argument));
 
 // ---------------------------------------------------------------------------
-// 3. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 3. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -574,21 +574,21 @@ const quirks = {
       states: declarations.states_path,
       list: declarations.states_list_path,
     },
-    note: "all three read paths interpolate their prefix straight into the query with no encoding, so a prefix carrying `&` or `#` adds parameters or truncates the query — the fourth such family Roadmap 5.3 counted",
+    note: "all three read paths interpolate their prefix straight into the query with no encoding, so a prefix carrying `&` or `#` adds parameters or truncates the query — the fourth such family the request builder counted",
     rust_decision:
-      "refused twice over: the parameter is a validated `IdentifierPrefix` rather than a string, and Roadmap 5.3's builder would encode it exactly once even if it were not",
+      "refused twice over: the parameter is a validated `IdentifierPrefix` rather than a string, and the request builder would encode it exactly once even if it were not",
   },
   an_empty_listing_addresses_a_bare_question_mark: {
     path: calls.find((call) => call.name === "states_list_empty")?.request?.path ?? null,
     expression: declarations.states_list_path,
-    note: "`list([])` joins nothing and still interpolates `?`, so an empty listing addresses `/states?` — the same defect Roadmap 6.5 recorded for `/operations?`",
+    note: "`list([])` joins nothing and still interpolates `?`, so an empty listing addresses `/states?` — the same defect the `client-operations` fixture recorded for `/operations?`",
     rust_decision:
-      "not reproduced, on Roadmap 6.5's own three grounds: the signed path is identical because Roadmap 3.10 strips the query, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell it. An empty listing is refused outright here, because asking for no key states is a caller mistake rather than a request.",
+      "not reproduced, on the `client-operations` fixture's own three grounds: the signed path is identical because request authentication strips the query, an empty query is not a distinguishable resource, and the request builder cannot spell it. An empty listing is refused outright here, because asking for no key states is a caller mistake rather than a request.",
   },
   a_listing_is_unbounded: {
     note: "`list` maps and joins however many prefixes it is handed, so a caller can build a query no server will accept",
     rust_decision:
-      "Roadmap 5.3's builder bounds a query at 32 parameters and 1,024 bytes, so a listing of more than about twenty prefixes is a typed refusal rather than a request that fails remotely",
+      "the request builder bounds a query at 32 parameters and 1,024 bytes, so a listing of more than about twenty prefixes is a typed refusal rather than a request that fails remotely",
   },
   the_sequence_number_has_three_spellings: {
     parameter: declarations.query_signature,
@@ -611,7 +611,7 @@ const quirks = {
     jsdoc: declarations.query_anchor_doc,
     note: "`anchor` is `any`. The pinned unit test passes a bare SAID string; every integration caller passes a Seal (`{i, s, d}`); the schema's `QueryMetadata.anchor` is an `Anchor` (`{pre, sn, d}`). Only the integration shape ever reaches a live KERIA.",
     rust_decision:
-      "the request takes a `Seal`, which is the shape proven against a running agent. The unit test's bare string is recorded verbatim here and is unrepresentable in Rust; the schema's `Anchor` stays what it always was — the *response* metadata's type, which Roadmap 4.1 already carries.",
+      "the request takes a `Seal`, which is the shape proven against a running agent. The unit test's bare string is recorded verbatim here and is unrepresentable in Rust; the schema's `Anchor` stays what it always was — the *response* metadata's type, which the shared API types already carry.",
   },
   a_query_body_omits_what_it_was_not_given: {
     expression: declarations.query_body,
@@ -624,7 +624,7 @@ const quirks = {
     scan: scan("new KeyStates("),
     note: "`KeyEvents` and `KeyStates` each hold a whole `SignifyClient`, where `Operations` takes a narrow `OperationsDeps` and `Identifier` an `IdentifierDeps` — so neither can be unit-tested without a full client",
     rust_decision:
-      "both are borrowed handles over a `ConnectedClient`, as Roadmap 6.5 settled; a family knows paths and shapes and nothing else",
+      "both are borrowed handles over a `ConnectedClient`, as the operations endpoint settled; a family knows paths and shapes and nothing else",
   },
 };
 
@@ -648,7 +648,7 @@ const fixture = {
     fixed_clock_ms: FIXED_MS,
     agent_prefix: agentPrefix,
     controller_prefix: controllerPrefix,
-    note: "`KeyEvents` and `KeyStates` each take a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the arrangement Roadmap 6.4's fixture established. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the one `coring.test.ts` publishes and has never protected anything.",
+    note: "`KeyEvents` and `KeyStates` each take a whole `SignifyClient`, so the real client is driven with `globalThis.fetch` replaced by a recorder that signs its answers as a KERIA agent would — the arrangement the `client-lifecycle` fixture established. The clock and the agent's key are pinned. `PUBLIC TEST MATERIAL`: the passcode is the one `coring.test.ts` publishes and has never protected anything.",
   },
   declarations,
   calls,

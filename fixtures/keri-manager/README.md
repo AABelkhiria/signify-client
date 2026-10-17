@@ -30,7 +30,7 @@ vary between runs and are handled explicitly:
   become `@`, and the parenthesised timezone name is dropped. Letters are masked because the
   weekday and month names change with the day, and the timezone name is dropped because it changes
   with the machine and with daylight saving. Masking only the digits — as this fixture originally
-  did, following Roadmap 3.6's reply timestamp — left it stale the day after it was written.
+  did, following the reply timestamp — left it stale the day after it was written.
 
 Random keys cannot be pinned at all, so `randy_creator_shape` records the structure of a randy key
 set — count, code, length, transferability, distinctness, and the absence of paths — rather than
@@ -41,7 +41,7 @@ any key.
 `salty_creator_cases` records thirteen `SaltyCreator.create` calls with every input, the derivation
 paths the creator built, and the private and public keys it produced. The Rust test re-derives each
 one and compares the paths and public keys; the private keys are recorded for completeness but are
-never compared, because `Signer` exposes no seed by design (ADR `0004`).
+never compared, because `Signer` exposes no seed by design.
 
 `encrypted_manager` and `unencrypted_manager` each record a whole walk — inception, every signature
 form, two rotations — with a complete snapshot of the key store after each step: the globals, the
@@ -73,7 +73,8 @@ the whole snapshot.
   `ManagerError::NoCurrentKeys`.
 - **`updateAeid` is unreachable.** It is private, called only from the constructor, and only when
   `this.aeid` is undefined and `_decrypter` has just been set to undefined — so its last-seed check
-  and its entire re-encryption loop can never run. Not ported; re-keying is Roadmap 8.9.
+  and its entire re-encryption loop can never run. Not ported; re-keying belongs to passcode
+  rotation.
 - **`PubLot.dt` is written and never read.** Omitted, because a protocol crate does not read the
   clock.
 - **`sign` has two entry points that do the same thing.** One takes qualified public keys and one

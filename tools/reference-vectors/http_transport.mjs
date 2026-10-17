@@ -8,7 +8,8 @@
 //
 // Two header values are non-deterministic by construction — `Signify-Timestamp` is a clock read
 // and `Signature` covers it — so those are masked, exactly as earlier fixtures masked the
-// reference's timestamps. Their byte-exact content is Roadmap 3.10's evidence, already verified.
+// reference's timestamps. Their byte-exact content is request authentication's evidence, already
+// verified.
 import { readFileSync, writeFileSync } from "node:fs";
 
 import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
@@ -62,8 +63,9 @@ function recordingFetch(nextResponse) {
 /** Masks the one body field that is not deterministic.
  *
  * A salty keeper's `sxlt` is a sealed salt, and a sealed box draws a fresh ephemeral key on every
- * call, so the same request built twice differs in those bytes. What it opens to is Roadmap 4.3's
- * evidence; here only the request's shape matters, so the value is replaced by a marker.
+ * call, so the same request built twice differs in those bytes. What it opens to is the
+ * `keri-keeping` fixture's evidence; here only the request's shape matters, so the value is
+ * replaced by a marker.
  */
 function sanitizeBody(body) {
   if (body === undefined || body === null) {
@@ -150,9 +152,10 @@ function label(name, note) {
 /** Drives one reference call, keeping the request it sent even if it rejects the canned answer.
  *
  * After `connect`, `SignifyClient.fetch` requires the response to carry the agent's
- * `Signify-Resource` header and an agent signature over it. Producing those is Roadmap 5.5's
- * subject, not this fixture's: the request has already been recorded by the time the reference
- * inspects the answer, and the request is what the transport boundary must be able to express.
+ * `Signify-Resource` header and an agent signature over it. Producing those is the `http-auth`
+ * fixture's subject, not this fixture's: the request has already been recorded by the time the
+ * reference inspects the answer, and the request is what the transport boundary must be able to
+ * express.
  */
 async function drive(name, note, run) {
   const before = recorded.length;
@@ -230,7 +233,7 @@ const responses = [
       { name: "content-range", value: "aids 0-1/2" },
     ],
     body: "[]",
-    note: "a list response whose Content-Range drives Roadmap 5.3's paging",
+    note: "a list response whose Content-Range drives the response decoder's paging",
   },
   {
     name: "accepted_operation",
@@ -266,7 +269,7 @@ const quirks = {
   })(),
   headers_are_joined_on_duplicates: {
     note: "the reference builds headers with the WHATWG `Headers` class, whose `append` joins a repeated name into one comma-separated value, silently changing what a signature covers",
-    rust_decision: "Roadmap 3.9's `Headers` refuses a duplicate name; a request carrying one does not build",
+    rust_decision: "`keri-http-auth`'s `Headers` refuses a duplicate name; a request carrying one does not build",
   },
   boot_uses_a_second_base_url: (() => {
     const boot = cases.find((entry) => entry.name === "boot");
@@ -275,7 +278,7 @@ const quirks = {
       boot_url: boot?.request.url ?? null,
       admin_url: state?.request.url ?? null,
       note: "boot goes to a separate boot interface, so a client holds two base URLs and the transport must carry whichever it is given",
-      rust_decision: "the transport takes a whole absolute URL; choosing between the two is Roadmap 6.4's",
+      rust_decision: "the transport takes a whole absolute URL; choosing between the two is the client lifecycle's",
     };
   })(),
   delegation_approval_is_unauthenticated: (() => {
@@ -285,12 +288,12 @@ const quirks = {
       headers: names,
       carries_signature: names.includes("signature"),
       note: "`approveDelegation` calls the global fetch directly instead of `SignifyClient.fetch`, so the PUT that anchors the agent's delegation carries no Signature, Signature-Input, Signify-Resource, or Signify-Timestamp header at all — the payload's own KERI signatures are the only thing authenticating it",
-      rust_decision: "recorded, not reproduced or corrected here: the transport sends whatever request it is handed, and whether this call is signed is Roadmap 6.4's composition decision",
+      rust_decision: "recorded, not reproduced or corrected here: the transport sends whatever request it is handed, and whether this call is signed is the client lifecycle's composition decision",
     };
   })(),
   no_timeout_anywhere: {
     note: "no fetch call in the pinned source sets a signal or a timeout, so a request can hang until the platform's own default gives up",
-    rust_decision: "a timeout is a transport outcome (`TransportError::Timeout`) and the policy that sets one is Roadmap 5.4",
+    rust_decision: "a timeout is a transport outcome (`TransportError::Timeout`) and the policy that sets one is the retry policy",
   },
 };
 
@@ -306,7 +309,7 @@ const fixture = {
     boot_url: BOOT_URL,
     controller_prefix: controllerPrefix,
     masked_headers: [...MASKED_HEADERS],
-    note: "the global fetch is replaced by a recorder and the reference's own client and endpoint code is driven through it; `Signify-Timestamp` is a clock read and `Signature` covers it, so both are recorded by name with the value masked — their exact bytes are Roadmap 3.10's evidence",
+    note: "the global fetch is replaced by a recorder and the reference's own client and endpoint code is driven through it; `Signify-Timestamp` is a clock read and `Signature` covers it, so both are recorded by name with the value masked — their exact bytes are request authentication's evidence",
   },
   requests: cases,
   responses,

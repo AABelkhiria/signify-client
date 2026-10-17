@@ -2,9 +2,9 @@
 //
 // A group identifier has no agent endpoint until its members authorize one, so nothing addressed to
 // the group reaches a member's agent before this round. The unit is `addEndRoleMultisig` in
-// `test-integration/utils/multisig-utils.ts`, called by three integration scenarios. As in Roadmap
-// 8.3, 8.4, 8.6, 8.7, and 8.8 there is no source file, so the helper module is transpiled in memory
-// and driven against a recording agent.
+// `test-integration/utils/multisig-utils.ts`, called by three integration scenarios. As in the
+// other multisig rounds there is no source file, so the helper module is transpiled in memory and
+// driven against a recording agent.
 //
 // What falls out:
 //
@@ -455,7 +455,7 @@ async function drive(name, note, run) {
 
 await drive(
   "incept_the_group",
-  "the group whose agents are authorized, from Roadmap 8.3's own helper",
+  "the group whose agents are authorized, from the multisig inception helper",
   async () =>
     await startMultisigIncept(client, {
       groupName: "multisig",
@@ -611,7 +611,7 @@ const quirks = {
     announcement_slots: Object.keys(proposedAnnouncements[0].exn.e).filter((slot) => slot !== "d"),
     note: "one `addEndRole` and one `/multisig/rpy` per signing member, each authorizing that member's first agent for the group. This is the behaviour worth keeping: authorizing only the proposer's agent would leave every other member unreachable through the group.",
     rust_decision:
-      "`propose_agent_end_roles` loops the same way, reading each member's agent from the members listing; the announcement names the members in `smids`/`rmids` beside `gid`, as every other round here does (`PORTING.md` §10).",
+      "`propose_agent_end_roles` loops the same way, reading each member's agent from the members listing; the announcement names the members in `smids`/`rmids` beside `gid`, as every other round here does.",
   },
   a_member_without_an_agent_throws_part_way: {
     declaration: "`if (!agentEnds) { throw new Error('signing.ends.agent is null or undefined'); }` inside the loop",
@@ -668,7 +668,7 @@ const fixture = {
     agent_prefix: agentPrefix,
     local_member_prefix: LOCAL_PREFIX,
     peer_prefix: PEER_PREFIX,
-    note: "The unit lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`, and the members listing names one agent per member. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
+    note: "The unit lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as the `client-multisig-inception` generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`, and the members listing names one agent per member. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
   },
   declarations,
   key_states: {

@@ -47,8 +47,8 @@ interface names one. `factory` records how both entry points dispatch and four r
 
 ## Reference behavior recorded as deliberate divergences
 
-- **A rotation loses the derivation code** — recorded in the Roadmap 4.2 fixture, and the reason a
-  keeper's stored path carries a cost profile rather than a code here.
+- **A rotation loses the derivation code** — recorded in the `keri-manager` fixture, and the reason
+  a keeper's stored path carries a cost profile rather than a code here.
 - **A randy keeper discards the code lists it just defaulted.** The constructor computes `icodes`
   and `ncodes` from the counts and then overwrites both with the raw arguments. Counts are the
   input in Rust, so there is no list to discard.
@@ -65,8 +65,8 @@ interface names one. `factory` records how both entry points dispatch and four r
   build an authenticator. Signing happens inside the keeper here; `expose_signers` names the one
   deliberate export.
 - **Every method is `async` and none of them awaits anything.** No keeper performs I/O, and
-  `ARCHITECTURE.md` §4.4 forbids this crate an async runtime, so the Rust trait is synchronous.
+  this crate takes no async runtime, so the Rust trait is synchronous.
 - **`Unknown algo` and `No algo specified` are unrepresentable here.** The request enum has four
-  variants, and a Roadmap 4.1 identifier record names exactly one key manager or does not decode.
+  variants, and a shared-API identifier record names exactly one key manager or does not decode.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.

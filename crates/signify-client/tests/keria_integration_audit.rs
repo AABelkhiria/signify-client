@@ -1,4 +1,4 @@
-//! Roadmap 9.2 — the integration matrix, and the checks that keep it honest.
+//! The KERIA integration matrix, and the checks that keep it honest.
 //!
 //! The matrix weighed by API call site rather than by case, every count recomputed and every path checked.
 
@@ -134,7 +134,6 @@ struct Scenario {
     row: String,
     #[serde(default)]
     outcome: Option<String>,
-    roadmap_gates: Vec<String>,
     upstream_files: Vec<String>,
     cases: usize,
     api_calls: usize,
@@ -151,7 +150,6 @@ struct Scenario {
 #[derive(Debug, Deserialize)]
 struct OpenQuestion {
     topic: String,
-    porting_line: usize,
     due: String,
     experiment: String,
     observation: String,
@@ -163,7 +161,6 @@ struct OpenQuestion {
 
 #[derive(Debug, Deserialize)]
 struct Obligation {
-    porting_line: usize,
     record: String,
     claim: String,
     status: String,
@@ -343,7 +340,6 @@ fn every_scenario_row_is_answered_once_and_names_real_files() -> Result<(), Box<
             );
             claimed.insert(file.as_str());
         }
-        assert_ne!(scenario.roadmap_gates, [] as [String; 0]);
         assert!(scenario.note.len() > 60, "{} explains too little", scenario.row);
     }
 
@@ -507,7 +503,7 @@ fn a_blocked_row_is_blocked_for_a_reason_the_inventory_agrees_with() -> Result<(
     let blocked = api_missing.first().ok_or("no row is blocked on the port")?;
     assert_eq!(blocked.row, "External module behavior");
     assert!(
-        blocked.note.contains("KeeperFactory") && blocked.note.contains("9.5"),
+        blocked.note.contains("KeeperFactory") && blocked.note.contains("API consistency review"),
         "the blocked row does not name the gap or its owner"
     );
     Ok(())
@@ -519,8 +515,8 @@ fn every_open_question_names_the_experiment_that_would_settle_it() -> Result<(),
     let ledger = ledger()?;
 
     assert_eq!(ledger.open_questions.len(), 5);
-    let lines: BTreeSet<usize> = ledger.open_questions.iter().map(|entry| entry.porting_line).collect();
-    assert_eq!(lines.len(), 5, "two questions cite one line");
+    let topics: BTreeSet<&str> = ledger.open_questions.iter().map(|entry| entry.topic.as_str()).collect();
+    assert_eq!(topics.len(), 5, "two questions share a topic");
 
     let topics: Vec<&str> = ledger.open_questions.iter().map(|entry| entry.topic.as_str()).collect();
     for expected in [
@@ -537,7 +533,6 @@ fn every_open_question_names_the_experiment_that_would_settle_it() -> Result<(),
     }
 
     for question in &ledger.open_questions {
-        assert!(question.porting_line > 0);
         assert_ne!(question.due, "");
         assert!(
             question.experiment.len() > 150,
@@ -605,30 +600,32 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
         ledger.obligations.len()
     );
 
-    let mut lines = BTreeSet::new();
+    let mut claims = BTreeSet::new();
     for obligation in &ledger.obligations {
         assert!(statuses.contains(obligation.status.as_str()));
-        assert!(obligation.porting_line > 0, "an obligation cites no line");
-        assert!(lines.insert(obligation.porting_line), "two obligations cite one line");
-        assert!(!obligation.record.is_empty(), "an obligation names no owning record");
         assert_ne!(obligation.claim, "");
+        assert!(
+            claims.insert(obligation.claim.as_str()),
+            "two obligations make one claim"
+        );
+        assert!(!obligation.record.is_empty(), "an obligation names no owning record");
 
         if obligation.status == "out_of_scope" {
             assert!(
                 obligation.moves_to.is_some(),
-                "PORTING.md:{} is out of scope and names no destination",
-                obligation.porting_line
+                "{:?} is out of scope and names no destination",
+                obligation.claim
             );
             assert!(
                 obligation.note.len() > 120,
-                "PORTING.md:{} is moved without an argument",
-                obligation.porting_line
+                "{:?} is moved without an argument",
+                obligation.claim
             );
         } else {
             assert!(
                 obligation.settling_observation.is_some(),
-                "PORTING.md:{} names nothing that would settle it",
-                obligation.porting_line
+                "{:?} names nothing that would settle it",
+                obligation.claim
             );
             let reason = obligation
                 .reason
@@ -636,15 +633,15 @@ fn every_scattered_obligation_is_tracked_or_argued_away() -> Result<(), Box<dyn 
                 .ok_or("an outstanding obligation names no reason")?;
             assert!(
                 ledger.reasons.iter().any(|known| known == reason),
-                "PORTING.md:{} is outstanding for the unrecognised reason {reason}",
-                obligation.porting_line
+                "{:?} is outstanding for the unrecognised reason {reason}",
+                obligation.claim
             );
 
             assert_eq!(
                 obligation.status == "observed",
                 reason == "settled",
-                "PORTING.md:{} is {} but outstanding for the reason {reason}",
-                obligation.porting_line,
+                "{:?} is {} but outstanding for the reason {reason}",
+                obligation.claim,
                 obligation.status
             );
         }

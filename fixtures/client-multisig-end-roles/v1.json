@@ -17,7 +17,7 @@
     "agent_prefix": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
     "local_member_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
     "peer_prefix": "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p",
-    "note": "The unit lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`, and the members listing names one agent per member. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
+    "note": "The unit lives in the reference's integration utilities, so `multisig-utils.ts` is **transpiled in memory** by the reference's own pinned TypeScript and evaluated with a module shim, as the `client-multisig-inception` generator does. Nothing is written into the submodule. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`, and the members listing names one agent per member. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own."
   },
   "declarations": {
     "add_end_role_multisig": "export async function addEndRoleMultisig( client: SignifyClient, groupName: string, aid: HabState, otherMembersAIDs: HabState[], multisigAID: HabState, timestamp: string, isInitiator: boolean = false ) { const opList: any[] = []; const members = await client.identifiers().members(multisigAID.name); const signings = members['signing']; // there should be a notification to mark per multisig member since each // member will send /multisig/rpy exn messages per-member to each other member. if (!isInitiator) { await waitAndMarkNotification(client, '/multisig/rpy', { minCount: signings.length, }); } for (const signing of signings) { const agentEnds = signing.ends.agent; if (!agentEnds) { throw new Error('signing.ends.agent is null or undefined'); } const eid = Object.keys(agentEnds)[0]; const endRoleResult = await client .identifiers() .addEndRole(multisigAID.name, 'agent', eid, timestamp); const op = await endRoleResult.op(); opList.push(op); const rpy = endRoleResult.serder; const sigs = endRoleResult.sigs; const ghabState1 = multisigAID.state; const seal = [ 'SealEvent', { i: multisigAID.prefix, s: ghabState1['ee']['s'], d: ghabState1['ee']['d'], }, ]; const sigers = sigs.map( (sig: string) => new signify.Siger({ qb64: sig }) ); const roleims = signify.d( signify.messagize(rpy, sigers, seal, undefined, undefined, false) ); const atc = roleims.substring(rpy.size); const roleembeds = { rpy: [rpy, atc], }; const recp = otherMembersAIDs.map((aid) => aid.prefix); await client .exchanges() .send( aid.name, groupName, aid, '/multisig/rpy', { gid: multisigAID.prefix }, roleembeds, recp ); } return opList; }",
@@ -375,7 +375,7 @@
   "calls": [
     {
       "name": "incept_the_group",
-      "note": "the group whose agents are authorized, from Roadmap 8.3's own helper",
+      "note": "the group whose agents are authorized, from the multisig inception helper",
       "requests": [
         {
           "path": "/identifiers/member1",
@@ -759,7 +759,7 @@
         "rpy"
       ],
       "note": "one `addEndRole` and one `/multisig/rpy` per signing member, each authorizing that member's first agent for the group. This is the behaviour worth keeping: authorizing only the proposer's agent would leave every other member unreachable through the group.",
-      "rust_decision": "`propose_agent_end_roles` loops the same way, reading each member's agent from the members listing; the announcement names the members in `smids`/`rmids` beside `gid`, as every other round here does (`PORTING.md` §10)."
+      "rust_decision": "`propose_agent_end_roles` loops the same way, reading each member's agent from the members listing; the announcement names the members in `smids`/`rmids` beside `gid`, as every other round here does."
     },
     "a_member_without_an_agent_throws_part_way": {
       "declaration": "`if (!agentEnds) { throw new Error('signing.ends.agent is null or undefined'); }` inside the loop",

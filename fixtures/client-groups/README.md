@@ -18,17 +18,17 @@ node tools/reference-vectors/client_groups.mjs --check   # verify determinism
 
 ## Determinism
 
-The clock and the agent's key are pinned, as Roadmap 6.4's fixture pinned them. Nothing here
-derives an identifier key, so the generator is fast.
+The clock and the agent's key are pinned, as the `client-lifecycle` fixture pinned them. Nothing
+here derives an identifier key, so the generator is fast.
 
 ## What the evidence is
 
-Roadmap 8.2 ports the whole `Groups` class: `getRequest`, `sendRequest`, and `join` — the round of
+This port covers the whole `Groups` class: `getRequest`, `sendRequest`, and `join` — the round of
 messages a multisig group decides through.
 
-`Groups` takes a whole `SignifyClient`, so this fixture drives the real client the way Roadmap
-7.7's did: `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent
-would, and the real client is walked through boot, connect, and each call.
+`Groups` takes a whole `SignifyClient`, so this fixture drives the real client the way the
+`client-exchanges` fixture did: `globalThis.fetch` is replaced with a recorder that answers and
+signs as a KERIA agent would, and the real client is walked through boot, connect, and each call.
 
 `declarations` holds all three methods read from the reference's own syntax tree — every path
 expression, both body literals, all three signatures, and all three declared return types — beside
@@ -53,7 +53,8 @@ is checked anywhere. And it reaches those addresses by passing:
 | `sendRequest`'s `exn.i` | `'test'` | not an identifier prefix |
 
 Every one is recorded verbatim and proven refused, and the case each is making is reproduced with a
-value that can exist. That is the pattern Roadmap 3.8, 6.9, and 7.1 used.
+value that can exist. That is the pattern exchange-message construction and the `client-registries`
+and `client-oobis` fixtures used.
 
 ## Two of the three methods have no consumer
 
@@ -79,22 +80,22 @@ Every one of the twelve calls **succeeds** upstream.
   three addresses, which are what the test actually asserts, reproduce exactly.
 - **A request may carry no signature.** `sendRequest` declares `sigs: string[]` and sends `[]`
   unchallenged, which asks the agent to relay to every group member a proposal nobody signed.
-  **Refused here**: the message is Roadmap 7.7's `SignedExchange`, which comes from a keeper.
+  **Refused here**: the message is a `SignedExchange`, which comes from a keeper.
 - **None of the three dynamic values is encoded.** `getRequest` concatenates its SAID and both
   writes interpolate their alias, so the recorded `a/b?c=d` reaches the wire as two segments and a
-  query, and `../identifiers/aid1?x=1` climbs out of its own. **Closed by typing and by Roadmap
-  5.3's builder.**
+  query, and `../identifiers/aid1?x=1` climbs out of its own. **Closed by typing and by the
+  request builder.**
 - **`join` reads a `Serder`, not an event.** It declares `rot: any` and writes `rot.sad`, so passing
   the rotation event its own JSDoc names sends **no `rot` field at all** — recorded both ways round,
-  and nothing announces the loss. **Roadmap 4.6's `IdentifierArtifact` here**, which carries the
+  and nothing announces the loss. **An `IdentifierArtifact` here**, which carries the
   event and its signatures together.
 - **The two writes disagree about their answers.** `sendRequest` declares `Promise<Exn>` and `join`
-  declares `Promise<GroupOperation>`, for two writes under one resource — the disagreement Roadmap
-  7.7 recorded between `sendFromEvents` and `Ipex.submit*`, now inside a single class. **`join` is
-  decoded as the operation it declares; `send_request` reuses 7.7's `SentExchange`**, and the §10
-  question that item raised covers this path too.
+  declares `Promise<GroupOperation>`, for two writes under one resource — the disagreement the
+  `client-exchanges` fixture recorded between `sendFromEvents` and `Ipex.submit*`, now inside a
+  single class. **`join` is decoded as the operation it declares; `send_request` reuses
+  `SentExchange`**, and the open question of which shape KERIA answers covers this path too.
 - **A join may name no members.** Empty `smids` asks the agent to rotate a group into having no
-  signers. **Refused here** — while an empty `rmids` is allowed, because Roadmap 6.6's `rotate`
+  signers. **Refused here** — while an empty `rmids` is allowed, because `Identifiers.rotate`
   writes one for a single-signature identifier.
 - **A request body carries no topic and no recipients**, where the sibling submission writes both.
   **Reproduced exactly**: they are different endpoints and this one's body is the shorter.

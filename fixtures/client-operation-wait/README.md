@@ -19,18 +19,18 @@ node tools/reference-vectors/client_operation_wait.mjs --check   # verify determ
 ## Determinism
 
 The **global timer is replaced** with a recorder, so every delay is captured and nothing waits in
-wall-clock time — the technique Roadmap 5.4's fixture established. Nothing here derives a key, reads
-a clock, or is secret.
+wall-clock time — the technique the `http-retry` fixture established. Nothing here derives a key,
+reads a clock, or is secret.
 
 ## What the evidence is
 
-Roadmap 7.2 ports `Operations.wait`, together with the private `hasDepends` it consults and the
+This port covers `Operations.wait`, together with the private `hasDepends` it consults and the
 `throwIfFailed` it applies at every exit.
 
-Roadmap 5.4 already recorded this function's **delay schedule** by executing it, and reproduces all
-five recorded schedules exactly (`fixtures/http-retry/`). So what this fixture adds is everything
-else the loop does: how many requests each shape costs and in what order, when the dependency is
-walked and when it is skipped, which exits throw, and what the thrown message carries.
+The retry policy already recorded this function's **delay schedule** by executing it, and reproduces
+all five recorded schedules exactly (`fixtures/http-retry/`). So what this fixture adds is
+everything else the loop does: how many requests each shape costs and in what order, when the
+dependency is walked and when it is skipped, which exits throw, and what the thrown message carries.
 
 `Operations` takes an `OperationsDeps` — one `fetch` method — so the reference's own class is driven
 against a recorder, exactly as the pinned `coring.test.ts` drives it.
@@ -57,15 +57,15 @@ matching.
 
 - **The loop has no bound at all.** `while (true)` with no deadline, no attempt cap, and no total
   budget: an operation the agent never finishes is polled forever, ten seconds apart, for as long as
-  the process lives. **Bounded by construction** here — `PollPolicy` carries Roadmap 5.4's
+  the process lives. **Bounded by construction** here — `PollPolicy` carries the retry policy's
   `RetryPolicy`, so every recorded delay still reproduces, plus a maximum attempt count and a total
   deadline. The default deadline is **thirty seconds**, which is not invented: it is what the
   reference's own `waitOperation` supplies through `AbortSignal.timeout(30000)`.
 - **The abort is read only after sleeping.** `options.signal?.throwIfAborted()` sits *after* the
   `await`, so a caller who aborts during a wait still waits out the full delay — up to ten seconds —
   and the signal is never read before the first request either. **Unrepresentable** here:
-  cancellation is dropping the future (ADR `0019`), which cancels the outstanding sleep at once. A
-  test polls the future once, drops it mid-sleep, and asserts no further request is made.
+  cancellation is dropping the future, which cancels the outstanding sleep at once. A test polls the
+  future once, drops it mid-sleep, and asserts no further request is made.
 - **A failed dependency is skipped in silence.** The guard is `!op.metadata.depends.done` — it tests
   whether the dependency *finished*, not whether it succeeded — so a snapshot whose dependency is
   already done-and-failed polls the parent as though nothing were wrong. **Reproduced**, because the
@@ -82,13 +82,13 @@ matching.
 - **An already-finished operation costs nothing** and is returned *by identity* — the pinned test
   asserts `op === result`. Reproduced: the operation is taken by value and moved through, with zero
   requests asserted.
-- **An already-failed operation throws before asking.** Reproduced, through Roadmap 6.5's
-  `completed`.
+- **An already-failed operation throws before asking.** Reproduced, through the operations
+  endpoint's `completed`.
 - **A null error is not a failure.** `'error' in op && op.error !== null`, which is the shape a KERIA
-  agent sends for a successful operation. Reproduced by Roadmap 4.1's three-state decoder.
+  agent sends for a successful operation. Reproduced by the KERIA API types' three-state decoder.
 - **The failure message is one interpolated string** — name, code, message, and detail block in a
-  sentence. Roadmap 6.5 already keeps the four apart in `ClientError::OperationFailed`, with the
-  remote message bounded; `wait` reuses it and adds no failure variant of its own.
+  sentence. The operations endpoint already keeps the four apart in `ClientError::OperationFailed`,
+  with the remote message bounded; `wait` reuses it and adds no failure variant of its own.
 - **The integration helper deletes what it waited for**, walking the whole dependency chain to do
   it. The timeout becomes this port's default deadline; the **deletion is not ported** — it is a
   test helper's cleanup, `Operations::delete` is already available, and a wait that silently deleted
@@ -97,8 +97,8 @@ matching.
 ## One shape this port refuses
 
 Three of the reference's own queued answers are `{name, done: true}` with neither a response nor an
-error, which Roadmap 4.1's decoder refuses because it leaves the outcome undecided. The request
-counts above are therefore reproduced with well-formed bodies, and
+error, which the KERIA API types' decoder refuses because it leaves the outcome undecided. The
+request counts above are therefore reproduced with well-formed bodies, and
 `a_finished_operation_with_no_response_is_refused` proves the reference's own literal refused, with
 its recorded result showing it carried no response.
 

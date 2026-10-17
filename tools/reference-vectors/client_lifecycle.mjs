@@ -1,20 +1,20 @@
 // Records the pinned signify-ts checkout's whole client lifecycle, driven through `SignifyClient`.
 //
-// Roadmap 6.4 ports what a client does before any endpoint family exists: validate its
+// This port covers what a client does before any endpoint family exists: validate its
 // configuration, boot an agent, read that agent's state, connect — which rebuilds the controller
 // against the returned state, validates the agent's commitment, approves the delegation, and
 // builds the key manager and the authenticator — and then send signed requests. It also ports
 // `randomPasscode` and `randomNonce` from `app/coring.ts`, and settles what `src/ready.ts` becomes.
 //
-// As with Roadmap 6.3's fixture, this one **drives the reference rather than re-expressing it**:
-// `globalThis.fetch` is replaced with a recorder that answers exactly as a KERIA agent would, and
-// the real `SignifyClient` is walked through `boot`, `state`, `connect`, `fetch`,
-// `saveOldPasscode`, and `deletePasscode`. Every request it makes is recorded with its method,
-// URL, headers, and body.
+// As with keri-acdc's `ipex` fixture, this one **drives the reference rather than re-expressing
+// it**: `globalThis.fetch` is replaced with a recorder that answers exactly as a KERIA agent would,
+// and the real `SignifyClient` is walked through `boot`, `state`, `connect`, `fetch`,
+// `saveOldPasscode`, and `deletePasscode`. Every request it makes is recorded with its method, URL,
+// headers, and body.
 //
-// Two things are pinned that no earlier fixture pinned: the **clock**, as Roadmap 5.5's was, so the
-// signed request reproduces byte for byte including its signature; and the agent's **own key**, so
-// its response signatures are reproducible too.
+// Two things are pinned that no earlier fixture pinned: the **clock**, as the `http-auth` fixture's
+// was, so the signed request reproduces byte for byte including its signature; and the agent's
+// **own key**, so its response signatures are reproducible too.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
@@ -192,7 +192,7 @@ const declarations = {
     boot: "boot posts the controller's inception event, its signature, the derivation stem, a hardcoded `pidx: 1`, and the tier — to the *boot* URL, unauthenticated, because no agent exists yet to authenticate to",
     connect:
       "connect reads the agent state, rebuilds the controller against the returned establishment event, refuses an agent whose inception does not anchor this controller, approves the delegation when the controller is still at sequence zero, and only then builds the key manager and the authenticator",
-    fetch: "the signed pipeline is Roadmap 5.5's; what the client adds is the controller prefix it stamps and the agent key it verifies against",
+    fetch: "the signed pipeline is the authenticated transport's; what the client adds is the controller prefix it stamps and the agent key it verifies against",
   },
 };
 
@@ -459,7 +459,7 @@ const quirks = {
   approve_delegation_is_unauthenticated: {
     url: declarations.approve_delegation_url,
     request: lifecycle[2].requests.find((request) => request.method === "PUT") ?? null,
-    note: "the PUT that anchors the agent's delegation carries no HTTP signature at all — it bypasses `fetch` and calls the global directly, which Roadmap 5.1 also recorded",
+    note: "the PUT that anchors the agent's delegation carries no HTTP signature at all — it bypasses `fetch` and calls the global directly, which the `http-transport` fixture also recorded",
     rust_decision: "reproduced: the call is made on the unsigned transport, and the API says so. Changing it would produce a request KERIA does not expect.",
   },
   passcode_save_and_delete_are_unauthenticated: {
@@ -484,7 +484,7 @@ const quirks = {
       (node) => ts.isBinaryExpression(node) && node.getText().includes("controller.ridx ="),
     ),
     note: "connect assigns `controller.ridx` after construction without re-deriving any key, so the field and the keys it names can disagree",
-    rust_decision: "unrepresentable: Roadmap 4.5 fixes the rotation index at construction, so the controller is rebuilt with the returned index rather than mutated after the fact.",
+    rust_decision: "unrepresentable: the controller fixes the rotation index at construction, so the controller is rebuilt with the returned index rather than mutated after the fact.",
   },
   ready_is_libsodium_initialization: {
     source: declarations.ready,
@@ -519,10 +519,10 @@ const fixture = {
     boot_url: BOOT_URL,
     agent_prefix: agentPrefix,
     agent_verification_key: agentSigner.verfer.qb64,
-    agent_seed_note: "PUBLIC TEST MATERIAL: the agent's seed is the fixed array in this generator, as Roadmap 5.5's fixture used",
+    agent_seed_note: "PUBLIC TEST MATERIAL: the agent's seed is the fixed array in this generator, as the `http-auth` fixture used",
     fixed_clock_ms: FIXED_MS,
     fixed_clock_iso: new Date().toISOString(),
-    note: "the clock is pinned as Roadmap 5.5's fixture pinned it, so the signed requests reproduce byte for byte including their signatures; the agent's key is fixed so its response signatures do too",
+    note: "the clock is pinned as the `http-auth` fixture pinned it, so the signed requests reproduce byte for byte including their signatures; the agent's key is fixed so its response signatures do too",
   },
   declarations,
   lifecycle,

@@ -9,11 +9,11 @@
 // The production one is *executed*: `Operations.wait` builds its sleep as
 // `new Promise((resolve) => setTimeout(resolve, delay))` against the **global** timer, so replacing
 // that global with a recorder captures the real schedule with no wall-clock waiting at all. The
-// operation responses are canned, exactly as Roadmap 5.1's generator cans `fetch`.
+// operation responses are canned, exactly as the `http-transport` generator cans `fetch`.
 //
 // The test helper is *read from the syntax tree* rather than executed, using the reference's own
-// pinned TypeScript — the technique ADR `0012` established for Roadmap 4.1. Executing it would mean
-// rewriting its `timers/promises` import to intercept the sleep, which changes the code under
+// pinned TypeScript — the technique established for the shared KERIA API types. Executing it would
+// mean rewriting its `timers/promises` import to intercept the sleep, which changes the code under
 // test; pinning its default values and its delay expression proves the same thing without touching
 // it, and additionally proves the two formulas are textually identical.
 //

@@ -1,9 +1,9 @@
 // Records the pinned signify-ts checkout's passcode-rotation workflow, against keripy's.
 //
-// Roadmap 8.9 ports `SignifyClient.rotate` — the client half of moving to a new passcode. The
-// artifact half is Roadmap 4.5's `Controller.rotate`, already recorded in
-// `fixtures/keri-controller/v1.json`; what this fixture adds is the request that carries it and
-// the comparison that decides what the port should do.
+// This port covers `SignifyClient.rotate` — the client half of moving to a new passcode. The
+// artifact half is `Controller.rotate`, already recorded in `fixtures/keri-controller/v1.json`;
+// what this fixture adds is the request that carries it and the comparison that decides what the
+// port should do.
 //
 // The finding is one variable.
 //
@@ -20,7 +20,7 @@
 //
 // keripy does it the other way. `Manager.updateAeid` builds its encrypter from the **new** key,
 // checks that the new seed belongs to it, then opens each secret with the old decrypter and seals
-// it with the new encrypter. This port follows keripy; ADR `0033` records the divergence.
+// it with the new encrypter. This port follows keripy.
 //
 // Nothing upstream exercises any of this: the one test that calls `rotate` passes an **empty**
 // identifier list, so the whole re-encryption loop, both its branches, and its key-state check
@@ -478,7 +478,7 @@ const quirks = {
     note: "`nsigner` derives from `this.salter`, the old salt, where `nbran` and `nsalter` beside it are the new passcode's. It feeds the decrypter, which is right, and the encrypter, which is not. Driven: the controller salt and both identifiers' key material open under the old passcode and under the new one not at all — so a client that rotated and reconnected could not read its own identifiers, and whoever holds the old passcode still can. Rotating the signing keys does not rotate the encryption.",
     keripy: declarations.keripy,
     rust_decision:
-      "this port follows keripy: the encrypter derives from the new salt, `sxlt` carries the new salt, and the controller's stored salt moves with its keys — which the fix requires, since material sealed to the new passcode cannot be opened by the old one a second time. ADR `0033`.",
+      "this port follows keripy: the encrypter derives from the new salt, `sxlt` carries the new salt, and the controller's stored salt moves with its keys — which the fix requires, since material sealed to the new passcode cannot be opened by the old one a second time.",
   },
   the_sealed_salt_is_the_old_one: {
     declaration: SXLT_LINE,
@@ -505,9 +505,9 @@ const quirks = {
     signed: sent.signed,
     path: sent.path,
     method: sent.method,
-    note: "`rotate` calls the global `fetch` directly rather than the client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature — the same bypass Roadmap 6.4 recorded for the delegation approval and both passcode calls. A KERIA agent applies the rotation and only then checks the request's signature against the controller's keys as they now stand: WebOfTrust KERIA 0.4.0 refuses an unsigned request there with 403 after it has already rotated.",
+    note: "`rotate` calls the global `fetch` directly rather than the client's signed pipeline, so the request carrying every re-sealed secret has no HTTP signature — the same bypass the `client-lifecycle` fixture recorded for the delegation approval and both passcode calls. A KERIA agent applies the rotation and only then checks the request's signature against the controller's keys as they now stand: WebOfTrust KERIA 0.4.0 refuses an unsigned request there with 403 after it has already rotated.",
     rust_decision:
-      "the request is signed with the key the rotation introduces, and the client signs everything afterwards with it. ADR `0034`; `fixtures/client-passcode-rotation-keripy/`.",
+      "the request is signed with the key the rotation introduces, and the client signs everything afterwards with it (`fixtures/client-passcode-rotation-keripy/`).",
   },
   the_rotation_always_claims_sequence_one: {
     declaration: "export function rotate({ ..., sn = 1, ... })",
@@ -519,7 +519,7 @@ const quirks = {
     keripy_verdicts: "fixtures/client-passcode-rotation-keripy/v1.json",
     note: "`Controller.rotate` never passes `sn`, so the builder's default of one is written whatever the log holds, and the prior is the controller's current event. A connected client's log holds the delegation-approval interaction at sequence one, so the rotation is a `rot` at sequence one over that interaction — which keripy's `Kever.rotate` reads as a recovery whose prior must be the inception, and refuses. A live KERIA answers 500. The only upstream test mocks the agent.",
     rust_decision:
-      "built at the current sequence number plus one with the current event as prior — keripy's ordinary rotation — and the accepted rotation becomes the controller's current event so the next one chains. ADR `0034`.",
+      "built at the current sequence number plus one with the current event as prior — keripy's ordinary rotation — and the accepted rotation becomes the controller's current event so the next one chains.",
   },
 };
 

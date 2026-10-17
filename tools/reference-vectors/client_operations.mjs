@@ -1,14 +1,14 @@
 // Records the pinned signify-ts checkout's operations endpoint.
 //
-// Roadmap 6.5 ports `Operations.get`, `.list`, and `.delete` from `src/keri/app/coring.ts`,
+// This port covers `Operations.get`, `.list`, and `.delete` from `src/keri/app/coring.ts`,
 // together with the failure surfacing `throwIfFailed` performs on a completed-but-failed
-// operation. `wait` — the polling loop — is Roadmap 7.2; Roadmap 5.4 already pinned its delay
-// schedule by executing it.
+// operation. `wait` — the polling loop — is `client-operation-wait`'s; the `http-retry` fixture
+// already pinned its delay schedule by executing it.
 //
-// As with Roadmap 6.3's and 6.4's fixtures, this one **drives the reference** rather than
-// re-expressing it. `Operations` takes an `OperationsDeps` — one `fetch` method — so the generator
-// hands it a recorder, exactly as the pinned `coring.test.ts` does, and every request it makes is
-// captured with its path, method, and body.
+// As with the IPEX artifact and `client-lifecycle` fixtures, this one **drives the reference**
+// rather than re-expressing it. `Operations` takes an `OperationsDeps` — one `fetch` method — so
+// the generator hands it a recorder, exactly as the pinned `coring.test.ts` does, and every request
+// it makes is captured with its path, method, and body.
 //
 // Everything is deterministic: nothing here derives a key or reads a clock.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -173,7 +173,7 @@ const declarations = {
     failure:
       "`throwIfFailed` turns a completed-but-failed operation into a thrown string carrying the name, the code, the message, and — when present — the details as JSON",
     depends:
-      "`hasDepends` is a run-time `'depends' in op.metadata`, which the fourteen-way union cannot express statically; the dependency chain it feeds is Roadmap 7.2's",
+      "`hasDepends` is a run-time `'depends' in op.metadata`, which the fourteen-way union cannot express statically; the dependency chain it feeds is operation waiting's",
   },
 };
 
@@ -375,16 +375,16 @@ const quirks = {
     expression: declarations.list_path,
     note: "`list()` builds its query with `URLSearchParams` and interpolates `?${params.toString()}` unconditionally, so a list with no filter addresses `/operations?` — a bare question mark with nothing after it. The pinned unit test asserts exactly that string.",
     rust_decision:
-      "not reproduced: Roadmap 5.3's path builder emits a query only when there is one, so an unfiltered list addresses `/operations`. An empty query is not a distinguishable resource, the signed path is `/operations` either way — Roadmap 3.10 strips the query before signing — and a KERIA agent parses the two identically.",
+      "not reproduced: the request builder emits a query only when there is one, so an unfiltered list addresses `/operations`. An empty query is not a distinguishable resource, the signed path is `/operations` either way — request authentication strips the query before signing — and a KERIA agent parses the two identically.",
   },
   path_components_are_not_encoded: {
     path: calls.find((call) => call.name === "get_name_needing_encoding")?.request?.path ?? null,
-    note: "an operation name is interpolated into the path with no encoding, so a name carrying `/` or `?` addresses a different resource entirely — the same defect Roadmap 5.3 recorded across the endpoint families and pinned four executions of",
-    rust_decision: "refused by construction: Roadmap 5.3's `ResourcePath` encodes every dynamic component exactly once and offers no way to skip it.",
+    note: "an operation name is interpolated into the path with no encoding, so a name carrying `/` or `?` addresses a different resource entirely — the same defect the `http-request-response` fixture recorded across the endpoint families and pinned four executions of",
+    rust_decision: "refused by construction: the request builder's `ResourcePath` encodes every dynamic component exactly once and offers no way to skip it.",
   },
   query_values_are_not_encoded_by_the_path: {
     path: calls.find((call) => call.name === "list_by_type_needing_encoding")?.request?.path ?? null,
-    note: "the type filter *is* encoded, because `URLSearchParams` does it — one of only two encoded dynamic values in the whole reference, which Roadmap 5.3 counted",
+    note: "the type filter *is* encoded, because `URLSearchParams` does it — one of only two encoded dynamic values in the whole reference, which the `http-request-response` fixture counted",
     rust_decision: "reproduced: the path builder encodes it too, so the two agree on this one.",
   },
   failure_is_a_thrown_string: {
@@ -404,7 +404,7 @@ const quirks = {
     scan: scan("hasDepends"),
     note: "`get` returns the fourteen-way `Operation` union, which a caller must narrow by inspecting `metadata` at run time — `hasDepends` is the reference's own example of that",
     rust_decision:
-      "Roadmap 4.1 already replaced the union with `Operation<M, R>` plus an `UntypedOperation`; `get` returns the untyped form and `get_typed` narrows it, so the narrowing is a decode rather than a property test.",
+      "The KERIA API types already replaced the union with `Operation<M, R>` plus an `UntypedOperation`; `get` returns the untyped form and `get_typed` narrows it, so the narrowing is a decode rather than a property test.",
   },
 };
 

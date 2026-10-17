@@ -128,8 +128,8 @@
     },
     "exchanging_imports_rpy": "import { Rpy } from './escrowing.ts';",
     "notes": {
-      "query": "the query is built with `URLSearchParams`, so the one caller value in this file *is* encoded — the opposite of what Roadmap 7.1 found in `Oobis.get`, which interpolates four values raw into the same position",
-      "bare_question_mark": "the path concatenates `'?' + params.toString()` unconditionally, so a listing with no route addresses `/escrows/rpy?` — the same bare question mark ADR `0028` argued about for an unfiltered `/operations` listing",
+      "query": "the query is built with `URLSearchParams`, so the one caller value in this file *is* encoded — the opposite of what `client-oobis` found in `Oobis.get`, which interpolates four values raw into the same position",
+      "bare_question_mark": "the path concatenates `'?' + params.toString()` unconditionally, so a listing with no route addresses `/escrows/rpy?` — the same bare question mark an unfiltered `/operations` listing carries",
       "absent_versus_empty": "the guard is `route !== undefined`, so an empty string is a route: `listReply('')` asks for `?route=` and `listReply()` asks for nothing at all",
       "response": "`Rpy` is `RPY_V_1 | RPY_V_2`, both of which type `t` as a bare `string` and `a` as `unknown`; the reference returns `res.json()` with no validation, so any JSON at all is accepted and typed `Rpy[]` at compile time only",
       "vocabulary": "the pinned tree names exactly one escrow route, `/presentation/request`, and it appears only in the unit test — nothing in the reference ever *produces* a reply on that route, and the two routes it does produce, `/end/role/add` and `/loc/scheme`, are never used as an escrow filter"
@@ -317,7 +317,7 @@
     },
     {
       "name": "route_with_query_delimiters",
-      "note": "a route holding `&` and `=`, which `URLSearchParams` escapes — so unlike Roadmap 7.1's `Oobis.get` no second parameter can be injected here",
+      "note": "a route holding `&` and `=`, which `URLSearchParams` escapes — so unlike `Oobis.get` no second parameter can be injected here",
       "arguments": [
         "a&b=c"
       ],
@@ -561,7 +561,7 @@
     "presentation_request_route_line": "\"r\": \"/presentation/request\"",
     "presentation_request_is_a_reply_route": false,
     "note": "keripy's `Revery.escrowReply` is the escrow this endpoint reads out of, and its three `registerReplyRoutes` methods declare every route a reply may carry. `/presentation/request` is not among them: it appears in keripy once, in a specification document, as the route of an **`exn`**. So the one literal signify-ts offers is not evidence about reply escrows at all, which is the strongest form of the reason this port does not turn the filter into an enum.",
-    "scoping": "corroboration only. `PORTING.md` §1.1 scopes keripy to capabilities signify-ts cannot emit; this is not one, so signify-ts governs every byte here and keripy is read for context (ADR `0009`), exactly as Roadmap 7.4 and 7.5 read it."
+    "scoping": "corroboration only. keripy is consulted only for capabilities signify-ts cannot emit; this is not one, so signify-ts governs every byte here and keripy is read for context, exactly as `client-challenges` and `client-notifications` read it."
   },
   "reference_quirks": {
     "an_unfiltered_listing_ends_in_a_bare_question_mark": {
@@ -572,7 +572,7 @@
         "body": null
       },
       "note": "`path` concatenates `'?' + params.toString()` unconditionally, so a listing with no route addresses `/escrows/rpy?`",
-      "rust_decision": "not reproduced, on ADR `0028`'s three grounds: Roadmap 3.10 strips the query before signing so the signed path is identical either way, an empty query is not a distinguishable resource, and Roadmap 5.3's builder cannot spell a bare `?` without a knob whose only users would be this call and three others like it. Roadmap 9.2 owes it a live confirmation."
+      "rust_decision": "not reproduced, on the same three grounds as an unfiltered `/operations` listing: request signing strips the query so the signed path is identical either way, an empty query is not a distinguishable resource, and the request builder cannot spell a bare `?` without a knob whose only users would be this call and three others like it. A live KERIA run still owes it a confirmation."
     },
     "the_answer_is_never_validated": {
       "declaration": "await res.json()",
@@ -611,7 +611,7 @@
         }
       ],
       "note": "`listReply` returns `res.json()` cast to `Rpy[]`, so an object, a list of inception events, and a reply with no timestamp are all handed to the caller as escrowed replies. `Rpy` types `t` as a bare `string`, so even a correct-looking cast would not have caught the first.",
-      "rust_decision": "decoded into `Vec<ReplyRecord>`, whose `t` is Roadmap 4.1's `ReplyIlk` marker — so a message that is not a reply is refused rather than counted as one. All three recorded answers are proven refused."
+      "rust_decision": "decoded into `Vec<ReplyRecord>`, whose `t` is the `ReplyIlk` marker — so a message that is not a reply is refused rather than counted as one. All three recorded answers are proven refused."
     },
     "an_undeclared_field_is_kept": {
       "answer": [
@@ -645,7 +645,7 @@
         }
       ],
       "note": "`res.json()` returns whatever the agent sent, so a field the schema does not declare survives into the caller's value",
-      "rust_decision": "ignored, which is Roadmap 4.1's rule for a schema with no index signature (ADR `0012`). A reply's own attribute block `a` is open and *is* captured, because the schema types it `unknown`."
+      "rust_decision": "ignored, which is the rule for a schema with no index signature. A reply's own attribute block `a` is open and *is* captured, because the schema types it `unknown`."
     },
     "the_route_is_encoded": {
       "declaration": "params = new URLSearchParams()",
@@ -673,7 +673,7 @@
           "path": "/escrows/rpy?route=..%2F..%2Fidentifiers"
         }
       ],
-      "note": "the query is built with `URLSearchParams`, so `&`, `=`, `/`, and a space are all escaped — this file agrees with the port, which is worth pinning because Roadmap 7.1 found the opposite in the same position in `Oobis.get`, and Roadmap 7.3 found this same agreement in `Contacts.list`",
+      "note": "the query is built with `URLSearchParams`, so `&`, `=`, `/`, and a space are all escaped — this file agrees with the port, which is worth pinning because `client-oobis` found the opposite in the same position in `Oobis.get`, and `client-contacts` found this same agreement in `Contacts.list`",
       "rust_decision": "reproduced exactly; a route reaches the query encoded once and can add no second parameter"
     },
     "an_empty_route_is_a_route": {
@@ -741,7 +741,7 @@
         "presentation_request_ilk": "\"t\": \"exn\",                                             // peer to peer message ilk"
       },
       "note": "the pinned tree names exactly one escrow route and only inside a unit test; the two reply routes the reference actually produces are never used to filter an escrow. keripy, which is where the escrow lives, declares the routes a reply may carry — and `/presentation/request` is not one of them, appearing there as the route of an `exn` in a specification document.",
-      "rust_decision": "the route stays borrowed text rather than becoming an enum, which is the decision Roadmap 3.6 already took for `ReplyBuilder`'s own route and for the same reason: there is no closed set to enumerate. Roadmap 8.1's typed route table covers *exchange* routes, which these are not."
+      "rust_decision": "the route stays borrowed text rather than becoming an enum, which is the decision already taken for `ReplyBuilder`'s own route and for the same reason: there is no closed set to enumerate. The typed exchange route table covers *exchange* routes, which these are not."
     }
   }
 }

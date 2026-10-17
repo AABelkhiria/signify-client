@@ -1,13 +1,13 @@
 // Records the pinned signify-ts checkout's schema endpoint.
 //
-// Roadmap 6.10 ports `Schemas.{get,list}` from `src/keri/app/credentialing.ts`: two reads, one
+// This port covers `Schemas.{get,list}` from `src/keri/app/credentialing.ts`: two reads, one
 // addressing a SAID and one a constant path.
 //
 // A scan of every pinned `.ts` file finds this family in exactly two of them —
 // `test/app/clienting.test.ts`, which asserts only that `client.schemas()` is a `Schemas`, and
 // `test-integration/credentials.test.ts`, which calls both methods against a live KERIA. So the
-// evidence here is the reference driven directly, as Roadmap 6.7's, 6.8's, and 6.9's fixtures do:
-// `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent would,
+// evidence here is the reference driven directly, as the key-state, config, and registries fixtures
+// do: `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent would,
 // and the real client is walked through boot, connect, and every call.
 //
 // The two schema SAIDs are the vLEI ones the integration tests use, so the recorded paths are the
@@ -170,7 +170,7 @@ function scan(needle) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -429,14 +429,14 @@ const quirks = {
   the_said_is_not_encoded: {
     path: calls.find((call) => call.name === "get_said_needing_encoding")?.request?.path ?? null,
     expression: declarations.get_path,
-    note: "`get` interpolates its SAID straight into the path, so a value carrying `/`, `?`, or `#` addresses a different resource — and Roadmap 3.10 signs `@path`, so it changes what a signature commits to",
+    note: "`get` interpolates its SAID straight into the path, so a value carrying `/`, `?`, or `#` addresses a different resource — and request authentication signs `@path`, so it changes what a signature commits to",
     rust_decision:
-      "refused twice over: the argument is Roadmap 3.3's validated `Said` rather than a string, and Roadmap 5.3's builder would encode it exactly once even if it were not. A qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path byte-identical.",
+      "refused twice over: the argument is a validated `Said` rather than a string, and the request builder would encode it exactly once even if it were not. A qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path byte-identical.",
   },
   the_segment_is_singular: {
     get: declarations.get_path,
     list: declarations.list_path,
-    note: "both paths address `/schema`, singular, while the class, the accessor, and the roadmap item are all plural — the one place in this file where the resource name and its accessor disagree",
+    note: "both paths address `/schema`, singular, while the class, the accessor, and the module are all plural — the one place in this file where the resource name and its accessor disagree",
     rust_decision: "reproduced exactly, and pinned as a named constant so the plural module name cannot drift into the path",
   },
   the_answer_is_never_validated: {
@@ -452,13 +452,13 @@ const quirks = {
     empty: calls.find((call) => call.name === "list_empty")?.result ?? null,
     note: "`list` addresses a constant path with no filter, range, or paging of any kind, so an agent holding many schemas returns all of them in one body",
     rust_decision:
-      "reproduced; the response is bounded only by Roadmap 5.1's transport limit, which is recorded as a limitation rather than a filter this port invents",
+      "reproduced; the response is bounded only by the transport's limit, which is recorded as a limitation rather than a filter this port invents",
   },
   nothing_checks_the_said_came_back: {
     scan: scan("$id, QVI_SCHEMA_SAID"),
     note: "the reference's own integration test asserts `schema.$id` equals the SAID it asked for, which is the check that matters — but `Schemas.get` itself does not make it, so a misrouted or substituted answer is returned unchallenged",
     rust_decision:
-      "reproduced rather than fixed: `get` returns what the agent sent and a caller compares. Inventing the check would diverge from the reference for a guarantee only a digest verification can actually give, which is Roadmap 3.3's job and not an endpoint's.",
+      "reproduced rather than fixed: `get` returns what the agent sent and a caller compares. Inventing the check would diverge from the reference for a guarantee only a digest verification can actually give, which is SAID verification's job and not an endpoint's.",
   },
 };
 

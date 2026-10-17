@@ -1,10 +1,11 @@
 // Records the pinned signify-ts checkout's multisig rotation and interaction rounds.
 //
-// Roadmap 8.4 ports the two rounds a multisig group runs *after* it exists: an interaction, which
-// anchors data in the group's log, and a rotation, which changes who signs for it. Like Roadmap
-// 8.3 there is **no source file** — but this time there is not even a helper. Both rounds are
+// This port covers the two rounds a multisig group runs *after* it exists: an interaction, which
+// anchors data in the group's log, and a rotation, which changes who signs for it. Like multisig
+// inception there is **no source file** — but this time there is not even a helper. Both rounds are
 // written inline in `test-integration/multisig.test.ts`, and the only function-shaped counterpart
-// is `delegateMultisig`, whose interaction anchors a delegation approval (Roadmap 8.6's subject).
+// is `delegateMultisig`, whose interaction anchors a delegation approval (the delegated multisig
+// subject).
 //
 // So the evidence has two halves.
 //
@@ -22,15 +23,15 @@
 //   1. **Both joining members announce a rotation on the interaction route.** Only the initiator
 //      sends `/multisig/rot`; members two and three send `/multisig/rot`'s embed — a `rot` — under
 //      `/multisig/ixn`, while both peers are waiting on `/multisig/rot`. The route and the embed
-//      disagree, which is exactly the mismatch Roadmap 8.1's classifier refuses.
+//      disagree, which is exactly the mismatch the exchange route classifier refuses.
 //   2. **A joining member never reads the rotation it is joining.** In `multisig.test.ts` it calls
 //      `rotate` again with its own `states`/`rstates` and signs whatever that produces; the
 //      proposal supplies only `smids`. `multisig-join.test.ts` does the opposite — it rebuilds the
 //      proposed `Serder` and signs *that* — so the pinned tree contains two join styles that are
 //      not equivalent, and nothing marks one as the right one.
 //   3. **The two rotation call sites disagree about `rmids`.** One sends `rstates`, the other
-//      sends `states` under the rotation-member label, which is Roadmap 8.3's conflation again in
-//      a second place.
+//      sends `states` under the rotation-member label, which is multisig inception's conflation
+//      again in a second place.
 import { createRequire } from "node:module";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
@@ -61,7 +62,7 @@ const ADMIN_URL = "http://127.0.0.1:3901";
 const BOOT_URL = "http://127.0.0.1:3903";
 const FIXED_MS = 1_700_000_000_123;
 
-/** The three witnesses Roadmap 8.3's scenario names, reused so the group is the same one. */
+/** The multisig inception scenario's three witnesses, reused so the group is the same one. */
 const WITNESSES = [
   "BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha",
   "BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM",
@@ -364,7 +365,7 @@ if (!WAITS.some((call) => call.route === ROTATION_ROUTE)) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Roadmap 8.3's helper, transpiled in memory, so the group is the real one.
+// 2. The multisig inception helper, transpiled in memory, so the group is the real one.
 // ---------------------------------------------------------------------------
 
 const nodeRequire = createRequire(import.meta.url);
@@ -645,7 +646,7 @@ async function drive(name, note, run) {
 
 await drive(
   "incept_the_group",
-  "Roadmap 8.3's own first step, run again so both rounds here act on a group the reference built",
+  "multisig inception's own first step, run again so both rounds here act on a group the reference built",
   async () =>
     await startMultisigIncept(client, {
       groupName: "multisig",
@@ -938,7 +939,7 @@ const quirks = {
     announced_embed_slots: Object.keys(announcedOnInteractionRoute.exn.e).filter((slot) => slot !== "d"),
     note: "the route says interaction and the embed carries a rotation, so a member that trusts the route reads the wrong message and one that waits on the rotation route never sees the join at all. Nothing upstream compares the two, because nothing upstream looks inside the embed.",
     rust_decision:
-      "the route decides the embed. Roadmap 8.1's classifier refuses a message whose embed slot is not the one its route names, so this pair cannot be built here — `propose_rotation` and `accept_rotation` both send `/multisig/rot`.",
+      "the route decides the embed. The exchange route classifier refuses a message whose embed slot is not the one its route names, so this pair cannot be built here — `propose_rotation` and `accept_rotation` both send `/multisig/rot`.",
   },
   a_joining_member_never_reads_the_rotation_it_joins: {
     declaration:
@@ -955,14 +956,14 @@ const quirks = {
       proposed_next_digests: announcedOnRotationRoute.exn.e.rot.n,
       error: calls.find((call) => call.name === "rebuild_from_a_rotation_set_the_proposal_did_not_name").error,
     },
-    note: "the two styles agree only while the members' key states do. Driven both ways: with the same states the digests match, and with one rotation member where the proposal named two the rebuilding member signs a different event — no error, no comparison, and the signature it contributes is over something nobody proposed. This is Roadmap 8.3's witness threshold in a second place.",
+    note: "the two styles agree only while the members' key states do. Driven both ways: with the same states the digests match, and with one rotation member where the proposal named two the rebuilding member signs a different event — no error, no comparison, and the signature it contributes is over something nobody proposed. This is the multisig inception witness threshold defect in a second place.",
     rust_decision:
       "a joining member checks. `accept_rotation` rebuilds as the reference does and then compares what it built with the digest the proposal carries, refusing to sign a different event. A digest comparison rather than a byte one, because a decoded record cannot reproduce the bytes it arrived as — but an event's SAID is a digest over the event, so two events with one SAID are one event.",
   },
   the_two_rotation_call_sites_disagree_about_rmids: {
     declaration: "one rotation announcement maps `rstates` into `rmids` and the other maps `states`",
     expressions: MEMBER_EXPRESSIONS.filter((entry) => entry.label === "rmids"),
-    note: "Roadmap 8.3 recorded the accepting member substituting the signing set for the rotation set. It is not a one-off: the rotation round does the same thing at one of its two call sites, so the two are inconsistent with each other as well as with the field's name.",
+    note: "The `client-multisig-inception` fixture recorded the accepting member substituting the signing set for the rotation set. It is not a one-off: the rotation round does the same thing at one of its two call sites, so the two are inconsistent with each other as well as with the field's name.",
     rust_decision: "the rotation set is a separate argument from the signing set and neither defaults to the other.",
   },
   an_interaction_relays_the_data_it_read: {
@@ -976,9 +977,9 @@ const quirks = {
     declaration: "neither round exists under `src`; both are written inline in the integration scenario",
     interact_scan: scan("identifiers().interact("),
     rotate_scan: scan(".rotate("),
-    note: "Roadmap 8.3 had helpers to transpile. This item does not even have those: the rounds are statements in a test body, so what is ported is the shape the statements describe and the evidence is the reference's own primitives driven in that order.",
+    note: "Multisig inception had helpers to transpile. These rounds do not even have those: the rounds are statements in a test body, so what is ported is the shape the statements describe and the evidence is the reference's own primitives driven in that order.",
     rust_decision:
-      "ported as workflows beside Roadmap 8.3's in `signify-client::multisig`, and recorded in §4.5 on that item's row.",
+      "ported as workflows beside multisig inception's in `signify-client::multisig`.",
   },
 };
 
@@ -1012,7 +1013,7 @@ const pinnedConfirmations = {
   group_prefix: groupInception.i,
   interaction_digest: interactionSerder.sad.d,
   rotation_digest: rotationSerder.sad.d,
-  note: "both rounds act on a group Roadmap 8.3's helper incepted here. Its identifier differs from that item's fixture because the key states are different: a group rotation only works if the members' key states chain, so the next digests here are derived from the member's own salt where `mockGetAID` invents them.",
+  note: "both rounds act on a group the multisig inception helper incepted here. Its identifier differs from the `client-multisig-inception` fixture because the key states are different: a group rotation only works if the members' key states chain, so the next digests here are derived from the member's own salt where `mockGetAID` invents them.",
 };
 
 // ---------------------------------------------------------------------------
@@ -1033,7 +1034,7 @@ const fixture = {
     agent_prefix: agentPrefix,
     local_member_prefix: LOCAL_PREFIX,
     peer_prefix: PEER_PREFIX,
-    note: "Both rounds are written inline in the integration scenario rather than in a function, so there is nothing to transpile and call. The syntax tree supplies what cannot be driven — every `exchanges().send` with its route and its embed slot, and every `waitAndMarkNotification` with the route it waits on — and the reference's own `interact`, `rotate`, `send`, and `join` supply the bytes, driven against the group Roadmap 8.3's helper incepted. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
+    note: "Both rounds are written inline in the integration scenario rather than in a function, so there is nothing to transpile and call. The syntax tree supplies what cannot be driven — every `exchanges().send` with its route and its embed slot, and every `waitAndMarkNotification` with the route it waits on — and the reference's own `interact`, `rotate`, `send`, and `join` supply the bytes, driven against the group the multisig inception helper incepted. The clock and the agent's key are pinned; the local member is the reference's own `mockGetAID`. `PUBLIC TEST MATERIAL`: the passcode and sealed salt are the pinned tests' own.",
   },
   declarations,
   key_states: {

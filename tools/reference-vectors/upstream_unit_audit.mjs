@@ -1,14 +1,14 @@
 // Inventories every unit test the pinned signify-ts checkout declares.
 //
-// Roadmap 9.1 audits the whole upstream unit suite against this port: every case must be answered
+// The unit audit checks the whole upstream unit suite against this port: every case must be answered
 // by Rust evidence or by a documented `N/A`. This generator produces the left-hand side of that
 // comparison — a machine-read inventory of what upstream actually tests — so the audit is a
 // checkable artifact rather than a claim, and so it goes stale loudly when the reference moves.
 //
 // A case is one `it(...)` or `test(...)`, named by the `describe` chain enclosing it. For each one
 // the inventory records where it is, how many assertions it makes, which assertion helpers it uses,
-// and which upstream symbols it imports — which is what makes a case mappable to the roadmap item
-// that ported those symbols.
+// and which upstream symbols it imports — which is what makes a case mappable to the port of those
+// symbols.
 //
 // The right-hand side is `ledger.json` beside the output: authored rather than generated, because
 // "this Rust test covers that upstream case" is a judgement. The Rust test in

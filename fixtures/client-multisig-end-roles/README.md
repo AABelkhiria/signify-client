@@ -19,17 +19,17 @@ SHOW_ERRORS=1 node tools/reference-vectors/client_multisig_end_roles.mjs   # tra
 
 ## What the evidence is
 
-Roadmap 8.10 ports the round that authorizes a group's agents. A group identifier has no agent
+This port covers the round that authorizes a group's agents. A group identifier has no agent
 endpoint until its members authorize one, so until this round completes nothing addressed to the
 group reaches any member's agent but the sender's — which is why the group IPEX rounds could not be
 driven between two agents before it.
 
 There is no source file. The unit is `addEndRoleMultisig` in `test-integration/utils/multisig-utils.ts`,
 called by three integration scenarios, so the helper module is **transpiled in memory** by the
-reference's own pinned TypeScript and evaluated with a module shim, as Roadmap 8.3's generator does.
-Nothing is written into the submodule. Six calls are driven: the group's inception, the proposing
-half, the joining half, the joining half a second later, a proposal against a stale group state, and
-a proposal where one member authorizes no agent.
+reference's own pinned TypeScript and evaluated with a module shim, as the
+`client-multisig-inception` generator does. Nothing is written into the submodule. Six calls are
+driven: the group's inception, the proposing half, the joining half, the joining half a second
+later, a proposal against a stale group state, and a proposal where one member authorizes no agent.
 
 ## The finding: the members agree only on a shared stamp
 

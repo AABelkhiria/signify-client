@@ -21,14 +21,15 @@ SHOW_ERRORS=1 node tools/reference-vectors/client_ipex_presentation.mjs   # trac
 
 ## What the evidence is
 
-Roadmap 8.8 ports the conversation that discloses a credential — apply, offer, agree, grant,
-admit — and the two rounds where a group runs a grant or an admit as a multisig. Roadmap 6.3 builds
-the five messages and Roadmap 6.12 submits them; this item is the part between.
+This port covers the conversation that discloses a credential — apply, offer, agree, grant,
+admit — and the two rounds where a group runs a grant or an admit as a multisig. The IPEX artifact
+builders build the five messages and the `client-ipex` submitters send them; this fixture is the
+part between.
 
 There is no source file. The single-signature conversation is written inline in
 `credentials.test.ts`, so each step is driven through the reference's own `Ipex` method with the
 same arguments in the same order. The group rounds live in `multisig-utils.ts` and are
-**transpiled in memory** as Roadmap 8.3's are.
+**transpiled in memory** as the `client-multisig-inception` fixture's are.
 
 Sixteen rounds are driven and all sixteen succeed.
 
@@ -98,17 +99,18 @@ the tree, commented out:
 
 ## Two smaller findings
 
-**A joining member never reads the proposal** — the same shape Roadmap 8.7 pinned for the
-transaction rounds, now in all three group IPEX helpers: each waits on `/multisig/exn` and discards
-the SAID, and across six driven group rounds not one fetches a group request.
+**A joining member never reads the proposal** — the same shape the `client-multisig-credentials`
+fixture pinned for the transaction rounds, now in all three group IPEX helpers: each waits on
+`/multisig/exn` and discards the SAID, and across six driven group rounds not one fetches a group
+request.
 
 **A grant assembles its attachments three different ways in one tree**: all three
 (`credentials.test.ts` presentation), the anchor's only (`credentials.test.ts` issuance), and none
 at all (`grantMultisig` and `multisig-holder.test.ts`). Passing none reaches the branch that signs
 `args.anc.raw` with the **sender's** keeper — correct only when the sender is the issuer, and
-reached in the tree where it is not. Roadmap 6.11 refused that branch; `presentation::disclosure_of`
-assembles the three attachments from a credential in hand, and re-serializes each of the three
-events to check its bytes still reproduce the SAID that names it.
+reached in the tree where it is not. The credentials endpoint refused that branch;
+`presentation::disclosure_of` assembles the three attachments from a credential in hand, and
+re-serializes each of the three events to check its bytes still reproduce the SAID that names it.
 
 ## A third, found live: the announcement names only the group
 
@@ -120,7 +122,7 @@ endpoint for `signing[].aid`; the group record's `keys` are the members' *signin
 stand in for their identifiers. This port once read them as if they did, and a joining member
 answered every grant with `LocalMemberNotAParticipant` against a live agent (2026-09-16). Now the
 IPEX rounds announce `smids` and `rmids` as the six event rounds do, a proposal that names nobody is
-answered by `identifiers().members`, and the classifier reads both shapes. `PORTING.md` §10.
+answered by `identifiers().members`, and the classifier reads both shapes.
 
 ## The chain, which is what makes any of this checkable
 

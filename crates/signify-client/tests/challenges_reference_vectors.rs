@@ -228,7 +228,7 @@ fn the_deferred_capability_is_read_from_the_reference() -> Result<(), Box<dyn Er
     let deferred = &fixture.deferred_capability;
 
     assert_eq!(deferred.capability, "Challenges.respond");
-    assert!(deferred.deferred_to.contains("7.7"));
+    assert!(deferred.deferred_to.contains("exchange endpoint"));
     assert_ne!(deferred.note, "");
     assert_ne!(deferred.rust_decision, "");
 

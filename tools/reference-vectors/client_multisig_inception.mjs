@@ -1,10 +1,10 @@
 // Records the pinned signify-ts checkout's multisig inception workflow.
 //
-// Roadmap 8.3 ports `startMultisigIncept` and `acceptMultisigIncept` — the two halves of bringing a
+// This port covers `startMultisigIncept` and `acceptMultisigIncept` — the two halves of bringing a
 // multisig group into existence. They are the third kind of unit this port has had to deal with,
 // after a source file and a type system: **orchestration the reference only ever writes in its own
 // test helpers**, in `test-integration/utils/multisig-utils.ts`. There is no `src` file to port, so
-// `PORTING.md` §4.5 gets another Rust-only row.
+// this is another Rust-only module.
 //
 // Those helpers are TypeScript that imports the package by name, so they are not importable from
 // the built `dist`. This generator **transpiles the one file in memory** with the reference's own
@@ -20,7 +20,7 @@
 //
 //   1. **The initiator addresses its own proposal to itself.** `startMultisigIncept` passes
 //      `participants` as the recipient list, and the local member is the first of them — so through
-//      the loop Roadmap 7.7 recorded, the `exn` is addressed to the sender.
+//      the loop the `client-exchanges` fixture recorded, the `exn` is addressed to the sender.
 //   2. **The accepting member reads `rmids` and then discards it**, sending `rmids: smids` onward.
 //   3. **The accepting member does not await its own exchange.** The `send` is a floating promise:
 //      the helper returns the operation whether or not the message ever left.
@@ -216,9 +216,9 @@ const declarations = {
   no_source_file: scan("startMultisigIncept").files.every((hit) => hit.file.startsWith("test-integration/")),
   notes: {
     no_upstream_file:
-      "neither helper exists under `src`: the reference writes this orchestration only in its own integration utilities, which is why `PORTING.md` §4.5 gets a Rust-only row",
+      "neither helper exists under `src`: the reference writes this orchestration only in its own integration utilities, which is why this is a Rust-only module",
     initiator_addresses_itself:
-      "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop Roadmap 7.7 recorded, the message is addressed to its own sender",
+      "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop the `client-exchanges` fixture recorded, the message is addressed to its own sender",
     accepter_discards_rmids:
       "`acceptMultisigIncept` reads `exn.a.rmids ?? smids`, derives `rstates` from it, and then sends `{ gid, smids, rmids: smids }` — the rotation set it read never reaches the members it relays to",
     accepter_does_not_await:
@@ -649,7 +649,7 @@ const quirks = {
     delivered_to: pinnedConfirmations.proposal_delivered_to,
     note: "`startMultisigIncept` passes `participants` as the recipient list and the scenario puts the local member first, so `Exchanges.send` — which addresses the message to `recipients[0]` and delivers it to all of them — produces an `exn` whose `rp` is its own `i`. Every other member receives a proposal addressed to the proposer.",
     rust_decision:
-      "the addressee is a separate argument from the delivery list (Roadmap 7.7), and the local member is removed from the delivery list here as the *accepting* helper already does — so a proposal is addressed to a peer and delivered to the peers.",
+      "the addressee is a separate argument from the delivery list (as in the exchanges endpoint), and the local member is removed from the delivery list here as the *accepting* helper already does — so a proposal is addressed to a peer and delivered to the peers.",
   },
   the_accepting_member_discards_the_rotation_set: {
     declaration: declarations.notes.accepter_discards_rmids,
@@ -691,13 +691,13 @@ const quirks = {
     })(),
     note: "`toad: parseInt(icp.bt)` reads a field the protocol writes in hexadecimal. Below ten the two agree. `'a'` is ten and parses to `NaN`, which throws — loudly, at least. `'10'` is sixteen and parses to ten, which throws nothing: the accepting member rebuilds the inception with a different witness threshold, derives a different group identifier, and the two members never converge on a group at all.",
     rust_decision:
-      "the threshold is not re-parsed at all: the accepting member takes the proposal's own witness configuration as the typed value Roadmap 4.1 decoded, so there is no string to read in the wrong base. This is the same class of question Roadmap 6.7 raised about `KeyStates.query`, and unlike that one it is settled — `bt` is written by `toad.toString(16)` in the reference's own builder, so hexadecimal is not a guess.",
+      "the threshold is not re-parsed at all: the accepting member takes the proposal's own witness configuration as the typed value the KERIA API types decoded, so there is no string to read in the wrong base. This is the same class of question the `client-key-state` fixture raised about `KeyStates.query`, and unlike that one it is settled — `bt` is written by `toad.toString(16)` in the reference's own builder, so hexadecimal is not a guess.",
   },
   there_is_no_source_file: {
     scan: declarations.start_uses,
     note: "neither helper exists under `src`; the reference writes this orchestration only in its own integration utilities, so there is no exported API to port and no unit test to reproduce",
     rust_decision:
-      "ported as a workflow in `signify-client::multisig`, and recorded in §4.5 as a Rust-only row — the fifth, after Roadmap 5.1, 5.2, 5.4, and 5.5.",
+      "ported as a workflow in `signify-client::multisig`, a Rust-only module — the fifth, after the transport, the production HTTP client, the retry policy, and the authenticated transport.",
   },
 };
 

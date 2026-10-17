@@ -201,7 +201,7 @@
       "clock": "`send` calls `createExchangeMessage` with five arguments, so `datetime` and `dig` are `undefined` and `exchange(...)` falls back to `nowUTC()` — the message's `dt`, and therefore its SAID and every signature over it, depend on when it was built",
       "two_identifiers": "`send(name, topic, sender, ...)` takes the alias that addresses the resource and the identifier whose keeper signs as two independent arguments; nothing compares them",
       "return_types": "`sendFromEvents` declares `Promise<Exn>` while the sibling `Ipex.submit*` methods declare `Promise<ExchangeOperation>` for the same shape of POST to the same agent. Both are `res.json()` casts, so at most one can be right and neither is checked.",
-      "routes": "the thirteen exported route constants are Roadmap 8.1's, not this item's: they are recorded here to pin the split, and because `send`'s route argument is the plain `string` they are values of"
+      "routes": "the thirteen exported route constants are `client-exchange-routes`'s, not this fixture's: they are recorded here to pin the split, and because `send`'s route argument is the plain `string` they are values of"
     }
   },
   "mock_shortfall": {
@@ -271,7 +271,7 @@
       "icp_dt"
     ],
     "added_inception_stamp": "2023-08-21T22:30:46.473545+00:00",
-    "note": "`mockGetAID` omits `icp_dt`, which the generated `HabState` schema declares required. The field is added here so the record decodes on the Rust side; nothing derived reads it. Roadmap 6.11 recorded the same omission."
+    "note": "`mockGetAID` omits `icp_dt`, which the generated `HabState` schema declares required. The field is added here so the record decodes on the Rust side; nothing derived reads it. `client-credentials` recorded the same omission."
   },
   "calls": [
     {
@@ -571,7 +571,7 @@
     },
     {
       "name": "respond_pinned",
-      "note": "the pinned `contacting.test.ts` call, which is the capability Roadmap 7.4 deferred to this item",
+      "note": "the pinned `contacting.test.ts` call, which is the capability `client-challenges` deferred to this fixture",
       "requests": [
         {
           "path": "/identifiers/aid1",
@@ -688,13 +688,13 @@
         "body": "{\"tpc\":\"multisig\",\"exn\":{\"v\":\"KERI10JSON00017c_\",\"t\":\"exn\",\"d\":\"EJZbsjsPerWuE9Lwzpo26YsYDmwo2IKoSSnx8sMp54As\",\"i\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\",\"rp\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"p\":\"\",\"dt\":\"2023-11-14T22:13:20.123000+00:00\",\"r\":\"/multisig/icp\",\"q\":{},\"a\":{\"i\":\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\",\"gid\":\"ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK\"},\"e\":{}},\"sigs\":[\"AAAZCmJaUbjEtXfUgg2GRMvXA1aoeQMUQYAnLZWxHwyCyxuvla_eu5XhlBYvbbC0NUOO7SZT6Pq9Uc6hRzfg9HoC\"],\"atc\":\"\",\"rec\":[\"EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p\"]}"
       },
       "sender_prefix": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
-      "note": "`send(name, topic, sender, ...)` posts under `/identifiers/{name}/exchanges` while signing with `sender`'s keeper; nothing compares them, so a message signed by one identifier can be posted under another's resource — and Roadmap 3.10 signs `@path`, so the two also disagree about what the HTTP signature covers.",
+      "note": "`send(name, topic, sender, ...)` posts under `/identifiers/{name}/exchanges` while signing with `sender`'s keeper; nothing compares them, so a message signed by one identifier can be posted under another's resource — and request signing covers `@path`, so the two also disagree about what the HTTP signature covers.",
       "rust_decision": "one alias. The sending identifier's record is looked up from the alias the message is posted under, so the resource, the signer, and the message's own `i` field are the same identifier by construction."
     },
     "the_timestamp_is_a_clock_reading": {
       "declaration": "exchange( route, payload, sender['prefix'], recipient, datetime, dig, undefined, embeds )",
       "note": "`send` calls `createExchangeMessage` with five arguments, so `datetime` and `dig` are `undefined` and `exchange(...)` falls back to `nowUTC()` — the message's `dt`, and therefore its SAID and every signature over it, depend on when it was built",
-      "rust_decision": "a required parameter, which is the decision Roadmap 3.8 took for `exchange(...)` itself and Roadmap 4.6 for the authorization replies. A caller that wants `now` says so."
+      "rust_decision": "a required parameter, which is the decision taken for `exchange(...)` itself and for the authorization replies. A caller that wants `now` says so."
     },
     "the_submission_answer_has_two_declared_types": {
       "send_from_events": "Promise<Exn>",
@@ -726,7 +726,7 @@
         "e": {}
       },
       "note": "`sendFromEvents` declares `Promise<Exn>` and `Ipex.submitGrant` declares `Promise<ExchangeOperation>` for the same shape of POST to the same agent, and both are unchecked `res.json()` casts. At most one is right; the pinned tree contains no assertion either way, because its only unit case ignores the answer.",
-      "rust_decision": "the answer is kept as owned bytes with a decoder for each shape, so neither reading is imposed and a wrong-shaped answer is refused rather than cast. The question of which one a live KERIA sends is raised to §10 for Roadmap 9.2, as Roadmap 6.7 raised the sequence-number base."
+      "rust_decision": "the answer is kept as owned bytes with a decoder for each shape, so neither reading is imposed and a wrong-shaped answer is refused rather than cast. The question of which one a live KERIA sends is left for a live run to settle, as `client-key-state` left the sequence-number base."
     },
     "the_said_is_interpolated_raw": {
       "declaration": "path = `/exchanges/${said}`",
@@ -735,8 +735,8 @@
         "method": "GET",
         "body": null
       },
-      "note": "`get(said)` concatenates its argument into the path, so a value carrying `/` or `?` addresses a different resource — and changes the path Roadmap 3.10 signs",
-      "rust_decision": "the argument is Roadmap 3.3's validated `Said`, which cannot hold a delimiter, and Roadmap 5.3's builder would encode it exactly once even if it could. The recorded input is proven refused."
+      "note": "`get(said)` concatenates its argument into the path, so a value carrying `/` or `?` addresses a different resource — and changes the signed path",
+      "rust_decision": "the argument is the validated `Said`, which cannot hold a delimiter, and the request builder would encode it exactly once even if it could. The recorded input is proven refused."
     },
     "the_pinned_unit_call_is_three_empty_values": {
       "request": {
@@ -772,9 +772,9 @@
         "rec": []
       },
       "note": "`sendFromEvents('aid1', '', serder, [''], '', [])` sends an empty topic, a single empty string where a qualified signature belongs, and an empty recipient list — asking the agent to file a notification under no topic and deliver it to nobody. The reference validates none of the three; its own `send` refuses only the last, and only because the loop cannot run.",
-      "rust_decision": "all three are unrepresentable: the topic is refused when empty, the signatures come from a keeper rather than from the caller, and an empty recipient list is refused as Roadmap 6.12 refuses it. The recorded request is therefore reproduced in shape rather than byte for byte, and each input is proven refused — the pattern Roadmap 3.8, 6.9, and 7.1 used for a pinned vector their types cannot express."
+      "rust_decision": "all three are unrepresentable: the topic is refused when empty, the signatures come from a keeper rather than from the caller, and an empty recipient list is refused as `client-ipex` refuses it. The recorded request is therefore reproduced in shape rather than byte for byte, and each input is proven refused — the pattern used for `exchange(...)` and in `client-registries` and `client-oobis` for a pinned vector their types cannot express."
     },
-    "the_route_table_belongs_to_8_1": {
+    "the_route_table_belongs_to_client_exchange_routes": {
       "constants": {
         "MULTISIG_ICP_ROUTE": "/multisig/icp",
         "MULTISIG_ROT_ROUTE": "/multisig/rot",
@@ -790,8 +790,8 @@
         "IPEX_AGREE_ROUTE": "/ipex/agree",
         "IPEX_ADMIT_ROUTE": "/ipex/admit"
       },
-      "note": "thirteen exported route constants and the resource variants and type guards over them are Roadmap 8.1's, not this item's; `send`'s route parameter is the bare `string` they are values of",
-      "rust_decision": "the route stays borrowed text here, exactly as Roadmap 3.8 left it in `ExchangeBuilder` and 7.6 left the escrow filter. 8.1 owns the typed table."
+      "note": "thirteen exported route constants and the resource variants and type guards over them are `client-exchange-routes`'s, not this fixture's; `send`'s route parameter is the bare `string` they are values of",
+      "rust_decision": "the route stays borrowed text here, exactly as `ExchangeBuilder` left it and `client-escrows` left the escrow filter. `client-exchange-routes` owns the typed table."
     }
   }
 }

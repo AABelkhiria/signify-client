@@ -1,13 +1,13 @@
 // Records the pinned signify-ts checkout's agent-configuration endpoint.
 //
-// Roadmap 6.8 ports `Config.get` from `src/keri/app/coring.ts`. It is the smallest capability in
-// the file and the last one that file owes before Roadmap 7.1 and 7.2: one constant path, one
-// method, no body, and a response of a single optional field.
+// This ports `Config.get` from `src/keri/app/coring.ts`. It is the smallest capability in the file
+// and the last one before its OOBI and operation-waiting code: one constant path, one method, no
+// body, and a response of a single optional field.
 //
 // `Config` takes a whole `SignifyClient`, as `KeyEvents` and `KeyStates` do, so this generator
-// drives the reference the way Roadmap 6.7's did: `globalThis.fetch` is replaced with a recorder
-// that answers and signs as a KERIA agent would, and the real client is walked through boot,
-// connect, and the call itself.
+// drives the reference the way the `client-key-state` fixture's did: `globalThis.fetch` is replaced
+// with a recorder that answers and signs as a KERIA agent would, and the real client is walked
+// through boot, connect, and the call itself.
 //
 // Because the path carries no dynamic value at all, the interesting evidence here is not the
 // request — it is the *response*: what `AgentConfig` is declared to be, and what the reference
@@ -195,7 +195,7 @@ for (const [name, value] of Object.entries(declarations)) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -372,7 +372,7 @@ const quirks = {
     result: calls.find((call) => call.name === "config_unknown_fields")?.result ?? null,
     note: "`res.json()` returns whatever the agent sent, so undeclared fields survive into the value a caller holds",
     rust_decision:
-      "ignored, which is Roadmap 4.1's rule for a schema without an index signature (ADR `0012`): `AgentConfig` declares one field and captures nothing else. A caller who needs an undeclared field is reading a schema this port does not have.",
+      "ignored, which is the shared API types' rule for a schema without an index signature: `AgentConfig` declares one field and captures nothing else. A caller who needs an undeclared field is reading a schema this port does not have.",
   },
   an_absent_list_is_not_an_empty_one: {
     absent: calls.find((call) => call.name === "config_absent_field")?.result ?? null,

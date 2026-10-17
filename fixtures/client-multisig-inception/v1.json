@@ -141,8 +141,8 @@
     },
     "no_source_file": true,
     "notes": {
-      "no_upstream_file": "neither helper exists under `src`: the reference writes this orchestration only in its own integration utilities, which is why `PORTING.md` §4.5 gets a Rust-only row",
-      "initiator_addresses_itself": "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop Roadmap 7.7 recorded, the message is addressed to its own sender",
+      "no_upstream_file": "neither helper exists under `src`: the reference writes this orchestration only in its own integration utilities, which is why this is a Rust-only module",
+      "initiator_addresses_itself": "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop the `client-exchanges` fixture recorded, the message is addressed to its own sender",
       "accepter_discards_rmids": "`acceptMultisigIncept` reads `exn.a.rmids ?? smids`, derives `rstates` from it, and then sends `{ gid, smids, rmids: smids }` — the rotation set it read never reaches the members it relays to",
       "accepter_does_not_await": "the accepting member's `exchanges().send(...)` is not awaited and its result is not returned, so the helper reports success whether or not the message left",
       "toad_is_parsed_base_ten": "`toad: parseInt(icp.bt)` reads a field the protocol writes in hexadecimal; below ten the two agree, and at ten or more the accepting member derives a different group identifier"
@@ -578,7 +578,7 @@
   },
   "reference_quirks": {
     "the_initiator_addresses_its_proposal_to_itself": {
-      "declaration": "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop Roadmap 7.7 recorded, the message is addressed to its own sender",
+      "declaration": "`startMultisigIncept` passes `participants` as the recipient list, and the pinned scenario puts the local member first — so through the loop the `client-exchanges` fixture recorded, the message is addressed to its own sender",
       "sender": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
       "addressed_to": "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
       "delivered_to": [
@@ -586,7 +586,7 @@
         "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"
       ],
       "note": "`startMultisigIncept` passes `participants` as the recipient list and the scenario puts the local member first, so `Exchanges.send` — which addresses the message to `recipients[0]` and delivers it to all of them — produces an `exn` whose `rp` is its own `i`. Every other member receives a proposal addressed to the proposer.",
-      "rust_decision": "the addressee is a separate argument from the delivery list (Roadmap 7.7), and the local member is removed from the delivery list here as the *accepting* helper already does — so a proposal is addressed to a peer and delivered to the peers."
+      "rust_decision": "the addressee is a separate argument from the delivery list (as in the exchanges endpoint), and the local member is removed from the delivery list here as the *accepting* helper already does — so a proposal is addressed to a peer and delivered to the peers."
     },
     "the_accepting_member_discards_the_rotation_set": {
       "declaration": "`acceptMultisigIncept` reads `exn.a.rmids ?? smids`, derives `rstates` from it, and then sends `{ gid, smids, rmids: smids }` — the rotation set it read never reaches the members it relays to",
@@ -636,7 +636,7 @@
         "error": null
       },
       "note": "`toad: parseInt(icp.bt)` reads a field the protocol writes in hexadecimal. Below ten the two agree. `'a'` is ten and parses to `NaN`, which throws — loudly, at least. `'10'` is sixteen and parses to ten, which throws nothing: the accepting member rebuilds the inception with a different witness threshold, derives a different group identifier, and the two members never converge on a group at all.",
-      "rust_decision": "the threshold is not re-parsed at all: the accepting member takes the proposal's own witness configuration as the typed value Roadmap 4.1 decoded, so there is no string to read in the wrong base. This is the same class of question Roadmap 6.7 raised about `KeyStates.query`, and unlike that one it is settled — `bt` is written by `toad.toString(16)` in the reference's own builder, so hexadecimal is not a guess."
+      "rust_decision": "the threshold is not re-parsed at all: the accepting member takes the proposal's own witness configuration as the typed value the KERIA API types decoded, so there is no string to read in the wrong base. This is the same class of question the `client-key-state` fixture raised about `KeyStates.query`, and unlike that one it is settled — `bt` is written by `toad.toString(16)` in the reference's own builder, so hexadecimal is not a guess."
     },
     "there_is_no_source_file": {
       "scan": {
@@ -671,7 +671,7 @@
         "scanned_files": 117
       },
       "note": "neither helper exists under `src`; the reference writes this orchestration only in its own integration utilities, so there is no exported API to port and no unit test to reproduce",
-      "rust_decision": "ported as a workflow in `signify-client::multisig`, and recorded in §4.5 as a Rust-only row — the fifth, after Roadmap 5.1, 5.2, 5.4, and 5.5."
+      "rust_decision": "ported as a workflow in `signify-client::multisig`, a Rust-only module — the fifth, after the transport, the production HTTP client, the retry policy, and the authenticated transport."
     }
   }
 }

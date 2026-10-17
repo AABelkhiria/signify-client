@@ -23,7 +23,7 @@
       "signature",
       "signature-input"
     ],
-    "note": "path and query encodings come from the platform functions the reference calls; `content_ranges` come from `parseRangeHeaders` directly, with NaN recorded as the string \"NaN\"; requests and status outcomes are captured by replacing the global fetch and driving the reference's own endpoint code, as Roadmap 5.1's generator does"
+    "note": "path and query encodings come from the platform functions the reference calls; `content_ranges` come from `parseRangeHeaders` directly, with NaN recorded as the string \"NaN\"; requests and status outcomes are captured by replacing the global fetch and driving the reference's own endpoint code, as the `http-transport` generator does"
   },
   "media_types": {
     "request_content_type": "application/json",
@@ -1394,7 +1394,7 @@
       "contact_delete_url": "http://localhost:3901/contacts/a/b",
       "notification_mark_url": "http://localhost:3901/notifications/a?b=c",
       "key_states_url": "http://localhost:3901/states?pre=a&b=c",
-      "note": "only `aiding.get` and `aiding.update` call encodeURIComponent; every other dynamic path component and every query value built outside URLSearchParams is interpolated raw, so a value holding `/`, `?`, `#`, or `..` changes which resource is addressed — and Roadmap 3.10 signs `@path`, so it changes what the signature covers too",
+      "note": "only `aiding.get` and `aiding.update` call encodeURIComponent; every other dynamic path component and every query value built outside URLSearchParams is interpolated raw, so a value holding `/`, `?`, `#`, or `..` changes which resource is addressed — and request authentication signs `@path`, so it changes what the signature covers too",
       "rust_decision": "every dynamic component is encoded exactly once by the URL builder, so a name can never open a segment, a query, or a fragment; the reference's raw paths are recorded here rather than reproduced"
     },
     "a_missing_content_range_is_zero": {
@@ -1468,7 +1468,7 @@
         "signify-timestamp"
       ],
       "note": "the reference hands `fetch` a WHATWG `Headers`, whose iteration order is sorted by lowercased name rather than insertion — so the order recorded here is the platform's, not a choice the reference made",
-      "rust_decision": "this crate's `Headers` preserves insertion order, and the request builder emits its own headers before a caller's; the wire order of the authentication headers is Roadmap 5.5's composition and does not affect a signature, whose base order comes from the covered-fields list"
+      "rust_decision": "this crate's `Headers` preserves insertion order, and the request builder emits its own headers before a caller's; the wire order of the authentication headers is the authenticated transport's composition and does not affect a signature, whose base order comes from the covered-fields list"
     },
     "empty_query_still_emits_a_delimiter": {
       "url": "http://localhost:3901/contacts?",

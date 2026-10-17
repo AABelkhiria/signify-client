@@ -19,13 +19,14 @@ node tools/reference-vectors/http_request_response.mjs --check   # verify determ
 
 ## What this fixture covers
 
-Roadmap 5.3 has two halves, and they have two different kinds of evidence.
+The request builder and response decoder are two halves, and they have two different kinds of
+evidence.
 
 The **response** half has one real upstream function: `parseRangeHeaders` in `core/httping.ts`, the
-last capability of that file left unported after Roadmap 3.10. `content_ranges` calls it directly
-across thirty-one well-formed and malformed `Content-Range` values. Its results are JavaScript
-numbers, so a `NaN` is recorded as the string `"NaN"` — JSON cannot spell one, which is itself part
-of what the entry demonstrates.
+last capability of that file left unported after request authentication. `content_ranges` calls it
+directly across thirty-one well-formed and malformed `Content-Range` values. Its results are
+JavaScript numbers, so a `NaN` is recorded as the string `"NaN"` — JSON cannot spell one, which is
+itself part of what the entry demonstrates.
 
 The **request** half has no single upstream function. `SignifyClient.fetch` concatenates a base URL
 with a path its endpoint modules already assembled, so the evidence is the reference's own output:
@@ -35,8 +36,8 @@ with a path its endpoint modules already assembled, so the evidence is the refer
 - `query_strings` — `URLSearchParams` serialization for thirteen parameter lists, which is what
   `app/contacting.ts`, `app/coring.ts`, and `app/escrowing.ts` build their queries with.
 - `requests` — sixteen real endpoint calls, captured by replacing `globalThis.fetch` with a
-  recorder and driving the reference's own client, exactly as Roadmap 5.1's generator does. Each
-  records the method, the exact URL, the header order and values, and the body.
+  recorder and driving the reference's own client, exactly as the `http-transport` generator does.
+  Each records the method, the exact URL, the header order and values, and the body.
 - `status_outcomes` — eight statuses driven through `SignifyClient.fetch` itself, recording whether
   it accepted the response and, when it did not, the exact message it threw.
 - `payload_decoding` — twelve platform `Response` values, recording what `.json()` and `.text()`
@@ -46,9 +47,9 @@ with a path its endpoint modules already assembled, so the evidence is the refer
 ## Determinism, and what is masked
 
 `Signify-Timestamp` is a clock read and `Signature`/`Signature-Input` cover it, so those three
-header values are recorded with `masked: true` and a null value, exactly as Roadmap 5.1's fixture
-does. Their exact bytes are Roadmap 3.10's evidence, already verified. Everything else — every URL,
-every `Range` and `Accept` value, every body — is recorded verbatim.
+header values are recorded with `masked: true` and a null value, exactly as the `http-transport`
+fixture does. Their exact bytes are request authentication's evidence, already verified. Everything
+else — every URL, every `Range` and `Accept` value, every body — is recorded verbatim.
 
 The generator's canned answers are unsigned, so after `connect` the reference rejects them *after*
 sending; the request is already recorded by then. The generator fails loudly on any other error.
@@ -61,8 +62,8 @@ sending; the request is already recorded by then. The generator fails loudly on 
   other dynamic path component, and every query value built outside `URLSearchParams`, is
   interpolated raw, so a value holding `/`, `?`, `#`, or `..` changes which resource is addressed: `operations().get('../identifiers')` sends `/operations/../identifiers`,
   `contacts().delete('a/b')` sends `/contacts/a/b`, and `keyStates().get('a&b=c')` sends
-  `/states?pre=a&b=c` with an injected second parameter. Roadmap 3.10 signs `@path`, so this
-  changes what a signature covers too. Rust encodes every dynamic component exactly once.
+  `/states?pre=a&b=c` with an injected second parameter. Request authentication signs `@path`, so
+  this changes what a signature covers too. Rust encodes every dynamic component exactly once.
 - **An absent `Content-Range` is `{0,0,0}`,** which a caller cannot tell apart from a server that
   really answered `aids 0-0/0`. Rust returns `None` for the absent case.
 - **Every `Content-Range` field is `parseInt` of whatever the split produced,** so a hexadecimal,
@@ -87,7 +88,7 @@ sending; the request is already recorded by then. The generator fails loudly on 
   the query.
 - **The recorded header order is the platform's sort,** not a choice: the WHATWG `Headers` class
   iterates by lowercased name. Rust preserves insertion order, and the wire order of the
-  authentication headers is Roadmap 5.5's composition — it does not affect a signature, whose base
-  order comes from the covered-fields list.
+  authentication headers is the authenticated transport's composition — it does not affect a
+  signature, whose base order comes from the covered-fields list.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.

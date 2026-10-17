@@ -1,7 +1,7 @@
 // Records the pinned signify-ts checkout's notifications endpoint.
 //
-// Roadmap 7.5 ports `Notifications.{list,mark,delete}` from `src/keri/app/notifying.ts`: three
-// methods, one of which is the second windowed listing in the port (Roadmap 6.6's identifiers being
+// This port covers `Notifications.{list,mark,delete}` from `src/keri/app/notifying.ts`: three
+// methods, one of which is the second windowed listing in the port (the identifiers listing being
 // the first) and the only one that reads a `Content-Range` back.
 //
 // The interesting evidence here is not a path. It is **what a notification's identifier actually
@@ -304,7 +304,7 @@ const notificationIdentifier = {
   keripy_sha: keripySha,
   note: "`mark(said)` and `delete(said)` name the parameter `said` and the JSDoc says \"SAID of the notification\". It is not one: keripy's `notice()` builds the record with `i=\"\"` and its `Dicter` fills an empty identifier with `randomNonce()`. The two references disagree about that nonce's code — signify-ts's `randomNonce` uses the Ed25519 seed code `A` over thirty-two bytes, keripy's the 128-bit salt code `0A` over sixteen — and **neither is a digest code**, so the field is not a SAID under either. KERIA is built on keripy, so what a real agent writes is the `0A` form.",
   rust_decision:
-    "the argument is **not** typed as Roadmap 3.3's `Said`, which would refuse every identifier a real agent produces. It stays borrowed text encoded exactly once by Roadmap 5.3's builder — the shape Roadmap 6.5 gave an operation name — which is enough to close the path injection this fixture records. keripy is corroboration for what fills the field, not a governing reference (ADR `0009`).",
+    "the argument is **not** typed as `Said`, which would refuse every identifier a real agent produces. It stays borrowed text encoded exactly once by the request builder — the shape the operations endpoint gave an operation name — which is enough to close the path injection this fixture records. keripy is corroboration for what fills the field, not a governing reference.",
 };
 
 for (const [name, value] of Object.entries(notificationIdentifier)) {
@@ -326,7 +326,7 @@ for (const nonce of [SIGNIFY_NONCE, KERIPY_NONCE]) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. A KERIA agent, answering and signing as Roadmap 6.4's fixture did.
+// 2. A KERIA agent, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -534,7 +534,7 @@ await drive(
 
 await drive(
   "mark_needing_encoding",
-  "an identifier carrying a query delimiter, which the reference concatenates raw — the case Roadmap 5.3's own fixture already recorded turning a path into a query",
+  "an identifier carrying a query delimiter, which the reference concatenates raw — the case the `http-request-response` fixture already recorded turning a path into a query",
   {},
   null,
   () => notifications.mark("a?b=c"),
@@ -617,41 +617,41 @@ const quirks = {
     header: call("list_default_window")?.request?.headers?.range ?? null,
     note: "`list(start = 0, end = 24)` writes both defaults into the `Range` header, so an omitted window is still a request that names one",
     rust_decision:
-      "the window is a required `ItemRange` and `DEFAULT_WINDOW` names the reference's values, so what is asked for is visible at the call site — Roadmap 6.6's identifier listing already takes its window the same way",
+      "the window is a required `ItemRange` and `DEFAULT_WINDOW` names the reference's values, so what is asked for is visible at the call site — the identifier listing already takes its window the same way",
   },
   a_window_bound_is_not_an_integer: {
     fractional: call("list_fractional_window")?.request?.headers?.range ?? null,
     reversed: call("list_reversed_window")?.request?.headers?.range ?? null,
     note: "both bounds are `number` and reach the header through template interpolation, so `list(1.5, 2.5)` sends `notes=1.5-2.5` and `list(40, 20)` sends a window whose end precedes its start",
     rust_decision:
-      "**refused**: Roadmap 5.3's `ItemRange` takes two `u64` and validates that the start does not exceed the end, so neither is representable. A fraction is not a count of items and a reversed window asks for nothing.",
+      "**refused**: `ItemRange` takes two `u64` and validates that the start does not exceed the end, so neither is representable. A fraction is not a count of items and a reversed window asks for nothing.",
   },
   an_absent_content_range_becomes_three_zeroes: {
     declaration: declarations.list_range_parse,
     result: call("list_no_content_range")?.result ?? null,
     note: "`parseRangeHeaders(null, 'notes')` returns `{start: 0, end: 0, total: 0}`, so a page of real notifications is reported as an empty window rather than as an unknown one",
     rust_decision:
-      "reproduced as Roadmap 5.3 already decided and Roadmap 6.6 already applied: the window is an `Option`, so an unreported one is `None` and stays distinguishable from a genuinely empty one",
+      "reproduced as the response decoder already decided and the identifier listing already applied: the window is an `Option`, so an unreported one is `None` and stays distinguishable from a genuinely empty one",
   },
   the_identifier_is_not_encoded: {
     path: call("mark_needing_encoding")?.request?.path ?? null,
     expression: declarations.mark_path,
-    note: "both single-notification paths are `'/notifications/' + said`, so a value carrying `?` turns the path into a query — Roadmap 5.3's own fixture recorded `notifications().mark('a?b=c')` doing exactly that, and Roadmap 3.10 signs `@path`",
+    note: "both single-notification paths are `'/notifications/' + said`, so a value carrying `?` turns the path into a query — the `http-request-response` fixture recorded `notifications().mark('a?b=c')` doing exactly that, and request authentication signs `@path`",
     rust_decision:
-      "closed by Roadmap 5.3's builder, which encodes every path component exactly once and offers no way to skip it",
+      "closed by the request builder, which encodes every path component exactly once and offers no way to skip it",
   },
   mark_returns_its_body_as_text: {
     declaration: declarations.mark_return,
     result: call("mark")?.result ?? null,
     note: "`mark` is the only method here that reads its answer, and it reads it with `res.text()` — which replaces any byte that is not valid UTF-8 with U+FFFD rather than failing",
     rust_decision:
-      "the text is returned, because the reference genuinely offers it, but decoded **strictly**: a body that is not valid UTF-8 is `ClientError::Decode` where `res.text()` silently repairs it. That is the decision Roadmap 6.11 made for a CESR answer read the same way.",
+      "the text is returned, because the reference genuinely offers it, but decoded **strictly**: a body that is not valid UTF-8 is `ClientError::Decode` where `res.text()` silently repairs it. That is the decision the credentials endpoint made for a CESR answer read the same way.",
   },
   a_delete_carries_no_body: {
     fetch: declarations.delete_fetch,
     body_is_undefined: call("delete")?.request?.body_is_undefined ?? null,
     note: "`delete` passes `undefined` where `list` and `mark` pass `null`, so the request carries no body at all",
-    rust_decision: "reproduced: no body is set on the request, as Roadmap 6.5's, 7.3's, and 7.4's deletes already do",
+    rust_decision: "reproduced: no body is set on the request, as the operations, contacts, and challenges deletes already do",
   },
   the_page_is_never_typed: {
     declaration: declarations.list_return,
@@ -665,7 +665,7 @@ const quirks = {
     result: call("list_windowed")?.result ?? null,
     note: "the three window numbers are spread into the returned object beside `notes`, so a caller cannot tell the window apart from the page",
     rust_decision:
-      "`NotificationListing` keeps them apart — an optional `window` and the notifications — which is the shape Roadmap 6.6 gave the identifier listing for the same reason",
+      "`NotificationListing` keeps them apart — an optional `window` and the notifications — which is the shape the identifiers endpoint gave its listing for the same reason",
   },
 };
 

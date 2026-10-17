@@ -443,8 +443,8 @@
         "rename": "path = `/identifiers/${name}/registries/${registryName}`"
       },
       "published_by_the_unit_test": "/identifiers/a name/registries",
-      "note": "all three paths concatenate their names raw, so `list('a/b')` addresses `/identifiers/a/b/registries` and `rename('a/b','c/d',…)` addresses `/identifiers/a/b/registries/c/d` — four unencoded dynamic values, and Roadmap 3.10 signs `@path`. The pinned unit test asserts the unencoded form itself, with a literal space in `/identifiers/a name/registries`.",
-      "rust_decision": "refused by construction: Roadmap 5.3's `ResourcePath` encodes every dynamic component exactly once, as Roadmap 6.6 decided for the identifier family"
+      "note": "all three paths concatenate their names raw, so `list('a/b')` addresses `/identifiers/a/b/registries` and `rename('a/b','c/d',…)` addresses `/identifiers/a/b/registries/c/d` — four unencoded dynamic values, and request authentication signs `@path`. The pinned unit test asserts the unencoded form itself, with a literal space in `/identifiers/a name/registries`.",
+      "rust_decision": "refused by construction: the request builder's `ResourcePath` encodes every dynamic component exactly once, as the identifiers endpoint decided for the identifier family"
     },
     "establishment_only_is_built_then_thrown_away": {
       "detail": {
@@ -458,7 +458,7 @@
       "configuration": "estOnly = state.c !== undefined && state.c.includes('EO')",
       "thrown": "throw new Error('establishment only not implemented');",
       "note": "an establishment-only identifier has `EO` pushed into the registry configuration and the whole registry inception built from it, and only then does `create` throw — so the derivation is wasted and the identifier lookup has already gone out",
-      "rust_decision": "a typed refusal checked **before** anything is built, which is what Roadmap 6.2 decided for an establishment-only issuer; no request is sent at all"
+      "rust_decision": "a typed refusal checked **before** anything is built, which is what credential issuance decided for an establishment-only issuer; no request is sent at all"
     },
     "no_backers_defaults_to_true": {
       "declaration": "{ name, registryName, noBackers = true, toad = 0, baks = [], nonce, }: CreateRegistryArgs",
@@ -487,7 +487,7 @@
     "the_anchor_seals_the_registry_to_itself": {
       "declaration": "data: any = [ { i: regser.pre, s: '0', d: regser.pre, }, ]",
       "note": "the interaction event anchors `{i: regser.pre, s: '0', d: regser.pre}` — the registry's identifier in both the identifier and the digest slot, because a registry inception's SAID *is* its prefix",
-      "rust_decision": "reproduced exactly; Roadmap 4.7's inception yields both from one event"
+      "rust_decision": "reproduced exactly; the TEL registry inception yields both from one event"
     },
     "create_builds_its_keeper_twice": {
       "body": "data[keeper.algo] = keeper.params()",

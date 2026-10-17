@@ -33,10 +33,10 @@ Three things are non-deterministic by construction and are recorded by name or s
 
 - **`Signify-Timestamp` is a clock read**, and **`Signature`** covers it, so both — and
   `Signature-Input`, which carries the same `created` value — are recorded with `masked: true` and
-  a null value. Their exact bytes are Roadmap 3.10's evidence, already verified.
+  a null value. Their exact bytes are request authentication's evidence, already verified.
 - **A salty keeper's `sxlt`** inside a creation body is a sealed salt, and a sealed box draws a
-  fresh ephemeral key each call; it is replaced by a marker. What it opens to is Roadmap 4.3's
-  evidence.
+  fresh ephemeral key each call; it is replaced by a marker. What it opens to is the `keri-keeping`
+  fixture's evidence.
 
 Everything else — including the percent-encoded path, the query string, and the `Range` header —
 is recorded verbatim.
@@ -47,11 +47,11 @@ with a text body, and a `204` with no body at all.
 
 ## A note on the canned answers
 
-After `connect`, `SignifyClient.fetch` requires the response to carry the agent's
-`Signify-Resource` header and an agent signature over it — producing those is Roadmap 5.5's
-subject. The generator's canned answers are unsigned, so the reference rejects them *after*
-sending; the request has already been recorded by then, and the request is what this fixture is
-about. The generator fails loudly on any other error.
+After `connect`, `SignifyClient.fetch` requires the response to carry the agent's `Signify-Resource`
+header and an agent signature over it — producing those is the `http-auth` fixture's subject. The
+generator's canned answers are unsigned, so the reference rejects them *after* sending; the request
+has already been recorded by then, and the request is what this fixture is about. The generator
+fails loudly on any other error.
 
 ## Reference behavior recorded as deliberate divergences
 
@@ -60,16 +60,18 @@ about. The generator fails loudly on any other error.
   different values, and a transport may not turn one into the other.
 - **Duplicate header names are joined with a comma.** The reference builds headers with the WHATWG
   `Headers` class, whose `append` merges a repeated name into one value — silently changing what a
-  signature covers. Roadmap 3.9's `Headers` refuses a duplicate, so such a request does not build.
+  signature covers. `keri-http-auth`'s `Headers` refuses a duplicate, so such a request does not
+  build.
 - **The delegation approval is unauthenticated.** `approveDelegation` calls the global `fetch`
   directly rather than `SignifyClient.fetch`, so the `PUT` that anchors the agent's delegation
   carries no `Signature`, `Signature-Input`, `Signify-Resource`, or `Signify-Timestamp` header —
   only the payload's own KERI signatures authenticate it. Recorded, not corrected: a transport
-  sends what it is handed, and whether this call is signed is Roadmap 6.4's composition decision.
+  sends what it is handed, and whether this call is signed is the client lifecycle's composition
+  decision.
 - **Boot uses a second base URL.** A client holds an admin URL and a boot URL, so the transport
-  must carry whichever absolute URL it is given; choosing between them is Roadmap 6.4's.
+  must carry whichever absolute URL it is given; choosing between them is the client lifecycle's.
 - **No request sets a timeout or an abort signal anywhere in the pinned source**, so a call can
   hang until the platform's default gives up. A timeout is a transport outcome here
-  (`TransportError::Timeout`) and the policy that sets one is Roadmap 5.4.
+  (`TransportError::Timeout`) and the policy that sets one is the retry policy.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.

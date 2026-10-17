@@ -23,15 +23,16 @@ and the generator supplies one. The sender's keys derive from the passcode the p
 at the reference's **production** Argon2 profile, so every signature in a recorded body is the real
 one and the generator takes several seconds.
 
-Unlike Roadmap 6.9's and 6.11's fixtures there is no sealed salt to mask: a submission body carries
-no key-manager block, only the message, its signatures, its attachment, and the recipients.
+Unlike the `client-registries` and `client-credentials` fixtures there is no sealed salt to mask: a
+submission body carries no key-manager block, only the message, its signatures, its attachment, and
+the recipients.
 
 ## What the evidence is
 
-Roadmap 6.12 ports `Ipex.{submitApply,submitOffer,submitAgree,submitGrant,submitAdmit}`. The five
-artifact builders beside them are Roadmap 6.3's and are already `VERIFIED`, so this generator builds
-each message through the reference's own builder and then submits it through the reference's own
-submitter, recording the request that leaves. **Every recorded `exn` is one
+This port covers `Ipex.{submitApply,submitOffer,submitAgree,submitGrant,submitAdmit}`. The five
+artifact builders beside them are the `acdc-ipex` fixture's and are already `VERIFIED`, so this
+generator builds each message through the reference's own builder and then submits it through the
+reference's own submitter, recording the request that leaves. **Every recorded `exn` is one
 `fixtures/acdc-ipex/v1.json` has already proven byte-exact**; what this fixture adds is the body
 assembled around it.
 
@@ -85,10 +86,11 @@ accessors and **not** `client.ipex()`, which the generator scans for and fails o
   agent is asked to deliver to no one, and the reference neither refuses it nor reports it. **A
   typed refusal here**, before anything is built.
 - **The alias is not encoded.** All five paths interpolate the sender's alias raw, so an alias
-  holding a slash posts a disclosure under a different identifier's resource — and Roadmap 3.10
-  signs `@path`. **Refused by construction**, as every other family in this crate does.
+  holding a slash posts a disclosure under a different identifier's resource — and request
+  authentication signs `@path`. **Refused by construction**, as every other family in this crate
+  does.
 - **The answer is cast rather than decoded.** Every submitter returns `response.json()` cast to
-  `ExchangeOperation`. **Decoded here**, as Roadmap 6.8, 6.10, and 6.11 decided.
+  `ExchangeOperation`. **Decoded here**, as the config, schemas, and credentials endpoints decided.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access. They derive
 real keys at the production Argon2 profile, which is why they are slower than the reading families.

@@ -1,13 +1,13 @@
 // Records the pinned signify-ts checkout's group endpoint family.
 //
-// Roadmap 8.2 ports the whole `Groups` class of `src/keri/app/grouping.ts`: `getRequest`,
+// The Rust port covers the whole `Groups` class of `src/keri/app/grouping.ts`: `getRequest`,
 // `sendRequest`, and `join`. It is the family a multisig member reads its peers' proposals through,
-// and the first consumer of Roadmap 8.1's classifiers — `getRequest` returns exactly the
+// and the first consumer of the exchange-route classifiers — `getRequest` returns exactly the
 // `ExnMultisig` list those classify.
 //
-// `Groups` takes a whole `SignifyClient`, so this generator drives the real client the way Roadmap
-// 7.7's did: `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA agent
-// would, with the clock and the agent's key pinned.
+// `Groups` takes a whole `SignifyClient`, so this generator drives the real client the way the
+// `client-exchanges` generator did: `globalThis.fetch` is replaced with a recorder that answers and
+// signs as a KERIA agent would, with the clock and the agent's key pinned.
 //
 // Three things make the evidence here unusual.
 //
@@ -19,12 +19,13 @@
 // characters where a qualified digest is forty-four; the rotation it joins with is `{ sad: {} }`;
 // the signature is the string `'sig'`; the members are `['1','2','3']` and `['a','b','c']`; and the
 // request it sends carries an empty signature list. Every one is recorded verbatim and proven
-// refused, which is the pattern Roadmap 3.8, 6.9, and 7.1 used.
+// refused, which is the pattern exchange-message construction and the registries and OOBI
+// endpoints used.
 //
 // **The two POSTs disagree about their answers.** `sendRequest` declares `Promise<Exn>` and `join`
 // declares `Promise<GroupOperation>`, for two writes to two paths under the same resource — the
-// same disagreement Roadmap 7.7 recorded between `sendFromEvents` and `Ipex.submit*`, now inside
-// one class.
+// same disagreement the `client-exchanges` fixture recorded between `sendFromEvents` and
+// `Ipex.submit*`, now inside one class.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
@@ -242,7 +243,7 @@ const declarations = {
       "`join` declares `rot: any` and writes `rot.sad`, so it takes a `Serder` rather than the rotation event its own JSDoc names; passing the event itself would send `undefined`",
     join_topic: "`join`'s `tpc` is the literal `'multisig'`, where `Exchanges.send` takes it as an argument",
     return_types:
-      "`sendRequest` declares `Promise<Exn>` and `join` declares `Promise<GroupOperation>` — two writes under one resource, disagreeing about what a KERIA answers, which is the disagreement Roadmap 7.7 recorded between `sendFromEvents` and `Ipex.submit*`",
+      "`sendRequest` declares `Promise<Exn>` and `join` declares `Promise<GroupOperation>` — two writes under one resource, disagreeing about what a KERIA answers, which is the disagreement the `client-exchanges` fixture recorded between `sendFromEvents` and `Ipex.submit*`",
   },
 };
 
@@ -302,7 +303,7 @@ if (pinnedArguments.said_is_a_digest) {
 }
 
 // ---------------------------------------------------------------------------
-// 3. A connected client, answering and signing as Roadmap 6.4's fixture did.
+// 3. A connected client, answering and signing as the `client-lifecycle` fixture did.
 // ---------------------------------------------------------------------------
 
 const client = new SignifyClient(ADMIN_URL, BRAN, Tier.low, BOOT_URL);
@@ -668,14 +669,14 @@ const quirks = {
     join: called("join_pinned")?.request ?? null,
     note: "the only test of this class in the pinned tree passes a forty-six-character SAID, a rotation whose event is `{}`, the signature `'sig'`, members named `1` and `a`, and an empty signature list — and asserts only the three addresses, so none of it is checked",
     rust_decision:
-      "each recorded request is reproduced in shape rather than byte for byte, and each argument is proven unrepresentable — the pattern Roadmap 3.8, 6.9, and 7.1 used for a pinned vector the types cannot express. The three addresses, which are what the test actually asserts, reproduce exactly.",
+      "each recorded request is reproduced in shape rather than byte for byte, and each argument is proven unrepresentable — the pattern exchange-message construction and the registries and OOBI endpoints used for a pinned vector the types cannot express. The three addresses, which are what the test actually asserts, reproduce exactly.",
   },
   a_request_may_carry_no_signature: {
     request: called("send_request_pinned")?.request ?? null,
     declaration: declarations.send_request_signature,
     note: "`sendRequest` declares `sigs: string[]` and sends whatever it is given; the pinned test sends `[]`, which asks the agent to relay to every group member a proposal nobody signed",
     rust_decision:
-      "refused. A `SignedExchange` comes from Roadmap 7.7's `create_message`, which signs, and an empty signature set is checked before the body is built — the reasoning Roadmap 6.12 applied to an empty recipient list.",
+      "refused. A `SignedExchange` comes from `create_message`, which signs, and an empty signature set is checked before the body is built — the reasoning the IPEX submission endpoint applied to an empty recipient list.",
   },
   none_of_the_three_dynamic_values_is_encoded: {
     get_request_path: declarations.get_request_path,
@@ -683,9 +684,9 @@ const quirks = {
     join_path: declarations.join_path,
     escaping_alias: called("send_request_escaping_alias")?.request?.path ?? null,
     escaping_said: called("get_request_escaping_said")?.request?.path ?? null,
-    note: "`getRequest` concatenates its SAID and both writes interpolate their alias, so a value holding `/` or `?` addresses a different resource — and Roadmap 3.10 signs `@path`",
+    note: "`getRequest` concatenates its SAID and both writes interpolate their alias, so a value holding `/` or `?` addresses a different resource — and request authentication signs `@path`",
     rust_decision:
-      "closed by Roadmap 5.3's builder and by typing: the SAID is Roadmap 3.3's `Said` and the alias is encoded exactly once, so neither recorded input is representable.",
+      "closed by the request builder and by typing: the SAID is a validated `Said` and the alias is encoded exactly once, so neither recorded input is representable.",
   },
   join_reads_a_serder_rather_than_an_event: {
     declaration: declarations.join_data,
@@ -694,26 +695,26 @@ const quirks = {
     with_event: JSON.parse(called("join_event_instead_of_serder")?.request?.body ?? "null")?.rot ?? null,
     note: "`join` declares `rot: any` and writes `rot.sad`, so passing the rotation event its own JSDoc names sends `rot: undefined` — recorded both ways round",
     rust_decision:
-      "the argument is Roadmap 4.6's `IdentifierArtifact`, which carries the event and the signatures that go with it, so there is no second thing to pass and nothing to read a field off.",
+      "the argument is an `IdentifierArtifact`, which carries the event and the signatures that go with it, so there is no second thing to pass and nothing to read a field off.",
   },
   the_two_writes_disagree_about_their_answers: {
     send_request: declarations.send_request_return_type,
     join: declarations.join_return_type,
-    note: "two writes under one resource, one declaring an exchange message and the other a long-running operation, both unchecked `res.json()` casts — the disagreement Roadmap 7.7 recorded between `sendFromEvents` and `Ipex.submit*`, now inside a single class",
+    note: "two writes under one resource, one declaring an exchange message and the other a long-running operation, both unchecked `res.json()` casts — the disagreement the `client-exchanges` fixture recorded between `sendFromEvents` and `Ipex.submit*`, now inside a single class",
     rust_decision:
-      "`join`'s answer is decoded as the operation it declares, which is what every other write in this crate is answered with; `send_request` reuses Roadmap 7.7's `SentExchange`, which keeps the body and offers a decoder for each shape. The §10 question that item raised covers this path too.",
+      "`join`'s answer is decoded as the operation it declares, which is what every other write in this crate is answered with; `send_request` reuses `SentExchange`, which keeps the body and offers a decoder for each shape. The open question of which shape KERIA answers covers this path too.",
   },
   a_join_may_name_no_members: {
     request: called("join_no_members")?.request ?? null,
     note: "`join` sends whatever member lists it is given, including empty ones, which asks the agent to rotate a group into having no signers",
     rust_decision:
-      "an empty signing-member list is refused; an empty rotation-member list is not, because the reference's own `Identifiers.rotate` writes an empty `rmids` for a single-signature identifier and Roadmap 6.6 reproduces it.",
+      "an empty signing-member list is refused; an empty rotation-member list is not, because the reference's own `Identifiers.rotate` writes an empty `rmids` for a single-signature identifier and the Rust `rotate` reproduces it.",
   },
   a_request_body_carries_no_topic_and_no_recipients: {
     declaration: declarations.send_request_data,
     note: "`sendRequest` sends `{exn, sigs, atc}` where `Exchanges.sendFromEvents` sends `{tpc, exn, sigs, atc, rec}` for the same kind of message; the agent is left to work out both from the message's own route",
     rust_decision:
-      "reproduced exactly. The two are different endpoints with different bodies, and this one's is the shorter; Roadmap 7.7's `SignedExchange` supplies all three fields it does write.",
+      "reproduced exactly. The two are different endpoints with different bodies, and this one's is the shorter; `SignedExchange` supplies all three fields it does write.",
   },
 };
 

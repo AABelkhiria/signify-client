@@ -28,7 +28,7 @@ different kinds of evidence.
 `Operations.wait` sleeps with `new Promise((resolve) => setTimeout(resolve, delay))` against the
 **global** timer, so the generator replaces that global with a recorder that captures each delay and
 resolves immediately. No wall-clock time passes and the schedule is exact. The operation responses
-are canned, exactly as Roadmap 5.1's generator cans `fetch`.
+are canned, exactly as the `http-transport` generator cans `fetch`.
 
 Five cases: the defaults, the two option sets the pinned integration suites actually pass
 (`singlesig-vlei-issuance`/`delegation-multisig` and `multisig-join`), an operation already finished
@@ -42,7 +42,7 @@ At the defaults the recorded schedule is `50, 100, 200, 400, 800, 1600, 3200, 64
 The test helper is **not** executed. Intercepting its sleep would mean rewriting its
 `timers/promises` import, which changes the code under test; instead the reference's own pinned
 TypeScript 5.9.2 parses it and the fixture records its default values and its delay expression —
-the technique ADR `0012` established for Roadmap 4.1. That also proves the two formulas are
+the technique established for the shared KERIA API types. That also proves the two formulas are
 textually identical, which is why executing only the production one is sufficient.
 
 ### `server_guidance_scan` — a search, so the absence is evidence

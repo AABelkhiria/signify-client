@@ -17,8 +17,8 @@ node tools/reference-vectors/upstream_integration_audit.mjs --check   # verify d
 
 ## What this is
 
-Roadmap 9.2 must answer every upstream integration scenario with Rust evidence or a documented
-reason, and close four `PORTING.md` §10 questions that only a live deployment can settle. This
+The integration matrix must answer every upstream integration scenario with Rust evidence or a
+documented reason, and close four open questions that only a live deployment can settle. This
 directory holds the matrix. `crates/signify-client/tests/keria_integration_audit.rs` — 13 tests,
 hermetic — is what keeps it honest.
 
@@ -27,8 +27,8 @@ hermetic — is what keeps it honest.
 
 ## Why the case is the wrong unit here
 
-Roadmap 9.1 audited the unit suite one row per `it`/`test` case, and that worked: its 139 cases were
-each a few lines long.
+`fixtures/upstream-unit-audit/` audited the unit suite one row per `it`/`test` case, and that
+worked: its 139 cases were each a few lines long.
 
 It would not work here. Four of these files are **a single case each**:
 
@@ -49,16 +49,16 @@ Only four of the twenty-two files label their internal steps with `step()`; the 
 
 ## What the audit found before a single scenario ran
 
-**§7 was missing a row.** `challenge.test.ts` was claimed by none of the nineteen rows
-`PORTING.md` §7 carried — the table omitted a whole capability. The row was added, and the audit
-test now refuses to let any upstream scenario go unclaimed.
+**The scenario table was missing a row.** `challenge.test.ts` was claimed by none of the nineteen
+rows the table carried — it omitted a whole capability. The row was added, and the audit test now
+refuses to let any upstream scenario go unclaimed.
 
 **One row is blocked on this port, not on infrastructure.** *External module behavior* cannot be
 exercised at all: `ConnectedClient::keepers()` lends the factory immutably,
 `KeeperFactory::with_module` consumes `self`, and `signify-client` never names
-`ExternalKeeperModule`. Recorded as `api_missing`, owned by Roadmap 9.5.
+`ExternalKeeperModule`. Recorded as `api_missing`, owned by the API consistency review.
 
-**§10's `KERIA OpenAPI` row is wrong about the spec.** It states the served document "carries no
+**The `KERIA OpenAPI` record is wrong about the spec.** It states the served document "carries no
 version". The live deployment serves `info.version: 1.0.1` — at line 2237 of 2240, where a reader
 checking the head of the file would miss it.
 
@@ -83,18 +83,19 @@ the same.
 
 ## The three tables in the ledger
 
-- **`scenarios`** — 20 rows, one per §7 row, each naming its upstream files, its recomputed counts,
-  the infrastructure it needs, and its status.
-- **`open_questions`** — the four §10 rows owed to 9.2 plus the residual on a fifth, each with the
-  exact experiment that would settle it.
-- **`obligations`** — 31 "Roadmap 9.2 should/owes/owns" claims collected out of §3 prose and §9
-  records by the maintainer decision of 2026-08-28, each naming the record it came from.
+- **`scenarios`** — 20 rows, one per scenario-table row, each naming its upstream files, its
+  recomputed counts, the infrastructure it needs, and its status.
+- **`open_questions`** — the four open questions owed to the live matrix plus the residual on a
+  fifth, each with the exact experiment that would settle it.
+- **`obligations`** — 31 "a live run should/owes/owns" claims collected out of status prose and
+  per-capability records by the maintainer decision of 2026-08-28, each naming the record it came
+  from.
 
 Four obligations are `out_of_scope` with an argument, because not everything a live run touches is
 an integration question: TLS (KERIA listens on plain HTTP, so a live run exercises none of it),
 `TokioClock` (a paused-time test proves the delegation better than real elapsed time), credential
-bounds (a resource-limit question, → 9.3), and clock skew (a loopback run measures ≈0, so the row
-may only make a narrowed claim).
+bounds (a resource-limit question, → the fuzz and security review), and clock skew (a loopback run
+measures ≈0, so the row may only make a narrowed claim).
 
 ## `observations/` — what a deployment actually answered
 
@@ -122,7 +123,7 @@ it turns "it passed on the machine that ran it" into something diffable.
 | `observations/challenge.json` | The challenge round: BIP39 word counts at both strengths, the signed response as an exchange message, the verification answering with the very message sent, and the contact's authenticated challenge | `challenge_vectors.rs` (3) |
 | `observations/endroles_by_aid.json` | A two-member multisig inception, the group end-role round over `/multisig/rpy`, and a third party's five `/endroles/{aid}` reads — the group's roles naming exactly both agents | `endroles_by_aid_vectors.rs` (5) |
 | `observations/multisig_inception.json` | Two groups incepted by two members — witnessed at threshold two and witnessless at zero — with the members listings, including the witnessless one upstream dare not assert against `keria#189` | `multisig_inception_vectors.rs` (4) |
-| `observations/passcode_rotation.json` | Not an upstream scenario: two passcode rotations, each signed with the key it introduces and accepted (`204`), with the new passcode alone finding no agent, the replaced passcode refused at connect, and a reconnect by the persisted controller prefix after each rotation (ADR `0034`) | `passcode_rotation_vectors.rs` (3) |
+| `observations/passcode_rotation.json` | Not an upstream scenario: two passcode rotations, each signed with the key it introduces and accepted (`204`), with the new passcode alone finding no agent, the replaced passcode refused at connect, and a reconnect by the persisted controller prefix after each rotation | `passcode_rotation_vectors.rs` (3) |
 | `observations/multisig_join.json` | A third member entering a group in KERI's two steps: committed into rotation authority, then seated by a rotation he joins by rebuilding it and comparing SAIDs before `groups().join` | `multisig_join_vectors.rs` (3) |
 
 Three findings are worth reading the files for. Asked for a page past the end of a collection, KERIA
@@ -153,7 +154,7 @@ of the port's multisig machinery, read back by a third party). **Multisig incept
 `partly_observed` — wave 13 recorded the inception file whole and wave 14 the join spine, a third
 member rebuilding the rotation he was shown and comparing SAIDs before joining; only the
 four-client replacement case remains. The other seven remain `unobserved`.
-"How much of 9.2 remains" stays a number a test prints rather than a judgement. Nothing here
+"How much of the matrix remains" stays a number a test prints rather than a judgement. Nothing here
 claims evidence that does not exist — the audit requires every path a row names to be on disk,
 and forbids a row from naming evidence while claiming to be unanswered.
 

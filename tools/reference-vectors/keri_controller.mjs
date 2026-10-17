@@ -387,7 +387,7 @@ const quirks = {
       rotation_prior: data.rot.p,
       prior_is_interaction_said: data.rot.p === controller.serder.sad["d"],
       note: "`rotate` never passes a sequence number, so the event claims s=1 whatever the log's actual position, while its prior digest points at the current event",
-      rust_decision: "not reproduced: built at the current sequence number plus one over the current event, which keripy accepts where it refuses this, and the applied rotation becomes the controller's current event (Roadmap 8.9, ADR 0034; fixtures/client-passcode-rotation-keripy)",
+      rust_decision: "not reproduced: built at the current sequence number plus one over the current event, which keripy accepts where it refuses this, and the applied rotation becomes the controller's current event (fixtures/client-passcode-rotation-keripy)",
     };
   })(),
   second_rotation_derives_from_the_original_salt: (() => {

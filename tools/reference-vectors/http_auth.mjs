@@ -1,9 +1,9 @@
 // Records the pinned signify-ts checkout's complete authenticated-request pipeline.
 //
-// Roadmap 3.10 verified `siginput` and `Authenticater` in isolation, with `created` supplied as a
-// parameter. What is left is the *composition* `SignifyClient.fetch` performs around them: stamp
-// `Signify-Resource` and `Signify-Timestamp`, declare a content type, sign, send, then check the
-// response's resource header and verify its signature.
+// The `authing` port verified `siginput` and `Authenticater` in isolation, with `created` supplied
+// as a parameter. What is left is the *composition* `SignifyClient.fetch` performs around them:
+// stamp `Signify-Resource` and `Signify-Timestamp`, declare a content type, sign, send, then check
+// the response's resource header and verify its signature.
 //
 // Every earlier generator had to mask `Signature`, `Signature-Input`, and `Signify-Timestamp`,
 // because each is a clock reading or covers one. This one **pins the clock**: `globalThis.Date` is
@@ -12,8 +12,8 @@
 // makes this the first byte-exact evidence for the composed request rather than for its parts.
 //
 // The reference performs no freshness check anywhere — `verify` reads `created` only to rebuild the
-// signature base — so that absence is recorded as a scan, as Roadmap 5.4 recorded the absence of
-// `Retry-After`.
+// signature base — so that absence is recorded as a scan, as the `http-retry` fixture recorded the
+// absence of `Retry-After`.
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -414,7 +414,7 @@ const quirks = {
   the_query_is_stripped_before_signing: (() => ({
     url: withQuery?.request?.url ?? null,
     note: "`this.authn.sign(headers, method, path.split('?')[0])` signs the path without its query, so two requests differing only in their query have the same signature base",
-    rust_decision: "reproduced: `@path` is the path alone, which is also what Roadmap 5.1's `RequestUrl::path` returns",
+    rust_decision: "reproduced: `@path` is the path alone, which is also what the transport's `RequestUrl::path` returns",
   }))(),
   covered_fields_are_fixed: {
     fields: constants.default_fields,
@@ -423,13 +423,13 @@ const quirks = {
   },
   headers_are_appended_not_set: {
     note: "`sign` uses `headers.append` for both signature headers, so signing the same collection twice yields two comma-joined values rather than an error",
-    rust_decision: "Roadmap 3.9's `Headers` refuses a duplicate name, so a request signed twice does not build",
+    rust_decision: "`keri-http-auth`'s `Headers` refuses a duplicate name, so a request signed twice does not build",
   },
   a_failed_verification_and_a_missing_header_are_the_same: {
     missing_signature: responseCases.find((entry) => entry.name === "no_signature")?.accepted ?? null,
     missing_input: responseCases.find((entry) => entry.name === "no_signature_input")?.accepted ?? null,
     note: "`verify` returns `false` for an absent header and throws for a bad signature, and `SignifyClient.fetch` turns both into the single message `response verification failed`",
-    rust_decision: "each is a distinct typed error, as Roadmap 3.10 already decided",
+    rust_decision: "each is a distinct typed error, as request authentication already decided",
   },
   the_resource_check_is_an_equality_on_an_untyped_header: {
     note: "`this.agent?.pre === res.headers.get('signify-resource')` compares a prefix to a raw header, so an absent header compares against `null` and a client with no agent compares `undefined` — neither is distinguished from a genuine mismatch",

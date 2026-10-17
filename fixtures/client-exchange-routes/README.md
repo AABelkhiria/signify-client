@@ -23,12 +23,13 @@ the return of a pure function on a literal, so the generator is instant.
 
 ## What the evidence is
 
-Roadmap 8.1 ports the half of `exchanging.ts` that Roadmap 7.7 left: thirteen route constants,
-thirteen `*Exchange` resource variants, eight `*Group` variants, thirteen `is*` type guards, and
-thirteen `assert*` assertions — forty-seven exported symbols, plus the private `assertRoute`.
+This fixture ports the half of `exchanging.ts` that `client-exchanges` left: thirteen route
+constants, thirteen `*Exchange` resource variants, eight `*Group` variants, thirteen `is*` type
+guards, and thirteen `assert*` assertions — forty-seven exported symbols, plus the private
+`assertRoute`.
 
-**The unit under test is a type system**, which no other item in this port has been, so the evidence
-has two halves.
+**The unit under test is a type system**, which no other fixture in this port has been, so the
+evidence has two halves.
 
 The **executed** half. Each of the twenty-six functions was called on a message of its own route, on
 a message of another route, on a message whose declared payload is simply absent, and on six shapes
@@ -106,14 +107,15 @@ the enum simply subsumes.
   `e: { rev, d? }` where the generated schema's `MultisigRevokeEmbeds` declares `{ rev, anc }`, so a
   caller narrowing through `assertMultisigRev` cannot reach the anchoring key event — while the
   registry and issuance variants, whose schema counterparts carry the same field, both expose it.
-  **Roadmap 4.1 modelled the schema and this port keeps the anchor.**
+  **`ExchangeEmbed` models the schema and this port keeps the anchor.**
 - **A grant and an issuance declare the same embed.** `IpexGrantExchange.e` and
   `MultisigIssExchange.e` are structurally identical, so one shape serves two routes on opposite
   sides of the table. **Reused rather than duplicated**, which is why eight schema embed shapes
   cover nine of the thirteen routes.
 - **The schema models no IPEX embed.** Its `ExnEmbeds` union has exactly eight members, all
-  multisig; an offer's `{ acdc }` is not among them. **Modelled here** rather than added to Roadmap
-  4.1's enum, because widening a verified untagged enum would change how existing documents decode.
+  multisig; an offer's `{ acdc }` is not among them. **Modelled here** rather than added to
+  `ExchangeEmbed`, because widening a verified untagged enum would change how existing documents
+  decode.
 - **The schema names no group attribute.** `gid`, `smids`, and `rmids` appear **zero** times in it,
   so the `a` block shapes exist only in the hand-written variants — which is why they are checked
   against what the integration tests send. **One `GroupAttributes` value here**, with the route

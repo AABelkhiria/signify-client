@@ -893,20 +893,20 @@
       "expect(result.every((r: EndRole) => r.role === 'agent')).toBe(true)",
       "const oobiUrl = groupOobi.oobis[0].split('/agent/')[0]"
     ],
-    "note": "unlike Roadmap 6.9's and 6.10's families this one has real pinned unit coverage: three cases in `test/app/coring.test.ts` assert five exact paths, both `resolve` body fields, and both HTTP methods. Every one of those assertions is recomputed here from the reference's own driven output. `endroles-by-aid.test.ts` supplies the rest: the unknown-AID case that must answer with an empty list, and the role filter."
+    "note": "unlike the registries and schemas families this one has real pinned unit coverage: three cases in `test/app/coring.test.ts` assert five exact paths, both `resolve` body fields, and both HTTP methods. Every one of those assertions is recomputed here from the reference's own driven output. `endroles-by-aid.test.ts` supplies the rest: the unknown-AID case that must answer with an empty list, and the role filter."
   },
   "reference_quirks": {
     "the_name_is_not_encoded": {
       "path": "/identifiers/a/b?c=d/oobis?role=agent",
       "expression": "path = `/identifiers/${name}/oobis?role=${role}`",
-      "note": "`get` concatenates the alias straight into the path, so `get('a/b?c=d', 'agent')` addresses `/identifiers/a/b?c=d/oobis?role=agent` — a different resource, and a different `@path` for Roadmap 3.10 to sign",
-      "rust_decision": "refused by construction: Roadmap 5.3's builder encodes every path component exactly once and offers no way to skip it, which is the rule Roadmap 6.6 applied to the same alias in the same path"
+      "note": "`get` concatenates the alias straight into the path, so `get('a/b?c=d', 'agent')` addresses `/identifiers/a/b?c=d/oobis?role=agent` — a different resource, and a different `@path` for request authentication to sign",
+      "rust_decision": "refused by construction: the request builder encodes every path component exactly once and offers no way to skip it, which is the rule the identifiers endpoint applied to the same alias in the same path"
     },
     "the_role_is_interpolated_into_the_query": {
       "path": "/identifiers/aid/oobis?role=agent&extra=1",
       "expression": "path = `/identifiers/${name}/oobis?role=${role}`",
       "note": "`get` builds its query by string interpolation rather than with `URLSearchParams`, so a role holding `&` adds a query parameter of the caller's choosing — `get('aid', 'agent&extra=1')` sends `?role=agent&extra=1`",
-      "rust_decision": "refused by construction: the role is written through Roadmap 5.3's `parameter`, which percent-encodes the value exactly once, so a role can never introduce a second parameter whatever it holds"
+      "rust_decision": "refused by construction: the role is written through the request builder's `parameter`, which percent-encodes the value exactly once, so a role can never introduce a second parameter whatever it holds"
     },
     "the_role_defaults_to_agent": {
       "parameters": [
@@ -923,7 +923,7 @@
         }
       ],
       "note": "`get(name, role = 'agent')` writes the default into the query, so an omitted role is still an observable request — `oobis().get('delegate')` sends `?role=agent`",
-      "rust_decision": "the role is a required argument and `DEFAULT_ROLE` names the reference's value, so what reaches the query is visible at the call site. Roadmap 6.7 made the same choice for `QuerySequence`, and Roadmap 3.6 for a reply's timestamp."
+      "rust_decision": "the role is a required argument and `DEFAULT_ROLE` names the reference's value, so what reaches the query is visible at the call site. The key states endpoint made the same choice for `QuerySequence`, and the reply event builder for a reply's timestamp."
     },
     "the_oobi_is_never_validated": {
       "empty": "{\"url\":\"\"}",
@@ -931,7 +931,7 @@
       "with_control_bytes": "{\"url\":\"http://oobiurl.com/\\n\\r x\"}",
       "expression": "data: any = { url: oobi, }",
       "note": "`resolve` takes `oobi: string` and sends it unchallenged, so an empty string, a sentence, or a value carrying a newline all become `{\"url\":…}` and the agent is asked to fetch them",
-      "rust_decision": "**refused**: the argument is `signify_http::transport::RequestUrl`, the same non-normalizing validator Roadmap 5.1 built — an absolute `http`/`https` URL of visible ASCII, no fragment, bounded at 2 KiB — so an OOBI that could not resolve is a caller error rather than a request. It preserves its bytes exactly, which matters because the agent fetches what it is given. Every OOBI the pinned tree resolves is accepted."
+      "rust_decision": "**refused**: the argument is `signify_http::transport::RequestUrl`, the same non-normalizing validator the transport uses — an absolute `http`/`https` URL of visible ASCII, no fragment, bounded at 2 KiB — so an OOBI that could not resolve is a caller error rather than a request. It preserves its bytes exactly, which matters because the agent fetches what it is given. Every OOBI the pinned tree resolves is accepted."
     },
     "an_empty_alias_is_written": {
       "body": "{\"url\":\"http://oobiurl.com\",\"oobialias\":\"\"}",
@@ -944,7 +944,7 @@
       "path": "/endroles/a/b?c=d",
       "expression": "path = role ? `/endroles/${aid}/${role}` : `/endroles/${aid}`",
       "note": "`endroles` concatenates its AID into the path with no encoding, so `endroles('a/b?c=d')` addresses `/endroles/a/b?c=d`",
-      "rust_decision": "refused twice over: the argument is Roadmap 3.4's validated `IdentifierPrefix` rather than a string, and the builder would encode it exactly once regardless. A qualified prefix's alphabet is URL-safe Base64, so every real AID reaches the path byte-identical — including the `EXXXX…` the integration test asks about."
+      "rust_decision": "refused twice over: the argument is a validated `IdentifierPrefix` rather than a string, and the builder would encode it exactly once regardless. A qualified prefix's alphabet is URL-safe Base64, so every real AID reaches the path byte-identical — including the `EXXXX…` the integration test asks about."
     },
     "the_unknown_aid_is_not_a_prefix": {
       "literal": "EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -953,7 +953,7 @@
       "path": "/endroles/EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
       "valid_path": "/endroles/EAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
       "note": "`endroles-by-aid.test.ts` asks about `EXXX…X`, which is 43 characters where a qualified `E` prefix is 44 — so the value the reference's own integration test sends is not an identifier prefix at all, and it reaches the path unchecked",
-      "rust_decision": "recorded verbatim and proven refused, which is what Roadmap 3.8 and Roadmap 6.9 did with the same situation. The case that test is actually making — an AID the agent has never heard of answers with an empty list rather than a failure — is reproduced with `EAXXX…X`, one character longer and a valid prefix, whose recorded path is here beside it."
+      "rust_decision": "recorded verbatim and proven refused, which is what exchange message construction and the registries endpoint did with the same situation. The case that test is actually making — an AID the agent has never heard of answers with an empty list rather than a failure — is reproduced with `EAXXX…X`, one character longer and a valid prefix, whose recorded path is here beside it."
     },
     "the_endrole_role_is_a_raw_path_segment": {
       "path": "/endroles/ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK/../identifiers",
@@ -972,7 +972,7 @@
       ],
       "declaration": "await res.json()",
       "note": "all three methods return `res.json()` cast to a declared type, so an answer of any shape reaches the caller as an `OOBI`, an `OOBIOperation`, or an `EndRole[]`",
-      "rust_decision": "decoded: each recorded wrong-shaped answer is proven refused, which is the rule Roadmap 6.8 and 6.10 applied to their own answers"
+      "rust_decision": "decoded: each recorded wrong-shaped answer is proven refused, which is the rule the config and schemas endpoints applied to their own answers"
     },
     "resolve_does_not_wait": {
       "declaration": "method = 'POST'",
@@ -1024,7 +1024,7 @@
         "scanned_files": 117
       },
       "note": "`resolve` returns the operation the agent created and never polls it; every caller in the pinned tree immediately hands it to `waitOperation`, which is `Operations.wait`",
-      "rust_decision": "reproduced exactly. Polling is Roadmap 7.2's item — Roadmap 5.4 already built and pinned the schedule `Operations.wait` uses — so `resolve` returns the typed operation and the caller drives it."
+      "rust_decision": "reproduced exactly. Polling is operation waiting's concern — the retry policy already built and pinned the schedule `Operations.wait` uses — so `resolve` returns the typed operation and the caller drives it."
     }
   }
 }

@@ -16,8 +16,8 @@ signify-ts's `Controller.rotate` never passes a sequence number, so its passcode
 claims `s = "1"` with the controller's current event as prior. Its only test mocks the agent. A
 connected client's log already holds the delegation-approval interaction at sequence one, and
 whether the rotation is valid there is decided by KERI event validation, which signify-ts does not
-implement and KERIA delegates to keripy. ADR `0009` scopes keripy to exactly this kind of question;
-ADR `0034` records the decision the verdicts support.
+implement and KERIA delegates to keripy. keripy is a secondary reference for exactly this kind of
+question, and this port's rotation follows its verdicts.
 
 ## Generation
 

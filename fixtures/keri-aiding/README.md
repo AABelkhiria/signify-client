@@ -47,15 +47,15 @@ byte-for-byte. Random (randy) keys cannot be pinned and are recorded by shape.
 
 - **The non-transferable rewrites are silent.** `create` forces `ncount = 0`, `nsith = 0`, and
   `dcode = Ed25519N` whatever was passed; the fixture proves the overridden arguments change
-  nothing. Rust keeps the forced values as defaults and refuses explicit contradictions
-  (ADR `0015`, ADR `0017`).
+  nothing. Rust keeps the forced values as defaults and refuses explicit contradictions.
 - **A data-less interact anchors `[null]`** — a seal that seals nothing, committed into the SAID.
-  Unrepresentable in Rust, where an anchor is a field map (Roadmap 3.5); an anchor-less
-  interaction writes `a: []`.
+  Unrepresentable in Rust, where an anchor is a field map; an anchor-less interaction writes
+  `a: []`.
 - **`create` wraps `data` unconditionally**, so a list argument nests a list inside the anchors.
   Unrepresentable: the anchor is one field map.
 - **`pre`, `keys`, and `ndigs` are accepted and never read** by `create`; no equivalent exists.
-- **The reply timestamp defaults to the system clock**; Rust requires it, continuing Roadmap 3.6.
+- **The reply timestamp defaults to the system clock**; Rust requires it, as the reply event builder
+  does.
 - **A non-transferable identifier's stored `dcode` is `B`** — the basic prefix code written into
   the field that names the *digest* algorithm, because `create` reuses one variable for both. The
   digest list it would govern is empty either way; Rust records the digest it actually uses (`E`),

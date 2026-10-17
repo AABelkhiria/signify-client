@@ -48,7 +48,7 @@ signatures — which do not depend on any ciphertext — are compared byte for b
 
 - **The rotation payload is sealed to the prior passcode's encryption key**, and the sealed salt
   is the *old* salt — `sxlt_opens_under_new_passcode` is `false` from the reference itself.
-  Reproduced loudly (the workflow decision belongs to Roadmap 8.9); see ADR `0016`.
+  Reproduced loudly (the workflow decision belongs to passcode rotation).
 - **The rotation event always claims sequence one**, whatever the log's position, while its prior
   digest points at the current event.
 - **A second rotation derives from the original salt**: `rotate` never updates the stored salter

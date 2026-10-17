@@ -1,20 +1,20 @@
 // Records the pinned signify-ts checkout's identifier endpoint family.
 //
-// Roadmap 6.6 ports the HTTP half of `src/keri/app/aiding.ts` — `list`, `get`, `update`, the
+// The Rust port covers the HTTP half of `src/keri/app/aiding.ts` — `list`, `get`, `update`, the
 // submission halves of `create`, `interact`, `rotate`, `addEndRole`, and `addLocScheme`,
 // `members`, and the `EventResult` class — together with `SignifyClient.createSignedRequest` from
-// `src/keri/app/clienting.ts`, which `PORTING.md` §5.6 assigns here because it reaches an
-// identifier's keeper through `identifiers().get(alias)`.
+// `src/keri/app/clienting.ts`, which belongs here because it reaches an identifier's keeper
+// through `identifiers().get(alias)`.
 //
-// As with Roadmap 6.5's fixture, this one **drives the reference** rather than re-expressing it.
-// `Identifier` takes an `IdentifierDeps` — one `fetch` method, a `pidx`, and a manager — so the
-// real class is handed a recorder, exactly as the pinned `aiding.test.ts` does, and every request
-// it makes is captured with its path, method, headers, and the **exact body bytes**
-// `SignifyClient.fetch` would `JSON.stringify`.
+// As with the `client-operations` fixture, this one **drives the reference** rather than
+// re-expressing it. `Identifier` takes an `IdentifierDeps` — one `fetch` method, a `pidx`, and a
+// manager — so the real class is handed a recorder, exactly as the pinned `aiding.test.ts` does,
+// and every request it makes is captured with its path, method, headers, and the **exact body
+// bytes** `SignifyClient.fetch` would `JSON.stringify`.
 //
 // `createSignedRequest` needs a whole connected client, so the second half of this generator
-// replaces `globalThis.fetch` and pins the clock and the agent's key, as Roadmap 6.4's fixture
-// did, and drives the real `SignifyClient` through `connect` and then the signing call.
+// replaces `globalThis.fetch` and pins the clock and the agent's key, as the `client-lifecycle`
+// fixture did, and drives the real `SignifyClient` through `connect` and then the signing call.
 //
 // Sealed values (a salty keeper's `sxlt`) draw a fresh ephemeral key per call, so a recorded body
 // masks every one of them with `<SXLT>` and records what each opens to. Everything else in a body
@@ -910,28 +910,28 @@ const quirks = {
     },
     note: "`get` and `update` call `encodeURIComponent`; `interact`, `rotate`, `addEndRole`, `addLocScheme`, and `members` concatenate the name raw, so an alias holding a slash addresses a different resource and changes what a signature covers",
     rust_decision:
-      "refused by construction: Roadmap 5.3's `ResourcePath` encodes every dynamic component exactly once and offers no way to skip it, so all seven paths agree with the two the reference encodes",
+      "refused by construction: the request builder's `ResourcePath` encodes every dynamic component exactly once and offers no way to skip it, so all seven paths agree with the two the reference encodes",
   },
   list_range_is_inclusive_and_unbounded: {
     default_header: calls.find((call) => call.name === "list_default")?.request?.headers ?? null,
     explicit_header: calls.find((call) => call.name === "list_explicit_range")?.request?.headers ?? null,
     defaults: declarations.list_defaults,
     note: "`list` sends `aids=${start}-${end}` with no validation at all: a negative start, a fractional end, or an end below the start are all sent as written",
-    rust_decision: "Roadmap 5.3's `ItemRange` validates start ≤ end at construction and carries unsigned integers, so an unsatisfiable window is unrepresentable",
+    rust_decision: "the request builder's `ItemRange` validates start ≤ end at construction and carries unsigned integers, so an unsatisfiable window is unrepresentable",
   },
   list_without_content_range_reads_undefined: {
     result: calls.find((call) => call.name === "list_without_content_range")?.result ?? null,
     error: calls.find((call) => call.name === "list_without_content_range")?.error ?? null,
     note: "`parseRangeHeaders` returns `{start: 0, end: 0, total: 0}` for an absent header, so a listing with no content-range reports a total of zero while carrying entries",
     rust_decision:
-      "the range is `Option<ContentRange>` — Roadmap 5.3 already decided an absent header is `None` rather than three zeroes — so a caller can tell an empty window from an unreported one",
+      "the range is `Option<ContentRange>` — the request builder already decided an absent header is `None` rather than three zeroes — so a caller can tell an empty window from an unreported one",
   },
   get_requires_key_state_by_throwing: {
     refused: calls.find((call) => call.name === "get_pending_refused")?.error ?? null,
     accepted: calls.find((call) => call.name === "get_pending_accepted")?.result ?? null,
     note: "`requireKeyState` throws `No key state for identifier ${name}` and is selected by a boolean parameter with three overload signatures",
     rust_decision:
-      "two methods rather than a flag: `get` returns an `AcceptedHab` and `get_any` returns the `Hab` enum Roadmap 4.1 built, whose pending variant simply has no key state to demand",
+      "two methods rather than a flag: `get` returns an `AcceptedHab` and `get_any` returns the shared `Hab` enum, whose pending variant simply has no key state to demand",
   },
   update_body_is_the_whole_info_object: {
     body: calls.find((call) => call.name === "update")?.request?.body ?? null,
@@ -950,7 +950,7 @@ const quirks = {
     body: calls.find((call) => call.name === "rotate")?.request?.body ?? null,
     expression: declarations.rotate_body,
     note: "`rotate` defaults `states` and `rstates` to `[]` *before* mapping them, so `smids` and `rmids` are always written — as empty arrays for a single-signature identifier — where `create` omits them",
-    rust_decision: "reproduced: the asymmetry is what the agent receives, and Roadmap 4.6 already exposed the two accessors with exactly these presence rules",
+    rust_decision: "reproduced: the asymmetry is what the agent receives, and the identifier artifact already exposed the two accessors with exactly these presence rules",
   },
   pidx_advances_on_the_client: {
     walk: pidxWalk,
@@ -972,7 +972,7 @@ const quirks = {
     scan: scan("createSignedRequest"),
     note: "`createSignedRequest` reaches an identifier's keeper through `identifiers().get(alias)`, signs with `keeper.signers[0]`, stamps the *identifier's* prefix rather than the controller's, and mutates the caller's `RequestInit` in place",
     rust_decision:
-      "the Rust method takes a built `Request` and returns a new one, so the caller's value is untouched; the signing itself is Roadmap 5.5's `SigningTransport::sign_request`, which that item exposed for exactly this call",
+      "the Rust method takes a built `Request` and returns a new one, so the caller's value is untouched; the signing itself is `SigningTransport::sign_request`, which was exposed for exactly this call",
   },
   randy_parameters_write_an_undeclared_field: {
     parameters: declarations.randy_parameters,
@@ -981,19 +981,19 @@ const quirks = {
     reloaded_from: declarations.reloaded_randy_transferability,
     note: "a randy keeper's `params()` writes `nxts`, `prxs`, and a `transferable` the schema's `RandyKeyState` does not declare; on reload the value comes from the identifier's prefix rather than from the stored block, so it is derivable and never read back",
     rust_decision:
-      "reproduced from the same source the reference reloads it from — the request's transferability when creating or rotating, the identifier's prefix when interacting — because Roadmap 4.1's `RandyState` is schema-faithful and carries no such field",
+      "reproduced from the same source the reference reloads it from — the request's transferability when creating or rotating, the identifier's prefix when interacting — because the shared `RandyState` type is schema-faithful and carries no such field",
   },
   non_transferable_stores_the_prefix_code_as_its_digest_code: {
     body: calls.find((call) => call.name === "create_non_transferable")?.request?.body ?? null,
     stored_dcode: "B",
     note: "`create` reuses one `dcode` variable for the prefix derivation and for the stored digest code, so a non-transferable identifier's record names the basic prefix code `B` in the field that says which digest algorithm commits to its next keys — a field governing a list that is empty either way",
     rust_decision:
-      "not reproduced: Roadmap 4.6 recorded this and stores the digest code actually used (`E`), so the request body differs in exactly that one field. A record whose `dcode` is not a digest code does not reload here.",
+      "not reproduced: the `keri-aiding` fixture recorded this and the Rust port stores the digest code actually used (`E`), so the request body differs in exactly that one field. A record whose `dcode` is not a digest code does not reload here.",
   },
   mock_identifier_state_names_two_key_managers: {
     note: "`test/app/test-utils.ts`'s `createMockIdentifierState` writes `extern: extern ?? {}` beside the algorithm's own field, so every record it produces names two key managers",
     rust_decision:
-      "refused: Roadmap 4.1's `Hab` requires exactly one, and an `extern` block with no `extern_type` is not a key-manager state at all. The records in this fixture name one, as a KERIA response does.",
+      "refused: the shared `Hab` type requires exactly one, and an `extern` block with no `extern_type` is not a key-manager state at all. The records in this fixture name one, as a KERIA response does.",
   },
 };
 

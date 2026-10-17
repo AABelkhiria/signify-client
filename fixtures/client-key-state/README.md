@@ -19,18 +19,20 @@ node tools/reference-vectors/client_key_state.mjs --check   # verify determinism
 
 ## Determinism
 
-The **clock** and the **agent's key** are pinned, as Roadmap 6.4's fixture pinned them, so a signed
-request is exact. Nothing in either family derives an identifier key, so the generator is fast.
+The **clock** and the **agent's key** are pinned, as the `client-lifecycle` fixture pinned them, so
+a signed request is exact. Nothing in either family derives an identifier key, so the generator is
+fast.
 
 ## What the evidence is
 
-Roadmap 6.7 ports `KeyEvents.get` and `KeyStates.{get,list,query}`. `Config` lives in the same
-upstream file and is Roadmap 6.8; nothing here touches it.
+This port covers `KeyEvents.get` and `KeyStates.{get,list,query}`. `Config` lives in the same
+upstream file and has its own `client-config` fixture; nothing here touches it.
 
 Both classes take a whole `SignifyClient` rather than a narrow dependency interface — unlike
-`Operations` and `Identifier`, which take one — so this fixture drives the reference the way
-Roadmap 6.4's did: `globalThis.fetch` is replaced with a recorder that answers and signs as a KERIA
-agent would, and the real client is walked through boot, connect, and then all eleven calls.
+`Operations` and `Identifier`, which take one — so this fixture drives the reference the way the
+`client-lifecycle` fixture did: `globalThis.fetch` is replaced with a recorder that answers and
+signs as a KERIA agent would, and the real client is walked through boot, connect, and then all
+eleven calls.
 
 `declarations` holds the four path expressions, the query body literal, `query`'s parameter list
 and its own JSDoc, and the schema's `QueryMetadata.sn`, `QueryMetadata.anchor`, `Anchor`, `Seal`,
@@ -53,15 +55,16 @@ query delimiters, and a two-digit sequence number. The reference validates none 
 - **No query value is encoded.** All three read paths interpolate their prefix straight in, so
   `get("E&pre=EOTHER#x")` addresses `/events?pre=E&pre=EOTHER#x` — a second parameter and a
   fragment. **Refused twice over**: the argument is a validated `IdentifierPrefix` rather than a
-  string, and Roadmap 5.3's builder would encode it exactly once regardless. Because a qualified
+  string, and the request builder would encode it exactly once regardless. Because a qualified
   prefix's alphabet is URL-safe Base64, encoding leaves every real prefix byte-identical to what
   the reference sends.
 - **An empty listing addresses `/states?`.** `list([])` joins nothing and still interpolates the
-  question mark — the same defect Roadmap 6.5 recorded for `/operations?`. **Not reproduced**, on
-  6.5's own three grounds; here it is `ClientError::EmptyKeyStateListing` before anything is sent,
-  because asking for no key states is a caller mistake rather than a request.
-- **A listing is unbounded.** `list` maps and joins however many prefixes it is handed. Roadmap
-  5.3's builder bounds a query at 32 parameters and 1,024 bytes, so about twenty prefixes fit and
+  question mark — the same defect the `client-operations` fixture recorded for `/operations?`. **Not
+  reproduced**, on that fixture's own three grounds; here it is `ClientError::EmptyKeyStateListing`
+  before anything is sent, because asking for no key states is a caller mistake rather than a
+  request.
+- **A listing is unbounded.** `list` maps and joins however many prefixes it is handed. The
+  request builder bounds a query at 32 parameters and 1,024 bytes, so about twenty prefixes fit and
   more is a typed refusal rather than a request a server rejects.
 - **The sequence number has three spellings and no settled base.** The parameter is declared
   `string`, its own JSDoc says `number`, and the schema's `QueryMetadata.sn` is a `number` — while
@@ -72,25 +75,25 @@ query delimiters, and a two-digit sequence number. The reference validates none 
   that field back with a base-ten `parseInt`. This port therefore **does not guess**:
   `QuerySequence` is a two-variant enum, `Decimal` or `Hexadecimal`, so the rendering is the
   caller's and the ambiguity is visible at the call site. Both variants reproduce every recorded
-  call byte for byte, because every one is below ten. `PORTING.md` §10 carries this as an open
-  question owed a live confirmation at Roadmap 9.2.
+  call byte for byte, because every one is below ten. This stays an open question, owed a
+  live confirmation against KERIA.
 - **The anchor has three shapes.** `anchor` is `any`. The pinned unit test passes a bare SAID
   string; every integration caller passes a `Seal` (`{i, s, d}`); the schema's
   `QueryMetadata.anchor` is an `Anchor` (`{pre, sn, d}`). Only the integration shape has ever
   reached a live KERIA, so the Rust request takes a `Seal`. The unit test's string is recorded
   verbatim here and is unrepresentable; the schema's `Anchor` stays what it always was — the
-  *response* metadata's type, which Roadmap 4.1 already carries.
+  *response* metadata's type, which the shared API types already carry.
 - **A query body omits what it was not given.** `query` writes `pre` always and adds `sn` and
   `anchor` only when defined. Reproduced exactly: the body is an ordered `Sad` and an absent value
   is not written.
 - **Both families take the whole client**, where `Operations` takes an `OperationsDeps` and
   `Identifier` an `IdentifierDeps` — so neither can be exercised upstream without a full client.
-  Here both are borrowed handles over a `ConnectedClient`, as Roadmap 6.5 settled.
+  Here both are borrowed handles over a `ConnectedClient`, as the operations endpoint settled.
 
 ## On the keripy corroboration
 
-ADR `0009` scopes keripy as a **governing** reference only for capabilities signify-ts cannot emit,
-and the sequence number's base is not one of those. The `keripy` block under
+keripy is a **governing** reference only for capabilities signify-ts cannot emit, and the sequence
+number's base is not one of those. The `keripy` block under
 `reference_quirks.the_sequence_number_has_three_spellings.base` is recorded as *corroborating
 evidence* and labelled as such: keripy's own HTTP surface reads an `sn` query parameter with
 falcon's `get_param_as_int`, which parses base ten. KERIA is a different service, so this narrows
