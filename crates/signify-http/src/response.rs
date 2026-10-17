@@ -5,8 +5,8 @@
 //! `res.ok` is false, interpolating the whole response body into a message string. Every endpoint
 //! module then calls `await res.json()`, which parses the body regardless of what the server
 //! declared it to be. And `parseRangeHeaders` in `core/httping.ts` — the last capability of that
-//! file left unported after Roadmap 3.10 — reads `Content-Range` with four `parseInt` calls that
-//! cannot fail, only produce a `NaN`.
+//! file left unported after request authentication — reads `Content-Range` with four `parseInt`
+//! calls that cannot fail, only produce a `NaN`.
 //!
 //! # What is decided differently here, and why
 //!
@@ -54,9 +54,9 @@ pub const MAX_RANGE_DIGITS: usize = 20;
 ///
 /// RFC 9110 would require `start <= end < total`, but KERIA's unit is not `bytes` and no evidence
 /// in this repository establishes that it follows that discipline; the reference checks nothing at
-/// all. Confirming it against a live deployment belongs to Roadmap 9.2, so this type reports the
-/// three numbers exactly as sent and leaves the judgement to a caller that knows what it asked
-/// for.
+/// all. Confirming it against a live deployment belongs to the KERIA integration runs, so this
+/// type reports the three numbers exactly as sent and leaves the judgement to a caller that knows
+/// what it asked for.
 ///
 /// ```
 /// use signify_http::request::RangeUnit;

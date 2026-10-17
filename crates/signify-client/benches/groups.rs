@@ -10,7 +10,8 @@
 //! **The three addresses**, which carry one caller value each.
 //!
 //! **The listing**, from one proposal to sixty-four, decoded and then classified — because a member
-//! polling a busy group pays both costs together and Roadmap 8.1's check is the larger of the two.
+//! polling a busy group pays both costs together and the route table's check is the larger of the
+//! two.
 //!
 //! **The two bodies**, which are the smallest requests any family in this crate sends.
 

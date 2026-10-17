@@ -3,11 +3,10 @@
 //! # Why this is a struct and not a trait
 //!
 //! The reference declares a `KeyStore` interface with fifteen methods and exactly one
-//! implementation, an in-memory `Keeper`. `AGENTS.md` §10 asks that a public trait not be
-//! introduced ahead of a second implementation, and `ARCHITECTURE.md` §6.5 asks only that storage
-//! be *injected* rather than ambient — which [`KeyManager::restore`](super::KeyManager::restore)
-//! does by taking a store the caller assembled. A trait belongs here when a persistent store
-//! exists, which is not before Phase 9.
+//! implementation, an in-memory `Keeper`. A public trait should not be introduced ahead of a second
+//! implementation, and storage need only be *injected* rather than ambient — which
+//! [`KeyManager::restore`](super::KeyManager::restore) does by taking a store the caller assembled.
+//! A trait belongs here once a persistent store exists.
 //!
 //! # What is stored, and what is not
 //!
@@ -69,7 +68,7 @@ pub struct PrefixParameters {
 /// One ordered set of public keys, and where it sits in the identifier's sequence.
 ///
 /// This is the reference's `PubLot`, minus its `dt` field: that timestamp is written three times
-/// and read nowhere, and a protocol crate does not read the clock. See `PORTING.md` §9.
+/// and read nowhere, and a protocol crate does not read the clock. See the `keri-manager` fixture.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct PublicKeyLot {
     /// Qualified public keys, in signing order.
@@ -104,7 +103,7 @@ pub struct PrefixSituation {
 /// Everything needed to derive one key again, for an identifier held without encryption.
 ///
 /// This is the reference's `PubPath`. It carries no derivation code, because this port derives
-/// Ed25519 only (Roadmap 2.5), and one profile rather than a tier and a `temp` flag.
+/// Ed25519 only, and one profile rather than a tier and a `temp` flag.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StoredPath {
     /// The path itself.

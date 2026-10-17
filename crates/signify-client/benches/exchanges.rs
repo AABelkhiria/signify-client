@@ -1,8 +1,8 @@
 //! Microbenchmark for the exchange endpoint family.
 //!
-//! This is the generic form of what Roadmap 6.12's IPEX submission does for five fixed routes, so
-//! the two benchmarks are deliberately comparable. What is measured here is the part a caller of
-//! *this* family controls and 6.12's caller does not: the **message itself**.
+//! This is the generic form of what the IPEX submission does for five fixed routes, so the two
+//! benchmarks are deliberately comparable. What is measured here is the part a caller of *this*
+//! family controls and the IPEX caller does not: the **message itself**.
 //!
 //! Three things scale, and all three are the caller's.
 //!
@@ -11,15 +11,15 @@
 //! from none to four.
 //!
 //! **The delivery list.** The one part of the body that grows freely, measured from one recipient
-//! to sixty-four — the same range 6.12 used.
+//! to sixty-four — the same range the IPEX benchmark used.
 //!
 //! **The answer**, which is decoded twice over: this is the one family whose reference declares two
 //! incompatible types for it, so a caller may try both, and the cost of the failing attempt is
 //! worth knowing.
 //!
 //! Not measured here: the **signature**, which dominates everything below and belongs to the
-//! keeper rather than to this module — Roadmap 6.4 measured one at ~25 µs — and the keeper rebuild
-//! behind it, which is Roadmap 4.3's Argon2 cost.
+//! keeper rather than to this module — the `lifecycle` benchmark measured one at ~25 µs — and the
+//! keeper rebuild behind it, which is an Argon2 cost.
 
 use std::hint::black_box;
 

@@ -2,8 +2,8 @@
 //!
 //! The pinned reference has no transport abstraction — `app/clienting.ts` calls the global
 //! `fetch` and every endpoint module calls that client — so there is nothing here to translate.
-//! The shape comes from `ARCHITECTURE.md` §8.1 instead, and the compatibility evidence is that
-//! the reference's own requests can be expressed exactly.
+//! The shape is this port's own instead, and the compatibility evidence is that the reference's
+//! own requests can be expressed exactly.
 //!
 //! # The trait is dyn-compatible on purpose
 //!
@@ -15,11 +15,11 @@
 //!
 //! # What belongs here, and what does not
 //!
-//! This module has no timeout policy, no retries, and no KERIA endpoint knowledge: a timeout is
-//! an *outcome* a transport reports ([`TransportError::Timeout`]), retry policy is Roadmap 5.4,
-//! and the request builder that knows about JSON and content types is Roadmap 5.3. A non-success
-//! status is not a failure here — it is a [`Response`] with that status, because deciding what a
-//! `404` means belongs to the layer that knows what was asked for.
+//! This module has no timeout policy, no retries, and no KERIA endpoint knowledge: a timeout is an
+//! *outcome* a transport reports ([`TransportError::Timeout`]), retry policy is [`crate::retry`]'s,
+//! and the request builder that knows about JSON and content types is [`crate::request`]'s. A
+//! non-success status is not a failure here — it is a [`Response`] with that status, because
+//! deciding what a `404` means belongs to the layer that knows what was asked for.
 
 pub mod error;
 #[cfg(feature = "http-client")]

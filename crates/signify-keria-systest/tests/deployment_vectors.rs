@@ -106,7 +106,7 @@ fn the_served_specification_carries_a_version() -> Result<(), Box<dyn Error>> {
         .keria
         .spec_version
         .as_deref()
-        .ok_or("the recorded specification carries no version, which would confirm §10:9799")?;
+        .ok_or("the recorded specification carries no version, which would confirm the OpenAPI source residual")?;
     assert_ne!(version, "");
     assert!(
         manifest.keria.spec_openapi.is_some(),
@@ -119,7 +119,7 @@ fn the_served_specification_carries_a_version() -> Result<(), Box<dyn Error>> {
         .ok_or("the version's position was not recorded")?;
     assert!(
         line > 100,
-        "the version is at line {line}, so §10:9799's reading of the document was reasonable"
+        "the version is at line {line}, so the OpenAPI source residual read the document reasonably"
     );
     Ok(())
 }
@@ -179,7 +179,7 @@ fn the_served_document_does_not_define_the_schemas_the_reference_generated_from(
     assert!(
         !manifest.keria.spec_defines_components,
         "the deployment now serves a components section, so the reference's generated schemas may \
-         have a source after all and §10:9799's residual should be re-read"
+         have a source after all and the OpenAPI source residual should be re-read"
     );
     assert!(
         manifest.keria.spec_sections.iter().any(|section| section == "paths"),
@@ -197,7 +197,7 @@ fn the_served_document_does_not_define_the_schemas_the_reference_generated_from(
     assert!(
         manifest.keria.spec_required_arrays > 0,
         "the document declares no required arrays anywhere, so there is nothing left to diff and \
-         §10:9799's residual is unclosable rather than pending"
+         the OpenAPI source residual is unclosable rather than pending"
     );
     Ok(())
 }

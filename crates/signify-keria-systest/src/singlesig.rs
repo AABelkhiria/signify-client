@@ -1,8 +1,8 @@
 //! The credential lifecycle driven by one identifier.
 //!
 //! One function per operation a scenario performs, each a thin composition over the client API.
-//! Nothing here decides what a correct KERI artifact looks like; `ARCHITECTURE.md` §11 reserves
-//! that for the crates under test.
+//! Nothing here decides what a correct KERI artifact looks like; that is reserved for the crates
+//! under test.
 
 use std::error::Error;
 

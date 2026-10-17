@@ -350,7 +350,7 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn the_route_table_is_recorded_and_left_to_roadmap_8_1() -> Result<(), Box<dyn Error>> {
+fn the_route_table_is_recorded_and_left_to_the_route_module() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let routes = fixture
         .declarations

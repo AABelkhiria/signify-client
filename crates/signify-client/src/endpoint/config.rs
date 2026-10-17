@@ -3,7 +3,7 @@
 //! One call, `get`, returning the agent's own configuration — today a single optional list of
 //! introduction OOBIs the agent resolves at startup. This ports `Config` from the pinned
 //! `src/keri/app/coring.ts`. It is the last capability *that file* owes apart from its OOBI and
-//! polling halves, which are Roadmap 7.1 and 7.2.
+//! polling halves, which are the OOBI family and the operation poller.
 //!
 //! # The only address in the port that carries no caller input
 //!
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn an_undeclared_field_is_ignored_rather_than_kept() -> Result<(), Box<dyn Error>> {
-        // Roadmap 4.1's rule for a schema with no index signature (ADR `0012`): unknown fields are
+        // The generated API types' rule for a schema with no index signature: unknown fields are
         // ignored. The reference's `res.json()` keeps them, so a caller there can read one.
         let config: AgentConfig = serde_json::from_str(r#"{"iurls":[],"curls":["http://x"],"unknown":7}"#)?;
         assert_eq!(config.introduction_urls, Some(Vec::new()));

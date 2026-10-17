@@ -7,8 +7,8 @@
 //! [`Groups::join`] to contribute keys to a rotation already under way.
 //!
 //! This ports the whole `Groups` class of the pinned `src/keri/app/grouping.ts`. The messages
-//! themselves are Roadmap 7.7's and the classifiers that read them are 8.1's; nothing here builds
-//! or signs anything.
+//! themselves are the exchange family's and so are the classifiers that read them; nothing here
+//! builds or signs anything.
 //!
 //! # Reading is where this family is actually used
 //!
@@ -22,16 +22,15 @@
 //!
 //! `sendRequest` declares `sigs: string[]` and sends whatever it is given; the pinned test sends
 //! `[]`, which asks the agent to relay to every group member a proposal nobody signed. Here the
-//! message is Roadmap 7.7's [`SignedExchange`], which comes from a keeper, and an empty signature
-//! set is refused before the body is built.
+//! message is a [`SignedExchange`], which comes from a keeper, and an empty signature set is
+//! refused before the body is built.
 //!
 //! # There are two ways to send the same message
 //!
-//! `sendRequest` posts `{exn, sigs, atc}` to `/identifiers/{name}/multisig/request`, while Roadmap
-//! 7.7's `Exchanges::send_signed` posts `{tpc, exn, sigs, atc, rec}` to
-//! `/identifiers/{name}/exchanges`. The reference offers both for the same kind of message and
-//! never says which to use; this port reproduces both and says so, because the pinned tree does not
-//! settle it.
+//! `sendRequest` posts `{exn, sigs, atc}` to `/identifiers/{name}/multisig/request`, while
+//! `Exchanges::send_signed` posts `{tpc, exn, sigs, atc, rec}` to `/identifiers/{name}/exchanges`.
+//! The reference offers both for the same kind of message and never says which to use; this port
+//! reproduces both and says so, because the pinned tree does not settle it.
 
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
@@ -65,9 +64,9 @@ pub const JOIN_SEGMENT: &str = "join";
 ///
 /// The reference takes six arguments, of which the first two are the alias and a value it reads
 /// `.sad` off — so passing the rotation event its own documentation names sends no rotation at all,
-/// which the fixture records both ways round. Here the rotation is Roadmap 4.6's
-/// [`IdentifierArtifact`], which carries the event and the signatures over it together, so there is
-/// no second argument to disagree with and no field to read off.
+/// which the fixture records both ways round. Here the rotation is an [`IdentifierArtifact`], which
+/// carries the event and the signatures over it together, so there is no second argument to
+/// disagree with and no field to read off.
 #[derive(Debug)]
 pub struct GroupJoin<'a> {
     rotation: &'a IdentifierArtifact,
@@ -80,8 +79,8 @@ impl<'a> GroupJoin<'a> {
     /// Describes a contribution to `group`'s rotation.
     ///
     /// `signing_members` is who will sign for the group afterwards and `rotation_members` is who
-    /// will hold rotation authority — the reference's `smids` and `rmids`, which Roadmap 8.1 reads
-    /// back out of a proposal's attribute block.
+    /// will hold rotation authority — the reference's `smids` and `rmids`, which the classifier
+    /// reads back out of a proposal's attribute block.
     #[must_use]
     pub const fn new(
         rotation: &'a IdentifierArtifact,
@@ -146,7 +145,7 @@ fn prefixes(members: &[IdentifierPrefix]) -> Result<Vec<String>, ClientError> {
 /// The groups endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Groups<'client> {
     client: &'client ConnectedClient,
@@ -162,11 +161,11 @@ impl<'client> Groups<'client> {
     /// Reads the group requests stored under one exchange SAID.
     ///
     /// The agent answers with a **list**: one entry per copy of the proposal it holds, each
-    /// carrying the local group and member aliases beside the message. Classify each with Roadmap
-    /// 8.1's [`ClassifiedExchange`](crate::endpoint::exchanges::ClassifiedExchange), which is what
-    /// turns "a message on `/multisig/icp`" into "an inception this group is proposing".
+    /// carrying the local group and member aliases beside the message. Classify each with
+    /// [`ClassifiedExchange`](crate::endpoint::exchanges::ClassifiedExchange), which is what turns
+    /// "a message on `/multisig/icp`" into "an inception this group is proposing".
     ///
-    /// The SAID is Roadmap 3.3's validated type. The reference concatenates its argument straight
+    /// The SAID is the validated [`Said`] type. The reference concatenates its argument straight
     /// into the path, and its own integration helper falls back to the empty string when no notice
     /// arrived — which addresses `/multisig/request/` and asks for the whole collection.
     ///
@@ -202,8 +201,8 @@ impl<'client> Groups<'client> {
 
     /// Proposes one signed exchange message to the group's other members.
     ///
-    /// `alias` names the group identifier the proposal is posted under. The message is Roadmap
-    /// 7.7's, already built and signed by the member's own keeper.
+    /// `alias` names the group identifier the proposal is posted under. The message is the exchange
+    /// family's, already built and signed by the member's own keeper.
     ///
     /// The body carries no topic and no recipient list, which is what the reference sends: the
     /// agent works both out from the message's own route. That is the difference from
@@ -296,7 +295,7 @@ mod tests {
         assert_eq!(MULTISIG_SEGMENT, "multisig");
         assert_eq!(REQUEST_SEGMENT, "request");
         assert_eq!(JOIN_SEGMENT, "join");
-        // The topic a join writes is Roadmap 7.7's, not a second copy.
+        // The topic a join writes is the exchange family's, not a second copy.
         assert_eq!(MULTISIG_TOPIC, "multisig");
     }
 
@@ -411,7 +410,7 @@ mod tests {
 
     #[test]
     fn a_request_writes_three_fields_and_no_topic() -> Result<(), Box<dyn Error>> {
-        // Where Roadmap 7.7's submission writes five: this endpoint's body is the shorter one.
+        // Where the exchange submission writes five: this endpoint's body is the shorter one.
         let mut body = Sad::new();
         body.insert("exn", SadValue::Map(Sad::new()))?;
         body.insert("sigs", text_array(vec!["AAB".to_owned()]))?;
@@ -437,8 +436,9 @@ mod tests {
 
     #[test]
     fn an_empty_rotation_member_list_is_allowed() -> Result<(), Box<dyn Error>> {
-        // Only the signing list is required: Roadmap 6.6's `rotate` writes an empty `rmids` for a
-        // single-signature identifier, and refusing one here would refuse what that already sends.
+        // Only the signing list is required: the identifier family's `rotate` writes an empty
+        // `rmids` for a single-signature identifier, and refusing one here would refuse what that
+        // already sends.
         let members = [IdentifierPrefix::from_qb64(MEMBER)?];
         assert!(require_signing_members(&members).is_ok());
         assert_eq!(prefixes(&[])?, Vec::<String>::new());

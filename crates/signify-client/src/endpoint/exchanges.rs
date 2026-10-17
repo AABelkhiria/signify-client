@@ -5,10 +5,10 @@
 //! with the sender's own keeper, posts it for delivery, and reads one back by SAID.
 //!
 //! This ports the `Exchanges` class of the pinned `src/keri/app/exchanging.ts`. The message itself
-//! is Roadmap 3.8's [`ExchangeBuilder`], already byte-exact; what is new here is the signing, the
-//! request body, and the two addresses. The IPEX specialisation of the same composition is Roadmap
-//! 6.3's `signify_keys::acdc::ipex`, and the typed route table over `/multisig/*` and `/ipex/*` is
-//! Roadmap 8.1's — so a route is borrowed text here, exactly as [`ExchangeBuilder`] leaves it.
+//! is [`ExchangeBuilder`], already byte-exact; what is new here is the signing, the request body,
+//! and the two addresses. The IPEX specialisation of the same composition is
+//! `signify_keys::acdc::ipex`, and the typed route table over `/multisig/*` and `/ipex/*` is
+//! [`route`]'s — so a route is borrowed text here, exactly as [`ExchangeBuilder`] leaves it.
 //!
 //! # The addressee is not the delivery list
 //!
@@ -25,9 +25,10 @@
 //! # One alias, not two identifiers
 //!
 //! Upstream `send(name, topic, sender, …)` posts under `/identifiers/{name}/exchanges` while
-//! signing with `sender`'s keeper, and nothing compares them. Roadmap 3.10 signs `@path`, so the
-//! resource, the signing key, and the message's own `i` field can all disagree. Here the alias is
-//! the only identifier argument and the record is looked up from it, so they agree by construction.
+//! signing with `sender`'s keeper, and nothing compares them. Request signing covers `@path`, so
+//! the resource, the signing key, and the message's own `i` field can all disagree. Here the alias
+//! is the only identifier argument and the record is looked up from it, so they agree by
+//! construction.
 //!
 //! # The answer has two declared types upstream
 //!
@@ -35,19 +36,19 @@
 //! `Promise<ExchangeOperation>` for the same shape of POST to the same agent. Both are unchecked
 //! `res.json()` casts, so at most one is right and the pinned tree settles nothing — its only unit
 //! case ignores the answer. [`SentExchange`] therefore keeps the body and offers a decoder for each
-//! shape rather than imposing one; `PORTING.md` §10 raised the question for Roadmap 9.2.
+//! shape rather than imposing one.
 //!
-//! **Roadmap 9.2c answered it against a deployment: both paths answer with an operation.** So
-//! `sendFromEvents`'s `Promise<Exn>` is the wrong one, and [`SentExchange::operation`] is the
-//! decoder a real agent justifies. Keeping both is now shown to be necessary rather than merely
-//! cautious — a single declared return type would have been wrong for one of the two endpoints, and
-//! which one is not something the reference's own tree could have told anybody.
+//! **A live KERIA answered it: both paths answer with an operation.** So `sendFromEvents`'s
+//! `Promise<Exn>` is the wrong one, and [`SentExchange::operation`] is the decoder a real agent
+//! justifies. Keeping both is now shown to be necessary rather than merely cautious — a single
+//! declared return type would have been wrong for one of the two endpoints, and which one is not
+//! something the reference's own tree could have told anybody.
 //!
 //! # The route table and the classifiers
 //!
-//! Roadmap 8.1 adds the other half of `exchanging.ts` beside this family: [`route`] holds the
-//! thirteen-route table and [`message`] the classifier that replaces the reference's thirteen type
-//! guards and thirteen assertions. Both are re-exported here, so a caller who reads a message with
+//! The other half of `exchanging.ts` sits beside this family: [`route`] holds the thirteen-route
+//! table and [`message`] the classifier that replaces the reference's thirteen type guards and
+//! thirteen assertions. Both are re-exported here, so a caller who reads a message with
 //! [`Exchanges::get`] can classify it without a second import.
 //!
 //! See `fixtures/client-exchanges/` and `fixtures/client-exchange-routes/`.
@@ -93,12 +94,12 @@ pub const REGISTRY_TOPIC: &str = "registry";
 ///
 /// This is the argument list of the reference's `createExchangeMessage`, minus the sender — which
 /// is not the caller's to state here, because it is derived from the alias the message is posted
-/// under. It mirrors Roadmap 3.8's [`ExchangeBuilder`] with that one field removed.
+/// under. It mirrors [`ExchangeBuilder`] with that one field removed.
 ///
 /// The timestamp is **required**. The reference passes none from `send`, so `exchange(...)` reads
 /// the system clock and the message's `dt` — and therefore its SAID and every signature over it —
-/// depends on when it was built. That is the decision Roadmap 3.8 took for the builder itself and
-/// Roadmap 4.6 for the authorization replies.
+/// depends on when it was built. That is the decision taken for the builder itself and for the
+/// identifier workflow's authorization replies.
 ///
 /// Modifiers (`q`) are deliberately absent: the reference's own wrapper passes `undefined` and has
 /// no way to set them. A caller who needs them builds the message with [`ExchangeBuilder`] directly
@@ -195,8 +196,8 @@ impl ExchangeDraft {
 ///
 /// The reference returns these as a three-element tuple of a `Serder`, a string array, and a
 /// string, so a caller can pass `sendFromEvents` a message, somebody else's signatures, and a third
-/// party's attachment. Bundling them means they cannot disagree — the decision Roadmap 6.3 took for
-/// a grant's three artifacts.
+/// party's attachment. Bundling them means they cannot disagree — the decision the IPEX builders
+/// took for a grant's three artifacts.
 ///
 /// Not [`Clone`]: [`ManagedSignatures`] deliberately is not, so a signature set has one owner.
 #[derive(Debug)]
@@ -250,9 +251,9 @@ impl SignedExchange {
 /// shape of POST to the same agent, both unchecked casts. Neither reading is imposed here; a caller
 /// decodes the one they expect and a wrong-shaped answer is refused rather than cast.
 ///
-/// Roadmap 9.2c asked a live KERIA, which answers **both** paths with an operation — so
-/// [`Self::operation`] is the decoder to reach for, and [`Self::exchange`] is kept for the shape the
-/// reference declares rather than for one that has been seen.
+/// A live KERIA answers **both** paths with an operation — so [`Self::operation`] is the decoder to
+/// reach for, and [`Self::exchange`] is kept for the shape the reference declares rather than for
+/// one that has been seen.
 #[derive(Clone, Debug)]
 pub struct SentExchange {
     response: Vec<u8>,
@@ -261,9 +262,9 @@ pub struct SentExchange {
 impl SentExchange {
     /// Wraps one write's answer.
     ///
-    /// Crate-private: the two endpoints that produce one are Roadmap 7.7's submission and Roadmap
-    /// 8.2's group request, which post the same message to different addresses and are declared to
-    /// be answered the same way. Sharing the type is what keeps that one decision in one place.
+    /// Crate-private: the two endpoints that produce one are this family's submission and the group
+    /// request, which post the same message to different addresses and are declared to be answered
+    /// the same way. Sharing the type is what keeps that one decision in one place.
     pub(crate) const fn from_body(response: Vec<u8>) -> Self {
         Self { response }
     }
@@ -288,12 +289,12 @@ impl SentExchange {
 
     /// Reads the answer as an exchange message.
     ///
-    /// This is what `sendFromEvents` itself declares — and Roadmap 9.2c found that the declaration
+    /// This is what `sendFromEvents` itself declares — and a live KERIA showed that the declaration
     /// is **wrong**. A live KERIA 1.0.1 answers both this path and `/ipex/{route}` with an
     /// operation, so [`Self::operation`] is the decoder a deployment justifies and this one has
     /// never been observed to succeed against a real agent. It is kept rather than removed: the
     /// reference declares it, the two shapes are disjoint so it cannot silently accept an
-    /// operation, and one deployment is evidence about that deployment. See `PORTING.md` §10.
+    /// operation, and one deployment is evidence about that deployment.
     ///
     /// # Errors
     ///
@@ -306,7 +307,7 @@ impl SentExchange {
 /// The exchange endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Exchanges<'client> {
     client: &'client ConnectedClient,
@@ -442,7 +443,7 @@ impl<'client> Exchanges<'client> {
     ///
     /// The answer carries the message and the attachments transposed under it. The reference
     /// interpolates its argument straight into the path, so a value carrying `/` or `?` addresses
-    /// a different resource; here it is Roadmap 3.3's validated [`Said`], which cannot hold one.
+    /// a different resource; here it is the validated [`Said`], which cannot hold one.
     ///
     /// # Errors
     ///
@@ -537,7 +538,7 @@ mod tests {
     #[test]
     fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
         // The reference concatenates the alias raw, so `a/b` would address a different resource
-        // and change the path Roadmap 3.10 signs.
+        // and change the path request signing covers.
         let path = submission_path("a/b?c=d")?;
         assert_eq!(path.as_str(), "/identifiers/a%2Fb%3Fc%3Dd/exchanges");
         assert_eq!(path.path().split('/').count(), 4);
@@ -607,7 +608,7 @@ mod tests {
 
     #[test]
     fn a_draft_builds_the_message_the_reference_builds() -> Result<(), Box<dyn Error>> {
-        // The same composition `create_message` performs, minus the keeper: this is Roadmap 3.8's
+        // The same composition `create_message` performs, minus the keeper: this is the exchange
         // builder, so the bytes are already proven.
         let mut payload = Sad::new();
         payload.insert("gid", SadValue::text(SENDER))?;

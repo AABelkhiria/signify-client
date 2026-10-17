@@ -240,8 +240,8 @@ impl KeeperFactory {
 
     /// Builds the keeper an existing identifier record describes.
     ///
-    /// This is the reference's `get(aid)`. Its `No algo specified` failure is unrepresentable:
-    /// Roadmap 4.1's identifier record names exactly one key manager or does not decode.
+    /// This is the reference's `get(aid)`. Its `No algo specified` failure is unrepresentable: the
+    /// identifier record names exactly one key manager or does not decode.
     ///
     /// # Errors
     ///

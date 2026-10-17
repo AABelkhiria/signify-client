@@ -2,9 +2,9 @@
 //!
 //! These are hermetic by construction, not by discipline: the server is a `TcpListener` this test
 //! binds on `127.0.0.1:0`, so nothing reaches a network, no external service is needed, and the
-//! port cannot collide. That lets the whole contract `ARCHITECTURE.md` §8.1 asks for be checked
-//! against a real socket — the request bytes that go out, a response coming back, timeouts,
-//! bounded bodies, connection failure, cancellation, and hostile responses.
+//! port cannot collide. That lets the whole transport contract be checked against a real socket —
+//! the request bytes that go out, a response coming back, timeouts, bounded bodies, connection
+//! failure, cancellation, and hostile responses.
 
 #![cfg(feature = "http-client")]
 
@@ -221,7 +221,7 @@ async fn a_request_reaches_the_wire_exactly_as_built() -> Result<(), Box<dyn Err
 #[tokio::test]
 async fn a_path_with_dot_segments_is_sent_unchanged() -> Result<(), Box<dyn Error>> {
     // The case that decided the dependency: this must reach the server as written, because
-    // Roadmap 3.10 signed exactly these bytes.
+    // the request signature covers exactly these bytes.
     let server = Loopback::start(reply("200 OK", &[], "")).await?;
     let path = "/identifiers/..";
     let request = Request::builder(Method::Get, RequestUrl::new(server.url(path))?).build()?;

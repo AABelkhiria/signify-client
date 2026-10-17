@@ -4,7 +4,8 @@
 //!
 //! Not ignored: it reads checked-in recordings and never touches a network. Until a deployment
 //! that checks the rotation's signature correctly has been recorded, the observation does not exist
-//! and every assertion here is skipped; ADR `0034` explains why the local deployment cannot record it.
+//! and every assertion here is skipped; the local deployment cannot record it, because its agent
+//! endpoint inverts the rotation's signature check.
 
 use std::error::Error;
 use std::fs;

@@ -13,14 +13,15 @@
 //! value goes into the path or the query raw, so a value holding `/`, `?`, `#`, or `..` changes
 //! which resource is addressed: the reference's own `operations().get("../identifiers")` sends
 //! `GET /operations/../identifiers`, and its `keyStates().get("a&b=c")` sends
-//! `GET /states?pre=a&b=c` with a second parameter the caller never wrote. Roadmap 3.10 signs the
-//! `@path` component, so this also changes what a signature covers. Those requests are recorded in
-//! `fixtures/http-request-response/v1.json` and deliberately not reproduced.
+//! `GET /states?pre=a&b=c` with a second parameter the caller never wrote. The request signature
+//! covers the `@path` component, so this also changes what a signature covers. Those requests are
+//! recorded in `fixtures/http-request-response/v1.json` and deliberately not reproduced.
 //!
 //! # What this module does not do
 //!
 //! It does not sign: applying the `Signature`, `Signature-Input`, `Signify-Resource`, and
-//! `Signify-Timestamp` headers to a finished request is Roadmap 5.5's, which is why the header
+//! `Signify-Timestamp` headers to a finished request is
+//! [`SigningTransport`](crate::signature::transport::SigningTransport)'s, which is why the header
 //! order a request leaves here with is this builder's own and not the reference's wire order.
 //! Header order does not affect a signature — the base's order comes from the covered-fields list
 //! in [`crate::signature::input`], not from the collection.
@@ -150,8 +151,8 @@ pub fn encode_query_component(value: &str) -> String {
 /// A request path and query, with every component already encoded exactly once.
 ///
 /// This is the typed replacement for the reference's `path` local: the value its endpoint modules
-/// assemble, `SignifyClient.fetch` appends to a base URL, and Roadmap 3.10 signs as `@path` after
-/// splitting the query off.
+/// assemble, `SignifyClient.fetch` appends to a base URL, and a request signature covers as `@path`
+/// after splitting the query off.
 ///
 /// ```
 /// use signify_http::request::ResourcePath;
@@ -244,9 +245,9 @@ impl ResourcePathBuilder {
     /// what the reference sends for the same alias. What a component can no longer do is
     /// *introduce* a dot segment: the reference's `operations().get("../identifiers")` becomes two
     /// components there and one — `..%2Fidentifiers` — here. Nothing in this crate's URL or
-    /// transport stack resolves a dot segment (ADR `0019` and `0020`), so the path signed under
-    /// Roadmap 3.10 is the path sent; an intermediary that normalizes would address a different
-    /// resource, which is a deployment concern Roadmap 9.2 confirms against a live KERIA.
+    /// transport stack resolves a dot segment, so the path signed is the path sent; an
+    /// intermediary that normalizes would address a different resource, which is a deployment
+    /// concern the live KERIA integration runs confirm.
     #[must_use]
     pub fn segment(mut self, value: &str) -> Self {
         self.segments.push(encode_path_component(value));
@@ -356,11 +357,11 @@ impl ResourcePathBuilder {
 /// The origin, and optional path prefix, that resource paths are joined onto.
 ///
 /// A client holds two of these: the reference's `url` for the admin interface and its `bootUrl`
-/// for the boot interface. Choosing between them is Roadmap 6.4's.
+/// for the boot interface. Choosing between them is the client lifecycle's.
 ///
 /// A single trailing `/` is removed so joining never doubles it. Nothing else is rewritten — the
 /// host keeps its case and any percent escapes keep their bytes — for the same reason
-/// [`RequestUrl`] does not normalize: Roadmap 3.10 signs the path.
+/// [`RequestUrl`] does not normalize: the request signature covers the path.
 ///
 /// ```
 /// use signify_http::request::{BaseUrl, ResourcePath};
@@ -830,7 +831,9 @@ impl ItemRange {
 ///
 /// The headers it produces come first, in the order content type, accept, range; a caller's own
 /// headers follow in the order they were added. Reproducing the reference's exact wire order also
-/// needs the four authentication headers, which Roadmap 5.5 applies to a finished request.
+/// needs the four authentication headers, which
+/// [`SigningTransport`](crate::signature::transport::SigningTransport) applies to a finished
+/// request.
 ///
 /// ```
 /// use signify_http::request::{BaseUrl, ItemRange, MediaType, RangeUnit, ResourceRequestBuilder};

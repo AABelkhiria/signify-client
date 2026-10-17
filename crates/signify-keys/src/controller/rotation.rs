@@ -19,7 +19,6 @@
 //! This module follows keripy. The encrypter derives from the new salt, `sealed_salt` carries the
 //! **new** salt, and the controller's stored salt moves with its keys — which the fix requires,
 //! since material sealed to the new passcode cannot be opened by the old one a second time round.
-//! See ADR `0033`, which supersedes ADR `0016`'s decision to reproduce this, and `PORTING.md` §9.
 //!
 //! # The rotation follows the log, as keripy requires
 //!
@@ -37,7 +36,7 @@
 //! digest as its prior — keripy's ordinary rotation — and a rotation the agent accepts becomes the
 //! controller's current event, so a second rotation chains on the first. Everything else is the
 //! reference's byte for byte: the `["1","0"]` weighted threshold, the key order, the signature
-//! placements, and the payload's field names. See ADR `0034`.
+//! placements, and the payload's field names.
 
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
@@ -83,7 +82,7 @@ pub enum ReEncryptedKeyState {
 pub struct PasscodeRotation {
     /// The rotation event, at the sequence number after the controller's current event and with
     /// that event's digest as its prior. The reference always writes `s = "1"`, which a KERI log
-    /// that has moved past its inception refuses; see the module documentation and ADR `0034`.
+    /// that has moved past its inception refuses; see the module documentation.
     pub rotation: KeyEvent,
     /// The two indexed signatures, in the reference's order: the old committed-to key signing at
     /// position one with prior position zero, then the new key signing at position zero.
@@ -243,7 +242,7 @@ impl Controller {
         // reference's `isith: ['1', '0']`. The reference writes the builder's default `s` of one
         // whatever the log holds; keripy reads a rotation at the current sequence number as a
         // recovery and refuses it unless its prior is the event before, so this one follows the
-        // log — the next sequence number, after the event its prior names. ADR `0034`.
+        // log — the next sequence number, after the event its prior names.
         let sequence_number = self
             .current_sequence_number()
             .checked_add(1)
@@ -344,7 +343,7 @@ impl Controller {
         let salt = decrypter.decrypt_salt(&cipher, tier)?;
 
         // Re-derive the identifier's current keys exactly as the reference does — rotation index
-        // zero with the stored key index, which is the keeper's arrangement from Roadmap 4.3 —
+        // zero with the stored key index, which is the salty keeper's own arrangement —
         // and require them to match the recorded key state.
         let transferability = if salty.transferable {
             KeyTransferability::Transferable

@@ -2,8 +2,8 @@
 //!
 //! Unlike the retry policy, this one *is* cryptographic: every request carries an Ed25519
 //! signature over a base the layer rebuilds each time. That cost is paid on **every attempt**,
-//! because Roadmap 5.4's ordering puts signing inside the retry loop — so what these measure is
-//! what a retry actually costs beyond its wait, and what a response costs to trust.
+//! because the transport stack puts signing inside the retry loop — so what these measure is what
+//! a retry actually costs beyond its wait, and what a response costs to trust.
 
 use core::time::Duration;
 use std::hint::black_box;

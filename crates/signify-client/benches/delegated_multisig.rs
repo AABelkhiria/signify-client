@@ -5,8 +5,9 @@
 //! grows: a delegator group with many pending delegates is exactly the case where dropping all but
 //! the first matters, and it should not be the case where reading them all costs anything notable.
 //!
-//! Two things, each from one seal to sixty-four: **reading a proposal** — decode plus Roadmap 8.1's
-//! classification plus taking the seals out — and **building the seal list** a proposal anchors.
+//! Two things, each from one seal to sixty-four: **reading a proposal** — decode plus the route
+//! table's classification plus taking the seals out — and **building the seal list** a proposal
+//! anchors.
 
 use std::hint::black_box;
 

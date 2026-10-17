@@ -400,12 +400,12 @@ proptest! {
 
 /// Two distinct key positions derive **the same key**, which is a reference defect.
 ///
-/// Found by `a_stem_places_both_indices_in_the_references_own_spelling` on 2026-08-25, during
-/// Roadmap 6.11. The reference builds a salty derivation path as
+/// Found by `a_stem_places_both_indices_in_the_references_own_spelling` on 2026-08-25. The
+/// reference builds a salty derivation path as
 /// `stem + ridx.toString(16) + (kidx + idx).toString(16)` — two variable-length hexadecimal numbers
 /// concatenated with no delimiter — so rotation 1 with key 16 and rotation 17 with key 0 both spell
 /// `"a110"` and therefore derive one key. That defeats pre-rotation at those positions exactly as
-/// the empty-stem path does at every position, which `PORTING.md` §9 already pins for Roadmap 4.2.
+/// the empty-stem path does at every position, which the `keri-manager` fixture already pins.
 ///
 /// The port reproduces it deliberately: diverging would derive different identifiers from identical
 /// inputs. The public key below is the reference's own, produced by driving its compiled

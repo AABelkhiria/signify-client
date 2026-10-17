@@ -1,8 +1,7 @@
 //! The client lifecycle: boot an agent, read its state, connect to it, and send signed requests.
 //!
 //! This ports `SignifyClient` from the pinned `src/keri/app/clienting.ts`, minus the endpoint
-//! accessors (Roadmap 9.5) and the passcode rotation (Roadmap 8.9). The order is fixed by the
-//! protocol:
+//! accessors and the passcode rotation. The order is fixed by the protocol:
 //!
 //! ```text
 //! boot     POST {boot}/boot            unsigned — no agent exists yet to sign to
@@ -90,7 +89,7 @@ pub const BOOT_PREFIX_INDEX: i64 = 1;
 /// The agent and controller state a KERIA agent reports.
 ///
 /// This is the reference's `State`, whose four fields are `any`, `any`, and two numbers. Both
-/// halves are typed here: the agent's state is Roadmap 4.1's [`KeyState`] and the controller's
+/// halves are typed here: the agent's state is the shared [`KeyState`] record and the controller's
 /// establishment event is a parsed [`SerializedEvent`].
 #[derive(Clone, Debug)]
 pub struct AgentState {
@@ -449,7 +448,7 @@ impl ConnectedClient {
         let agent_resource = HeaderValue::new(agent.prefix().qb64().map_err(prefix_error)?)?;
         let authenticator = ResponseAuthenticator::new(verifier, agent_resource, Arc::clone(&clock));
         // The keeper factory needs an owned salt, and a `Salt` is deliberately not cloneable
-        // (Roadmap 2.5), so it is re-derived through the one function that owns that derivation.
+        // so it is re-derived through the one function that owns that derivation.
         let keepers = KeeperFactory::new(salt_from_passcode(config.passcode().expose(), config.tier())?);
 
         Ok(Self {
@@ -511,8 +510,8 @@ impl ConnectedClient {
 
     /// Returns the clock this client measures and waits with.
     ///
-    /// Crate-private: a client has exactly one clock, and reusing it is what lets Roadmap 7.2's
-    /// polling be driven deterministically by the same `TestClock` a request signature already is.
+    /// Crate-private: a client has exactly one clock, and reusing it is what lets operation polling
+    /// be driven deterministically by the same `TestClock` a request signature already is.
     pub(crate) fn clock(&self) -> &Arc<dyn Clock> {
         &self.clock
     }
@@ -527,8 +526,7 @@ impl ConnectedClient {
     ///
     /// A KERIA agent answers most write requests with a long-running operation rather than a
     /// result, so this is the family every other one leans on. The reference exposes sixteen such
-    /// accessors; each arrives here with its own roadmap item rather than being stubbed ahead of
-    /// it.
+    /// accessors; each arrives here with its own family rather than being stubbed ahead of it.
     #[must_use]
     pub const fn operations(&self) -> Operations<'_> {
         Operations::new(self)
@@ -688,8 +686,8 @@ impl ConnectedClient {
                 alias: alias.to_owned(),
             })?;
         let resource = HeaderValue::new(record.common.prefix.clone())?;
-        // The signing itself is Roadmap 5.5's, which exposed `sign_request` for exactly this call.
-        // The inner transport is never used: nothing is sent from here.
+        // The signing itself is the signing transport's, which exposes `sign_request` for exactly
+        // this call. The inner transport is never used: nothing is sent from here.
         let signing = SigningTransport::new(Arc::clone(&self.unsigned), RequestSigner::new(signer), resource)?
             .with_clock(Arc::clone(&self.clock));
         Ok(signing.sign_request(&request)?)
@@ -697,8 +695,8 @@ impl ConnectedClient {
 
     /// Sets how old a response signature may be.
     ///
-    /// The reference checks freshness nowhere at all, which Roadmap 5.5 recorded; the default
-    /// window closes that, and [`Freshness::Ignore`] reproduces the reference exactly.
+    /// The reference checks freshness nowhere at all; the default window closes that, and
+    /// [`Freshness::Ignore`] reproduces the reference exactly.
     #[must_use]
     pub fn with_freshness(mut self, freshness: Freshness) -> Self {
         self.authenticator = self.authenticator.with_freshness(freshness);
@@ -729,7 +727,7 @@ impl ConnectedClient {
         let built = builder.build()?;
 
         // The reference strips the query before signing and verifying alike, so the same target
-        // serves both halves; Roadmap 3.10 pinned that.
+        // serves both halves.
         let target = RequestTarget::new(built.method().as_str(), built.url().path()).map_err(|source| {
             ClientError::Authentication {
                 source: Box::new(source.into()),
@@ -737,7 +735,7 @@ impl ConnectedClient {
         })?;
 
         // `SigningTransport` signs the request it is handed, so signing happens inside whatever
-        // the transport beneath it does — the order ADR `0023` requires.
+        // the transport beneath it does — so a retry never replays a stale signature.
         let response = self.signing.execute(built).await?;
         require_success(&response)?;
         self.authenticator.authenticate(&target, response.headers())?;
@@ -747,9 +745,9 @@ impl ConnectedClient {
     /// Approves the delegation of this controller to the agent.
     ///
     /// **Unsigned.** The reference bypasses its own signed path here and calls the global `fetch`
-    /// directly, so the `PUT` anchoring the agent carries no HTTP signature; Roadmap 5.1 recorded
-    /// the same defect from the other side. Reproduced, because a signed request is not what KERIA
-    /// expects at this endpoint.
+    /// directly, so the `PUT` anchoring the agent carries no HTTP signature; the `http-transport`
+    /// fixture records the same defect from the other side. Reproduced, because a signed request is
+    /// not what KERIA expects at this endpoint.
     ///
     /// # Errors
     ///
@@ -786,7 +784,7 @@ impl ConnectedClient {
     /// passcode. Each one's material is opened with the old passcode's key, checked against the
     /// key state the agent reports for it, and sealed again under the **new** passcode's key —
     /// which the reference does not do, and which is the whole point of rotating. See
-    /// [`signify_keys::controller::rotation`] and ADR `0033`.
+    /// [`signify_keys::controller::rotation`].
     ///
     /// **Nothing moves locally until the agent accepts.** The rotation is computed first, sent
     /// second, and adopted third: if the request fails, this client is exactly as it was and the
@@ -808,7 +806,7 @@ impl ConnectedClient {
     /// The rotation is built at the sequence number after the controller's current event — the
     /// reference always writes one, which an agent whose log holds the connection's delegation
     /// approval refuses with `500` — and a rotation the agent accepts becomes the controller's
-    /// current event, so the next one chains on it. ADR `0034`.
+    /// current event, so the next one chains on it.
     ///
     /// **Signed with the key the rotation introduces.** The reference bypasses its signed path and
     /// sends the `PUT` unsigned. A KERIA agent applies the rotation *first* and checks the request's
@@ -924,9 +922,8 @@ impl ConnectedClient {
 /// One request an endpoint family asks the client to send.
 ///
 /// The reference's `fetch(path, method, data, extraHeaders)` takes a raw string path and an `any`
-/// body. Here the path is Roadmap 5.3's [`ResourcePath`], which encodes every dynamic component
-/// exactly once, and the body is already-serialized bytes — this crate never decides a document's
-/// shape.
+/// body. Here the path is a [`ResourcePath`], which encodes every dynamic component exactly once,
+/// and the body is already-serialized bytes — this crate never decides a document's shape.
 #[derive(Clone, Debug)]
 pub struct ClientRequest {
     method: Method,

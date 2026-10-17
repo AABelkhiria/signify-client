@@ -281,8 +281,8 @@ impl Request {
 
 /// One response that arrived.
 ///
-/// A non-success status is still a response: reading meaning from the status is Roadmap 5.3's
-/// job, not the transport's.
+/// A non-success status is still a response: reading meaning from the status is
+/// [`crate::response`]'s job, not the transport's.
 #[derive(Clone, Debug)]
 pub struct Response {
     status: StatusCode,

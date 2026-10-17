@@ -1,9 +1,9 @@
 //! Microbenchmark for rotating a passcode over the identifiers it moves.
 //!
-//! Roadmap 4.5's own benchmark measures a rotation with **no** identifiers, which is the only shape
-//! the reference's test suite ever runs. The number that matters to a client is the other one: what
-//! it costs to move every managed identifier's key material to a new passcode, since each one is
-//! opened, re-derived, checked against its reported key state, and sealed again.
+//! The controller's own benchmark measures a rotation with **no** identifiers, which is the only
+//! shape the reference's test suite ever runs. The number that matters to a client is the other
+//! one: what it costs to move every managed identifier's key material to a new passcode, since each
+//! one is opened, re-derived, checked against its reported key state, and sealed again.
 //!
 //! Measured at one, eight, and thirty-two identifiers, at the ephemeral derivation cost so the
 //! per-identifier work is visible rather than buried under Argon2 — and once with the production

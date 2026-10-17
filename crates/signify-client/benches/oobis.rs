@@ -5,14 +5,14 @@
 //! last segment is optional. The **URL validation** is the only per-call check any family in this
 //! crate performs on a caller's argument, and it is what makes an OOBI a URL rather than a string.
 //! And the **answers** are the small end of the range: an OOBI listing and an end-role listing are
-//! a few hundred bytes where Roadmap 6.10's schema is kilobytes, which is worth having beside it.
+//! a few hundred bytes where a schema is kilobytes, which is worth having beside it.
 //!
 //! Inputs: a 44-character prefix, aliases of 4 and 64 characters, OOBI URLs of 22 and 512 bytes,
 //! and listings of 1, 16, and 64 entries.
 //!
-//! Nothing here signs, derives a key, or reads a clock: those costs are Roadmap 6.4's and dwarf
-//! all of this. A resolution is one HTTP round trip whose real cost is the agent going and fetching
-//! the URL.
+//! Nothing here signs, derives a key, or reads a clock: those costs are the `lifecycle` benchmark's
+//! and dwarf all of this. A resolution is one HTTP round trip whose real cost is the agent going
+//! and fetching the URL.
 
 use std::hint::black_box;
 

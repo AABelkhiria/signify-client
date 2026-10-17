@@ -6,9 +6,8 @@
 //! do nothing but compare `r` with one of them.
 //!
 //! Here the thirteen are one enum, so a comparison is a `match` and the guards have nothing left to
-//! do. The five IPEX routes are **not redefined**: they are Roadmap 6.3's
-//! [`IpexRoute`], which already builds and submits those messages, so
-//! the table composes rather than duplicates.
+//! do. The five IPEX routes are **not redefined**: they are [`IpexRoute`], which already builds and
+//! submits those messages, so the table composes rather than duplicates.
 //!
 //! # The table is not closed
 //!
@@ -116,7 +115,7 @@ impl fmt::Display for MultisigRoute {
 pub enum ExchangeRoute {
     /// One of the eight multisig coordination steps.
     Multisig(MultisigRoute),
-    /// One of the five IPEX disclosure steps, which are Roadmap 6.3's.
+    /// One of the five IPEX disclosure steps, which are [`IpexRoute`]'s.
     Ipex(IpexRoute),
 }
 
@@ -210,7 +209,7 @@ mod tests {
                 "/multisig/rev",
             ]
         );
-        // The five IPEX routes are Roadmap 6.3's, not redefined here.
+        // The five IPEX routes are `IpexRoute`'s, not redefined here.
         assert_eq!(
             ExchangeRoute::ALL
                 .into_iter()

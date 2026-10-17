@@ -1,6 +1,6 @@
 //! Applying a signature to a request, and checking the one on a response.
 //!
-//! Roadmap 3.10 built the primitives: [`RequestSigner`] makes the two headers and
+//! keri-http-auth provides the primitives: [`RequestSigner`] makes the two headers and
 //! [`ResponseVerifier`] checks them, with `created` supplied as a parameter so both are
 //! reproducible. This module is the composition `SignifyClient.fetch` performs around them — stamp
 //! `Signify-Resource` and `Signify-Timestamp`, sign at the request's final form, send, then check
@@ -9,9 +9,9 @@
 //! # Where this sits in the stack
 //!
 //! ```text
-//! RetryingTransport          ← Roadmap 5.4: bounds and waits
+//! RetryingTransport          ← bounds and waits
 //!   └── SigningTransport     ← here: stamps and signs, once per attempt
-//!         └── HttpTransport  ← Roadmap 5.2: reaches the network
+//!         └── HttpTransport  ← reaches the network
 //!
 //! …then ResponseAuthenticator::authenticate on what comes back.
 //! ```
@@ -19,15 +19,16 @@
 //! **The order of the first two is load-bearing.** [`SigningTransport`] signs the request it is
 //! given, so placing it *inside* the retry loop re-derives the timestamp and the signature on every
 //! attempt. Placing it outside would resend one timestamp and one signature minutes later — a
-//! replay the agent may reject, and one no happy-path test would catch. Roadmap 5.4 recorded this
-//! constraint when the retry loop was built; this is the module it constrains.
+//! replay the agent may reject, and one no happy-path test would catch.
+//! [`RetryingTransport`](crate::retry::RetryingTransport) records this constraint; this is the
+//! module it constrains.
 //!
 //! # Response authentication is not a transport
 //!
 //! [`ResponseAuthenticator`] is a separate type a caller invokes *after* the retry loop returns,
 //! which is exactly where the reference verifies. Doing it inside a decorator would make a forged
-//! response a transport failure, and Roadmap 5.4 would then have to special-case it out of the
-//! retry classifier — a signature that does not verify is not worth asking for again.
+//! response a transport failure, and the retry policy would then have to special-case it out of
+//! the retry classifier — a signature that does not verify is not worth asking for again.
 //!
 //! # What the reference does not do
 //!
@@ -162,8 +163,8 @@ impl SigningTransport {
     /// Wraps a transport with a signer and the resource it speaks for.
     ///
     /// `resource` is the `Signify-Resource` value — the controller prefix a KERIA agent knows this
-    /// client by. What that prefix *is* stays the client's knowledge (Roadmap 6.4); this layer only
-    /// stamps and covers it.
+    /// client by. What that prefix *is* stays the client's knowledge; this layer only stamps and
+    /// covers it.
     ///
     /// # Errors
     ///
@@ -258,7 +259,7 @@ impl SigningTransport {
 impl Transport for SigningTransport {
     fn execute(&self, request: Request) -> TransportFuture<'_> {
         Box::pin(async move {
-            // A signing failure is bounded and permanent: Roadmap 5.4's classifier never retries it.
+            // A signing failure is bounded and permanent: the retry classifier never retries it.
             let signed = self
                 .sign_request(&request)
                 .map_err(|error| TransportError::signing(error.to_string()))?;
@@ -642,8 +643,8 @@ mod tests {
         let clock = pinned_clock();
         let (transport, _) = signing_transport(Arc::clone(&clock))?;
         let once = transport.sign_request(&request(Method::Get)?)?;
-        // The reference appends, producing two comma-joined values; Roadmap 3.9's `Headers`
-        // refuses the duplicate instead.
+        // The reference appends, producing two comma-joined values; `Headers` refuses the
+        // duplicate instead.
         assert!(matches!(
             transport.sign_request(&once),
             Err(SigningError::Authentication { .. })
@@ -660,7 +661,7 @@ mod tests {
             transport.with_covered_components(vec![SignatureComponent::Header(HeaderName::new("x-absent")?)]);
         let outcome = block_on(transport.execute(request(Method::Get)?));
         assert!(matches!(outcome, Err(TransportError::Signing { .. })), "{outcome:?}");
-        // And Roadmap 5.4 will not retry it.
+        // And the retry classifier will not retry it.
         if let Err(error) = outcome {
             assert!(!crate::retry::is_transient_error(&error));
         }

@@ -9,8 +9,8 @@
 //! signature.
 //!
 //! Two inputs are addresses. An **alias** is a path component the reference concatenates raw, and a
-//! **SAID** is another — Roadmap 3.10 signs `@path`, so either can change what an HTTP signature
-//! covers. The target asserts neither ever leaves its own segment.
+//! **SAID** is another — the request signature covers `@path`, so either can change what an HTTP
+//! signature covers. The target asserts neither ever leaves its own segment.
 //!
 //! Two inputs reach the message. A **route** says what the message means and a **topic** says where
 //! the recipient will find it; both are open text with no closed set upstream. The target asserts
@@ -74,7 +74,7 @@ fuzz_target!(|data: &[u8]| {
         assert_eq!(segments.last().copied(), Some(EXCHANGES_SEGMENT));
         assert_eq!(segments.get(1).copied(), Some(encode_path_component(&alias).as_str()));
         assert_eq!(path.query(), None, "the alias {alias:?} introduced a query");
-        // Roadmap 3.10 signs the path, so what is signed is exactly what is sent.
+        // The request signature covers the path, so what is signed is exactly what is sent.
         assert_eq!(path.path(), path.as_str());
     }
 

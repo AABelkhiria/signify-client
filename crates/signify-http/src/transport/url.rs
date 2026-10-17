@@ -2,9 +2,9 @@
 //!
 //! # Why this does not normalize
 //!
-//! Roadmap 3.10 signs the `@path` derived component, so the bytes of a request's path are part of
-//! what a signature covers. A WHATWG-style URL type normalizes as it parses — lowercasing the
-//! host, resolving dot segments, adding a trailing slash to an empty path, re-encoding percent
+//! The request signature covers the `@path` derived component, so the bytes of a request's path are
+//! part of what a signature covers. A WHATWG-style URL type normalizes as it parses — lowercasing
+//! the host, resolving dot segments, adding a trailing slash to an empty path, re-encoding percent
 //! escapes — and any of those would let the path that was *signed* differ from the path that is
 //! *sent*. This type therefore validates without rewriting: what a caller supplies is what
 //! [`RequestUrl::as_str`] returns and what a transport must put on the wire.

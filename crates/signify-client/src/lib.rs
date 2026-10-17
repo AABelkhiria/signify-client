@@ -1,11 +1,10 @@
 //! High-level Signify client and KERIA endpoint families.
 //!
-//! Roadmap 6.4 opens the crate with the client lifecycle: [`config`] validates what a client is
-//! built from, [`client`] boots an agent, reads its state, connects to it, and sends signed
-//! requests, and [`random`] generates the two values a client draws from the operating system.
-//! Roadmap 6.5 opens [`endpoint`] with the operations family; the rest join it as their items
-//! land. Roadmap 7.2 adds [`operation`], the first *workflow* here rather than an address: waiting
-//! for a long-running agent operation to finish.
+//! The crate opens with the client lifecycle: [`config`] validates what a client is built from,
+//! [`client`] boots an agent, reads its state, connects to it, and sends signed requests, and
+//! [`random`] generates the two values a client draws from the operating system. [`endpoint`] holds
+//! the endpoint families, starting with operations. [`operation`] is the first *workflow* here
+//! rather than an address: waiting for a long-running agent operation to finish.
 //!
 //! Nothing in this crate implements protocol logic of its own. Events come from `signify-keys`,
 //! credentials from `keri-acdc` signed through `signify-keys`, and the whole signed-request mechanism

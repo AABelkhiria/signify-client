@@ -13,18 +13,19 @@
 //! notification". It is not one. A notice is built with an empty `i` and filled with a random
 //! nonce, and the two references do not even agree which code that nonce carries: signify-ts's own
 //! `randomNonce` uses the Ed25519 **seed** code `A`, keripy's the 128-bit **salt** code `0A`.
-//! Neither is a digest code, so reading the field as Roadmap 3.3's [`Said`](keri_protocol::said::Said)
-//! would refuse every identifier a real agent produces. The argument is therefore borrowed text,
-//! encoded exactly once — the shape Roadmap 6.5 gave an operation name, and enough to close the
-//! path injection Roadmap 5.3 already recorded here. See `fixtures/client-notifications/`.
+//! Neither is a digest code, so reading the field as a [`Said`](keri_protocol::said::Said) would
+//! refuse every identifier a real agent produces. The argument is therefore borrowed text, encoded
+//! exactly once — the shape the operations family gives an operation name, and enough to close the
+//! path injection the `http-request-response` fixture already recorded here. See
+//! `fixtures/client-notifications/`.
 //!
 //! # The window is separate from the page
 //!
 //! `list` spreads the `Content-Range` numbers into the object it returns beside the notifications,
 //! so a caller cannot tell the window apart from the page — and an *absent* header becomes three
 //! zeroes, which reports a page of real notifications as an empty window. [`NotificationListing`]
-//! keeps the two apart and makes an unreported window [`None`], which is what Roadmap 5.3 decided
-//! and Roadmap 6.6 already applied to the identifier listing.
+//! keeps the two apart and makes an unreported window [`None`], which is what the response decoder
+//! decided and the identifier listing already applies.
 
 use keria_types::api::Notification;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
@@ -67,7 +68,7 @@ impl NotificationListing {
 /// The notifications endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Notifications<'client> {
     client: &'client ConnectedClient,
@@ -112,7 +113,7 @@ impl<'client> Notifications<'client> {
     /// The agent's answer is returned as text, which is what the reference offers — but decoded
     /// **strictly**: a body that is not valid UTF-8 is a typed failure here, where `res.text()`
     /// substitutes U+FFFD and hands the caller something that reads as a message. That is the
-    /// decision Roadmap 6.11 made for a CESR answer read the same way.
+    /// decision the credentials family made for a CESR answer read the same way.
     ///
     /// # Errors
     ///
@@ -191,7 +192,7 @@ mod tests {
 
     #[test]
     fn the_default_window_is_the_references_own() -> Result<(), Box<dyn Error>> {
-        // Roadmap 5.3 already named it: `start = 0`, `end = 24`.
+        // `ItemRange::DEFAULT` already names it: `start = 0`, `end = 24`.
         assert_eq!(ItemRange::DEFAULT.start(), 0);
         assert_eq!(ItemRange::DEFAULT.end(), 24);
         assert_eq!(ItemRange::DEFAULT.header_value(&unit()?), "notes=0-24");
@@ -236,8 +237,8 @@ mod tests {
 
     #[test]
     fn an_identifier_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
-        // Upstream `mark("a?b=c")` turns the path into a query — the case Roadmap 5.3's own
-        // fixture recorded.
+        // Upstream `mark("a?b=c")` turns the path into a query — the case the
+        // `http-request-response` fixture recorded.
         let path = Notifications::record_path("a?b=c")?;
         assert_eq!(path.as_str(), "/notifications/a%3Fb%3Dc");
         assert_eq!(path.query(), None);

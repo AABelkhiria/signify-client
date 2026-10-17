@@ -1,7 +1,7 @@
 //! Microbenchmark for the IPEX submission endpoint.
 //!
-//! This family adds very little to what Roadmap 6.3 already produced, and the benchmark is here to
-//! say how little. Two things are measured.
+//! This family adds very little to what the IPEX artifact construction in `signify-keys` already
+//! produced, and the benchmark is here to say how little. Two things are measured.
 //!
 //! **The body.** A grant is the largest request any endpoint in this crate sends: three whole
 //! embedded messages plus a CESR attachment chaining them, all of it already built. What this

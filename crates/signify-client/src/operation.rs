@@ -3,7 +3,7 @@
 //! A KERIA agent answers most write requests with an operation rather than a result, so almost
 //! every workflow ends in a poll. [`Poller::wait`] is that poll: it walks the operation's
 //! dependency, then asks the agent for the operation itself until it finishes, sleeping on
-//! Roadmap 5.4's schedule between attempts.
+//! a [`RetryPolicy`] schedule between attempts.
 //!
 //! This ports `Operations.wait` from the pinned `src/keri/app/coring.ts`, together with the
 //! private `hasDepends` it consults and the `throwIfFailed` it applies at every exit.
@@ -13,12 +13,12 @@
 //! Upstream `wait` is a `while (true)` with no deadline, no attempt cap, and an abort signal read
 //! only *after* a sleep of up to ten seconds — so an operation the agent never finishes is polled
 //! for as long as the process lives, and a caller who gives up still waits out the current delay.
-//! Here the schedule is a [`PollPolicy`], which is Roadmap 5.4's [`RetryPolicy`] — the same
+//! Here the schedule is a [`PollPolicy`], which is the HTTP layer's [`RetryPolicy`] — the same
 //! formula, so every recorded delay still reproduces — plus the two bounds the reference lacks.
 //! Its default deadline is **thirty seconds**, which is not invented: it is what the reference's
 //! own `waitOperation` integration helper supplies through `AbortSignal.timeout(30000)`.
 //!
-//! Cancellation is dropping the future, which is ADR `0019`'s decision for this whole crate, so
+//! Cancellation is dropping the future, which is the transport's decision for this whole crate, so
 //! there is no signal to read late: dropping cancels the outstanding request or sleep at once.
 //!
 //! # The dependency chain is one link long
@@ -233,7 +233,7 @@ impl fmt::Display for PollingLimit {
 
 /// How long to keep polling, and how long to wait between attempts.
 ///
-/// The schedule is Roadmap 5.4's [`RetryPolicy`] — the reference's own
+/// The schedule is [`RetryPolicy`]'s — the reference's own
 /// `max(minSleep, min(maxSleep, 2 ** retries * increaseFactor))`, floor applied outside the
 /// ceiling and all — so a policy built here reproduces any delay sequence the reference produces.
 /// What this type adds is that the two knobs a *transport* retry needs and a poll does not,
@@ -307,8 +307,8 @@ impl Default for PollPolicy {
     /// The reference's delay shape with the bounds it lacks.
     ///
     /// 50 ms doubling to a 10 s ceiling above a 10 ms floor — upstream's own defaults — capped at
-    /// [`DEFAULT_MAX_ATTEMPTS`] attempts and [`DEFAULT_DEADLINE`], and jittered, which is Roadmap
-    /// 5.4's decision for the same schedule. [`Jitter::None`] reproduces the reference exactly.
+    /// [`DEFAULT_MAX_ATTEMPTS`] attempts and [`DEFAULT_DEADLINE`], and jittered, which is the retry
+    /// policy's decision for the same schedule. [`Jitter::None`] reproduces the reference exactly.
     fn default() -> Self {
         Self::builder().build().unwrap_or(Self {
             schedule: RetryPolicy::default(),
@@ -427,8 +427,8 @@ impl PollPolicyBuilder {
 /// Polls long-running operations until they finish.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through — the shape Roadmap 6.5 settled for every endpoint family. Unlike a family, this
-/// is a *workflow*: it knows no paths of its own and reaches the agent only through
+/// speaks through — the shape every endpoint family shares. Unlike a family, this is a *workflow*:
+/// it knows no paths of its own and reaches the agent only through
 /// [`Operations`](crate::endpoint::operations::Operations).
 #[derive(Clone)]
 pub struct Poller<'client> {
@@ -467,7 +467,7 @@ impl<'client> Poller<'client> {
     /// Sets where jitter draws its randomness from.
     ///
     /// Production uses the operating system. A test injects a fixed source so a schedule can be
-    /// asserted exactly, which is Roadmap 5.4's arrangement.
+    /// asserted exactly, which is the retry policy's arrangement.
     #[must_use]
     pub fn with_jitter_source(mut self, jitter: Arc<dyn JitterSource>) -> Self {
         self.jitter = jitter;
@@ -596,8 +596,8 @@ impl<'client> Poller<'client> {
         let _ = self;
         let name = operation.name.clone();
         let metadata = operation.metadata;
-        // Roadmap 6.5's `completed` is the reference's `throwIfFailed`, with the pending state told
-        // apart; it cannot report pending here, because the caller has just checked.
+        // The operations family's `completed` is the reference's `throwIfFailed`, with the pending
+        // state told apart; it cannot report pending here, because the caller has just checked.
         let response = completed(Operation {
             name: operation.name,
             metadata: None::<M>,
@@ -681,7 +681,7 @@ mod tests {
     }
 
     #[test]
-    fn the_schedule_is_the_one_roadmap_5_4_recorded() -> Result<(), Box<dyn Error>> {
+    fn the_schedule_is_the_one_the_reference_recorded() -> Result<(), Box<dyn Error>> {
         let policy = PollPolicy::builder().jitter(Jitter::None).build()?;
         let delays: Vec<u128> = (0..12).map(|attempt| policy.delay_for(attempt).as_millis()).collect();
         assert_eq!(

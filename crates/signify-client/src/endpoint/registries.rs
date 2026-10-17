@@ -2,8 +2,8 @@
 //!
 //! A credential registry is a TEL — a transaction event log — anchored in its issuer's KEL. This
 //! family is the three calls that read, create, and rename them, and `create` is the only one in
-//! the crate that builds *two* events: the registry's own inception (Roadmap 4.7) and the
-//! interaction event that anchors it in the issuer's log (Roadmap 4.6).
+//! the crate that builds *two* events: the registry's own inception and the interaction event that
+//! anchors it in the issuer's log.
 //!
 //! This ports `Registries` and `RegistryResult` from the pinned `src/keri/app/credentialing.ts`.
 //!
@@ -17,9 +17,9 @@
 //! # An establishment-only issuer is refused before anything is built
 //!
 //! The reference pushes the `EO` trait into the registry configuration, builds the whole registry
-//! inception from it, and *then* throws `establishment only not implemented` — after the
-//! identifier lookup has already gone out. Here it is a typed refusal checked first, which is what
-//! Roadmap 6.2 decided for an establishment-only issuer. See `fixtures/client-registries/`.
+//! inception from it, and *then* throws `establishment only not implemented` — after the identifier
+//! lookup has already gone out. Here it is a typed refusal checked first, which is what the
+//! issuance artifacts decided for an establishment-only issuer. See `fixtures/client-registries/`.
 
 use keri_protocol::event::ConfigurationTrait;
 use keri_protocol::registry::RegistryInceptionBuilder;
@@ -54,7 +54,7 @@ pub enum RegistryBacking {
     /// Backed by the named witnesses, with the threshold that must receipt each event.
     Backers {
         /// The backer identifiers, carried as text because the reference validates none of them —
-        /// Roadmap 4.7 recorded its own vector committing the string `'a backer'`.
+        /// the registry builder's own vector commits the string `'a backer'`.
         backers: Vec<String>,
         /// How many must receipt; the reference's `toad`.
         threshold: u32,
@@ -122,8 +122,7 @@ impl CreateRegistryRequest {
 /// a rejected `POST` is invisible unless the caller awaits `op()`. Here the submission is awaited,
 /// so a failure is a failure at the call site — and the artifacts are still available beside it.
 ///
-/// Not `Clone`: it owns the signatures, and Roadmap 2.5 deliberately made signing material
-/// non-cloneable.
+/// Not `Clone`: it owns the signatures, and signing material is deliberately non-cloneable.
 #[derive(Debug)]
 pub struct CreatedRegistry {
     /// The registry's own inception event; the reference's `regser`. Its SAID is the registry

@@ -353,8 +353,8 @@ pub enum ClientError {
     /// Polling gave up before the operation finished.
     ///
     /// The reference has no such state: its `Operations.wait` is a `while (true)` with no deadline
-    /// and no attempt cap, so an operation the agent never finishes is polled forever. Roadmap 7.2
-    /// bounds it and reports which bound was reached.
+    /// and no attempt cap, so an operation the agent never finishes is polled forever. The poller
+    /// here bounds it and reports which bound was reached.
     PollingStopped {
         /// The operation that was being waited on.
         name: String,
@@ -438,7 +438,7 @@ pub enum ClientError {
     ///
     /// The reference declares its anchor optional and wraps a non-array in one, so `approve(name)`
     /// with no anchor sends `"a": [null]` — an approval of nothing, which is the only body its own
-    /// unit test publishes for this endpoint; see `PORTING.md` §9.
+    /// unit test publishes for this endpoint.
     NoDelegationSeals,
     /// An event that is not a delegated inception was offered as one awaiting approval.
     NotADelegatedInception {
@@ -481,7 +481,7 @@ pub enum ClientError {
     /// field of it produces a different digest and the group never converges. The reference
     /// compares nothing anywhere — `multisig.test.ts` has its joining member rebuild a rotation
     /// from its own key states and sign whatever comes out — so this failure has no upstream
-    /// counterpart; see `PORTING.md` §9.
+    /// counterpart.
     ProposalMismatch {
         /// The digest the proposal carried.
         proposed: String,
@@ -498,14 +498,14 @@ pub enum ClientError {
     ///
     /// The reference sends empty member lists unchallenged, which asks the agent to rotate a group
     /// into having no signers. An empty **rotation**-member list is allowed, because a
-    /// single-signature rotation writes one and Roadmap 6.6 reproduces it.
+    /// single-signature rotation writes one and the identifier family reproduces it.
     EmptyGroupMembers,
     /// An exchange message was submitted with no recipient at all.
     ///
     /// The reference's `sendFromEvents` sends `"rec":[]` unchallenged — its own unit test does
     /// exactly that — while `send` throws, and only because its loop cannot run. Here both refuse
     /// it: asking the agent to deliver a message to nobody is a caller mistake, which is the same
-    /// reasoning Roadmap 6.12 applied to an IPEX submission.
+    /// reasoning applied to an IPEX submission.
     NoExchangeRecipients,
     /// An exchange message was submitted under no topic at all.
     ///
@@ -519,7 +519,7 @@ pub enum ClientError {
     EmptyChallengeWords,
     /// A module's own stored parameter is a number this port cannot write exactly.
     ///
-    /// Roadmap 3.2 narrowed the number space deliberately so byte parity is provable; a
+    /// The ordered serializer narrows the number space deliberately so byte parity is provable; a
     /// fractional or out-of-range value is refused rather than rounded.
     UnrepresentableNumber,
     /// Operating-system randomness was unavailable.

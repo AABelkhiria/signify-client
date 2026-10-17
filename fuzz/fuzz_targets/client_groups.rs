@@ -10,13 +10,13 @@
 //!
 //! Three inputs come from outside. A **SAID** and an **alias** are path components the reference
 //! concatenates raw — its own integration helper falls back to the empty string for the first,
-//! which addresses the whole collection — and Roadmap 3.10 signs `@path`. An **answer** is a
-//! listing the reference casts to `ExnMultisig[]` without looking.
+//! which addresses the whole collection — and the request signature covers `@path`. An **answer**
+//! is a listing the reference casts to `ExnMultisig[]` without looking.
 //!
 //! The target asserts that a read is always three segments and a write always four, that the two
 //! writes differ only in their last, that a listing decodes whole or not at all, and that anything
-//! that decodes is something Roadmap 8.1 either classifies or refuses — never something either
-//! panics on.
+//! that decodes is something the exchange route classifiers either classify or refuse — never
+//! something either panics on.
 
 use keria_types::api::MultisigExchangeResource;
 use libfuzzer_sys::fuzz_target;
@@ -85,7 +85,7 @@ fuzz_target!(|data: &[u8]| {
             assert_eq!(segments.get(2).copied(), Some(MULTISIG_SEGMENT));
             assert_eq!(segments.get(3).copied(), Some(action));
             assert_eq!(path.query(), None, "the alias {alias:?} introduced a query");
-            // Roadmap 3.10 signs the path, so what is signed is what is sent.
+            // The request signature covers the path, so what is signed is what is sent.
             assert_eq!(path.path(), path.as_str());
         }
         // The same resource asked to do two things: everything but the action agrees.

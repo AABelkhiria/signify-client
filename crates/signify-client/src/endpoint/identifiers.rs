@@ -6,27 +6,25 @@
 //! `interact`, `rotate`, `add_end_role`, `add_location_scheme`, and `members`.
 //!
 //! This ports the HTTP half of the pinned `src/keri/app/aiding.ts`. The artifacts themselves are
-//! Roadmap 4.6's, in `signify_keys::identifier`: this module supplies the keeper, assembles the
-//! request body around what that module returns, and addresses the resource. Nothing here builds
-//! an event.
+//! `signify_keys::identifier`'s: this module supplies the keeper, assembles the request body around
+//! what that module returns, and addresses the resource. Nothing here builds an event.
 //!
 //! # A request body is an ordered document
 //!
 //! The reference builds each body as an object literal and hands it to `JSON.stringify`, so its
 //! field order is the literal's and an `undefined` field is dropped rather than written as null.
-//! Both are reproduced with Roadmap 3.2's ordered [`Sad`], which is why a creation without a proxy
-//! sends four fields and a group creation sends seven. The algorithm block is the keeper's own
-//! `params()` order rather than the schema's declaration order — a salty keeper writes `sxlt`
-//! first and `tier` fifth, and the two genuinely differ upstream because one is a request and the
-//! other a response.
+//! Both are reproduced with the ordered [`Sad`], which is why a creation without a proxy sends four
+//! fields and a group creation sends seven. The algorithm block is the keeper's own `params()`
+//! order rather than the schema's declaration order — a salty keeper writes `sxlt` first and `tier`
+//! fifth, and the two genuinely differ upstream because one is a request and the other a response.
 //!
 //! # Every path component is encoded
 //!
 //! Of the seven name-bearing paths in this file the reference encodes two — `get` and `update` —
 //! and concatenates the other five raw, so an alias holding a slash addresses a different resource
-//! *and* changes what a signature covers, because Roadmap 3.10 signs `@path`. Roadmap 5.3's
-//! [`ResourcePath`] encodes every dynamic component exactly once and offers no way to skip it, so
-//! all seven agree here with the two the reference encodes. See `fixtures/client-identifiers/`.
+//! *and* changes what a signature covers, because request signing covers `@path`. [`ResourcePath`]
+//! encodes every dynamic component exactly once and offers no way to skip it, so all seven agree
+//! here with the two the reference encodes. See `fixtures/client-identifiers/`.
 
 use core::marker::PhantomData;
 
@@ -64,7 +62,7 @@ pub const IDENTIFIER_RANGE_UNIT: &str = "aids";
 /// The identifier endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Identifiers<'client> {
     client: &'client ConnectedClient,
@@ -74,8 +72,9 @@ pub struct Identifiers<'client> {
 ///
 /// The reference returns `{start, end, total, aids}`, filling the first three with zeroes when the
 /// answer carries no `content-range` at all — so a listing with entries reports a total of zero.
-/// Here the window is an [`Option`], because Roadmap 5.3 already decided an absent header is
-/// `None` rather than three zeroes, and a caller can tell an empty window from an unreported one.
+/// Here the window is an [`Option`], because the response decoder already decided an absent header
+/// is `None` rather than three zeroes, and a caller can tell an empty window from an unreported
+/// one.
 #[derive(Clone, Debug)]
 pub struct IdentifierListing {
     /// The window the agent reported, when it reported one.
@@ -112,8 +111,7 @@ pub struct LocationSchemeRequest {
     pub scheme: Option<String>,
     /// The endpoint provider, defaulting to the identifier itself.
     pub endpoint: Option<IdentifierPrefix>,
-    /// The reply's timestamp. Required, because a protocol crate never reads the clock
-    /// (Roadmap 3.6).
+    /// The reply's timestamp. Required, because a protocol crate never reads the clock.
     pub stamp: Timestamp,
 }
 
@@ -131,7 +129,7 @@ pub struct Submission<A> {
 impl<A> Submission<A> {
     /// Pairs an artifact with the agent's answer.
     ///
-    /// Every family here builds one from a request it just made. Roadmap 8.7's transaction rounds
+    /// Every family here builds one from a request it just made. The multisig transaction rounds
     /// need one from an artifact another endpoint returned — a registry's anchoring key event, an
     /// issuance's — so the pairing is available inside the crate.
     pub(crate) const fn from_parts(artifact: A, response: Vec<u8>) -> Self {
@@ -158,8 +156,8 @@ impl<A> Submission<A> {
 
     /// Reads the agent's answer as a long-running operation.
     ///
-    /// The result is untyped, for the reason Roadmap 6.5 gave: the answer names its family only in
-    /// its metadata. Use [`Self::operation_typed`] when the family is known.
+    /// The result is untyped, for the reason the operations family gives: the answer names its
+    /// family only in its metadata. Use [`Self::operation_typed`] when the family is known.
     ///
     /// # Errors
     ///
@@ -333,8 +331,8 @@ impl<'client> Identifiers<'client> {
 
     /// Builds and signs one interaction event and posts it under `segment`.
     ///
-    /// Two addresses take the same body. [`Self::interact`] posts it to `events`, and Roadmap
-    /// 8.5's [`Delegations::approve`](crate::endpoint::delegations::Delegations::approve) posts the
+    /// Two addresses take the same body. [`Self::interact`] posts it to `events`, and
+    /// [`Delegations::approve`](crate::endpoint::delegations::Delegations::approve) posts the
     /// identical bytes to `delegation` — which is the whole of the difference between them, in the
     /// reference as here.
     pub(crate) async fn submit_interaction(
@@ -395,7 +393,7 @@ impl<'client> Identifiers<'client> {
     /// Authorizes an endpoint provider in a role for a managed identifier.
     ///
     /// The reply's timestamp is required rather than defaulted to the system clock, continuing
-    /// Roadmap 3.6's convention; the SAID commits to it.
+    /// the reply builder's convention; the SAID commits to it.
     ///
     /// # Errors
     ///

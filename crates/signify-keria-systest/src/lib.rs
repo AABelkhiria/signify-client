@@ -1,9 +1,9 @@
 //! Opt-in system tests against a live KERIA, and the fixtures they record.
 //!
 //! Every other crate in this workspace is proven against the pinned reference's own recorded
-//! traffic. This one is the exception: it talks to a deployment. `ARCHITECTURE.md` §11 provides for
-//! exactly one such layer — "KERIA system tests, Docker/test deployment, opt-in" — and
-//! `AGENTS.md` §16 forbids live network services in default tests outright.
+//! traffic. This one is the exception: it talks to a deployment. The test layout provides for
+//! exactly one such layer — "KERIA system tests, Docker/test deployment, opt-in" — and live network
+//! services are forbidden in default tests outright.
 //!
 //! # How both hold at once
 //!
@@ -11,7 +11,7 @@
 //! what the deployment answered into `fixtures/keria-integration/observations/`, and hermetic tests
 //! in `signify-client` then assert against those recordings. That is the same generator/fixture
 //! split the rest of the port already uses, pointed at a deployment instead of at Node — and it is
-//! what turns "passes against latest", which `PORTING.md` §7 rejects, into something diffable.
+//! what turns "passes against latest", which is not reproducible evidence, into something diffable.
 //!
 //! # How these tests stay out of the default suite
 //!
@@ -28,8 +28,7 @@
 //! `cargo clippy --all-targets` and cannot rot.
 //!
 //! `tests/guard.rs` is **not** ignored: it reads this crate's own test sources and fails if a live
-//! test is missing its `#[ignore]`. `AGENTS.md` §16's prohibition is thereby enforced rather than
-//! remembered.
+//! test is missing its `#[ignore]`. The prohibition is thereby enforced rather than remembered.
 //!
 //! Run them deliberately:
 //!
@@ -93,7 +92,7 @@ pub fn recording() -> bool {
 #[expect(
     clippy::print_stderr,
     reason = "progress reporting for opt-in live runs in a test-only crate; \
-              AGENTS.md §2.2 restricts printing in public libraries, which this is not"
+              printing is restricted in public libraries, which this is not"
 )]
 pub fn progress(message: &str) {
     static STARTED: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
@@ -130,9 +129,9 @@ mod live {
     /// Builds a client against `environment`, recording every exchange.
     ///
     /// The transport is the production one — this is the only place in the workspace where
-    /// [`HttpTransport`] meets a real server other than the loopback test that binds its own socket —
-    /// and the clock is [`TokioClock`], which closes the `PORTING.md` obligation that it is "wired but
-    /// not exercised against real time".
+    /// [`HttpTransport`] meets a real server other than the loopback test that binds its own
+    /// socket — and the clock is [`TokioClock`], so it is exercised against real time rather than
+    /// only wired.
     ///
     /// # Errors
     ///

@@ -51,7 +51,7 @@ pub fn random_passcode() -> Result<Passcode, ClientError> {
 /// Generates a fresh qualified nonce.
 ///
 /// Thirty-two random bytes under the Ed25519 seed code, which is what a registry inception commits
-/// to. Roadmap 4.7 made the nonce a required builder input precisely because this generator was
+/// to. The registry builder made the nonce a required input precisely because this generator was
 /// not yet ported; it now is.
 ///
 /// # Errors

@@ -19,8 +19,8 @@
 //!
 //! **Jitter.** The reference's delay is a pure function of the attempt number, so every client
 //! that started an operation at the same moment retries at the same moments forever.
-//! `AGENTS.md` §2.5 requires jitter; [`Jitter::Equal`] is the default and [`Jitter::None`]
-//! reproduces the reference's schedule exactly.
+//! Retry delay must use jitter; [`Jitter::Equal`] is the default and [`Jitter::None`] reproduces
+//! the reference's schedule exactly.
 //!
 //! # The floor is applied outside the ceiling
 //!
@@ -99,9 +99,9 @@ impl Jitter {
 
 /// Returns `span * randomness / u32::MAX`, in whole nanoseconds and without floating point.
 ///
-/// `AGENTS.md` §2.4 forbids floating point for exact values; a delay is not a protocol value, but
-/// using integers here keeps the result reproducible across platforms, which is what makes the
-/// jitter testable at all.
+/// Exact values never use floating point; a delay is not a protocol value, but using integers
+/// here keeps the result reproducible across platforms, which is what makes the jitter testable at
+/// all.
 fn scale(span: Duration, randomness: u32) -> Duration {
     let nanos = span.as_nanos();
     let scaled = nanos
@@ -115,8 +115,8 @@ fn scale(span: Duration, randomness: u32) -> Duration {
 ///
 /// The reference's integration helper retries whatever its callback threw, and the suites wrap
 /// whole credential lookups in it — so a `POST` that already created something is repeated on any
-/// failure. `AGENTS.md` §2.5 allows an automatic retry "only when the operation is known
-/// idempotent", which is what the default enforces.
+/// failure. An automatic retry is allowed only when the operation is known idempotent, which is
+/// what the default enforces.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum RetryScope {
     /// Only the methods HTTP defines as idempotent: `GET`, `PUT`, and `DELETE`.
@@ -414,8 +414,8 @@ impl RetryPolicyBuilder {
 
     /// Removes the total time budget, leaving the attempt count as the only bound.
     ///
-    /// The schedule still terminates: `AGENTS.md` §2.5 requires it, which is why there is no way
-    /// to remove *both* bounds and reproduce the reference's `while (true)`.
+    /// The schedule still terminates: retries must be bounded, which is why there is no way to
+    /// remove *both* bounds and reproduce the reference's `while (true)`.
     #[must_use]
     pub const fn without_deadline(mut self) -> Self {
         self.deadline = None;

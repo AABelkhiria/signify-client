@@ -46,7 +46,7 @@ pub enum ManagerError {
     /// An algorithm has no key creator.
     ///
     /// The reference's factory throws for the group and external algorithms, whose keys come from
-    /// a group member or an external module rather than from a creator; see `PORTING.md` §5.4.
+    /// a group member or an external module rather than from a creator.
     UnsupportedAlgorithm {
         /// The algorithm asked for.
         algorithm: KeyAlgorithm,

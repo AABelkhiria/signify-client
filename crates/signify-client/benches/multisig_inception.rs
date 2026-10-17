@@ -1,7 +1,7 @@
 //! Microbenchmark for multisig group inception.
 //!
-//! This workflow is dominated by things measured elsewhere — the key derivation Roadmap 4.3's
-//! benchmark covers and the round trips the transport pays for. What is *this module's* cost is the
+//! This workflow is dominated by things measured elsewhere — the key derivation the keeper
+//! benchmarks cover and the round trips the transport pays for. What is *this module's* cost is the
 //! decision work between them, and that is what is measured here.
 //!
 //! Three things.

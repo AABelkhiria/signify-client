@@ -14,28 +14,29 @@
 //!
 //! Upstream `issue` takes a loose `CredentialData` and assembles the ACDC, the issuance event, and
 //! the anchor inside the same method that performs the HTTP. Here the caller builds the credential
-//! with Roadmap 6.1's `CredentialBuilder` and hands it over, which is what lets this module do the
-//! one thing the reference cannot: **check that the credential's issuer is the identifier being
-//! used to anchor it.** Upstream the issuer is `args.i ?? hab.prefix` and nothing compares the two,
-//! so a credential can claim an issuer whose log contains no anchor for it — a credential no
-//! verifier can ever resolve. Here that is [`ClientError::CredentialIssuerMismatch`], refused
-//! before anything is signed.
+//! with `CredentialBuilder` and hands it over, which is what lets this module do the one thing the
+//! reference cannot: **check that the credential's issuer is the identifier being used to anchor
+//! it.** Upstream the issuer is `args.i ?? hab.prefix` and nothing compares the two, so a
+//! credential can claim an issuer whose log contains no anchor for it — a credential no verifier
+//! can ever resolve. Here that is [`ClientError::CredentialIssuerMismatch`], refused before
+//! anything is signed.
 //!
 //! # A revocation is an input, not a lookup
 //!
 //! Upstream `revoke` reads the credential back from the agent to learn the registry it commits to
 //! and the prior digest it supersedes, so a revocation cannot be built offline and both values are
-//! the server's rather than the caller's. Roadmap 6.2 already made all three ordinary inputs
-//! defaulting to the reference's, so [`Credentials::revoke`] takes the built event and looks up
-//! nothing. A caller who wants the reference's arrangement composes it from [`Credentials::state`].
+//! the server's rather than the caller's. The revocation builder already made all three ordinary
+//! inputs defaulting to the reference's, so [`Credentials::revoke`] takes the built event and looks
+//! up nothing. A caller who wants the reference's arrangement composes it from
+//! [`Credentials::state`].
 //!
 //! # Every path component is encoded
 //!
 //! Five of the six methods interpolate their arguments raw upstream — seven dynamic values in all —
-//! so a SAID holding `/`, `?`, or `#` addresses a different resource, and Roadmap 3.10 signs
+//! so a SAID holding `/`, `?`, or `#` addresses a different resource, and request signing covers
 //! `@path`, so it also changes what the signature commits to. Here a SAID and a registry identifier
-//! are validated types before they are path components, and Roadmap 5.3's [`ResourcePath`] encodes
-//! an alias exactly once. See `fixtures/client-credentials/`.
+//! are validated types before they are path components, and [`ResourcePath`] encodes an alias
+//! exactly once. See `fixtures/client-credentials/`.
 
 use keri_acdc::credential::{Credential, RegistryIdentifier};
 use keri_protocol::said::Said;
@@ -172,8 +173,8 @@ impl CredentialFilter {
 /// at construction. Here the body is owned bytes, so [`Self::operation`] can be read as often as a
 /// caller likes.
 ///
-/// Not `Clone`: it owns the anchoring signatures, and Roadmap 2.5 deliberately made signing
-/// material non-cloneable.
+/// Not `Clone`: it owns the anchoring signatures, and signing material is deliberately
+/// non-cloneable.
 #[derive(Debug)]
 pub struct IssuedCredential {
     /// The credential, its issuance event, and the signed interaction event anchoring it.
@@ -219,7 +220,7 @@ impl RevokedCredential {
     ///
     /// The result is untyped because upstream declares a **four-way union** here — a group,
     /// delegation, witness, or done operation — and the answer names its family only in its
-    /// metadata, which is the reason Roadmap 6.5 gave for the same shape. Narrow it with
+    /// metadata, which is the reason the operations family gives for the same shape. Narrow it with
     /// [`Self::operation_typed`] when the family is known.
     ///
     /// # Errors
@@ -281,7 +282,7 @@ impl<'client> Credentials<'client> {
 
     /// Reads one credential record by its SAID.
     ///
-    /// The answer is decoded rather than cast, which is what Roadmap 6.8 and 6.10 decided: a record
+    /// The answer is decoded rather than cast, as the config and schema families decided: a record
     /// missing any of the eleven fields the schema declares is a typed failure rather than
     /// something a caller reads as a credential. The reference's own `mockCredential` is missing
     /// seven of them and is handed over regardless.
@@ -422,10 +423,10 @@ impl<'client> Credentials<'client> {
 
     /// Revokes a credential: anchors `revocation` in the issuer's log and submits both.
     ///
-    /// The revocation event is built by Roadmap 6.2's `RevocationEventBuilder`, so the registry it
-    /// commits to, the digest it supersedes, and its position in the log are the caller's rather
-    /// than the agent's. The reference reads all three back from the agent inside this call, which
-    /// is why it cannot revoke offline and why it always writes position `'1'`.
+    /// The revocation event is built by `RevocationEventBuilder`, so the registry it commits to,
+    /// the digest it supersedes, and its position in the log are the caller's rather than the
+    /// agent's. The reference reads all three back from the agent inside this call, which is why it
+    /// cannot revoke offline and why it always writes position `'1'`.
     ///
     /// # Errors
     ///
@@ -570,7 +571,7 @@ mod tests {
     #[test]
     fn a_value_that_would_reshape_a_path_is_not_a_said() {
         // The reference interpolates its argument raw, so each of these addresses a different
-        // resource — and changes the path Roadmap 3.10 signs.
+        // resource — and changes the path request signing covers.
         for hostile in [
             "E/../identifiers?x=1#y",
             "c/d",

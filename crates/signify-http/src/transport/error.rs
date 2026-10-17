@@ -1,8 +1,8 @@
 //! Failures a transport reports.
 //!
 //! A non-success HTTP status is **not** one of these: a response that arrived is a [`Response`],
-//! whatever its status, and turning a status into a typed failure is Roadmap 5.3's response
-//! model. These are the ways a request fails to produce a response at all, plus the construction
+//! whatever its status, and turning a status into a typed failure is [`crate::response`]'s
+//! job. These are the ways a request fails to produce a response at all, plus the construction
 //! failures that keep a malformed request from being sent.
 //!
 //! [`Response`]: crate::transport::Response
@@ -87,9 +87,9 @@ pub enum TransportError {
     },
     /// The request could not be signed, so it was never sent.
     ///
-    /// Added by Roadmap 5.5, which composes signing into the transport stack. It is deliberately
-    /// **not** transient: a request that cannot be signed cannot be signed on a second attempt
-    /// either, so Roadmap 5.4's classifier never retries it. The message is bounded and carries no
+    /// Reported by the signing layer of the transport stack. It is deliberately **not** transient:
+    /// a request that cannot be signed cannot be signed on a second attempt either, so the retry
+    /// classifier never retries it. The message is bounded and carries no
     /// key, no signature, and no header value.
     Signing {
         /// Bounded description of what failed.

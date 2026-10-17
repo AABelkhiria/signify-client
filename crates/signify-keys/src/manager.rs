@@ -5,7 +5,7 @@
 //!
 //! Two of the reference's four algorithms have a key creator here. The other two name a source
 //! outside this module — a multisig group member, or an external key store — and the reference's
-//! own factory throws for both; see `PORTING.md` §5.4.
+//! own factory throws for both.
 
 pub mod algorithm;
 pub mod creator;

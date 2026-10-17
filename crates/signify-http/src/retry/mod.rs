@@ -15,8 +15,8 @@
 //! # Layering: signing must happen *inside* the retry loop
 //!
 //! [`RetryingTransport`] re-executes the **request it was given**, so whatever sits beneath it runs
-//! again on every attempt. That is what makes the ordering load-bearing once Roadmap 5.5 adds a
-//! signing transport:
+//! again on every attempt. That is what makes the ordering load-bearing once a signing transport
+//! sits beneath it:
 //!
 //! ```text
 //! RetryingTransport  ->  <signing transport>  ->  HttpTransport      correct
@@ -82,7 +82,7 @@ const RETRY_AFTER_HEADER: &str = "retry-after";
 
 /// One retry that is about to happen.
 ///
-/// Carries the method and the path **without its query**, reusing Roadmap 5.3's
+/// Carries the method and the path **without its query**, reusing the response decoder's
 /// [`RequestOrigin`] so an observer that logs cannot accidentally record a caller's filter values.
 /// It carries no headers, no body, and no URL — nothing an observer could leak.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -116,9 +116,9 @@ pub struct GiveUpEvent {
 
 /// Watches what a [`RetryingTransport`] does.
 ///
-/// `AGENTS.md` §2.5 requires retries to be observable. This is a trait rather than a log line
-/// because a library may not initialise a logger (§2.2), and rather than a `tracing` dependency
-/// because a caller who wants one can write four lines in their own crate.
+/// Retries must be observable. This is a trait rather than a log line because a library may not
+/// initialise a logger, and rather than a `tracing` dependency because a caller who wants one can
+/// write four lines in their own crate.
 ///
 /// Both methods default to doing nothing.
 pub trait RetryObserver: fmt::Debug + Send + Sync {
@@ -141,9 +141,9 @@ impl RetryObserver for IgnoreRetries {}
 
 /// A [`Transport`] that retries the transport beneath it according to a [`RetryPolicy`].
 ///
-/// A non-success status is still returned as a [`Response`], exactly as Roadmap 5.1 decided: this
-/// retries a `503` and then hands back whatever the last attempt produced. Turning a status into a
-/// typed failure remains Roadmap 5.3's [`ResourceResponse`](crate::response::ResourceResponse).
+/// A non-success status is still returned as a [`Response`], exactly as the transport boundary
+/// decided: this retries a `503` and then hands back whatever the last attempt produced. Turning a
+/// status into a typed failure remains [`ResourceResponse`](crate::response::ResourceResponse)'s.
 ///
 /// Cancellation is dropping the returned future, which stops inside the wait — the thing the
 /// reference cannot do, because it checks its abort signal only after waking.
@@ -231,7 +231,7 @@ impl Transport for RetryingTransport {
 
             loop {
                 // Each attempt sends its own clone, so whatever sits beneath — a signing transport
-                // in Roadmap 5.5 — runs again and re-derives anything time-dependent.
+                // — runs again and re-derives anything time-dependent.
                 let outcome: Result<Response, TransportError> = self.inner.execute(request.clone()).await;
 
                 let (retryable, status, guidance) = match &outcome {

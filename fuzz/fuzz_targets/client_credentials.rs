@@ -5,10 +5,10 @@
 //! Four things reach this family from outside, and each is a different kind of boundary.
 //!
 //! **Seven path components.** The reference interpolates every one of them raw, so upstream a SAID
-//! or an alias carrying `/`, `?`, or `#` addresses a different resource — and Roadmap 3.10 signs
-//! `@path`, so it also changes what the signature commits to. This target asserts that anything
-//! accepted as a SAID or a registry identifier is exactly one segment and carries no delimiter, and
-//! that an alias can never leave its own.
+//! or an alias carrying `/`, `?`, or `#` addresses a different resource — and the request signature
+//! covers `@path`, so it also changes what the signature commits to. This target asserts that
+//! anything accepted as a SAID or a registry identifier is exactly one segment and carries no
+//! delimiter, and that an alias can never leave its own.
 //!
 //! **A query filter.** `list` is the only read in the crate that sends a body, and that body is the
 //! *agent's* query language: whatever labels and values a caller assembles reach the wire. The
@@ -165,8 +165,8 @@ fuzz_target!(|data: &[u8]| {
                 Ok(again) => {
                     // Compared field by field rather than by whole value: a captured open field
                     // holding an integer outside the exact range does not survive its first
-                    // re-encoding, which is Roadmap 4.1's own pre-existing defect (`PORTING.md`
-                    // §10, owned by Roadmap 9.3) rather than anything this family introduces.
+                    // re-encoding, which is the shared API types' own pre-existing defect rather
+                    // than anything this family introduces.
                     assert_eq!(again.sad.digest, record.sad.digest);
                     assert_eq!(again.status.credential(), record.status.credential());
                     assert_eq!(again.status.status(), record.status.status());

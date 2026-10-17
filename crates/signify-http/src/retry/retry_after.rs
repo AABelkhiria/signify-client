@@ -6,8 +6,8 @@
 //! `fixtures/http-retry/v1.json` so the absence is evidence rather than a claim. A server asking to
 //! be left alone for thirty seconds is retried on the client's own schedule regardless.
 //!
-//! `AGENTS.md` §2.5 requires that retry delay "honor server guidance when valid", so this exists
-//! and is governed by RFC 9110 §10.2.3 alone.
+//! Retry delay must honor server guidance when valid, so this exists and is governed by RFC 9110
+//! §10.2.3 alone.
 //!
 //! # What is accepted, and what is not
 //!
@@ -232,8 +232,8 @@ const fn days_in_month(year: u32, month: u32) -> u32 {
 /// Returns days since 1970-01-01 for a proleptic Gregorian date.
 ///
 /// Howard Hinnant's `days_from_civil`, which is exact integer arithmetic with no floating point
-/// and no lookup table. `AGENTS.md` §2.4 forbids floating point for exact protocol values, and a
-/// retry instant is one.
+/// and no lookup table. Exact protocol values never use floating point, and a retry instant is
+/// one.
 fn days_from_civil(year: u32, month: u32, day: u32) -> Option<i64> {
     let year = i64::from(year);
     let month = i64::from(month);

@@ -6,7 +6,7 @@
 //! not reading at all.
 //!
 //! Three proposals, at a credential with two, sixteen, and sixty-four attributes: reading each
-//! (decode plus Roadmap 8.1's classification), beside the registry and revocation rounds whose
+//! (decode plus the route table's classification), beside the registry and revocation rounds whose
 //! messages do not grow.
 
 use std::hint::black_box;

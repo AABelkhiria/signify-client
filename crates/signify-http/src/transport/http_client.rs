@@ -1,10 +1,10 @@
 //! The production HTTP transport, behind the `http-client` feature.
 //!
-//! This implements [`Transport`] over hyper with rustls. ADR `0020` records why the stack is
-//! hyper rather than a higher-level client: a higher-level one parses its URL with the `url`
-//! crate, which **collapses dot segments**, so a request for `/identifiers/..` goes out as `/` —
-//! while Roadmap 3.10's signature still covers the path that was asked for. `http::Uri` preserves
-//! the path exactly, which is what makes the signature and the request agree.
+//! This implements [`Transport`] over hyper with rustls. The stack is hyper rather than a
+//! higher-level client because a higher-level one parses its URL with the `url` crate, which
+//! **collapses dot segments**, so a request for `/identifiers/..` goes out as `/` — while the
+//! request signature still covers the path that was asked for. `http::Uri` preserves the path
+//! exactly, which is what makes the signature and the request agree.
 //!
 //! # This is where the runtime is adopted
 //!
@@ -199,8 +199,8 @@ impl Transport for HttpTransport {
 
 /// Converts one validated request into the outgoing message.
 ///
-/// The URL's bytes reach `http::Uri` unchanged, which is the whole point of ADR `0019`'s
-/// non-normalizing [`RequestUrl`](crate::transport::RequestUrl).
+/// The URL's bytes reach `http::Uri` unchanged, which is the whole point of the non-normalizing
+/// [`RequestUrl`](crate::transport::RequestUrl).
 fn build_outgoing(request: &Request) -> Result<hyper::Request<Full<Bytes>>, TransportError> {
     let method = match request.method() {
         Method::Get => hyper::Method::GET,
@@ -263,8 +263,8 @@ async fn read_response(
 ///
 /// A repeated name is **refused** rather than joined or silently dropped. This crate's [`Headers`]
 /// makes one-name-one-value an invariant precisely because joining changes what a signature
-/// covers, and in a protocol whose responses are signed (Roadmap 5.5) a duplicated header is
-/// ambiguous. See `PORTING.md` §9 for the operational consequence.
+/// covers, and in a protocol whose responses are signed a duplicated header is ambiguous. A proxy
+/// that inserts one would therefore make responses unreadable.
 fn convert_headers(source: &http::HeaderMap) -> Result<Headers, TransportError> {
     let mut headers = Headers::new();
     for (name, value) in source {
@@ -327,7 +327,7 @@ mod tests {
     #[test]
     fn the_url_reaches_the_wire_without_being_rewritten() -> Result<(), Box<dyn Error>> {
         // The case that decided the dependency: a higher-level client's URL type collapses these
-        // dot segments to `/`, which would not be the path Roadmap 3.10 signed.
+        // dot segments to `/`, which would not be the path that was signed.
         for (url, path, query) in [
             ("https://keria.example/identifiers/..", "/identifiers/..", None),
             ("https://keria.example/a/./b/../c", "/a/./b/../c", None),

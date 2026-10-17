@@ -1,10 +1,10 @@
 //! Microbenchmark for the notifications endpoint family.
 //!
 //! One thing here is worth measuring and is not measured elsewhere: **a page is windowed, and the
-//! window is the caller's**. Roadmap 7.3's contact listing has no paging at all and its decode
-//! scales with the whole address book; this one scales with whatever page was asked for, so the
-//! interesting number is what a page *costs* as it grows — which is what tells a caller how large a
-//! window is reasonable.
+//! window is the caller's**. The contact listing has no paging at all and its decode scales with
+//! the whole address book; this one scales with whatever page was asked for, so the interesting
+//! number is what a page *costs* as it grows — which is what tells a caller how large a window is
+//! reasonable.
 //!
 //! Beside it: the two address shapes, the `Range` header, and reading a `Content-Range` back.
 //!
@@ -12,7 +12,7 @@
 //! qualified nonce.
 //!
 //! As everywhere in this crate, all of it is small beside one signed request, whose signature alone
-//! Roadmap 6.4 measured at ~25 µs.
+//! the `lifecycle` benchmark measured at ~25 µs.
 
 use std::hint::black_box;
 

@@ -384,7 +384,7 @@ fn a_disclosure_chains_to_a_signed_key_event() -> Result<(), Box<dyn std::error:
     let artifacts = issue_credential(keeper.as_ref(), &state, credential)?;
     let disclosure = artifacts.disclosure()?;
 
-    // The three artifacts are exactly what Roadmap 6.2 produced.
+    // The three artifacts are exactly what `issue_credential` produced.
     assert_eq!(disclosure.credential().raw(), artifacts.credential.raw());
     assert_eq!(disclosure.issuance().raw(), artifacts.issuance.raw());
     assert_eq!(disclosure.anchor().raw(), artifacts.anchor.event.raw());

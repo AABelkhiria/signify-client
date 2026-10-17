@@ -63,7 +63,7 @@ fuzz_target!(|data: &[u8]| {
         let encoded = encode_path_component(&alias);
         assert_eq!(segments.get(1).copied(), Some(encoded.as_str()));
         assert_eq!(write.query(), None, "the alias {alias:?} introduced a query");
-        // Roadmap 3.10 signs the path, so what is signed is exactly what is sent.
+        // The request signature covers the path, so what is signed is exactly what is sent.
         assert_eq!(write.path(), write.as_str());
 
         // The read and the write agree about the alias, which upstream they do not.

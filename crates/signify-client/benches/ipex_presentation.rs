@@ -1,9 +1,9 @@
 //! Microbenchmark for reading one step of a disclosure conversation.
 //!
 //! Every method here answers a step that arrived, so what a caller pays is the cost of **reading**
-//! it: decoding the message, classifying it through Roadmap 8.1's table, and taking out the SAID
-//! the answer chains to. That is the cost the reference avoids by taking a bare string from a
-//! waiter and building on it unchecked.
+//! it: decoding the message, classifying it through the route table, and taking out the SAID the
+//! answer chains to. That is the cost the reference avoids by taking a bare string from a waiter
+//! and building on it unchecked.
 //!
 //! Four things are measured: reading an apply, an agree, and a grant — the largest step, which
 //! carries a whole credential — and turning an apply into the credential filter it asks for, at

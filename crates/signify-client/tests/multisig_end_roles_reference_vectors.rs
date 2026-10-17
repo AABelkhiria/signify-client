@@ -651,10 +651,10 @@ mod driven {
         Ok(())
     }
 
-    /// The reference's own interaction proposal for this group, which Roadmap 8.3 recorded, is
-    /// handed to the end-role half. A route carries its own embed, so a relabelled reply would be
-    /// refused as malformed before its route was ever compared; a genuine interaction proposal
-    /// reaches the comparison.
+    /// The reference's own interaction proposal for this group, which the `client-multisig-events`
+    /// fixture recorded, is handed to the end-role half. A route carries its own embed, so a
+    /// relabelled reply would be refused as malformed before its route was ever compared; a genuine
+    /// interaction proposal reaches the comparison.
     #[test]
     fn a_proposal_on_another_route_is_not_an_end_role() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;

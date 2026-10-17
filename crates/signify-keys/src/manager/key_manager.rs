@@ -815,7 +815,7 @@ impl KeyManager {
                     // The reference forgets the derivation code when a *rotation* stores a path,
                     // which leaves the rotated key unusable for signing; there is no separate code
                     // here to forget, and the profile is the one the key was actually derived
-                    // under. See `PORTING.md` §9.
+                    // under. See the `keri-manager` fixture.
                     self.store.insert_path(&public_key, StoredPath { path, profile });
                 }
                 (None, None) => return Err(ManagerError::RandomKeysNeedEncryption),

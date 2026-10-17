@@ -4,7 +4,7 @@
 //! the client's own signing identity from a passcode and builds its inception, delegation
 //! approval, and passcode-rotation artifacts, and the [`Agent`] that validates the KERIA agent's
 //! delegated key state. Everything here is pure — nothing performs I/O, reads a clock, or knows a
-//! KERIA endpoint; the boot/connect orchestration that consumes these types is Roadmap 6.4.
+//! KERIA endpoint; the boot/connect orchestration that consumes these types is `signify-client`'s.
 
 pub mod agent;
 pub mod client;

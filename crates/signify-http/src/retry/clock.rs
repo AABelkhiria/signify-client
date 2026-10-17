@@ -2,9 +2,8 @@
 //!
 //! A retry policy needs three things from the world: a monotonic reading to measure a deadline
 //! against, a way to wait, and — only to interpret a `Retry-After` that names a date — a wall-clock
-//! reading. All three come through [`Clock`], so `AGENTS.md` §8's "tests may not sleep in
-//! wall-clock time" is a property of the design rather than of the discipline of whoever writes
-//! the next test.
+//! reading. All three come through [`Clock`], so "tests may not sleep in wall-clock time" is a
+//! property of the design rather than of the discipline of whoever writes the next test.
 //!
 //! # Why the two readings are separate
 //!
@@ -149,7 +148,8 @@ impl TestClock {
     /// Runs `action` against the state, recovering from a poisoned lock.
     ///
     /// A test that already failed inside a sleep should report *its* failure, not a second panic
-    /// from this clock; the same reasoning as Roadmap 5.1's scripted transport.
+    /// from this clock; the same reasoning as
+    /// [`ScriptedTransport`](crate::transport::ScriptedTransport)'s.
     fn with_state<T>(&self, action: impl FnOnce(&mut TestClockState) -> T) -> T {
         let mut state = self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         action(&mut state)
@@ -182,10 +182,9 @@ impl Clock for TestClock {
 
 /// A clock backed by the tokio runtime.
 ///
-/// Available with the `http-client` feature, which is where `AGENTS.md` §2.5's deliberate runtime
-/// adoption happened (ADR `0020`). A caller bringing a different runtime implements [`Clock`] over
-/// its own timer instead; the trait is the whole contract, and nothing below `signify-http`
-/// links a runtime either way.
+/// Available with the `http-client` feature, which is where this crate deliberately adopts a
+/// runtime. A caller bringing a different runtime implements [`Clock`] over its own timer instead;
+/// the trait is the whole contract, and nothing below `signify-http` links a runtime either way.
 #[cfg(feature = "http-client")]
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TokioClock;

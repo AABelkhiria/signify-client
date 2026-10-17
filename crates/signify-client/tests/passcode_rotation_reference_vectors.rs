@@ -362,7 +362,7 @@ fn the_reference_rotates_a_connected_client_at_sequence_one_over_its_interaction
 
     assert_eq!(rotation.get("t").and_then(Value::as_str), Some("rot"));
     // The defect: the interaction the prior names is itself at sequence one, so keripy reads this
-    // `rot` as a recovery whose prior must be the inception, and refuses it. ADR `0034`.
+    // `rot` as a recovery whose prior must be the inception, and refuses it.
     assert_eq!(rotation.get("s").and_then(Value::as_str), Some("1"));
     assert_eq!(rotation.get("p").and_then(Value::as_str), Some(CONNECTED_INTERACTION));
     assert_eq!(

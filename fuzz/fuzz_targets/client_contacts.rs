@@ -3,9 +3,10 @@
 //! Fuzzes the contacts endpoint over hostile identifiers, filters, info bodies, and agent answers.
 //!
 //! Four things come from outside. A **contact's identifier** is a path component the reference
-//! concatenates raw — Roadmap 5.3's own fixture recorded `contacts().delete("a/b")` reaching two
-//! segments — and Roadmap 3.10 signs `@path`. A **group** and a **filter** are query values. A
-//! caller's **info body** is an open document whose bytes this port promises to preserve exactly.
+//! concatenates raw — the `http-request-response` fixture recorded `contacts().delete("a/b")`
+//! reaching two segments — and the request signature covers `@path`. A **group** and a **filter**
+//! are query values. A caller's **info body** is an open document whose bytes this port promises to
+//! preserve exactly.
 //!
 //! The fourth is the one worth naming: **an agent's answer is a trust statement**. A `Contact`
 //! carries `ends`, which say which endpoints may speak for that identifier, and `challenges`, whose

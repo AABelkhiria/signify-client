@@ -2,8 +2,8 @@
 //!
 //! Nothing here is cryptographic, so these measure the cost the boundary itself adds to every
 //! request: parsing a URL, assembling a request, and the one heap allocation the boxed future
-//! costs — the price ADR `0019` accepted in exchange for a dyn-compatible trait. Measuring it is
-//! the point: it must stay far below a network round trip.
+//! costs — the price accepted in exchange for a dyn-compatible trait. Measuring it is the point:
+//! it must stay far below a network round trip.
 
 use std::hint::black_box;
 

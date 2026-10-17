@@ -1,7 +1,7 @@
 //! Wave 17 — passcode rotation against a live agent, twice, with a reconnection after each.
 //!
 //! Not an upstream scenario: the reference's passcode rotation is covered only by a mocked unit
-//! test, and signify-tui found that a live KERIA refuses it. ADR `0034`.
+//! test, and signify-tui found that a live KERIA refuses it.
 //!
 //! **Only against a KERIA whose agent endpoint checks the rotation's signature correctly**, such
 //! as `WebOfTrust` KERIA from `ba5001d`. A deployment whose handler tests

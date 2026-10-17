@@ -2,8 +2,8 @@
 //!
 //! This ports the `SignifyClient` constructor of the pinned `src/keri/app/clienting.ts`, whose
 //! whole validation is one length check on the passcode. Here the URLs are validated too, because
-//! Roadmap 5.3's [`BaseUrl`] can refuse a malformed one before any request is built rather than
-//! after one has failed.
+//! [`BaseUrl`] can refuse a malformed one before any request is built rather than after one has
+//! failed.
 
 use core::fmt;
 

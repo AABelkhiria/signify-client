@@ -2,14 +2,14 @@
 //!
 //! Nothing here is expensive, and that is worth recording rather than guessing at, because a
 //! challenge *looks* cryptographic. It is not: the entropy is the agent's, the mnemonic is the
-//! agent's, and the signing that proves control belongs to Roadmap 7.7's exchange submission. What
+//! agent's, and the signing that proves control belongs to the exchange family's submission. What
 //! this family does is validate a strength, write two small bodies, and decode two small answers.
 //!
 //! Inputs: all five entropy sizes; word lists of 12 and 24 words, which is what those sizes
 //! produce; a 44-character prefix and SAID.
 //!
 //! As everywhere in this crate, all of it is negligible beside one signed request, whose signature
-//! alone Roadmap 6.4 measured at ~25 µs.
+//! alone the `lifecycle` benchmark measured at ~25 µs.
 
 use std::hint::black_box;
 

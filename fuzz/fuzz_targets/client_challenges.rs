@@ -6,12 +6,13 @@
 //! somebody's contact record, and anything downstream may act on it. So the inputs that matter are
 //! the ones that decide what gets asked and what gets believed.
 //!
-//! A **strength** is a caller's number the reference stringifies into a query, where nothing outside
-//! BIP39's five entropy sizes could ever produce a mnemonic. A **source** is a path component the
-//! reference interpolates raw, and Roadmap 3.10 signs `@path`. A **word list** is what an identifier
-//! is claimed to have signed — an empty one asks the agent to confirm that it signed nothing. And an
-//! **agent's answer** is the verdict itself: a `Challenge` whose `authenticated` field a caller
-//! reads, and a `ChallengeOperation` whose outcome decides whether they read it at all.
+//! A **strength** is a caller's number the reference stringifies into a query, where nothing
+//! outside BIP39's five entropy sizes could ever produce a mnemonic. A **source** is a path
+//! component the reference interpolates raw, and the request signature covers `@path`. A
+//! **word list** is what an identifier is claimed to have signed — an empty one asks the agent to
+//! confirm that it signed nothing. And an **agent's answer** is the verdict itself: a `Challenge`
+//! whose `authenticated` field a caller reads, and a `ChallengeOperation` whose outcome decides
+//! whether they read it at all.
 //!
 //! The target asserts that nothing panics, that a strength is accepted exactly when BIP39 defines
 //! it, that a source is always one path segment, that a word list reaches the body in order and

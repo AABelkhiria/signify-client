@@ -1,15 +1,14 @@
 //! Identifier artifacts: the events, signatures, and reply messages a managed identifier submits.
 //!
 //! This ports the pure half of the reference's `src/keri/app/aiding.ts`: everything `create`,
-//! `createInteract`, `rotate`, `addEndRole`, and `addLocScheme` construct *before* their HTTP
-//! call. Each function here takes the identifier's keeper — Roadmap 4.3's
-//! [`IdentifierKeeper`] — and, where the reference reads the
-//! stored identifier, its Roadmap 4.1 [`KeyState`]. Building the keeper from a stored record
-//! (`KeeperFactory::keeper_for`), serializing the request body, and the endpoints themselves are
-//! Roadmap 6.6.
+//! `createInteract`, `rotate`, `addEndRole`, and `addLocScheme` construct *before* their HTTP call.
+//! Each function here takes the identifier's keeper — an [`IdentifierKeeper`] — and, where the
+//! reference reads the stored identifier, its [`KeyState`]. Building the keeper from a stored
+//! record (`KeeperFactory::keeper_for`), serializing the request body, and the endpoints themselves
+//! are `signify-client`'s identifier endpoint family.
 //!
 //! The one clock the reference reads — a reply's default timestamp — is a required
-//! [`Timestamp`] here, continuing Roadmap 3.6's decision that a protocol crate never reads the
+//! [`Timestamp`] here, continuing the event builders' rule that a protocol crate never reads the
 //! clock.
 
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
@@ -158,10 +157,10 @@ impl CreateAlgorithm {
 ///
 /// A [`KeyTransferability::NonTransferable`] identifier commits to no next keys, carries a zero
 /// next-key threshold, and derives a basic non-transferable prefix; a request that explicitly
-/// contradicts any of that is refused rather than silently rewritten, exactly as Roadmap 4.4
-/// decided for the habitat registry. The reference's unused `pre`, `keys`, and `ndigs` arguments
-/// have no equivalent — `create` extracts and never reads them — and `prxs`/`nxts` belong to
-/// reloading an existing identifier, which is `KeeperFactory::keeper_for`.
+/// contradicts any of that is refused rather than silently rewritten, exactly as the habitat
+/// registry does. The reference's unused `pre`, `keys`, and `ndigs` arguments have no equivalent —
+/// `create` extracts and never reads them — and `prxs`/`nxts` belong to reloading an existing
+/// identifier, which is `KeeperFactory::keeper_for`.
 #[derive(Debug)]
 pub struct CreateIdentifierRequest {
     /// Where the keys come from; the reference's `algo` plus its algorithm-specific arguments.
@@ -188,7 +187,7 @@ pub struct CreateIdentifierRequest {
     /// single-element list — even when handed a list, which is pinned and not reproducible here.
     pub anchor: Option<Sad>,
     /// Proxy identifier the creation is routed through; carried into the request body by
-    /// Roadmap 6.6, unread here.
+    /// `signify-client`, unread here.
     pub proxy: Option<String>,
 }
 
@@ -306,7 +305,7 @@ impl CreateIdentifierRequest {
             ),
             KeyTransferability::NonTransferable => {
                 // The reference silently rewrites `ncount`, `nsith`, and `dcode`; an explicit
-                // contradiction is refused, following Roadmap 4.4.
+                // contradiction is refused, following the habitat registry.
                 if let Some(requested) = self.algorithm.next_count()
                     && requested != 0
                 {
@@ -1086,9 +1085,9 @@ mod tests {
 
     #[test]
     fn a_rotation_signs_with_the_inception_count() -> Result<(), Box<dyn Error>> {
-        // Property-test regression, permanent: a salty keeper's current count never moves from
-        // its inception count — Roadmap 4.3's pinned quirk — so a rotation to two keys writes
-        // both into the event but signs with one.
+        // Property-test regression, permanent: a salty keeper's current count never moves from its
+        // inception count — the `keri-keeping` fixture's pinned quirk — so a rotation to two keys
+        // writes both into the event but signs with one.
         let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
             passcode: Some(PASSCODE.to_owned()),
             tier: SecurityTier::Low,

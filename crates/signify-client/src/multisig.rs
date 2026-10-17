@@ -21,7 +21,7 @@
 //! An inception creates the identifier, a rotation changes who controls it, and an interaction
 //! anchors seals in its log without changing anything about its keys. A **delegation approval** is
 //! an interaction that goes to a different address: the group is a delegator, and the seals it
-//! anchors bring delegated identifiers — themselves often groups — into existence. Roadmap 8.6.
+//! anchors bring delegated identifiers — themselves often groups — into existence.
 //!
 //! # The joining half always checks
 //!
@@ -33,7 +33,8 @@
 //!
 //! **The reference compares nothing, anywhere.** Its joining members rebuild a rotation from their
 //! own key states and sign whatever comes out; where two members' states differ they sign different
-//! events, the group never rotates, and nothing says so. Roadmap 8.4's fixture drives exactly that.
+//! events, the group never rotates, and nothing says so. The `client-multisig-events` fixture
+//! drives exactly that.
 //!
 //! # A delegation approval anchors every seal it was shown
 //!
@@ -47,7 +48,7 @@
 //!
 //! # A joining member reads the proposal
 //!
-//! Roadmap 8.7's three rounds are where the reference stops reading altogether.
+//! The registry, issuance, and revocation rounds are where the reference stops reading altogether.
 //! `createRegistryMultisig` and `issueCredentialMultisig` **wait for a notification, discard its
 //! SAID, and then build from their own arguments** — no `getRequest`, no comparison, nothing read.
 //! So two members handed a different nonce create different registries, and two handed different
@@ -58,16 +59,16 @@
 //! # A group's IPEX rounds read their timestamp out of the proposal
 //!
 //! The last two rounds send an IPEX message rather than a key or registry event: the group grants a
-//! credential to somebody outside it, or acknowledges one it was granted. Roadmap 8.8. The message
-//! is built under the group's alias and announced under the member's, and the announcement carries
-//! it whole in [`EXCHANGE_SLOT`] with the group's establishment seal over the member's signature.
+//! credential to somebody outside it, or acknowledges one it was granted. The message is built
+//! under the group's alias and announced under the member's, and the announcement carries it whole
+//! in [`EXCHANGE_SLOT`] with the group's establishment seal over the member's signature.
 //!
 //! The announcement also names the members in `smids` and `rmids`, as every event round's does.
 //! The reference's `grantMultisig` and `admitMultisig` write `{ gid }` alone and hand the peers to
 //! the helper as an argument; a joining member here has no such argument, and the group's record
 //! cannot supply one — its `keys` are signing keys, not identifiers. So the members travel in the
 //! proposal, and a proposal that names none (the reference's) is answered by asking the agent for
-//! its listing of them, exactly as `multisigIssue` and `multisigRevoke` do. `PORTING.md` §10.
+//! its listing of them, exactly as `multisigIssue` and `multisigRevoke` do.
 //!
 //! An IPEX message's SAID covers **its timestamp**, so two members stamping their own clocks build
 //! two different messages. The reference's helpers take the stamp as an argument and its holder test
@@ -114,25 +115,25 @@
 //! helpers `startMultisigIncept` and `acceptMultisigIncept` in
 //! `test-integration/utils/multisig-utils.ts`; the other two are written inline in the body of
 //! `test-integration/multisig.test.ts` and are not even functions. So there is no exported API to
-//! port and no unit test to reproduce. `PORTING.md` §4.5 records it as a Rust-only module, and the
-//! fixtures run the reference's own code — the helpers by transpiling that one file in memory, the
-//! two later rounds by driving the same primitives in the same order. See
-//! `fixtures/client-multisig-inception/` and `fixtures/client-multisig-events/`.
+//! port and no unit test to reproduce. It is a Rust-only module, and the fixtures run the
+//! reference's own code — the helpers by transpiling that one file in memory, the two later rounds
+//! by driving the same primitives in the same order. See `fixtures/client-multisig-inception/` and
+//! `fixtures/client-multisig-events/`.
 //!
 //! # What this composes
 //!
-//! Nothing here is new protocol. The inception is Roadmap 4.6's artifact submitted through 6.6's
-//! endpoint; the proposal is 3.8's exchange message signed by 4.3's keeper, attached with 3.7's
-//! framing and sent through 7.7's submission; the proposal a joining member reads is 8.2's listing
-//! classified by 8.1. This module is the order those go in, and the four places the reference gets
-//! that order wrong.
+//! Nothing here is new protocol. The inception is an identifier artifact submitted through the
+//! identifier endpoint; the proposal is an exchange message signed by the member's keeper, attached
+//! with CESR attachment framing and sent through the exchange submission; the proposal a joining
+//! member reads is the group listing classified by the route table. This module is the order those
+//! go in, and the four places the reference gets that order wrong.
 //!
 //! # A proposal is addressed to a peer
 //!
 //! `startMultisigIncept` passes its whole participant list as the recipient list, and the local
-//! member is the first of it — so through the loop Roadmap 7.7 recorded, the message is addressed
-//! to its own sender and delivered back to itself along with everybody else. The accepting helper
-//! already filters itself out; here both do.
+//! member is the first of it — so through the exchange submission's delivery loop, the message is
+//! addressed to its own sender and delivered back to itself along with everybody else. The
+//! accepting helper already filters itself out; here both do.
 //!
 //! # A joining member relays what it read
 //!
@@ -151,12 +152,12 @@
 //!
 //! # One thing this port does that the reference does not
 //!
-//! It reads the member record **twice**: once here to build the group, and once inside Roadmap
-//! 7.7's [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send), which resolves its own
-//! sender from the alias rather than taking a record the caller is already holding. That is what
-//! keeps a message's `i` field and the key that signed it one identifier, and it is why a proposal
-//! makes six requests here where the reference — passing the hab it already has — makes five. The
-//! group's keys come from the participants' key states either way, so nothing rests on it.
+//! It reads the member record **twice**: once here to build the group, and once inside
+//! [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send), which resolves its own sender
+//! from the alias rather than taking a record the caller is already holding. That is what keeps a
+//! message's `i` field and the key that signed it one identifier, and it is why a proposal makes
+//! six requests here where the reference — passing the hab it already has — makes five. The group's
+//! keys come from the participants' key states either way, so nothing rests on it.
 
 use keri_acdc::credential::Credential;
 use keri_cesr::sequence::SequenceNumber;
@@ -311,8 +312,8 @@ pub struct GroupRotationRequest<'a> {
     /// Key states supplying the group's new next digests; the reference's `rstates`.
     ///
     /// Separate from `signing_states`, and never defaulted to it. The reference's two rotation
-    /// call sites disagree about which one reaches `rmids`, which is the same conflation Roadmap
-    /// 8.3 recorded in the accepting half of an inception.
+    /// call sites disagree about which one reaches `rmids`, which is the same conflation the
+    /// `client-multisig-inception` fixture recorded in the accepting half of an inception.
     pub rotation_states: &'a [KeyState],
     /// Next-key threshold; the reference's `nsith`, defaulting to the state's own.
     pub next_threshold: Option<SigningThreshold>,
@@ -359,7 +360,7 @@ pub struct GroupDelegationRequest<'a> {
     pub local_member: &'a str,
     /// Every member of the delegator group, this one included.
     pub members: &'a [IdentifierPrefix],
-    /// The seals to anchor; Roadmap 8.5's [`InceptionSeal::to_sad`] builds one.
+    /// The seals to anchor; [`InceptionSeal::to_sad`] builds one.
     ///
     /// [`InceptionSeal::to_sad`]: crate::endpoint::delegations::InceptionSeal::to_sad
     ///
@@ -470,7 +471,7 @@ impl GroupEvent {
 /// Multisig group workflows.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through — the shape Roadmap 6.5 settled for a family and 7.2 reused for a workflow.
+/// speaks through — the shape every endpoint family and the operation poller share.
 #[derive(Debug)]
 pub struct Multisig<'client> {
     client: &'client ConnectedClient,
@@ -662,7 +663,7 @@ impl<'client> Multisig<'client> {
     /// The check is a digest comparison rather than a byte comparison, and that is not a
     /// weakening: an event's SAID is a digest over the event, so two events with the same SAID are
     /// the same event. It is also the only check available — a decoded record cannot reproduce the
-    /// bytes it arrived as, which `PORTING.md` §10 records.
+    /// bytes it arrived as.
     ///
     /// The announcement goes out on [`ROTATION_ROUTE`], where the reference's joining members send
     /// [`INTERACTION_ROUTE`].
@@ -837,11 +838,11 @@ impl<'client> Multisig<'client> {
 
     /// Proposes a delegation approval to the group's other members.
     ///
-    /// The group is the **delegator**: each of its members anchors the same seals in the group's log
-    /// and tells the others, and the delegation completes when enough have signed. The event is an
-    /// interaction, posted to Roadmap 8.5's `delegation` address rather than to `events` — which is
-    /// what tells the agent it completes a pending delegated inception — and announced on
-    /// [`INTERACTION_ROUTE`], which is what it embeds.
+    /// The group is the **delegator**: each of its members anchors the same seals in the group's
+    /// log and tells the others, and the delegation completes when enough have signed. The event is
+    /// an interaction, posted to the delegation family's `delegation` address rather than to
+    /// `events` — which is what tells the agent it completes a pending delegated inception — and
+    /// announced on [`INTERACTION_ROUTE`], which is what it embeds.
     ///
     /// **The seals are checked before anything is written.** The reference's `delegateMultisig`
     /// posts the approval first and asserts afterwards, comparing `serder.sad.a[0]` against the
@@ -1495,7 +1496,7 @@ pub const ISSUANCE_ROUTE: &str = "/multisig/iss";
 /// The embed slot a group issuance proposal carries the credential in.
 ///
 /// Not `iss`, which the route is named for: an issuance embed carries three messages and the
-/// credential's slot is what Roadmap 4.1's union is discriminated by.
+/// credential's slot is what the shared embed union is discriminated by.
 pub const ISSUANCE_SLOT: &str = "acdc";
 
 /// The embed slot a group issuance proposal carries the transaction event in.
@@ -1507,7 +1508,7 @@ pub const REVOCATION_ROUTE: &str = "/multisig/rev";
 /// The embed slot a group revocation proposal carries the revocation in.
 ///
 /// **The reference sends its revocation under [`TRANSACTION_SLOT`] instead**, so its own
-/// `assertMultisigRev` would find no `rev` at all; see `PORTING.md` §9.
+/// `assertMultisigRev` would find no `rev` at all.
 pub const REVOCATION_SLOT: &str = "rev";
 
 /// The embed slot every transaction-event proposal carries its anchoring key event in.
@@ -1607,8 +1608,8 @@ fn backing_of(inception: &RegistryInceptionRecord) -> RegistryBacking {
         RegistryBacking::None
     } else {
         RegistryBacking::Backers {
-            // Carried as text, because Roadmap 4.7 recorded that the reference validates none of
-            // them: its own vector commits the string `'a backer'`.
+            // Carried as text, because the reference validates none of them: its own vector commits
+            // the string `'a backer'`.
             backers: inception.backers.clone(),
             // Written in hexadecimal, as every threshold on the wire is.
             threshold: u32::from_str_radix(&inception.backer_threshold, 16).unwrap_or(0),
@@ -1707,8 +1708,8 @@ fn digest_of(event: &KeyEvent) -> Result<String, ClientError> {
 ///
 /// The first of them is the addressee, so this decides both who the message names and who it
 /// reaches. The reference filters the local member when *accepting* and not when proposing, so an
-/// initiator there delivers its own proposal back to itself and — through Roadmap 7.7's loop —
-/// addresses it to itself as well.
+/// initiator there delivers its own proposal back to itself and — through the exchange submission's
+/// delivery loop — addresses it to itself as well.
 ///
 /// Public because a caller may reasonably want to know who a proposal will reach before sending
 /// one, and because it is the whole of the difference described above.
@@ -2358,7 +2359,7 @@ mod tests {
         assert_eq!(INTERACTION_SLOT, "ixn");
         assert_eq!(REPLY_ROUTE, "/multisig/rpy");
         assert_eq!(REPLY_SLOT, "rpy");
-        // And each is the route Roadmap 8.1's table names.
+        // And each is the route the route table names.
         assert_eq!(MultisigRoute::Inception.as_str(), INCEPTION_ROUTE);
         assert_eq!(MultisigRoute::Rotation.as_str(), ROTATION_ROUTE);
         assert_eq!(MultisigRoute::Interaction.as_str(), INTERACTION_ROUTE);
@@ -2446,7 +2447,7 @@ mod tests {
         assert_eq!(REVOCATION_ROUTE, "/multisig/rev");
         assert_eq!(REVOCATION_SLOT, "rev");
         assert_eq!(ANCHOR_SLOT, "anc");
-        // And each is the route Roadmap 8.1's table names.
+        // And each is the route the route table names.
         assert_eq!(MultisigRoute::RegistryInception.as_str(), REGISTRY_ROUTE);
         assert_eq!(MultisigRoute::Issuance.as_str(), ISSUANCE_ROUTE);
         assert_eq!(MultisigRoute::Revocation.as_str(), REVOCATION_ROUTE);
@@ -2455,8 +2456,8 @@ mod tests {
     /// An issuance is the one round whose route and embed slot are *not* the same word.
     #[test]
     fn an_issuance_is_named_for_its_transaction_and_embedded_by_its_credential() {
-        // The route ends in `iss` and the embed's discriminating slot is `acdc`, because Roadmap
-        // 4.1's union is told apart by field names and an issuance carries three messages.
+        // The route ends in `iss` and the embed's discriminating slot is `acdc`, because the shared
+        // embed union is told apart by field names and an issuance carries three messages.
         assert_eq!(ISSUANCE_ROUTE.rsplit('/').next(), Some(TRANSACTION_SLOT));
         assert_eq!(ISSUANCE_SLOT, "acdc");
         assert_ne!(ISSUANCE_SLOT, TRANSACTION_SLOT);
@@ -2491,8 +2492,8 @@ mod tests {
 
     #[test]
     fn a_backer_threshold_is_read_in_hexadecimal() -> Result<(), Box<dyn Error>> {
-        // The same base every threshold on the wire is written in — Roadmap 8.3's finding, applied
-        // where it also applies.
+        // The same base every threshold on the wire is written in — the multisig inception's
+        // finding, applied where it also applies.
         let backed = registry_inception(r#"["BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha"]"#, "a")?;
         let RegistryBacking::Backers { threshold, .. } = backing_of(&backed) else {
             return Err("a backed registry read as unbacked".into());
@@ -2599,7 +2600,7 @@ mod tests {
     #[test]
     fn a_proposal_is_delivered_to_the_peers_and_not_to_the_sender() -> Result<(), Box<dyn Error>> {
         // The reference delivers the initiator's proposal back to the initiator, and — through
-        // Roadmap 7.7's loop — addresses it to itself as well.
+        // the exchange submission's delivery loop — addresses it to itself as well.
         let member = record(LOCAL)?;
         let participants = [prefix(LOCAL)?, prefix(PEER)?, prefix(THIRD)?];
         let peers = peers(&member, &participants)?;
@@ -2991,10 +2992,10 @@ impl Multisig<'_> {
     /// Submits the message to its recipient, then announces it to the group's other members.
     ///
     /// `members` is the whole group, this member included; `recipients` are its peers. The
-    /// announcement names the members in `smids` and `rmids` as every event round's does, where
-    /// the reference's `grantMultisig` and `admitMultisig` write `{ gid }` alone — a deliberate
-    /// divergence, recorded in `PORTING.md` §10, so that a joining member reads its peers from the
-    /// proposal rather than from a lookup.
+    /// announcement names the members in `smids` and `rmids` as every event round's does, where the
+    /// reference's `grantMultisig` and `admitMultisig` write `{ gid }` alone — a deliberate
+    /// divergence, so that a joining member reads its peers from the proposal rather than from a
+    /// lookup.
     async fn run_ipex_round(
         &self,
         group_name: &str,

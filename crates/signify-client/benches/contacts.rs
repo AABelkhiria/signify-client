@@ -12,7 +12,7 @@
 //! fields.
 //!
 //! As everywhere in this crate, all of it is small beside one signed request, whose signature alone
-//! Roadmap 6.4 measured at ~25 µs.
+//! the `lifecycle` benchmark measured at ~25 µs.
 
 use std::hint::black_box;
 

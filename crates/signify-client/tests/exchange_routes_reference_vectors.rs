@@ -264,7 +264,7 @@ fn the_thirteen_constants_are_this_ports_route_table() -> Result<(), Box<dyn Err
 }
 
 #[test]
-fn the_five_ipex_routes_are_roadmap_6_3s() -> Result<(), Box<dyn Error>> {
+fn the_five_ipex_routes_are_the_ipex_builders_own() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded: Vec<&str> = fixture
         .declarations

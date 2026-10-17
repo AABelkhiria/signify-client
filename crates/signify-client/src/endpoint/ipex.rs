@@ -1,7 +1,7 @@
 //! The IPEX endpoint: handing a signed disclosure message to the agent for delivery.
 //!
 //! IPEX is a five-step conversation — apply, offer, agree, grant, admit — and this family is the
-//! submission half of it. The messages themselves are Roadmap 6.3's, in `signify_keys::acdc::ipex`: this
+//! submission half of it. The messages themselves are built in `signify_keys::acdc::ipex`: this
 //! module assembles the request body around one, addresses the resource, and reads the operation
 //! that comes back. Nothing here builds or signs a message.
 //!
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
         // The reference concatenates the alias raw, so `a/b` addresses another identifier's
-        // resource — and Roadmap 3.10 signs `@path`.
+        // resource — and request signing covers `@path`.
         let path = ResourcePath::builder()
             .segment(IDENTIFIERS_SEGMENT)
             .segment("a/b")

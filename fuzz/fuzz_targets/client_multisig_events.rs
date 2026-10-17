@@ -2,7 +2,8 @@
 
 //! Fuzzes a multisig group's rotation and interaction rounds over hostile proposals.
 //!
-//! Roadmap 8.3's target was about a group *forming*: agreement on an identifier nobody had yet.
+//! The `client_multisig_inception` target was about a group *forming*: agreement on an identifier
+//! nobody had yet.
 //! This one is about a group that already exists, and the thing at stake is different. A member
 //! reading a proposal here is being asked to sign a change to **who controls an identifier that
 //! already holds credentials** — so the question is not only whether the two members agree, but

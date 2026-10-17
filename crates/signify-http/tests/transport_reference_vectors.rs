@@ -179,7 +179,7 @@ fn every_recorded_request_is_expressible() -> Result<(), Box<dyn Error>> {
         assert_eq!(names, expected, "{}", case.name);
 
         // Every unmasked value is carried verbatim, and a masked one is exactly the three
-        // clock-dependent headers whose bytes Roadmap 3.10 already verified.
+        // clock-dependent headers whose bytes keri-http-auth already verified.
         for header in &recorded.headers {
             match &header.value {
                 Some(value) => {

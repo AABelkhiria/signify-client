@@ -1,9 +1,9 @@
 //! Microbenchmark for the key-event and key-state endpoints.
 //!
-//! Neither family derives a key or signs anything, so the client's own ~25 µs signature
-//! (Roadmap 6.4) dominates any request either sends. What is worth measuring is what they add: a
-//! query built from one prefix or many, a body written from a typed request, and the decoding of
-//! the three documents a KERIA agent answers with.
+//! Neither family derives a key or signs anything, so the client's own ~25 µs signature dominates
+//! any request either sends. What is worth measuring is what they add: a query built from one
+//! prefix or many, a body written from a typed request, and the decoding of the three documents a
+//! KERIA agent answers with.
 //!
 //! Inputs: one 44-character prefix, listings of one to sixteen of them, one key-event record with
 //! its CESR attachment, one key state, and one pending query operation.

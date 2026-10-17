@@ -95,7 +95,7 @@ fn a_real_deployment_sends_a_start_greater_than_its_end() -> Result<(), Box<dyn 
     assert!(
         !inverted.is_empty(),
         "no inverted range was recorded; either the deployment changed or the scenario stopped \
-         asking past the end of the collection, and §10's question is open again"
+         asking past the end of the collection, and the `Content-Range` question is open again"
     );
 
     for capture in &inverted {

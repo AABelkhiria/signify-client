@@ -5,9 +5,9 @@
 //! Three things reach this family from outside.
 //!
 //! **Two names** are path components, and the reference concatenates both raw — so upstream a
-//! rename with a slash in either lets it address a different registry under a different
-//! identifier, and Roadmap 3.10 signs `@path`. This target asserts neither can escape, whichever
-//! call carries it.
+//! rename with a slash in either lets it address a different registry under a different identifier,
+//! and the request signature covers `@path`. This target asserts neither can escape, whichever call
+//! carries it.
 //!
 //! **A nonce and a backer set** go straight into a registry inception whose SAID becomes the
 //! registry's own identifier. A registry built from material this port mis-handles would be

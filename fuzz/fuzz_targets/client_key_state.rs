@@ -135,8 +135,8 @@ fuzz_target!(|data: &[u8]| {
 
     if let Ok(operation) = serde_json::from_slice::<QueryOperation>(document) {
         // Exactly one outcome, decided at decode time — never a `done` flag a caller must
-        // remember to read, and never two states at once. Roadmap 6.5's reader is what a caller
-        // reaches for, so it is what is exercised.
+        // remember to read, and never two states at once. The operations endpoint's reader is what
+        // a caller reaches for, so it is what is exercised.
         let pending = matches!(operation.outcome, OperationOutcome::Pending);
         let metadata_sequence = operation.metadata.as_ref().map(|metadata| metadata.sn);
         let name = operation.name.clone();

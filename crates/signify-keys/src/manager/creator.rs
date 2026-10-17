@@ -18,7 +18,7 @@
 //! derives from the same path and is therefore the same key. The pinned unit test shows it — an
 //! identifier's current and next public keys come out identical — and it means pre-rotation
 //! commits to the key already in use. [`DerivationPath::reuses_keys_across_rotations`] reports the
-//! condition so a caller can refuse it; see `PORTING.md` §9.
+//! condition so a caller can refuse it; see the `keri-manager` fixture.
 
 use core::fmt;
 

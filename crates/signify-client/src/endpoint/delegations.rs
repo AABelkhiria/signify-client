@@ -7,7 +7,7 @@
 //!
 //! This ports the whole of the pinned `src/keri/app/delegating.ts`: one class with one method, and
 //! thirty-three lines including its documentation. It is the smallest application module in the
-//! port, one line shorter than Roadmap 7.6's `escrowing.ts`.
+//! port, one line shorter than `escrowing.ts`.
 //!
 //! # The approval *is* an interaction event
 //!
@@ -99,7 +99,7 @@ impl InceptionSeal {
 
     /// Names the inception a delegate just created, taking both values from the event itself.
     ///
-    /// This is the form a delegate's own client uses: Roadmap 4.6's artifact carries the event, so
+    /// This is the form a delegate's own client uses: the identifier artifact carries the event, so
     /// neither field is transcribed and neither can be the wrong one. The reference's own
     /// integration test instead reads the delegate's prefix out of `op2.name.split('.')[1]` — the
     /// *name of a long-running operation*, split on a full stop — while the prefix is sitting in
@@ -137,8 +137,8 @@ impl InceptionSeal {
     /// Writes the seal in the reference's own field order.
     ///
     /// The sequence number is `"0"` and always `"0"`: an inception is the first event of its log,
-    /// and this seal approves an inception. A delegated *rotation* is Roadmap 8.6's, and will name
-    /// a sequence number it is given.
+    /// and this seal approves an inception. A delegated *rotation* is the delegated multisig
+    /// workflow's, and will name a sequence number it is given.
     ///
     /// # Errors
     ///
@@ -158,7 +158,7 @@ impl InceptionSeal {
 /// The delegation endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through — the shape Roadmap 6.5 settled.
+/// speaks through — the shape every family here shares.
 #[derive(Debug)]
 pub struct Delegations<'client> {
     client: &'client ConnectedClient,
@@ -226,7 +226,7 @@ mod tests {
     const DELEGATOR: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
     const DIGEST: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
-    /// One delegated inception, built the way Roadmap 4.6 builds one.
+    /// One delegated inception, built the way the identifier artifact workflow builds one.
     fn delegated_inception() -> Result<IdentifierArtifact, Box<dyn Error>> {
         artifact(Some(DELEGATOR))
     }

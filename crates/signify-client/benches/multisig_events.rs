@@ -1,14 +1,14 @@
 //! Microbenchmark for a multisig group's rotation and interaction rounds.
 //!
-//! What is particular to these two rounds, against Roadmap 8.3's inception, is that a member
+//! What is particular to these two rounds, against the group inception, is that a member
 //! **checks**: it reads a proposal, rebuilds the event, and compares what it built with what it was
 //! shown. So the numbers worth having are the ones on that path.
 //!
 //! Three things.
 //!
-//! **Reading a proposal** — decode plus Roadmap 8.1's classification — at each group size, once for
-//! a rotation and once for an interaction, because a rotation carries every member's key while an
-//! interaction carries only its seals.
+//! **Reading a proposal** — decode plus the route table's classification — at each group size, once
+//! for a rotation and once for an interaction, because a rotation carries every member's key while
+//! an interaction carries only its seals.
 //!
 //! **The check itself**, which is a digest comparison and should be free beside the read.
 //!

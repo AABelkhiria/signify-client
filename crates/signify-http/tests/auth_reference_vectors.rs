@@ -1,6 +1,6 @@
 //! The pinned TypeScript reference's complete authenticated-request pipeline, byte for byte.
 //!
-//! Roadmap 3.10 verified `siginput` and `Authenticater` in isolation. What is proven here is the
+//! keri-http-auth verifies `siginput` and `Authenticater` in isolation. What is proven here is the
 //! *composition* `SignifyClient.fetch` performs around them, and it is proven with **unmasked**
 //! signature bytes: the generator pins `globalThis.Date`, so the timestamp, the `created`
 //! parameter, and the two signature headers are all deterministic. Every earlier fixture had to

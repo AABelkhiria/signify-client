@@ -8,17 +8,17 @@
 //!
 //! # The empty name collapses salty derivation
 //!
-//! The registry's name becomes the key manager's derivation stem, and Roadmap 4.2 records what an
-//! empty stem does: every key of every rotation derives from the same path, so pre-rotation
-//! commits to the key already in use and protects nothing. The reference behaves identically. Give
-//! a registry a non-empty name unless key reuse is genuinely intended.
+//! The registry's name becomes the key manager's derivation stem, and the `keri-manager` fixture
+//! records what an empty stem does: every key of every rotation derives from the same path, so
+//! pre-rotation commits to the key already in use and protects nothing. The reference behaves
+//! identically. Give a registry a non-empty name unless key reuse is genuinely intended.
 //!
 //! # Derivation cost
 //!
 //! The reference hardcodes the production Argon2 profile (`temp: false`), which costs 64 MiB of
 //! memory per derived key at the low tier. That is the right default for a deployed client and the
-//! wrong one for a test suite, so [`HaberyBuilder::derivation_cost`] accepts Roadmap 4.3's
-//! [`DerivationCost`], defaulting to production.
+//! wrong one for a test suite, so [`HaberyBuilder::derivation_cost`] accepts a [`DerivationCost`],
+//! defaulting to production.
 
 use keri_cesr::crypto::digest::DigestAlgorithm;
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
@@ -95,7 +95,8 @@ pub struct HabitatRequest {
     ///
     /// The never-zero default is the reference's own formula, and it means a transferable habitat
     /// with zero next keys is refused unless this is an explicit zero: the reference instead emits
-    /// an event whose next-key threshold no key can ever satisfy, recorded in `PORTING.md` §9.
+    /// an event whose next-key threshold no key can ever satisfy, recorded in the `keri-habery`
+    /// fixture.
     pub next_threshold: Option<SigningThreshold>,
     /// Whether the identifier may rotate; the reference's `transferable` boolean.
     pub transferability: KeyTransferability,
@@ -145,8 +146,8 @@ impl Default for HabitatRequest {
 /// identifier is always the seed's own public key.
 ///
 /// The reference's `HaberyArgs` also declares a `tier` argument its constructor never reads; it is
-/// pinned as a quirk in `PORTING.md` §9 and has no equivalent here — a salt already knows its
-/// tier.
+/// pinned as a quirk in the `keri-habery` fixture and has no equivalent here — a salt already
+/// knows its tier.
 #[derive(Debug)]
 pub struct HaberyBuilder {
     name: String,
@@ -344,7 +345,7 @@ impl Habery {
     /// as the reference throws `Already incepted pre=…`. A habitat of the *other* transferability
     /// derives the same raw key under a different code, which the store treats as distinct, and a
     /// randy registry generates fresh keys every time, so both of those succeed. This is the
-    /// pinned reference's own arrangement, recorded in `PORTING.md` §9.
+    /// pinned reference's own arrangement, recorded in the `keri-habery` fixture.
     ///
     /// Requests that fail validation are refused before any key is derived. A request that fails
     /// inside event construction afterwards — which none of the pre-checked paths can — would
@@ -353,7 +354,7 @@ impl Habery {
     /// # Errors
     ///
     /// Returns [`IdentifierError::DuplicateHabitat`] when the name is taken — the reference
-    /// silently overwrites instead, recorded in `PORTING.md` §9 — the
+    /// silently overwrites instead, recorded in the `keri-habery` fixture — the
     /// [`IdentifierError::NonTransferableNextKeys`],
     /// [`IdentifierError::NonTransferableNextThreshold`],
     /// [`IdentifierError::NonTransferableDerivation`], and
@@ -927,7 +928,7 @@ mod tests {
 
         // The reference's default formula never yields zero, so it derives a threshold of one over
         // zero digests and emits an event no rotation can ever satisfy; Rust refuses instead. See
-        // `PORTING.md` §9.
+        // the `keri-habery` fixture.
         assert!(matches!(
             habery.make_habitat(
                 "refused",
@@ -1017,7 +1018,7 @@ mod tests {
             .ok_or("the habitat has no signing key")?;
 
         // With an empty stem the derivation path drops the rotation index, so the committed next
-        // key is the key already in use — the reference behavior Roadmap 4.2 pins.
+        // key is the key already in use — the reference behavior the `keri-manager` fixture pins.
         let situation = habery
             .manager()
             .store()

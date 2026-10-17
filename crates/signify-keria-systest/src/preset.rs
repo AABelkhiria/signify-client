@@ -153,8 +153,8 @@ impl Environment {
 
     /// Returns the environment variables this run actually used, for the manifest.
     ///
-    /// §7 asks a system test to record its environment variables. Reading them back here means the
-    /// manifest describes the run rather than the shell that started it.
+    /// A system test records its environment variables. Reading them back here means the manifest
+    /// describes the run rather than the shell that started it.
     #[must_use]
     pub fn recorded_variables(&self) -> Vec<(String, String)> {
         let mut recorded = vec![(PRESET_VARIABLE.to_owned(), self.preset.to_string())];

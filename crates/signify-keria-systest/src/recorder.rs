@@ -35,8 +35,8 @@ pub struct Observation {
     pub response_body: Option<String>,
     /// How long the exchange took, in milliseconds.
     ///
-    /// Recorded because §7 asks a system test to state its timeout policy, and a measurement is a
-    /// better basis for one than the reference's magic `AbortSignal.timeout(20_000)`.
+    /// Recorded because a system test states its timeout policy, and a measurement is a better
+    /// basis for one than the reference's magic `AbortSignal.timeout(20_000)`.
     pub elapsed_ms: u128,
 }
 

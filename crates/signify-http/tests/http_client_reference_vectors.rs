@@ -1,10 +1,10 @@
 //! The reference's own recorded requests, replayed through the production transport onto a socket.
 //!
-//! Roadmap 5.1 proved that this crate's `Request` can *express* every call the pinned reference
-//! makes. This proves the rest of the claim: that the production transport puts those calls on
-//! the wire unchanged. Each recorded request is rebuilt, sent to an in-process loopback server,
-//! and compared against what the reference sent — the same method and target on the request line,
-//! the same header values, and the same body bytes.
+//! The `http-transport` fixture proved that this crate's `Request` can *express* every call the
+//! pinned reference makes. This proves the rest of the claim: that the production transport puts
+//! those calls on the wire unchanged. Each recorded request is rebuilt, sent to an in-process
+//! loopback server, and compared against what the reference sent — the same method and target on
+//! the request line, the same header values, and the same body bytes.
 
 #![cfg(feature = "http-client")]
 
@@ -143,8 +143,9 @@ fn rebuild(recorded: &RecordedRequest, port: u16) -> Result<Request, Box<dyn Err
 
     let mut builder = Request::builder(method, RequestUrl::new(target)?);
     for header in &recorded.headers {
-        // A masked value is a clock read or a signature over one; its exact bytes are Roadmap
-        // 3.10's evidence, and what matters here is that the header reaches the wire at all.
+        // A masked value is a clock read or a signature over one; its exact bytes are
+        // keri-http-auth's evidence, and what matters here is that the header reaches the wire at
+        // all.
         let value = header.value.clone().unwrap_or_else(|| "masked".to_owned());
         builder = builder.header(HeaderName::new(header.name.clone())?, HeaderValue::new(value)?);
     }

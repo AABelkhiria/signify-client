@@ -80,7 +80,8 @@ fuzz_target!(|data: &[u8]| {
             Err(error) => assert!(!error.to_string().is_empty()),
         },
         Err(_) => {
-            // The typed decode itself may refuse the shape, which is Roadmap 4.1's boundary.
+            // The typed decode itself may refuse the shape, which is the shared API types'
+            // boundary.
         }
     }
 

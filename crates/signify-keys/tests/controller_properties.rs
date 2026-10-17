@@ -275,7 +275,7 @@ proptest! {
             "the old passcode still opens the rotated payload"
         );
         prop_assert_eq!(controller.current_keys().len(), 2);
-        // The rotation became the current event (ADR `0034`); the reference leaves it at zero.
+        // The rotation became the current event; the reference leaves it at zero.
         prop_assert_eq!(controller.current_sequence_number(), 1);
         prop_assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
     }

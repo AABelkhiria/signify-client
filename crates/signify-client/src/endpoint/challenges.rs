@@ -8,13 +8,12 @@
 //!
 //! This ports `Challenges` from the pinned `src/keri/app/contacting.ts` — all four methods.
 //!
-//! # `respond` arrived with Roadmap 7.7
+//! # `respond` wraps the exchange submission
 //!
 //! The reference's fourth method reads the habitat and then calls
 //! `exchanges.send(name, 'challenge', hab, '/challenge/response', {words}, {}, [recipient])`, so it
-//! needs the whole generic submission that is Roadmap 7.7's write half. Roadmap 7.4 did not have
-//! 7.7 as a prerequisite, so `PORTING.md` §5.13 moved the capability rather than duplicating it;
-//! [`Challenges::respond`] is that capability, delivered here as a wrapper over
+//! needs the whole generic submission that is the exchange family's write half. Rather than
+//! duplicating it, [`Challenges::respond`] is delivered here as a wrapper over
 //! [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) exactly as upstream is.
 //!
 //! # A strength is an entropy size, not a number
@@ -52,9 +51,9 @@ pub const STRENGTH_PARAMETER: &str = "strength";
 
 /// The exchange route a challenge answer is sent over.
 ///
-/// Roadmap 7.7 owns the submission (see the module documentation); the constant is here because it
-/// is a fact about *challenges* rather than about exchanges, and a caller answering one before then
-/// needs it.
+/// The exchange family owns the submission (see the module documentation); the constant is here
+/// because it is a fact about *challenges* rather than about exchanges, and a caller answering one
+/// before then needs it.
 pub const CHALLENGE_RESPONSE_ROUTE: &str = "/challenge/response";
 
 /// The exchange topic a challenge answer is filed under; the reference's `'challenge'`.
@@ -145,7 +144,7 @@ impl Default for ChallengeStrength {
 /// The challenges endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Challenges<'client> {
     client: &'client ConnectedClient,
@@ -235,8 +234,8 @@ impl<'client> Challenges<'client> {
     /// [`verify`](Self::verify) it.
     ///
     /// The timestamp is a required argument, where the reference reads the system clock: a
-    /// message's `dt` is inside its SAID and inside every signature over it. That is Roadmap 3.8's
-    /// decision, applied again.
+    /// message's `dt` is inside its SAID and inside every signature over it. That is the exchange
+    /// builder's decision, applied again.
     ///
     /// An **empty word list** is refused, as [`Self::verify`] refuses one: it would answer a
     /// challenge nobody issued.
@@ -328,7 +327,7 @@ mod tests {
             generate_path(ChallengeStrength::BITS_256)?.as_str(),
             "/challenges?strength=256"
         );
-        // Roadmap 3.10 strips the query, so every strength signs the same path.
+        // Request signing strips the query, so every strength signs the same path.
         assert_eq!(generate_path(ChallengeStrength::BITS_128)?.path(), "/challenges");
         Ok(())
     }

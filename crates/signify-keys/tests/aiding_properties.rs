@@ -204,8 +204,9 @@ proptest! {
             })
             .collect();
         prop_assert_eq!(committed, Some(SadValue::Array(digests)));
-        // A salty keeper's current count never moves from its inception count — Roadmap 4.3's
-        // pinned quirk — so the rotation signs with one key even when the event carries more.
+        // A salty keeper's current count never moves from its inception count — the
+        // `keri-keeping` fixture's pinned quirk — so the rotation signs with one key even when the
+        // event carries more.
         prop_assert_eq!(signature_count(&rotation.signatures), 1);
     }
 

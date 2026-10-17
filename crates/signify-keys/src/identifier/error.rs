@@ -19,7 +19,7 @@ pub enum IdentifierError {
     ///
     /// The reference's `makeHab` silently overwrites the map entry while still creating a second
     /// identifier in the manager, so the first habitat's handle is lost but its keys remain. That
-    /// is refused here; the divergence is recorded in `PORTING.md` §9.
+    /// is refused here; the divergence is recorded in the `keri-habery` fixture.
     DuplicateHabitat {
         /// The name already in use.
         name: String,

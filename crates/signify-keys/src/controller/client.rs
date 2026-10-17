@@ -117,13 +117,13 @@ impl DerivedKeys {
 /// This is the reference's `Controller`. It derives one signing key and one committed next key
 /// from the passcode under [`CONTROLLER_STEM`], holds the current event — the local inception, a
 /// restored establishment event, or the delegation-approval interaction — and builds the artifacts
-/// the client submits. It performs no I/O; Roadmap 6.4 owns the requests these artifacts travel
-/// in.
+/// the client submits. It performs no I/O; `signify-client` owns the requests these artifacts
+/// travel in.
 ///
 /// The reference also carries two members that are not ported: a `verfers` getter that calls a
 /// property as a function and therefore throws on every use, and a `derive` method nothing calls,
 /// which reads a different state shape than the constructor and throws on its own `undefined`
-/// branch. Both are pinned in `PORTING.md` §9.
+/// branch. Both are recorded as divergences in the `keri-controller` fixture.
 ///
 /// ```
 /// use keri_cesr::crypto::salt::SecurityTier;
@@ -190,8 +190,8 @@ impl Controller {
     /// The reference's rule is kept: an event at sequence number zero is *not* adopted — the
     /// controller rebuilds its own inception from the derived keys, which for a well-formed state
     /// is the same event. A later establishment event is adopted as found; the reference performs
-    /// no check that it belongs to the derived keys, and neither does this, which `PORTING.md` §9
-    /// records.
+    /// no check that it belongs to the derived keys, and neither does this, which the
+    /// `keri-controller` fixture pins.
     ///
     /// # Errors
     ///
@@ -303,11 +303,11 @@ impl Controller {
 
     /// Re-derives this controller's signing key as an owned value.
     ///
-    /// [`Self::expose_signer`] lends the key the controller holds, which is enough to sign an
-    /// event in place. An HTTP authenticator instead needs to *own* one for the life of a
-    /// connection, and Roadmap 2.5 deliberately made [`Signer`] non-cloneable so a secret cannot be
-    /// duplicated by accident. Re-deriving is the way to get a second one, and it goes through the
-    /// same salt, stem, and rotation index the controller itself used, so the two always agree.
+    /// [`Self::expose_signer`] lends the key the controller holds, which is enough to sign an event
+    /// in place. An HTTP authenticator instead needs to *own* one for the life of a connection, and
+    /// [`Signer`] is deliberately non-cloneable so a secret cannot be duplicated by accident.
+    /// Re-deriving is the way to get a second one, and it goes through the same salt, stem, and
+    /// rotation index the controller itself used, so the two always agree.
     ///
     /// This costs one key derivation, at whatever profile the controller was built with.
     ///

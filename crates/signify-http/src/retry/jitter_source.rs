@@ -1,10 +1,9 @@
 //! Where the randomness in a jittered delay comes from.
 //!
-//! `AGENTS.md` §2.3 requires that randomness come from an operating-system CSPRNG through a
-//! standard crate, and that a test needing determinism inject a source rather than have production
-//! code silently seed a pseudo-random one. That is the whole reason this is a trait: [`OsJitter`]
-//! is the only thing a client ever uses, and [`FixedJitter`] exists so a schedule can be asserted
-//! exactly.
+//! Randomness must come from an operating-system CSPRNG through a standard crate, and that a test
+//! needing determinism inject a source rather than have production code silently seed a
+//! pseudo-random one. That is the whole reason this is a trait: [`OsJitter`] is the only thing a
+//! client ever uses, and [`FixedJitter`] exists so a schedule can be asserted exactly.
 //!
 //! A backoff delay is not a secret and does not need cryptographic quality. It draws from the same
 //! OS source anyway, because reaching for a weaker generator would mean adding a dependency to

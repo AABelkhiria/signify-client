@@ -17,20 +17,20 @@
 //!   *hexadecimal* — while the same file reads it back with a base-ten `parseInt`. So
 //!   [`QuerySequence`] makes the caller choose, and the choice is visible at the call site.
 //!
-//!   Roadmap 9.2 then asked a deployment. Against a log of eleven events, a live KERIA 1.0.1
+//!   A deployment was then asked. Against a log of eleven events, a live KERIA 1.0.1
 //!   resolved `a` and returned event ten, while `10` and `16` never resolved: **it reads the
 //!   sequence number in base sixteen.** A caller who spells event ten `"10"` asks that deployment
 //!   about event 16 and waits until the deadline. The evidence is recorded in
 //!   `fixtures/keria-integration/observations/sequence_base.json` and asserted by
 //!   `signify-keria-systest`'s `sequence_base_vectors`. It does not become a default here: one
-//!   deployment is evidence about that deployment, and ADR `0030` keeps the choice with the
-//!   caller — but it is now a choice made with an answer in hand rather than in the dark.
+//!   deployment is evidence about that deployment, and the choice stays with the caller — but it
+//!   is now a choice made with an answer in hand rather than in the dark.
 //! - **The anchor has three shapes.** The pinned unit test passes a bare SAID string, every
 //!   integration caller passes a [`Seal`], and the schema types the *response* metadata's anchor as
 //!   an `Anchor`. Only the integration shape has ever reached a live KERIA, so that is the one this
 //!   port sends.
 //!
-//! See `fixtures/client-key-state/` and `PORTING.md` §10.
+//! See `fixtures/client-key-state/`.
 
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadError, SadValue};
@@ -207,7 +207,7 @@ impl<'client> KeyStates<'client> {
     ///
     /// Returns [`ClientError::EmptyKeyStateListing`] when no prefix is given — where the reference
     /// sends a bare `/states?` and asks for nothing — [`ClientError::Request`] when the query
-    /// exceeds Roadmap 5.3's bounds, and whatever [`Self::get`] returns.
+    /// exceeds the request builder's bounds, and whatever [`Self::get`] returns.
     pub async fn list(&self, prefixes: &[IdentifierPrefix]) -> Result<Vec<KeyState>, ClientError> {
         if prefixes.is_empty() {
             return Err(ClientError::EmptyKeyStateListing);

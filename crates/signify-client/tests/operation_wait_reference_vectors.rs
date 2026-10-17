@@ -670,7 +670,7 @@ fn a_metadata_block_with_no_dependency_skips_the_guard() -> Result<(), Box<dyn E
 }
 
 #[test]
-fn the_long_run_reproduces_the_schedule_roadmap_5_4_recorded() -> Result<(), Box<dyn Error>> {
+fn the_long_run_reproduces_the_recorded_delay_schedule() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "long_run_reaches_the_ceiling")?;
     assert_eq!(recorded.request_count, 13);

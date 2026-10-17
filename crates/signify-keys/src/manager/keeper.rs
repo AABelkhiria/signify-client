@@ -4,7 +4,7 @@
 //! one, and knows how that one identifier's keys come into existence, how they rotate, and how they
 //! sign. This ports the pinned reference's `src/keri/core/keeping.ts`.
 //!
-//! There are four strategies, and unlike Roadmap 4.2's creators all four are real here:
+//! There are four strategies, and unlike the key manager's creators all four are real here:
 //!
 //! - [`SaltyKeeper`] derives keys from a salt of its own, sealed to a key derived from the
 //!   controller's passcode.
@@ -16,17 +16,17 @@
 //!
 //! # Why this is a trait when the key store was not
 //!
-//! Roadmap 4.2 made `KeyStore` a struct because it had one implementation. This has four, one of
-//! which the caller writes, so a trait is what the design actually needs rather than an abstraction
-//! ahead of its second user.
+//! The key manager made `KeyStore` a struct because it had one implementation. This has four, one
+//! of which the caller writes, so a trait is what the design actually needs rather than an
+//! abstraction ahead of its second user.
 //!
 //! # Synchronous, unlike upstream
 //!
 //! Every method on the reference's `IdentifierManager` is `async`, but nothing in the three
-//! implementations awaits anything: no key operation here performs I/O. `ARCHITECTURE.md` §4.4
-//! forbids `signify-keys` from acquiring an async runtime, so the trait is synchronous. An external
-//! module backed by a network HSM has to bridge that itself; an asynchronous external contract, if
-//! one is ever needed, belongs with the client phases that own transport.
+//! implementations awaits anything: no key operation here performs I/O. `signify-keys` may not
+//! acquire an async runtime, so the trait is synchronous. An external module backed by a network
+//! HSM has to bridge that itself; an asynchronous external contract, if one is ever needed, belongs
+//! with the client phases that own transport.
 //!
 //! # Derivation differs from the key manager's
 //!
@@ -158,10 +158,10 @@ pub trait IdentifierKeeper {
     /// Returns the private signers this keeper currently holds.
     ///
     /// **This hands out secret material.** It exists because an authenticated KERIA request is
-    /// signed with the identifier's own key rather than through this keeper (Roadmap 6.4), and
-    /// `signify-http`'s request signer takes a `Signer`. The `expose_` prefix marks the deliberate
-    /// export, matching `Salt::expose_qb64`. The reference publishes the same material as a public
-    /// `signers` field on every keeper.
+    /// signed with the identifier's own key rather than through this keeper, and `signify-http`'s
+    /// request signer takes a `Signer`. The `expose_` prefix marks the deliberate export, matching
+    /// `Salt::expose_qb64`. The reference publishes the same material as a public `signers` field
+    /// on every keeper.
     ///
     /// # Errors
     ///

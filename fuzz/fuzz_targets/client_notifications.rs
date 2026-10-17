@@ -3,11 +3,11 @@
 //! Fuzzes the notifications endpoint over hostile identifiers, windows, and agent pages.
 //!
 //! Three things come from outside. An **identifier** is a path component the reference concatenates
-//! raw — Roadmap 5.3's own fixture recorded `notifications().mark("a?b=c")` turning the path into a
-//! query — and Roadmap 3.10 signs `@path`. A **window** is the only place in this crate where a
-//! caller's numbers reach a header, and upstream both bounds are stringified into a template. And a
-//! **page** is an agent's answer that the reference does not type at all: `list` returns
-//! `Promise<any>`, so nothing upstream stands between a caller and whatever arrived.
+//! raw — the `http-request-response` fixture recorded `notifications().mark("a?b=c")` turning the
+//! path into a query — and the request signature covers `@path`. A **window** is the only place in
+//! this crate where a caller's numbers reach a header, and upstream both bounds are stringified
+//! into a template. And a **page** is an agent's answer that the reference does not type at all:
+//! `list` returns `Promise<any>`, so nothing upstream stands between a caller and whatever arrived.
 //!
 //! The target asserts that nothing panics, that an identifier is always exactly one path segment
 //! carrying no `/`, `?`, or `#`, that a window always writes two whole numbers under the right unit

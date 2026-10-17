@@ -593,14 +593,14 @@ fn a_rebuilt_request_carries_the_recorded_values() -> Result<(), Box<dyn Error>>
     assert_eq!(request.body(), None);
     for header in &case.request.headers {
         if header.masked {
-            // A clock read, or a signature over one; Roadmap 3.10 owns those bytes and Roadmap 5.5
-            // applies them to a finished request.
+            // A clock read, or a signature over one; keri-http-auth owns those bytes and
+            // `SigningTransport` applies them to a finished request.
             assert!(header.value.is_none(), "{} was recorded with a value", header.name);
             continue;
         }
         if header.name.eq_ignore_ascii_case("signify-resource") {
-            // The controller prefix an authenticated request announces; Roadmap 5.5 applies it,
-            // and it is the same prefix the fixture's provenance records.
+            // The controller prefix an authenticated request announces; `SigningTransport` applies
+            // it, and it is the same prefix the fixture's provenance records.
             assert_eq!(
                 header.value.as_deref(),
                 Some(fixture.provenance.controller_prefix.as_str())
@@ -769,7 +769,7 @@ fn the_success_boundary_is_the_references_own() -> Result<(), Box<dyn Error>> {
                 assert_eq!(decoded.status().as_u16(), case.status);
                 assert_eq!(decoded.body(), case.body.as_bytes());
                 // The reference accepted the status too, and only then failed on the missing
-                // agent signature, which is Roadmap 5.5's.
+                // agent signature, which is `ResponseAuthenticator`'s.
                 assert_eq!(case.message.as_deref(), Some("message from a different remote agent"));
             }
             (DecodeOutcome::Refused(ResponseError::Status { status, detail, .. }), false) => {

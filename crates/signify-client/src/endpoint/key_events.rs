@@ -8,9 +8,8 @@
 //!
 //! The reference interpolates its argument straight into the query — `` `/events?pre=${pre}` `` —
 //! so a value carrying `&` adds a parameter and one carrying `#` truncates the query into a
-//! fragment. Here the argument is a validated [`IdentifierPrefix`], and Roadmap 5.3's
-//! [`ResourcePath`] would encode it exactly once even if it were not. See
-//! `fixtures/client-key-state/`.
+//! fragment. Here the argument is a validated [`IdentifierPrefix`], and [`ResourcePath`] would
+//! encode it exactly once even if it were not. See `fixtures/client-key-state/`.
 
 use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::KeyEventRecord;

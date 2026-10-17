@@ -1,4 +1,4 @@
-//! Wave 4 — client setup, single and multiple: the §7 row's remaining halves.
+//! Wave 4 — client setup, single and multiple: the scenario-table row's remaining halves.
 //!
 //! Drives both setup files: a pinned passcode, a witnessed identifier's OOBIs, and two clients meeting.
 //!

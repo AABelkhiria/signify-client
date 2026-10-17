@@ -13,18 +13,18 @@
 //!
 //! [`Oobis::resolve`] returns an [`OobiOperation`], not a resolved OOBI: the agent has to go and
 //! fetch the URL, which can take as long as the far end takes. Every caller in the pinned tree
-//! hands the operation straight to `waitOperation`. Polling is Roadmap 7.2's item — Roadmap 5.4
-//! already built and pinned the schedule `Operations.wait` uses — so until then a caller drives the
-//! operation itself through [`operations`](crate::endpoint::operations).
+//! hands the operation straight to `waitOperation`. Polling is the [`operation`](crate::operation)
+//! module's — on the schedule `Operations.wait` uses — so here a caller drives the operation itself
+//! through [`operations`](crate::endpoint::operations).
 //!
 //! # An OOBI is a URL
 //!
 //! The reference declares `resolve(oobi: string)` and sends whatever it is given, so an empty
 //! string, a sentence, or a value carrying a newline all become `{"url":…}` and the agent is asked
-//! to fetch them. Here the argument is Roadmap 5.1's [`RequestUrl`] — an absolute `http` or `https`
-//! URL of visible ASCII, no fragment, bounded — which is the same validator this crate's own
-//! requests use, and which preserves its bytes exactly rather than normalizing them. That matters
-//! for the same reason it mattered there: the URL is fetched byte for byte by somebody else.
+//! to fetch them. Here the argument is a [`RequestUrl`] — an absolute `http` or `https` URL of
+//! visible ASCII, no fragment, bounded — which is the same validator this crate's own requests use,
+//! and which preserves its bytes exactly rather than normalizing them. That matters for the same
+//! reason it mattered there: the URL is fetched byte for byte by somebody else.
 //!
 //! Two narrowings come with it, and neither refuses anything the pinned tree resolves. A scheme
 //! must be lowercase `http` or `https`, though RFC 3986 makes a scheme case-insensitive; and the
@@ -38,9 +38,8 @@
 //! All three of the reference's paths are built by string interpolation, and none of the four
 //! dynamic values is encoded: an alias holding `/` addresses a different identifier, a role holding
 //! `&` adds a query parameter of the caller's choosing, and an AID or a role filter holding `..`
-//! climbs out of its own segment. Roadmap 3.10 signs `@path`, so each also changes what a
-//! signature commits to. Roadmap 5.3's [`ResourcePath`] closes all four. See
-//! `fixtures/client-oobis/`.
+//! climbs out of its own segment. Request signing covers `@path`, so each also changes what a
+//! signature commits to. [`ResourcePath`] closes all four. See `fixtures/client-oobis/`.
 
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::Sad;
@@ -66,10 +65,10 @@ pub const RESOLUTIONS_SEGMENT: &str = "oobis";
 /// Path segment an identifier's endpoint authorizations live under.
 ///
 /// The same word as
-/// [`identifiers::END_ROLES_SEGMENT`](crate::endpoint::identifiers::END_ROLES_SEGMENT), and again
-/// a different resource: Roadmap 6.6's is `/identifiers/{name}/endroles`, which *grants* a role for
-/// a managed identifier, while this one is `/endroles/{aid}`, which *reads* what any identifier has
-/// granted.
+/// [`identifiers::END_ROLES_SEGMENT`](crate::endpoint::identifiers::END_ROLES_SEGMENT), and again a
+/// different resource: the identifier family's is `/identifiers/{name}/endroles`, which *grants* a
+/// role for a managed identifier, while this one is `/endroles/{aid}`, which *reads* what any
+/// identifier has granted.
 pub const END_ROLES_SEGMENT: &str = "endroles";
 
 /// Query parameter naming the role whose OOBIs are wanted; the reference's `role`.
@@ -154,7 +153,7 @@ impl OobiResolution {
 /// The OOBI endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Oobis<'client> {
     client: &'client ConnectedClient,
@@ -192,7 +191,8 @@ impl<'client> Oobis<'client> {
     ///
     /// The answer is a *long-running operation*, not a resolved OOBI: the agent has to fetch the
     /// URL and process whatever key event log comes back. Drive it through
-    /// [`operations`](crate::endpoint::operations) until Roadmap 7.2 adds the waiting helper.
+    /// [`operations`](crate::endpoint::operations) or wait on it with a
+    /// [`Poller`](crate::operation::Poller).
     ///
     /// # Errors
     ///
@@ -276,7 +276,7 @@ mod tests {
         assert_eq!(END_ROLES_SEGMENT, "endroles");
         assert_eq!(ROLE_PARAMETER, "role");
         // Two resources, one word each, deliberately spelled separately: `/oobis` publishes and
-        // `/oobis` resolves, and `/endroles/{aid}` reads what Roadmap 6.6's
+        // `/oobis` resolves, and `/endroles/{aid}` reads what the identifier family's
         // `/identifiers/{name}/endroles` grants.
         assert_eq!(END_ROLES_SEGMENT, crate::endpoint::identifiers::END_ROLES_SEGMENT);
     }
@@ -291,7 +291,7 @@ mod tests {
     fn a_published_listing_addresses_the_references_path() -> Result<(), Box<dyn Error>> {
         let path = oobi_path("aid", &Role::Agent)?;
         assert_eq!(path.as_str(), "/identifiers/aid/oobis?role=agent");
-        // Roadmap 3.10 strips the query before signing, so every role signs identically.
+        // Request signing strips the query first, so every role signs identically.
         assert_eq!(path.path(), "/identifiers/aid/oobis");
         assert_eq!(
             oobi_path("name1", &Role::Witness)?.as_str(),
@@ -480,8 +480,8 @@ mod tests {
         assert_eq!(listing.role, Role::Agent);
         assert_eq!(listing.oobis, ["http://a/oobi/E".to_owned()]);
 
-        // A role the schema does not name is kept rather than refused, which is Roadmap 4.1's rule
-        // for an extensible registry.
+        // A role the schema does not name is kept rather than refused, which is the generated API
+        // types' rule for an extensible registry.
         let unnamed: Oobi = serde_json::from_str(r#"{"role":"gatekeeper","oobis":[]}"#)?;
         assert_eq!(unnamed.role, Role::Other("gatekeeper".to_owned()));
 

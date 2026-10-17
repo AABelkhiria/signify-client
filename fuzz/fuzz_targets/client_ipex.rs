@@ -5,8 +5,8 @@
 //! Four things reach this family from outside, and one of them deliberately does not.
 //!
 //! **The sender's alias** is a path component, and the reference concatenates it raw — so upstream
-//! an alias with a slash posts a disclosure under a different identifier's resource, and Roadmap
-//! 3.10 signs `@path`. The target asserts it can never leave its own segment.
+//! an alias with a slash posts a disclosure under a different identifier's resource, and the
+//! request signature covers `@path`. The target asserts it can never leave its own segment.
 //!
 //! **The route is not caller input.** It is read from the message, so the address and the message's
 //! own `r` field cannot disagree — the defect the reference's five separate submitters allow. The

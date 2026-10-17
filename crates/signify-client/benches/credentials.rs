@@ -7,8 +7,8 @@
 //! rendering all of them on every page. It is measured over growing clause counts.
 //!
 //! **The write bodies.** `issue` and `revoke` each assemble a body carrying two or three whole
-//! events plus the key-manager block, which is the part this family adds on top of Roadmap 6.2's
-//! artifact construction.
+//! events plus the key-manager block, which is the part this family adds on top of the issuance and
+//! revocation artifact construction.
 //!
 //! **The answer.** A credential record is the largest document any read in this crate returns —
 //! eleven fields, three of them whole events, one of them a complete JSON Schema — so decoding is
@@ -115,7 +115,7 @@ fn benchmark_credentials(criterion: &mut Criterion) {
     });
 
     // Decoding the answer: one record, then listings of growing size. `list` returns every match
-    // in one body, bounded only by Roadmap 5.1's transport limit.
+    // in one body, bounded only by the transport's response-body limit.
     let record = credential_record();
     criterion.bench_function("credentials_decode_record", |bencher| {
         bencher.iter(|| serde_json::from_str::<Credential>(black_box(&record)).is_ok());

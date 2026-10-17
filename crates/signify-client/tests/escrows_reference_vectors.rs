@@ -265,7 +265,7 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn the_response_type_is_roadmap_4_1s_reply_record() -> Result<(), Box<dyn Error>> {
+fn the_response_type_is_the_shared_reply_record() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
 

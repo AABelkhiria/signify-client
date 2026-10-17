@@ -12,8 +12,8 @@
 //! # A SAID is a SAID, not a string
 //!
 //! `get` upstream interpolates its argument straight into the path, so a value carrying `/`, `?`,
-//! or `#` addresses a different resource — and Roadmap 3.10 signs `@path`, so it changes what the
-//! signature commits to. Here the argument is Roadmap 3.3's validated [`Said`], which cannot hold a
+//! or `#` addresses a different resource — and request signing covers `@path`, so it changes what
+//! the signature commits to. Here the argument is the validated [`Said`], which cannot hold a
 //! delimiter; a qualified digest's alphabet is URL-safe Base64, so every real SAID reaches the path
 //! byte-identical to what the reference sends. See `fixtures/client-schemas/`.
 
@@ -73,7 +73,7 @@ impl<'client> Schemas<'client> {
     ///
     /// There is no filter, range, or paging: the reference offers none and neither does this, so
     /// an agent holding many schemas answers with all of them in one body, bounded only by
-    /// Roadmap 5.1's transport limit.
+    /// the transport's response-body limit.
     ///
     /// # Errors
     ///
@@ -160,7 +160,7 @@ mod tests {
         assert_eq!(schema.credential_type, "QC");
         assert!(!schema.additional_properties);
         assert_eq!(schema.required, ["i".to_owned(), "d".to_owned()]);
-        // `properties` stays JSON Schema, which is an open vocabulary — Roadmap 4.1 recorded that
+        // `properties` stays JSON Schema, which is an open vocabulary — `keria-types` recorded that
         // validating a credential against it is not a capability the reference has either.
         assert_eq!(schema.properties.len(), 2);
         assert!(schema.properties.contains_key("nested"));

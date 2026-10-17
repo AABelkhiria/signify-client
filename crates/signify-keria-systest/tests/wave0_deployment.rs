@@ -114,7 +114,7 @@ async fn the_deployment_identifies_itself() -> Result<(), Box<dyn Error>> {
         .map(ToOwned::to_owned);
     assert!(
         version.is_some(),
-        "the served document carries no version — which is what §10:9799 claims, and this run \
+        "the served document carries no version — which is what the OpenAPI source residual claims, and this run \
          would then confirm rather than correct"
     );
 
@@ -181,11 +181,11 @@ async fn the_deployment_identifies_itself() -> Result<(), Box<dyn Error>> {
         timeout_policy: "the production transport's default deadline covers each exchange; no \
                          scenario sleeps, and every wait polls a condition"
             .to_owned(),
-        note: "A `local` run cannot close PORTING.md §10's `Target KERIA integration version` row: \
-               that row asks for an image digest, and a KERIA on the host has no image. What this \
+        note: "A `local` run cannot close the `Target KERIA integration version` question: that \
+               question asks for an image digest, and a KERIA on the host has no image. What this \
                records is the strongest identity available — the document the agent serves about \
-               itself — which also answers §10:9799's residual, whose text claims that document \
-               `carries no version`."
+               itself — which also answers the `KERIA OpenAPI source revision/generator` \
+               residual, whose text claims that document `carries no version`."
             .to_owned(),
     };
 

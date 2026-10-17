@@ -2,9 +2,9 @@
 //!
 //! Three costs matter here and they differ by four orders of magnitude, which is the point of
 //! measuring them together. Addressing a resource and decoding a record are free beside the
-//! client's own ~25 µs signature (Roadmap 6.4). **Deriving an identifier's keys is not**: a salty
-//! creation runs Argon2 at the reference's production profile, and a caller who does not know that
-//! will put it on a UI thread.
+//! client's own ~25 µs signature. **Deriving an identifier's keys is not**: a salty creation runs
+//! Argon2 at the reference's production profile, and a caller who does not know that will put it on
+//! a UI thread.
 //!
 //! Inputs: one identifier record of the shape KERIA returns, one alias needing percent-encoding,
 //! and one long-running operation answer.

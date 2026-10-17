@@ -3,12 +3,12 @@
 //! Fuzzes the operation polling loop over hostile agent answers and arbitrary policies.
 //!
 //! Two things here come from outside, and one of them is not obvious. An **agent's answer** decides
-//! whether a caller believes an operation succeeded — Roadmap 6.5 already fuzzes that shape. What
-//! is new is that the same answer also names **the next resource this client will fetch**: a
-//! dependency's `name` becomes a path segment under `/operations/`, so a hostile agent chooses part
-//! of a URL, and Roadmap 3.10 signs `@path`. The second input is the **policy**, which is a
-//! caller's, and whose whole job is to make the loop terminate where the reference's `while (true)`
-//! does not.
+//! whether a caller believes an operation succeeded — `client_operations` already fuzzes that
+//! shape. What is new is that the same answer also names **the next resource this client will
+//! fetch**: a dependency's `name` becomes a path segment under `/operations/`, so a hostile agent
+//! chooses part of a URL, and the request signature covers `@path`. The second input is the
+//! **policy**, which is a caller's, and whose whole job is to make the loop terminate where the
+//! reference's `while (true)` does not.
 //!
 //! The target asserts that nothing panics, that a dependency's name can never escape its own path
 //! segment whatever the agent sent, that reading a dependency from typed and untyped metadata
@@ -96,8 +96,8 @@ fuzz_target!(|data: &[u8]| {
         return;
     };
 
-    // Exactly one of the three outcomes, never two and never none — Roadmap 4.1's decoder refuses
-    // every other combination, and a poll reads `is_done` to decide whether to stop.
+    // Exactly one of the three outcomes, never two and never none — the typed operation decoder
+    // refuses every other combination, and a poll reads `is_done` to decide whether to stop.
     let done = operation.outcome.is_done();
     assert_eq!(
         done,

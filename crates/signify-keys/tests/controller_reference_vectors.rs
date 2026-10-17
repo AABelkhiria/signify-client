@@ -606,7 +606,7 @@ fn the_passcode_rotation_matches() -> Result<(), Box<dyn Error>> {
 
     // The keys, the next digests, and the signer are the reference's. The current event is not:
     // the reference leaves its inception in place, and this controller adopts the rotation it
-    // applied, so a second rotation follows it in the log (ADR `0034`).
+    // applied, so a second rotation follows it in the log.
     let after = &fixture.rotation.controller_after;
     assert_eq!(
         after.raw, fixture.rotation.controller_before.raw,
@@ -701,9 +701,9 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     controller.approve_delegation(&Agent::from_key_state(state)?)?;
     let interaction_said = controller.current_said().qb64()?;
     let rotation = controller.rotate_passcode(&fixture.provenance.second_passcode, &[])?;
-    // The port follows the log (ADR `0034`): the same prior as the reference — the interaction —
-    // at the sequence number after it, which keripy accepts as an ordinary rotation, where the
-    // reference's `s = "1"` over that prior is a recovery keripy refuses.
+    // The port follows the log: the same prior as the reference — the interaction — at the sequence
+    // number after it, which keripy accepts as an ordinary rotation, where the reference's
+    // `s = "1"` over that prior is a recovery keripy refuses.
     assert_eq!(rotation.rotation.sad().get_text("s"), Some("2"));
     assert_ne!(
         rotation.rotation.sad().get_text("s"),

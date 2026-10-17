@@ -7,8 +7,8 @@
 //!
 //! An **alias** is a path component in seven places, and the reference encodes it in only two — so
 //! upstream an alias holding `/` addresses a different identifier *and* changes what a signature
-//! commits to, because Roadmap 3.10 signs `@path`. This target asserts the component can never
-//! escape its segment whatever it holds.
+//! commits to, because the request signature covers `@path`. This target asserts the component can
+//! never escape its segment whatever it holds.
 //!
 //! An **identifier record** is the document a keeper is rebuilt from and an interaction or rotation
 //! chains on. A record that decodes into the wrong shape would make a client sign an event for

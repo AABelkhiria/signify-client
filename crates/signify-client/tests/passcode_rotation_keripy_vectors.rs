@@ -3,7 +3,7 @@
 //! `fixtures/client-passcode-rotation-keripy/v1.json` replays the log a connected signify-ts client
 //! holds — inception, delegation-approval interaction — into keripy and records what keripy does
 //! with each candidate rotation. This file requires those verdicts to stand, and requires this
-//! port's rotation to be, byte for byte, the one keripy accepted. ADR `0034`.
+//! port's rotation to be, byte for byte, the one keripy accepted.
 
 use std::error::Error;
 

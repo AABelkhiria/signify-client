@@ -5,7 +5,7 @@
 //! serialized inception events, each held as a [`Habitat`] under a caller-chosen name. It is pure
 //! client-side state — nothing here talks to KERIA, signs requests, or reads a clock.
 //!
-//! The reference's `TraitCodex`/`TraitDex` were already ported by Roadmap 3.5 as
+//! The reference's `TraitCodex`/`TraitDex` were already ported in `keri-protocol` as
 //! [`ConfigurationTrait`](keri_protocol::event::ConfigurationTrait), whose first consumer was the
 //! inception builder this module now drives.
 

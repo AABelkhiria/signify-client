@@ -1,9 +1,9 @@
 //! Microbenchmark for the operations endpoint.
 //!
 //! Nothing here signs or derives: the endpoint builds a path, and the client's own signing cost
-//! (Roadmap 6.4 measured it at ~25 µs) dominates any request. What is worth measuring is the part
-//! this family adds — building the path, decoding the agent's answer into the typed model, and
-//! turning a completed operation into its response or its failure.
+//! (the `lifecycle` benchmark measured it at ~25 µs) dominates any request. What is worth measuring
+//! is the part this family adds — building the path, decoding the agent's answer into the typed
+//! model, and turning a completed operation into its response or its failure.
 
 use std::hint::black_box;
 

@@ -4,8 +4,9 @@
 //!
 //! Two things here come from outside. An **operation name** is a path component, and the reference
 //! interpolates it unencoded — so a name carrying `/` or `?` addresses a different resource
-//! entirely, and, because Roadmap 3.10 signs `@path`, changes what a signature commits to. An
-//! **agent's answer** is a document that decides whether a caller believes an operation succeeded.
+//! entirely, and, because the request signature covers `@path`, changes what a signature commits
+//! to. An **agent's answer** is a document that decides whether a caller believes an operation
+//! succeeded.
 //!
 //! The target asserts that nothing panics, that a name can never escape its own path segment
 //! whatever it holds, that a filter always writes exactly one query parameter and an absent one
@@ -55,8 +56,8 @@ fuzz_target!(|data: &[u8]| {
         .build()
     {
         Ok(path) => {
-            // Whatever the filter held, the *signed* path never changes — Roadmap 3.10 strips the
-            // query, so a filter can never alter what a signature commits to.
+            // Whatever the filter held, the *signed* path never changes — the request signature
+            // strips the query, so a filter can never alter what a signature commits to.
             assert_eq!(path.path(), "/operations");
             match filter.as_deref() {
                 Some(_) => {

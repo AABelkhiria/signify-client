@@ -8,7 +8,7 @@
 //! the path — the reference builds it with `URLSearchParams`, so this is a position where the two
 //! implementations already agree. The target asserts what that agreement buys: whatever a route
 //! holds, the resource stays `/escrows/rpy`, the query holds exactly one parameter, and the signed
-//! path Roadmap 3.10 covers never varies.
+//! path the request signature covers never varies.
 //!
 //! The **answer** is where the risk is. An escrowed reply is a message *somebody else* wrote that
 //! the agent could not accept — the missing evidence is exactly the signatures that would justify
@@ -20,7 +20,7 @@
 //! It also asserts the limit this port does **not** have. A decoded reply re-encodes with its open
 //! attribute block sorted, so it is not byte-faithful and its own SAID cannot be recomputed from
 //! it. What does hold is that re-encoding is a fixed point from the second time onward, which is
-//! what makes a stored record safe to re-read — the same invariant Roadmap 6.10's fuzz run
+//! what makes a stored record safe to re-read — the same invariant the schemas endpoint's fuzz run
 //! established for a captured number.
 //!
 //! Nothing panics, no route escapes its parameter, and no non-reply is ever counted as one.
@@ -61,7 +61,7 @@ fuzz_target!(|data: &[u8]| {
             path.as_str(),
             format!("/escrows/rpy?route={}", encode_query_component(&route))
         );
-        // Roadmap 3.10 strips the query, so nothing a route holds changes what is signed.
+        // The request signature strips the query, so nothing a route holds changes what is signed.
         assert_eq!(path.path(), "/escrows/rpy");
         assert_eq!(path.as_str().matches('?').count(), 1);
         assert_eq!(path.as_str().matches('#').count(), 0);

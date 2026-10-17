@@ -6,7 +6,7 @@
 //! [`Contacts::update`], and [`Contacts::delete`].
 //!
 //! This ports `Contacts` from the pinned `src/keri/app/contacting.ts`. The `Challenges` half of that
-//! file is Roadmap 7.4.
+//! file is [`challenges`](crate::endpoint::challenges).
 //!
 //! # Half a filter is not a filter
 //!
@@ -18,11 +18,10 @@
 //! # A contact's identifier is an identifier
 //!
 //! All four single-contact paths are `'/contacts/' + pre` with no encoding, so a value carrying `/`
-//! or `?` addresses a different resource — Roadmap 5.3's own fixture recorded
-//! `contacts().delete("a/b")` reaching two segments — and Roadmap 3.10 signs `@path`. Here the
-//! argument is Roadmap 3.4's validated [`IdentifierPrefix`], which cannot hold a delimiter, and
-//! Roadmap 5.3's builder would encode it exactly once even if it could. See
-//! `fixtures/client-contacts/`.
+//! or `?` addresses a different resource — the `http-request-response` fixture recorded
+//! `contacts().delete("a/b")` reaching two segments — and request signing covers `@path`. Here the
+//! argument is the validated [`IdentifierPrefix`], which cannot hold a delimiter, and the request
+//! builder would encode it exactly once even if it could. See `fixtures/client-contacts/`.
 
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::Sad;
@@ -97,7 +96,7 @@ impl ContactFilter {
 /// The contacts endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Contacts<'client> {
     client: &'client ConnectedClient,
@@ -113,11 +112,12 @@ impl<'client> Contacts<'client> {
     /// Lists the agent's contacts, optionally by group and by one field's value.
     ///
     /// A listing with neither addresses `/contacts`, where the reference addresses `/contacts?` —
-    /// the same deliberate difference ADR `0028` argued for an unfiltered `/operations` listing,
-    /// and for the same three reasons. The signed path is identical either way.
+    /// the same deliberate difference as an unfiltered `/operations` listing: an empty query is not
+    /// a distinct resource, and the request builder cannot spell one. The signed path is identical
+    /// either way.
     ///
     /// There is no paging: the agent answers with every match in one body, bounded only by
-    /// Roadmap 5.1's transport limit.
+    /// the transport's response-body limit.
     ///
     /// # Errors
     ///
@@ -156,10 +156,10 @@ impl<'client> Contacts<'client> {
 
     /// Files a new contact under one identifier.
     ///
-    /// `info` is an ordered document, which is what Roadmap 6.6 settled a request body is here: the
-    /// reference hands the caller's object literal to `JSON.stringify`, so the field order on the
-    /// wire is the caller's. Any field the agent does not recognise is stored and comes back in
-    /// [`Contact::additional`](keria_types::api::Contact::additional).
+    /// `info` is an ordered document, which is what the identifier family settled a request body is
+    /// here: the reference hands the caller's object literal to `JSON.stringify`, so the field
+    /// order on the wire is the caller's. Any field the agent does not recognise is stored and
+    /// comes back in [`Contact::additional`](keria_types::api::Contact::additional).
     ///
     /// # Errors
     ///
@@ -259,7 +259,7 @@ mod tests {
             path.as_str(),
             "/contacts?group=mygroup&filter_field=company&filter_value=mycompany"
         );
-        // Roadmap 3.10 strips the query, so every listing signs the same path.
+        // Request signing strips the query, so every listing signs the same path.
         assert_eq!(path.path(), "/contacts");
         Ok(())
     }
@@ -322,8 +322,8 @@ mod tests {
 
     #[test]
     fn a_value_that_would_escape_the_path_is_not_an_identifier_prefix() {
-        // The reference concatenates any string, and Roadmap 5.3 already recorded
-        // `contacts().delete("a/b")` reaching two segments.
+        // The reference concatenates any string, and the `http-request-response` fixture already
+        // recorded `contacts().delete("a/b")` reaching two segments.
         for hostile in ["a/b?c=d", "", "../identifiers", "not a prefix", "EBfdlu8R27Fbx"] {
             assert!(
                 IdentifierPrefix::from_qb64(hostile).is_err(),

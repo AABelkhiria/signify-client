@@ -12,8 +12,8 @@
 //! untyped; operation documents of the three outcomes.
 //!
 //! Nothing here is the real cost of polling. One attempt is one signed HTTP request, whose
-//! signature alone Roadmap 6.4 measured at ~25 µs and whose round trip is the network — so every
-//! number below is noise beside it, which is the point of recording them.
+//! signature alone the `lifecycle` benchmark measured at ~25 µs and whose round trip is the network
+//! — so every number below is noise beside it, which is the point of recording them.
 
 use core::time::Duration;
 use std::hint::black_box;

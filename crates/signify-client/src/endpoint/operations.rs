@@ -6,12 +6,13 @@
 //! completed operation carries an error.
 //!
 //! This ports `Operations` from the pinned `src/keri/app/coring.ts`, minus `wait`. Polling is
-//! Roadmap 7.2, and Roadmap 5.4 already pinned this function's own delay schedule by executing it.
+//! [`operation`](crate::operation)'s, and the `http-retry` fixture pinned that function's own delay
+//! schedule by executing it.
 //!
 //! # The union is already a type
 //!
 //! `get` upstream returns a fourteen-way union that a caller narrows by inspecting `metadata` at
-//! run time — the reference's own `hasDepends` is a `'depends' in op.metadata`. Roadmap 4.1
+//! run time — the reference's own `hasDepends` is a `'depends' in op.metadata`. `keria-types`
 //! replaced that with [`Operation<M, R>`] and an [`UntypedOperation`], so [`Operations::get`]
 //! returns the untyped form and [`Operations::get_typed`] narrows it by decoding. A narrowing that
 //! does not fit is a decode failure rather than a silently wrong branch.
@@ -221,9 +222,8 @@ mod tests {
         assert_eq!(message, "Timed out waiting for witness receipts");
         // The detail block's keys are sorted rather than kept in the order the agent sent them:
         // `serde_json::Map` is a `BTreeMap` here, so the order is already gone at decode time.
-        // Nothing depends on it — this is an error message, not wire bytes — and ADR `0008`
-        // already declined to reproduce JavaScript's insertion order where bytes *did* depend on
-        // it.
+        // Nothing depends on it — this is an error message, not wire bytes — and the port already
+        // declined to reproduce JavaScript's insertion order where bytes *did* depend on it.
         assert_eq!(details.as_deref(), Some(r#"{"expected":3,"received":2}"#));
         Ok(())
     }

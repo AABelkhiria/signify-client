@@ -252,9 +252,8 @@ async fn interact_aid1(
         derived_event: String::from_utf8(interacted.artifact().event.raw().to_vec())?,
         derived_said: interacted.artifact().event.said().qb64()?,
         agent_event: serde_json::to_string(&response)?,
-        note: "upstream anchors the bare string [icp.pre]; anchors here are typed Vec<Sad> \
-               (Roadmap 4.6), so this run anchors a seal of the same inception and the SAID \
-               differs by design",
+        note: "upstream anchors the bare string [icp.pre]; anchors here are typed Vec<Sad>, so \
+               this run anchors a seal of the same inception and the SAID differs by design",
     };
     if interaction.derived_said == UPSTREAM_INTERACTION_SAID {
         mismatches.push(

@@ -6,16 +6,16 @@
 //! [`Escrows::list_replies`], is the only window the reference offers onto that holding area.
 //!
 //! This ports the whole of the pinned `src/keri/app/escrowing.ts`: one class with one method, and
-//! one type alias, `Rpy`, which is Roadmap 4.1's [`ReplyRecord`].
+//! one type alias, `Rpy`, which is the shared [`ReplyRecord`].
 //!
 //! # A route is a filter, not a resource
 //!
 //! The one caller value in this file reaches the **query**, not the path, and the reference builds
-//! that query with `URLSearchParams` — so unlike Roadmap 7.1's `Oobis.get`, which interpolates four
-//! values raw into the same position, this one escapes what it is given. The pinned unit test says
-//! so from upstream's own side: the URL it asserts is
-//! `/escrows/rpy?route=%2Fpresentation%2Frequest`, the encoded form. This port agrees with it byte
-//! for byte, which is why a route can stay borrowed text: there is no address for it to move.
+//! that query with `URLSearchParams` — so unlike `Oobis.get`, which interpolates four values raw
+//! into the same position, this one escapes what it is given. The pinned unit test says so from
+//! upstream's own side: the URL it asserts is `/escrows/rpy?route=%2Fpresentation%2Frequest`, the
+//! encoded form. This port agrees with it byte for byte, which is why a route can stay borrowed
+//! text: there is no address for it to move.
 //!
 //! # The vocabulary is not a closed set
 //!
@@ -26,10 +26,9 @@
 //! `/presentation/request` is not among them, appearing there once, in a specification document,
 //! as the route of an `exn`. So the single literal signify-ts offers is not evidence about reply
 //! escrows at all. There is nothing to enumerate, so the route is a `&str`, which is the decision
-//! Roadmap 3.6 already took for
-//! [`ReplyBuilder`](keri_protocol::event::reply::ReplyBuilder)'s own route. Roadmap 8.1's typed
-//! route table covers *exchange* routes, which these are not. keripy is read here as scoped
-//! corroboration only (`PORTING.md` §1.1); signify-ts governs every byte this family sends.
+//! already taken for [`ReplyBuilder`](keri_protocol::event::reply::ReplyBuilder)'s own route. The
+//! typed route table covers *exchange* routes, which these are not. keripy is read here as scoped
+//! corroboration only; signify-ts governs every byte this family sends.
 //!
 //! # The answer is decoded, not cast
 //!
@@ -43,11 +42,11 @@
 //!
 //! Nothing here verifies an escrowed message. A reply arrives unsigned as far as this family is
 //! concerned — the signatures that would justify it are exactly what the agent is still missing —
-//! so a listing says what the agent is holding, not what is true. Nor could it: a
-//! [`ReplyRecord`]'s attribute block is open, so it re-serializes in sorted key order, while the
-//! `d` it carries is a SAID over the bytes the agent actually sent. Roadmap 4.1 documents that for
-//! every record with an open field; here it is the reason a caller who needs to check an escrowed
-//! reply must do it against the response body rather than against the decoded record.
+//! so a listing says what the agent is holding, not what is true. Nor could it: a [`ReplyRecord`]'s
+//! attribute block is open, so it re-serializes in sorted key order, while the `d` it carries is a
+//! SAID over the bytes the agent actually sent. `keria-types` documents that for every record with
+//! an open field; here it is the reason a caller who needs to check an escrowed reply must do it
+//! against the response body rather than against the decoded record.
 
 use keria_types::api::ReplyRecord;
 use signify_http::request::ResourcePath;
@@ -80,7 +79,7 @@ pub const PRESENTATION_REQUEST_ROUTE: &str = "/presentation/request";
 /// The escrows endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
-/// speaks through. This is the shape Roadmap 6.5 settled for every family.
+/// speaks through. This is the shape every family here shares.
 #[derive(Debug)]
 pub struct Escrows<'client> {
     client: &'client ConnectedClient,
@@ -100,12 +99,12 @@ impl<'client> Escrows<'client> {
     /// reference's guard is `route !== undefined`, so an empty string is a route there too.
     ///
     /// A listing with no route addresses `/escrows/rpy`, where the reference addresses
-    /// `/escrows/rpy?` — the deliberate difference ADR `0028` argued for an unfiltered
-    /// `/operations` listing, and for the same three reasons. The signed path is identical either
-    /// way, because Roadmap 3.10 strips the query.
+    /// `/escrows/rpy?` — the same deliberate difference as an unfiltered `/operations` listing: an
+    /// empty query is not a distinct resource, and the request builder cannot spell one. The signed
+    /// path is identical either way, because request signing strips the query.
     ///
     /// There is no paging: the agent answers with every match in one body, bounded only by
-    /// Roadmap 5.1's transport limit.
+    /// the transport's response-body limit.
     ///
     /// # Errors
     ///
@@ -152,7 +151,7 @@ mod tests {
         let path = Escrows::reply_path(Some(PRESENTATION_REQUEST_ROUTE))?;
         // Exactly the URL `escrowing.test.ts` asserts, after its base URL.
         assert_eq!(path.as_str(), "/escrows/rpy?route=%2Fpresentation%2Frequest");
-        // Roadmap 3.10 strips the query, so every listing signs the same path.
+        // Request signing strips the query, so every listing signs the same path.
         assert_eq!(path.path(), "/escrows/rpy");
         Ok(())
     }
@@ -220,8 +219,8 @@ mod tests {
 
     #[test]
     fn a_route_too_long_for_a_query_is_refused_rather_than_truncated() {
-        // Roadmap 5.3's builder bounds the query at 1 KiB; the reference bounds nothing, so a
-        // route of any size reaches the wire there.
+        // The request builder bounds the query at 1 KiB; the reference bounds nothing, so a route
+        // of any size reaches the wire there.
         let outcome = Escrows::reply_path(Some(&"x".repeat(4096)));
         assert!(
             matches!(outcome, Err(ClientError::Request { .. })),
@@ -295,7 +294,7 @@ mod tests {
 
     #[test]
     fn an_undeclared_field_is_ignored_while_the_attribute_block_stays_open() -> Result<(), Box<dyn Error>> {
-        // Roadmap 4.1's rule for a schema with no index signature (ADR `0012`): unknown fields are
+        // The generated API types' rule for a schema with no index signature: unknown fields are
         // ignored. `a` is declared `unknown`, so it is captured whole.
         let document = PINNED_REPLY.replace(r#""a":{"i""#, r#""escrowed":true,"a":{"i""#);
         let reply: ReplyRecord = serde_json::from_str(&document)?;
@@ -313,7 +312,7 @@ mod tests {
 
     #[test]
     fn a_decoded_reply_does_not_re_encode_into_the_bytes_it_arrived_as() -> Result<(), Box<dyn Error>> {
-        // Roadmap 4.1 documents this for every record with an open field: a `serde_json::Value`
+        // `keria-types` documents this for every record with an open field: a `serde_json::Value`
         // object re-serializes in *sorted* key order. A reply's `d` is a SAID over the bytes it
         // arrived as, so the identifier cannot be recomputed from a round-tripped record — which
         // is why this family says a listing reports what the agent holds rather than verifying it.

@@ -74,8 +74,9 @@ fn conclusion(attempts: &[Attempt]) -> String {
                 format!(
                     "**Distinguishes.** Both spellings completed but answered differently — \
                      decimal `10` returned {:?} and hexadecimal `a` returned {:?} — so the \
-                     deployment does read a base and the recorded answers say which. ADR `0030` \
-                     still keeps both variants: one deployment is not grounds for a default.",
+                     deployment does read a base and the recorded answers say which. \
+                     `QuerySequence` still keeps both variants: one deployment is not grounds for \
+                     a default.",
                     decimal.answered_sequence, hex.answered_sequence
                 )
             }
@@ -85,8 +86,8 @@ fn conclusion(attempts: &[Attempt]) -> String {
              {LAST_SEQUENCE}), `a` resolved and answered about event {:?}, while `10` never \
              resolved ({}). Read as hexadecimal, `a` is event 10 — which exists — and `10` is \
              event 16, which does not; read as decimal the two swap, and the opposite spelling \
-             would have resolved. So this deployment reads the query's `sn` in base sixteen. ADR \
-             `0030` still keeps both variants and no default: one deployment is evidence about \
+             would have resolved. So this deployment reads the query's `sn` in base sixteen. \
+             `QuerySequence` still keeps both variants and no default: one deployment is evidence about \
              that deployment, not a licence to choose for every caller.",
             hex.answered_sequence,
             decimal.error.as_deref().unwrap_or("no error reported"),
@@ -95,8 +96,8 @@ fn conclusion(attempts: &[Attempt]) -> String {
             "**Decimal.** Against a log of {LOG_LENGTH} events (sequences 0 through \
              {LAST_SEQUENCE}), `10` resolved and answered about event {:?}, while `a` never \
              resolved ({}). Read as decimal, `10` is event 10 — which exists — and `a` is not a \
-             base-ten number at all. So this deployment reads the query's `sn` in base ten. ADR \
-             `0030` still keeps both variants and no default.",
+             base-ten number at all. So this deployment reads the query's `sn` in base ten. \
+             `QuerySequence` still keeps both variants and no default.",
             decimal.answered_sequence,
             hex.error.as_deref().unwrap_or("no error reported"),
         ),

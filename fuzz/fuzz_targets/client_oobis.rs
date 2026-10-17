@@ -6,8 +6,8 @@
 //! path. An **alias** and an **AID** are path components the reference interpolates unencoded; a
 //! **role** is both — a query value in `get` and a path segment in `endroles` — and the reference
 //! interpolates it into the query by hand rather than through `URLSearchParams`, so a role holding
-//! `&` chooses a second parameter. Roadmap 3.10 signs `@path`, so each also changes what a
-//! signature commits to. An **OOBI URL** does not reach this client's path at all: it reaches a
+//! `&` chooses a second parameter. The request signature covers `@path`, so each also changes what
+//! a signature commits to. An **OOBI URL** does not reach this client's path at all: it reaches a
 //! JSON body, and then somebody else fetches it. And an **agent's answer** decides what a caller
 //! believes about who may speak for an identifier.
 //!

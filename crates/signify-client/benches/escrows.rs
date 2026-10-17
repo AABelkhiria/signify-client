@@ -1,16 +1,17 @@
 //! Microbenchmark for the escrows endpoint family.
 //!
 //! One method, so the numbers worth having are about the **answer**. This is the third unpaged
-//! listing in the crate — after Roadmap 7.3's contacts and, with a caller-chosen window, 7.5's
-//! notifications — and it is the one whose entries are whole KERI messages: each carries an
-//! attribute block the schema types `unknown`, so the per-entry cost is dominated by material the
-//! *agent* chooses the size of rather than by the request.
+//! listing in the crate — after the contacts and, with a caller-chosen window, the notifications —
+//! and it is the one whose entries are whole KERI messages: each carries an attribute block the
+//! schema types `unknown`, so the per-entry cost is dominated by material the *agent* chooses the
+//! size of rather than by the request.
 //!
 //! Inputs: the two address shapes; listings of 1, 32, and 256 escrowed replies, at a small
 //! attribute block and at one of 32 fields.
 //!
 //! As everywhere in this crate, the addressing is negligible beside one signed request, whose
-//! signature alone Roadmap 6.4 measured at ~25 µs. The decode is not, which is the point.
+//! signature alone the `lifecycle` benchmark measured at ~25 µs. The decode is not, which is the
+//! point.
 
 use std::hint::black_box;
 

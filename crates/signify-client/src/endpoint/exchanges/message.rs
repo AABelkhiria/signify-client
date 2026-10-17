@@ -167,9 +167,9 @@ pub struct MultisigProposal {
     pub attributes: GroupAttributes,
     /// The message being proposed, with the embed block's own SAID.
     ///
-    /// This is Roadmap 4.1's [`ExchangeEmbeds`], whose eight variants correspond one-to-one with
-    /// the eight multisig routes — which is why the route and the embed can be checked against
-    /// each other at all.
+    /// This is the shared [`ExchangeEmbeds`], whose eight variants correspond one-to-one with the
+    /// eight multisig routes — which is why the route and the embed can be checked against each
+    /// other at all.
     pub proposed: ExchangeEmbeds,
 }
 
@@ -352,8 +352,8 @@ fn multisig_embed(route: MultisigRoute, message: &ExchangeRecord) -> Result<Exch
 /// Reads what an IPEX step embeds.
 fn ipex_payload(route: IpexRoute, message: &ExchangeRecord) -> Result<IpexPayload, ClientError> {
     match route {
-        // Apply, agree, and admit declare `e: object` and embed nothing; Roadmap 6.12 already
-        // recorded that neither attachment is ever non-empty.
+        // Apply, agree, and admit declare `e: object` and embed nothing; the `client-ipex` fixture
+        // already recorded that neither attachment is ever non-empty.
         IpexRoute::Apply | IpexRoute::Agree | IpexRoute::Admit => Ok(IpexPayload::Empty),
         IpexRoute::Offer => {
             let block = embed_block(route.as_str(), "acdc", message)?;
@@ -391,7 +391,7 @@ fn embed_block<'a>(
         })
 }
 
-/// Decodes the `e` block of a message that must carry one of Roadmap 4.1's embeds.
+/// Decodes the `e` block of a message that must carry one of the shared [`ExchangeEmbeds`].
 fn decode_embeds(
     route: &'static str,
     expected: &'static str,
@@ -429,7 +429,7 @@ const fn slot_of(embed: &ExchangeEmbed) -> &'static str {
 
 /// Returns the embed slot a multisig route must carry.
 ///
-/// This is the correspondence that makes the check possible: Roadmap 4.1's eight embed variants and
+/// This is the correspondence that makes the check possible: the eight shared embed variants and
 /// the reference's eight multisig routes are the same eight things.
 const fn expected_slot(route: MultisigRoute) -> &'static str {
     match route {

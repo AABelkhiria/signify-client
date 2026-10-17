@@ -1,10 +1,9 @@
 //! Microbenchmark for the exchange route table and the message classifiers.
 //!
-//! Classification sits on the read path of every group workflow Roadmap 8.2 through 8.4 will build:
-//! a member polls for notifications, reads each proposal, and has to decide what it is before it
-//! can do anything. So the numbers worth having are what deciding costs, and how it compares with
-//! what the reference spends on the same decision — which is one string comparison and nothing
-//! else.
+//! Classification sits on the read path of every group workflow: a member polls for notifications,
+//! reads each proposal, and has to decide what it is before it can do anything. So the numbers
+//! worth having are what deciding costs, and how it compares with what the reference spends on the
+//! same decision — which is one string comparison and nothing else.
 //!
 //! Three things are measured.
 //!

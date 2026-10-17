@@ -1,9 +1,9 @@
 //! Writing the parts of a request body that more than one endpoint family shares.
 //!
 //! A KERIA request that carries signed events also carries the key-manager block the agent stores
-//! for the identifier that signed them — `data[keeper.algo] = keeper.params()` upstream. Roadmap
-//! 6.6 wrote that first for the identifier family; Roadmap 6.9 needs the identical block for a
-//! registry creation, which is what moved it here rather than duplicating it.
+//! for the identifier that signed them — `data[keeper.algo] = keeper.params()` upstream. The
+//! identifier family wrote that first; a registry creation needs the identical block, which is what
+//! moved it here rather than duplicating it.
 //!
 //! The field order inside a block is the keeper's own `params()` literal, which is deliberately
 //! **not** the schema's declaration order: a salty keeper writes `sxlt` first and `tier` fifth
@@ -59,7 +59,7 @@ pub(crate) fn algorithm_block(
         KeyManagerState::Randy(randy) => randy_block(&mut block, randy, transferability)?,
         KeyManagerState::Group(group) => {
             // The member record is a response document travelling back out unchanged, so it is
-            // written in the schema's own field order — which is what Roadmap 4.1 verified its
+            // written in the schema's own field order — which is what `keria-types` verified its
             // encoding reproduces.
             block
                 .insert("mhab", SadValue::Map(record_document(&group.member)?))

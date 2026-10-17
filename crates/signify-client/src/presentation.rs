@@ -16,9 +16,9 @@
 //! [`deliver`](Presentation::deliver) grants a freshly issued credential, and the recipient
 //! [`admit`](Presentation::admit)s it.
 //!
-//! Roadmap 6.3 builds these five messages and Roadmap 6.12 submits them. What is here is the part
-//! between: reading what arrived, checking it belongs to the conversation it claims to, and
-//! building the answer from it.
+//! `signify_keys::acdc::ipex` builds these five messages and [`ipex`](crate::endpoint::ipex)
+//! submits them. What is here is the part between: reading what arrived, checking it belongs to the
+//! conversation it claims to, and building the answer from it.
 //!
 //! # Every step is read from the step it answers
 //!
@@ -50,11 +50,11 @@
 //! already, and [`disclosure_of`] assembles them.
 //!
 //! The reference assembles them three different ways in one tree. Its presentation grant passes all
-//! three attachments; its issuance grant passes only the anchor's; and
-//! `multisig-holder.test.ts` passes none at all — which sends `Ipex.grant` down the branch that
-//! **re-signs the anchoring event with the sender's own keeper**, whether or not the sender is the
-//! issuer. Roadmap 6.11 refused that branch; this module never reaches it, because the attachments
-//! come from the credential.
+//! three attachments; its issuance grant passes only the anchor's; and `multisig-holder.test.ts`
+//! passes none at all — which sends `Ipex.grant` down the branch that **re-signs the anchoring
+//! event with the sender's own keeper**, whether or not the sender is the issuer. The credentials
+//! family refused that branch; this module never reaches it, because the attachments come from the
+//! credential.
 //!
 //! # What is checked, and what is not
 //!
@@ -511,7 +511,7 @@ impl<'client> Presentation<'client> {
 
     /// Submits one built message to exactly the identifier it is addressed to.
     ///
-    /// Roadmap 6.12's endpoint takes a delivery list and does not compare it with the message's
+    /// The IPEX endpoint takes a delivery list and does not compare it with the message's
     /// addressee, because a multisig sender plausibly needs more than one. Every step here is
     /// addressed to one identifier and delivered to that identifier, so the two cannot disagree.
     async fn submit(
