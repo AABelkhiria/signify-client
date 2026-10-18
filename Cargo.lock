@@ -1261,20 +1261,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "signify"
-version = "0.0.0"
-dependencies = [
- "keri-acdc",
- "keri-cesr",
- "keri-http-auth",
- "keri-protocol",
- "keria-types",
- "signify-client",
- "signify-http",
- "signify-keys",
-]
-
-[[package]]
 name = "signify-client"
 version = "0.0.0"
 dependencies = [
@@ -1282,6 +1268,7 @@ dependencies = [
  "getrandom 0.3.4",
  "keri-acdc",
  "keri-cesr",
+ "keri-http-auth",
  "keri-protocol",
  "keria-types",
  "proptest",

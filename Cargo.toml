@@ -1,7 +1,6 @@
 [workspace]
 resolver = "3"
 members = [
-    "crates/signify",
     "crates/signify-client",
     "crates/signify-http",
     "crates/signify-keys",
