@@ -30,17 +30,18 @@
 // remaining seven account for nineteen call sites, all in the integration tree.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-import * as exchangingModule from "../../reference/signify-ts/dist/keri/app/exchanging.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
+import * as exchangingModule from "./node_modules/signify-ts/dist/keri/app/exchanging.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
 
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 // ---------------------------------------------------------------------------
 // 1. The declarations, read from the reference's own syntax tree.
 // ---------------------------------------------------------------------------
 
 function parse(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   const text = readFileSync(url, "utf8");
   return { text, source: ts.createSourceFile(relativePath, text, ts.ScriptTarget.ES2022, true) };
 }
@@ -111,7 +112,7 @@ function schemaType(typeName) {
 function pinnedTypeScriptFiles() {
   const files = [];
   const walk = (relative) => {
-    const url = new URL(`../../reference/signify-ts/${relative}`, import.meta.url);
+    const url = upstreamUrl(relative);
     let entries;
     try {
       entries = readdirSync(url, { withFileTypes: true });
@@ -141,7 +142,7 @@ function scan(needle) {
   const hits = [];
   let total = 0;
   for (const file of PINNED_FILES) {
-    const text = readFileSync(new URL(`../../reference/signify-ts/${file}`, import.meta.url), "utf8");
+    const text = readFileSync(upstreamUrl(file), "utf8");
     const count = text.split(needle).length - 1;
     if (count > 0) {
       hits.push({ file, count });
@@ -359,7 +360,7 @@ const shapeFindings = {
 function sendCallSites() {
   const found = [];
   for (const file of PINNED_FILES) {
-    const text = readFileSync(new URL(`../../reference/signify-ts/${file}`, import.meta.url), "utf8");
+    const text = readFileSync(upstreamUrl(file), "utf8");
     if (!text.includes(".send(")) {
       continue;
     }

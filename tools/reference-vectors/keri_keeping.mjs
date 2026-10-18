@@ -8,25 +8,25 @@
 // fresh ephemeral key on every call, so they are recorded by what they open to.
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Salter, Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Siger } from "../../reference/signify-ts/dist/keri/core/siger.js";
-import { Cipher } from "../../reference/signify-ts/dist/keri/core/cipher.js";
-import { Decrypter } from "../../reference/signify-ts/dist/keri/core/decrypter.js";
-import { Algos } from "../../reference/signify-ts/dist/keri/core/manager.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Salter, Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Siger } from "./node_modules/signify-ts/dist/keri/core/siger.js";
+import { Cipher } from "./node_modules/signify-ts/dist/keri/core/cipher.js";
+import { Decrypter } from "./node_modules/signify-ts/dist/keri/core/decrypter.js";
+import { Algos } from "./node_modules/signify-ts/dist/keri/core/manager.js";
 import {
   GroupIdentifierManager,
   IdentifierManagerFactory,
   RandyIdentifierManager,
   SaltyIdentifierManager,
-} from "../../reference/signify-ts/dist/keri/core/keeping.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+} from "./node_modules/signify-ts/dist/keri/core/keeping.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcode salt the pinned `keeping.test.ts` uses. */
 const SALT_RAW = "0123456789abcdef";

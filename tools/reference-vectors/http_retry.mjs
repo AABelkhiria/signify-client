@@ -22,10 +22,11 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { Operations } from "../../reference/signify-ts/dist/keri/app/coring.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
+import { Operations } from "./node_modules/signify-ts/dist/keri/app/coring.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
 
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 // ---------------------------------------------------------------------------
 // 1. The production schedule, executed.
@@ -132,7 +133,7 @@ for (const entry of WAIT_CASES) {
 
 /** Parses one pinned TypeScript file with the reference's own compiler. */
 function parse(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   const text = readFileSync(url, "utf8");
   return {
     text,
@@ -231,7 +232,7 @@ const integrationHelper = {
 
 /** Every `.ts` file in the pinned source and test trees. */
 function typescriptFiles(relativeRoot) {
-  const root = new URL(`../../reference/signify-ts/${relativeRoot}/`, import.meta.url);
+  const root = upstreamUrl(`${relativeRoot}/`);
   const found = [];
   const walk = (directory) => {
     for (const entry of readdirSync(directory)) {

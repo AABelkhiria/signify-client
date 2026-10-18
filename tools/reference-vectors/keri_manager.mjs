@@ -7,10 +7,10 @@
 // was done for the reply timestamp, because it is written and never read.
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Salter, Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Salter, Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
 import {
   Algos,
   Creatory,
@@ -18,12 +18,12 @@ import {
   RandyCreator,
   SaltyCreator,
   riKey,
-} from "../../reference/signify-ts/dist/keri/core/manager.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+} from "./node_modules/signify-ts/dist/keri/core/manager.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 // The salt and encryption seed the pinned unit test uses throughout.
 const SALT_RAW = "0123456789abcdef";

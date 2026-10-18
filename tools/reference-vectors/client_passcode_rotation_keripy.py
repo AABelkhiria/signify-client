@@ -10,14 +10,12 @@ this port builds, and a third at the right sequence number with the wrong prior.
 keripy did with each.
 
 Every event and signature is read from the signify-ts fixture; nothing is signed here, so the
-verdicts are keripy's judgement of the reference's bytes. Run with a Python 3.12+ environment that
-has the pinned ``reference/keripy`` checkout installed:
+verdicts are keripy's judgement of the reference's bytes. Run through ``uv`` against the keripy
+pinned in ``pyproject.toml``:
 
-    uv venv --python 3.12 .venv-keripy
-    uv pip install --python .venv-keripy/bin/python ./reference/keripy
-    .venv-keripy/bin/python tools/reference-vectors/client_passcode_rotation_keripy.py --write   # or --check
+    uv run --locked --project tools/reference-vectors python tools/reference-vectors/client_passcode_rotation_keripy.py --write   # or --check
 
-``DYLD_LIBRARY_PATH=/opt/homebrew/lib`` is only needed where pysodium cannot find libsodium.
+``DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`` is only needed where pysodium cannot find libsodium.
 """
 
 import json
@@ -28,8 +26,8 @@ from keri.core import eventing, serdering
 from keri.core.indexing import Siger
 from keri.db import basing
 
-REFERENCE_SHA = "4ce4cc79e06653f77342be1bf604086b89b1f090"
-REFERENCE_VERSION = "1.3.6"
+from reference import REFERENCE_SHA, REFERENCE_VERSION
+
 GENERATED_ON = "2026-09-16"
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]

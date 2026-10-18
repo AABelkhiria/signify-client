@@ -16,18 +16,19 @@
 // the body decoding from the platform `Response` the reference calls `.json()` and `.text()` on.
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 
-import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
-import { Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { parseRangeHeaders } from "../../reference/signify-ts/dist/keri/core/httping.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { SignifyClient } from "./node_modules/signify-ts/dist/keri/app/clienting.js";
+import { Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { parseRangeHeaders } from "./node_modules/signify-ts/dist/keri/core/httping.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcode the pinned client tests use, and the URLs a deployment is configured with. */
 const BRAN = "0123456789abcdefghijk";
@@ -485,7 +486,7 @@ for (const [status, body, note] of STATUS_INPUTS) {
  * `+ identifier` concatenations, and each is classified by whether `encodeURIComponent` appears.
  */
 function countPathInterpolations() {
-  const directory = new URL("../../reference/signify-ts/src/keri/app/", import.meta.url);
+  const directory = upstreamUrl("src/keri/app/");
   const files = readdirSync(directory).filter((name) => name.endsWith(".ts"));
   let encoded = 0;
   let raw = 0;

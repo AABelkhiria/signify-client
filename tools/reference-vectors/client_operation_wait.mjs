@@ -19,17 +19,18 @@
 // own driven output.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-import { Operations } from "../../reference/signify-ts/dist/keri/app/coring.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
+import { Operations } from "./node_modules/signify-ts/dist/keri/app/coring.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
 
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 // ---------------------------------------------------------------------------
 // 1. The ported declarations, read from the reference's own syntax tree.
 // ---------------------------------------------------------------------------
 
 function parse(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   const text = readFileSync(url, "utf8");
   return { text, source: ts.createSourceFile(relativePath, text, ts.ScriptTarget.ES2022, true) };
 }
@@ -142,7 +143,7 @@ function dependsDeclarations() {
 function pinnedTypeScriptFiles() {
   const files = [];
   const walk = (relative) => {
-    const url = new URL(`../../reference/signify-ts/${relative}`, import.meta.url);
+    const url = upstreamUrl(relative);
     let entries;
     try {
       entries = readdirSync(url, { withFileTypes: true });
@@ -172,7 +173,7 @@ function scan(needle, { normalizeWhitespace = false } = {}) {
   const hits = [];
   let total = 0;
   for (const file of PINNED_FILES) {
-    let body = readFileSync(new URL(`../../reference/signify-ts/${file}`, import.meta.url), "utf8");
+    let body = readFileSync(upstreamUrl(file), "utf8");
     if (normalizeWhitespace) {
       // A call written across several lines is still one call site.
       body = body.replace(/\s+/g, "");

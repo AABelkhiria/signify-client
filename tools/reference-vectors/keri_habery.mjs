@@ -9,15 +9,15 @@
 // the prefix index under a non-empty stem — so every event case below builds a fresh Habery.
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Salter, Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { Habery } from "../../reference/signify-ts/dist/keri/app/habery.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Salter, Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { Habery } from "./node_modules/signify-ts/dist/keri/app/habery.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The raw salt the pinned `habery.test.ts` builds its salter from. */
 const SALT_RAW = "0123456789abcdef";

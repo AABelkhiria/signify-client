@@ -17,21 +17,22 @@
 // **own key**, so its response signatures are reproducible too.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
-import { Authenticater } from "../../reference/signify-ts/dist/keri/core/authing.js";
-import { Agent, Controller } from "../../reference/signify-ts/dist/keri/app/controller.js";
-import { randomPasscode, randomNonce } from "../../reference/signify-ts/dist/keri/app/coring.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { SignifyClient } from "./node_modules/signify-ts/dist/keri/app/clienting.js";
+import { Authenticater } from "./node_modules/signify-ts/dist/keri/core/authing.js";
+import { Agent, Controller } from "./node_modules/signify-ts/dist/keri/app/controller.js";
+import { randomPasscode, randomNonce } from "./node_modules/signify-ts/dist/keri/app/coring.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcode and URLs the pinned `clienting.test.ts` publishes. */
 const BRAN = "0123456789abcdefghijk";
@@ -68,7 +69,7 @@ globalThis.Date = FixedDate;
 // ---------------------------------------------------------------------------
 
 function parse(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   const text = readFileSync(url, "utf8");
   return { text, source: ts.createSourceFile(relativePath, text, ts.ScriptTarget.ES2022, true) };
 }
@@ -113,7 +114,7 @@ function functionText(source, name) {
 function pinnedTypeScriptFiles() {
   const files = [];
   const walk = (relative) => {
-    const url = new URL(`../../reference/signify-ts/${relative}`, import.meta.url);
+    const url = upstreamUrl(relative);
     let entries;
     try {
       entries = readdirSync(url, { withFileTypes: true });
@@ -143,7 +144,7 @@ function scan(needle) {
   const hits = [];
   let total = 0;
   for (const file of PINNED_FILES) {
-    const text = readFileSync(new URL(`../../reference/signify-ts/${file}`, import.meta.url), "utf8");
+    const text = readFileSync(upstreamUrl(file), "utf8");
     const count = text.split(needle).length - 1;
     if (count > 0) {
       hits.push({ file, count });

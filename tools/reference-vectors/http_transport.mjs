@@ -12,17 +12,17 @@
 // verified.
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
-import { Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { SignifyClient } from "./node_modules/signify-ts/dist/keri/app/clienting.js";
+import { Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcode the pinned client tests use, and the URLs a deployment is configured with. */
 const BRAN = "0123456789abcdefghijk";

@@ -15,13 +15,15 @@
 // does better" claim in the ledger cites a generated file and line instead of a memory.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
 
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
+
 const ROOT = "test-integration";
 
 function read(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   return readFileSync(url, "utf8");
 }
 
@@ -35,7 +37,7 @@ function tree() {
   const scenarios = [];
   const support = [];
   const walk = (relative) => {
-    const url = new URL(`../../reference/signify-ts/${relative}`, import.meta.url);
+    const url = upstreamUrl(relative);
     for (const entry of readdirSync(url, { withFileTypes: true })) {
       const child = `${relative}/${entry.name}`;
       if (entry.isDirectory()) {

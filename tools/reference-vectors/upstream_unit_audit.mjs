@@ -15,15 +15,16 @@
 // `crates/signify-client/tests/upstream_unit_audit.rs` requires the two to agree exactly.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
 
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 /** Every `*.test.ts` under `test/`, sorted. */
 function testFiles() {
   const files = [];
   const walk = (relative) => {
-    const url = new URL(`../../reference/signify-ts/${relative}`, import.meta.url);
+    const url = upstreamUrl(relative);
     for (const entry of readdirSync(url, { withFileTypes: true })) {
       const child = `${relative}/${entry.name}`;
       if (entry.isDirectory()) {
@@ -160,7 +161,7 @@ const inventory = [];
 const perFile = [];
 
 for (const file of files) {
-  const text = readFileSync(new URL(`../../reference/signify-ts/${file}`, import.meta.url), "utf8");
+  const text = readFileSync(upstreamUrl(file), "utf8");
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.ES2022, true);
   const cases = casesIn(file, source);
   inventory.push(...cases);

@@ -27,25 +27,27 @@
 // never run.
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
-import { Authenticater } from "../../reference/signify-ts/dist/keri/core/authing.js";
-import { Cipher } from "../../reference/signify-ts/dist/keri/core/cipher.js";
-import { Controller } from "../../reference/signify-ts/dist/keri/app/controller.js";
-import { Decrypter } from "../../reference/signify-ts/dist/keri/core/decrypter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { rotate } from "../../reference/signify-ts/dist/keri/core/eventing.js";
-import { Encrypter } from "../../reference/signify-ts/dist/keri/core/encrypter.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { SaltyCreator } from "../../reference/signify-ts/dist/keri/core/manager.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { Salter, Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { SignifyClient } from "./node_modules/signify-ts/dist/keri/app/clienting.js";
+import { Authenticater } from "./node_modules/signify-ts/dist/keri/core/authing.js";
+import { Cipher } from "./node_modules/signify-ts/dist/keri/core/cipher.js";
+import { Controller } from "./node_modules/signify-ts/dist/keri/app/controller.js";
+import { Decrypter } from "./node_modules/signify-ts/dist/keri/core/decrypter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { rotate } from "./node_modules/signify-ts/dist/keri/core/eventing.js";
+import { Encrypter } from "./node_modules/signify-ts/dist/keri/core/encrypter.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { SaltyCreator } from "./node_modules/signify-ts/dist/keri/core/manager.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { Salter, Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
+import { keripyUrl } from "./upstream.mjs";
 
 await libsodium.ready;
 
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const keripySha = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 
 const PASSCODE = "0123456789abcdefghijk";
@@ -160,7 +162,7 @@ if (TEST_CALLS.length !== 1 || TEST_CALLS[0].identifier_count !== 0) {
 }
 
 // keripy's contrasting implementation, read from its own pinned checkout.
-const keeping = readFileSync(new URL("../../reference/keripy/src/keri/app/keeping.py", import.meta.url), "utf8");
+const keeping = readFileSync(keripyUrl("src/keri/app/keeping.py"), "utf8");
 const updateAeid = (() => {
   const start = keeping.indexOf("    def updateAeid(self, aeid, seed):");
   if (start < 0) {

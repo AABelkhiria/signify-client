@@ -9,23 +9,23 @@
 // what they open to through the reference's own decrypter.
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Salter, Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Cipher } from "../../reference/signify-ts/dist/keri/core/cipher.js";
-import { Decrypter } from "../../reference/signify-ts/dist/keri/core/decrypter.js";
-import { Algos } from "../../reference/signify-ts/dist/keri/core/manager.js";
-import { IdentifierManagerFactory } from "../../reference/signify-ts/dist/keri/core/keeping.js";
-import { incept } from "../../reference/signify-ts/dist/keri/core/eventing.js";
-import { Serials, Vrsn_1_0 } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Controller } from "../../reference/signify-ts/dist/keri/app/controller.js";
-import { Identifier } from "../../reference/signify-ts/dist/keri/app/aiding.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Salter, Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Cipher } from "./node_modules/signify-ts/dist/keri/core/cipher.js";
+import { Decrypter } from "./node_modules/signify-ts/dist/keri/core/decrypter.js";
+import { Algos } from "./node_modules/signify-ts/dist/keri/core/manager.js";
+import { IdentifierManagerFactory } from "./node_modules/signify-ts/dist/keri/core/keeping.js";
+import { incept } from "./node_modules/signify-ts/dist/keri/core/eventing.js";
+import { Serials, Vrsn_1_0 } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Controller } from "./node_modules/signify-ts/dist/keri/app/controller.js";
+import { Identifier } from "./node_modules/signify-ts/dist/keri/app/aiding.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcodes the pinned `aiding.test.ts` uses, plus fixed ones for the group members. */
 const BRAN = "0123456789abcdefghijk";

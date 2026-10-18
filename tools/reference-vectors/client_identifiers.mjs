@@ -21,27 +21,28 @@
 // is byte for byte what the reference would send.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Salter, Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { Cipher } from "../../reference/signify-ts/dist/keri/core/cipher.js";
-import { Decrypter } from "../../reference/signify-ts/dist/keri/core/decrypter.js";
-import { Algos } from "../../reference/signify-ts/dist/keri/core/manager.js";
-import { IdentifierManagerFactory } from "../../reference/signify-ts/dist/keri/core/keeping.js";
-import { incept } from "../../reference/signify-ts/dist/keri/core/eventing.js";
-import { Serials, Vrsn_1_0 } from "../../reference/signify-ts/dist/keri/core/core.js";
-import { Authenticater } from "../../reference/signify-ts/dist/keri/core/authing.js";
-import { Controller } from "../../reference/signify-ts/dist/keri/app/controller.js";
-import { Identifier } from "../../reference/signify-ts/dist/keri/app/aiding.js";
-import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Salter, Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { Cipher } from "./node_modules/signify-ts/dist/keri/core/cipher.js";
+import { Decrypter } from "./node_modules/signify-ts/dist/keri/core/decrypter.js";
+import { Algos } from "./node_modules/signify-ts/dist/keri/core/manager.js";
+import { IdentifierManagerFactory } from "./node_modules/signify-ts/dist/keri/core/keeping.js";
+import { incept } from "./node_modules/signify-ts/dist/keri/core/eventing.js";
+import { Serials, Vrsn_1_0 } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import { Authenticater } from "./node_modules/signify-ts/dist/keri/core/authing.js";
+import { Controller } from "./node_modules/signify-ts/dist/keri/app/controller.js";
+import { Identifier } from "./node_modules/signify-ts/dist/keri/app/aiding.js";
+import { SignifyClient } from "./node_modules/signify-ts/dist/keri/app/clienting.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcodes and URLs the pinned unit tests publish. */
 const BRAN = "0123456789abcdefghijk";
@@ -88,7 +89,7 @@ globalThis.Date = FixedDate;
 // ---------------------------------------------------------------------------
 
 function parse(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   const text = readFileSync(url, "utf8");
   return { text, source: ts.createSourceFile(relativePath, text, ts.ScriptTarget.ES2022, true) };
 }
@@ -147,7 +148,7 @@ function classMembers(source, className) {
 function pinnedTypeScriptFiles() {
   const files = [];
   const walk = (relative) => {
-    const url = new URL(`../../reference/signify-ts/${relative}`, import.meta.url);
+    const url = upstreamUrl(relative);
     let entries;
     try {
       entries = readdirSync(url, { withFileTypes: true });
@@ -177,7 +178,7 @@ function scan(needle) {
   const hits = [];
   let total = 0;
   for (const file of PINNED_FILES) {
-    const text = readFileSync(new URL(`../../reference/signify-ts/${file}`, import.meta.url), "utf8");
+    const text = readFileSync(upstreamUrl(file), "utf8");
     const count = text.split(needle).length - 1;
     if (count > 0) {
       hits.push({ file, count });

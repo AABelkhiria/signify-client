@@ -17,19 +17,20 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { SignifyClient } from "../../reference/signify-ts/dist/keri/app/clienting.js";
-import { Authenticater } from "../../reference/signify-ts/dist/keri/core/authing.js";
-import { Tier } from "../../reference/signify-ts/dist/keri/core/salter.js";
-import { Diger } from "../../reference/signify-ts/dist/keri/core/diger.js";
-import { Signer } from "../../reference/signify-ts/dist/keri/core/signer.js";
-import { MtrDex } from "../../reference/signify-ts/dist/keri/core/matter.js";
-import { b } from "../../reference/signify-ts/dist/keri/core/core.js";
-import ts from "../../reference/signify-ts/node_modules/typescript/lib/typescript.js";
-import libsodium from "../../reference/signify-ts/node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+import { SignifyClient } from "./node_modules/signify-ts/dist/keri/app/clienting.js";
+import { Authenticater } from "./node_modules/signify-ts/dist/keri/core/authing.js";
+import { Tier } from "./node_modules/signify-ts/dist/keri/core/salter.js";
+import { Diger } from "./node_modules/signify-ts/dist/keri/core/diger.js";
+import { Signer } from "./node_modules/signify-ts/dist/keri/core/signer.js";
+import { MtrDex } from "./node_modules/signify-ts/dist/keri/core/matter.js";
+import { b } from "./node_modules/signify-ts/dist/keri/core/core.js";
+import ts from "./node_modules/typescript/lib/typescript.js";
+import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
+
+import { referenceSha } from "./reference.mjs";
+import { upstreamUrl } from "./upstream.mjs";
 
 await libsodium.ready;
-
-const referenceSha = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 
 /** The passcode the pinned client tests use, and the URLs a deployment is configured with. */
 const BRAN = "0123456789abcdefghijk";
@@ -67,7 +68,7 @@ globalThis.Date = FixedDate;
 
 /** Parses one pinned TypeScript file with the reference's own compiler. */
 function parse(relativePath) {
-  const url = new URL(`../../reference/signify-ts/${relativePath}`, import.meta.url);
+  const url = upstreamUrl(relativePath);
   const text = readFileSync(url, "utf8");
   return { text, source: ts.createSourceFile(relativePath, text, ts.ScriptTarget.ES2022, true) };
 }
@@ -324,7 +325,7 @@ function verifyResponse(name, note, headers, method, path) {
 // ---------------------------------------------------------------------------
 
 function typescriptFiles(relativeRoot) {
-  const root = new URL(`../../reference/signify-ts/${relativeRoot}/`, import.meta.url);
+  const root = upstreamUrl(`${relativeRoot}/`);
   const found = [];
   const walk = (directory) => {
     for (const entry of readdirSync(directory)) {
@@ -351,16 +352,16 @@ for (const needle of ["expires", "maxAge", "max_age", "skew", "freshness", "stal
   const hits = scanned.filter((file) => readFileSync(file, "utf8").includes(needle));
   freshnessScan.matches[needle] = {
     count: hits.length,
-    files: hits.map((file) => fileURLToPath(file).split("reference/signify-ts/")[1] ?? "").sort(),
+    files: hits.map((file) => fileURLToPath(file).split("upstream/signify-ts/")[1] ?? "").sort(),
   };
 }
 
 const authingSource = readFileSync(
-  new URL("../../reference/signify-ts/src/keri/core/authing.ts", import.meta.url),
+  upstreamUrl("src/keri/core/authing.ts"),
   "utf8"
 );
 const httpingSource = readFileSync(
-  new URL("../../reference/signify-ts/src/keri/core/httping.ts", import.meta.url),
+  upstreamUrl("src/keri/core/httping.ts"),
   "utf8"
 );
 // `Authenticater.sign` passes exactly `name`, `method`, `path`, `headers`, `fields`, `alg`, and
