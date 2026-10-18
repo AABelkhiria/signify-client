@@ -44,7 +44,7 @@ import ts from "./node_modules/typescript/lib/typescript.js";
 import libsodium from "./node_modules/libsodium-wrappers-sumo/dist/modules-sumo-esm/libsodium-wrappers.mjs";
 
 import { referenceSha } from "./reference.mjs";
-import { keripyUrl } from "./upstream.mjs";
+import { ensureUpstream, keripyUrl } from "./upstream.mjs";
 
 await libsodium.ready;
 
@@ -76,7 +76,7 @@ globalThis.Date = FixedDate;
 // ---------------------------------------------------------------------------
 
 function parse(root, relativePath) {
-  const url = new URL(`../../reference/${root}/${relativePath}`, import.meta.url);
+  const url = new URL(relativePath, ensureUpstream(root));
   const text = readFileSync(url, "utf8");
   return { text, source: ts.createSourceFile(relativePath, text, ts.ScriptTarget.ES2022, true) };
 }
