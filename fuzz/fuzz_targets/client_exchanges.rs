@@ -27,16 +27,16 @@
 //! Nothing panics, no component escapes its segment, and no message ever names a recipient it was
 //! not addressed to.
 
-use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
-use libfuzzer_sys::fuzz_target;
-use signify_client::endpoint::exchanges::EXCHANGES_SEGMENT;
-use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
-use signify_http::request::{ResourcePath, encode_path_component};
 use keri_protocol::event::exchange::ExchangeBuilder;
 use keri_protocol::event::timestamp::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
+use keria_types::api::{ExchangeOperation, ExchangeRecord, ExchangeResource};
+use libfuzzer_sys::fuzz_target;
+use signify_client::endpoint::exchanges::EXCHANGES_SEGMENT;
+use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
+use signify_http::request::{ResourcePath, encode_path_component};
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

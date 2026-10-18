@@ -15,11 +15,11 @@
 //! cross-language vectors, and the validation under test does not depend on it.
 
 use keri_cesr::crypto::salt::SecurityTier;
+use keri_protocol::serialization::SerializedEvent;
 use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
 use signify_keys::controller::{Agent, Controller, ControllerError, ControllerOptions};
 use signify_keys::manager::DerivationCost;
-use keri_protocol::serialization::SerializedEvent;
 
 /// The fields of an agent key state the fuzzer replaces, selected by the first input byte.
 const FIELDS: [&str; 9] = ["i", "s", "d", "et", "kt", "k", "nt", "n", "di"];

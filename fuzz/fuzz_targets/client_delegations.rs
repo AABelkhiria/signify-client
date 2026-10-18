@@ -19,14 +19,14 @@
 //!
 //! Nothing panics, no alias escapes its segment, and no seal is ever written empty or partial.
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::delegations::{
     DELEGATION_SEGMENT, InceptionSeal, SEAL_DIGEST_LABEL, SEAL_IDENTIFIER_LABEL, SEAL_SEQUENCE_LABEL,
 };
 use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT};
 use signify_http::request::{ResourcePath, encode_path_component};
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::said::Said;
 
 /// Every character that would give a path component a meaning it did not have.
 const PATH_DELIMITERS: [char; 3] = ['/', '?', '#'];

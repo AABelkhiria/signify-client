@@ -20,14 +20,14 @@
 //! **The agent's answer** is what a caller learns about delivery, and the reference casts it. The
 //! target asserts anything accepted survives re-encoding.
 
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::ExchangeOperation;
 use libfuzzer_sys::fuzz_target;
-use signify_keys::acdc::ipex::IpexRoute;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_http::request::ResourcePath;
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::serialization::{Sad, SadValue};
+use signify_keys::acdc::ipex::IpexRoute;
 
 /// Whether a route's submission body carries an `atc` field, as the endpoint decides it.
 fn carries_attachment(route: IpexRoute) -> bool {

@@ -16,15 +16,15 @@
 //!
 //! **An agent's answer** decides what a caller believes about a registry that already exists.
 
+use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::registry::RegistryInceptionBuilder;
+use keri_protocol::serialization::SerializedEvent;
 use keria_types::api::{Registry, RegistryOperation};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::{CreateRegistryRequest, REGISTRIES_SEGMENT, RegistryBacking};
 use signify_http::request::ResourcePath;
-use keri_protocol::event::ConfigurationTrait;
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::registry::RegistryInceptionBuilder;
-use keri_protocol::serialization::SerializedEvent;
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 
