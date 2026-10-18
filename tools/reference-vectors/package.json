@@ -1,0 +1,21 @@
+{
+  "name": "signify-rs-reference-vectors",
+  "private": true,
+  "type": "module",
+  "description": "Generators for the cross-language fixtures under fixtures/, run against a pinned signify-ts and a pinned keripy.",
+  "scripts": {
+    "upstream": "node upstream.mjs",
+    "generate": "node regenerate.mjs",
+    "check": "node regenerate.mjs --check"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "libsodium-wrappers-sumo": "0.8.4",
+    "signify-ts": "git+https://github.com/WebOfTrust/signify-ts.git#91a04a5edd804425f42be75ffbf034f8d14e5cb2"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}

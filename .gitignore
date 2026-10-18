@@ -1,5 +1,8 @@
 /target/
-/.venv-keripy/
+/tools/reference-vectors/node_modules/
+/tools/reference-vectors/.venv/
+/tools/reference-vectors/__pycache__/
+/tools/reference-vectors/upstream/
 /fuzz/artifacts/
 /fuzz/corpus/
 /fuzz/target/
