@@ -15,14 +15,14 @@
 //! key-event record, and a query operation each either decode into exactly what they claim or are
 //! refused, and that re-encoding never loses or invents a field.
 
-use keria_types::api::{KeyEventRecord, KeyState, OperationOutcome, QueryOperation, Seal};
+use keri_protocol::prefix::IdentifierPrefix;
+use keria_types::api::{EchoedSequence, KeyEventRecord, KeyState, OperationOutcome, QueryOperation, Seal};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::key_events::{EVENTS_SEGMENT, PREFIX_PARAMETER};
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence, STATES_SEGMENT};
 use signify_client::endpoint::operations::completed;
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use keri_protocol::prefix::IdentifierPrefix;
 
 fuzz_target!(|data: &[u8]| {
     let mut parts = data.split(|&byte| byte == 0xff);
@@ -138,7 +138,7 @@ fuzz_target!(|data: &[u8]| {
         // remember to read, and never two states at once. The operations endpoint's reader is what
         // a caller reaches for, so it is what is exercised.
         let pending = matches!(operation.outcome, OperationOutcome::Pending);
-        let metadata_sequence = operation.metadata.as_ref().map(|metadata| metadata.sn);
+        let metadata_sequence = operation.metadata.as_ref().and_then(|metadata| metadata.sn.clone());
         let name = operation.name.clone();
         match completed(operation) {
             Ok(state) => {
@@ -160,10 +160,17 @@ fuzz_target!(|data: &[u8]| {
             }
             Err(other) => panic!("an operation produced an unexpected failure: {other}"),
         }
-        // The metadata's sequence number is a JSON *number*, where the request writes text — the
-        // asymmetry this module records. Both spellings of the same value must agree.
-        if let Some(sequence) = metadata_sequence {
-            assert_eq!(QuerySequence::Decimal(sequence).value(), sequence);
+        // The request writes the sequence number as text, and the agent echoes it back either as
+        // that text or as a JSON number — the asymmetry this module records. Whichever spelling
+        // came back must read back exactly as written.
+        match metadata_sequence {
+            Some(EchoedSequence::Number(value)) => {
+                assert_eq!(QuerySequence::Decimal(value).to_text(), value.to_string());
+            }
+            Some(EchoedSequence::Text(text)) => {
+                assert_eq!(EchoedSequence::Text(text.clone()).to_text(), text);
+            }
+            None => {}
         }
     }
 });
