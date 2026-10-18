@@ -8,10 +8,10 @@
 - Binary fields: none. Keys, signatures, and digests are qualified Base64; the one sealed value is
   recorded by what it opens to.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/keri_keeping.mjs --write   # regenerate
 node tools/reference-vectors/keri_keeping.mjs --check   # verify determinism
 ```

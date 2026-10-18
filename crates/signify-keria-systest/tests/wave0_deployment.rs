@@ -176,7 +176,7 @@ async fn the_deployment_identifies_itself() -> Result<(), Box<dyn Error>> {
         startup_command: if environment.preset == Preset::Local {
             "started outside this repository; a local KERIA has no compose file to hash".to_owned()
         } else {
-            "docker compose up --wait (reference/signify-ts/docker-compose.yaml)".to_owned()
+            "docker compose up --wait (tools/reference-vectors/upstream/signify-ts/docker-compose.yaml)".to_owned()
         },
         timeout_policy: "the production transport's default deadline covers each exchange; no \
                          scenario sleeps, and every wait polls a condition"

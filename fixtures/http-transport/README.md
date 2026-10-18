@@ -8,10 +8,10 @@
 - Binary fields: none. URLs, header values, and bodies are recorded as the exact text the
   reference passed to `fetch`.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/http_transport.mjs --write   # regenerate
 node tools/reference-vectors/http_transport.mjs --check   # verify determinism
 ```

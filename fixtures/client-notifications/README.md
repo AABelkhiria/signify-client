@@ -13,10 +13,10 @@
   `src/keri/core/coring.py`
 - Binary fields: none. Paths, headers, and bodies are exact text; the answers are exact JSON.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_notifications.mjs --write   # regenerate
 node tools/reference-vectors/client_notifications.mjs --check   # verify determinism
 ```

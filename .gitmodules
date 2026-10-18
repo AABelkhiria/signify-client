@@ -1,6 +1,0 @@
-[submodule "reference/signify-ts"]
-	path = reference/signify-ts
-	url = https://github.com/WebOfTrust/signify-ts.git
-[submodule "reference/keripy"]
-	path = reference/keripy
-	url = https://github.com/WebOfTrust/keripy.git

@@ -7,10 +7,10 @@
 - Sources: `src/keri/app/coring.ts`, `test/app/coring.test.ts`
 - Binary fields: none. Paths and messages are exact text; operation documents are exact JSON.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_operations.mjs --write   # regenerate
 node tools/reference-vectors/client_operations.mjs --check   # verify determinism
 ```

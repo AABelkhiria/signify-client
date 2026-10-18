@@ -8,10 +8,10 @@
   `src/keri/core/httping.ts`
 - Binary fields: none. Every header is the exact text the reference passed to `fetch`.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/http_auth.mjs --write   # regenerate
 node tools/reference-vectors/http_auth.mjs --check   # verify determinism
 ```

@@ -9,10 +9,10 @@
   `test/app/test-utils.ts`
 - Binary fields: none. The paths and bodies are exact text; the answers are exact JSON.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_delegations.mjs --write   # regenerate
 node tools/reference-vectors/client_delegations.mjs --check   # verify determinism
 ```

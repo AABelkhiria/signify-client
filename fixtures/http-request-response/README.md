@@ -9,10 +9,10 @@
   `src/keri/app/escrowing.ts`, `src/keri/app/notifying.ts`
 - Binary fields: none. URLs, header values, and bodies are the exact text the reference produced.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/http_request_response.mjs --write   # regenerate
 node tools/reference-vectors/http_request_response.mjs --check   # verify determinism
 ```

@@ -8,10 +8,10 @@
   `test/app/credentialing.test.ts`, `test/app/test-utils.ts`, `test/app/clienting.test.ts`
 - Binary fields: none. Paths and bodies are exact text, with each sealed salt masked (see below).
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_credentials.mjs --write   # regenerate
 node tools/reference-vectors/client_credentials.mjs --check   # verify determinism
 ```

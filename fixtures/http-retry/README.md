@@ -8,10 +8,10 @@
 - Binary fields: none. Delays are integer milliseconds exactly as the reference passed them to
   `setTimeout`.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/http_retry.mjs --write   # regenerate
 node tools/reference-vectors/http_retry.mjs --check   # verify determinism
 ```

@@ -25,15 +25,14 @@ Needs Node for the input fixture and a Python 3.12+ environment with the pinned 
 From the repository root:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_passcode_rotation.mjs --write
-uv venv --python 3.12 .venv-keripy
-uv pip install --python .venv-keripy/bin/python ./reference/keripy
-.venv-keripy/bin/python tools/reference-vectors/client_passcode_rotation_keripy.py --write   # regenerate
-.venv-keripy/bin/python tools/reference-vectors/client_passcode_rotation_keripy.py --check   # verify determinism
+uv sync --locked --project tools/reference-vectors
+uv run --locked --project tools/reference-vectors python tools/reference-vectors/client_passcode_rotation_keripy.py --write   # regenerate
+uv run --locked --project tools/reference-vectors python tools/reference-vectors/client_passcode_rotation_keripy.py --check   # verify determinism
 ```
 
-Set `DYLD_LIBRARY_PATH=/opt/homebrew/lib` (or your libsodium location) if pysodium cannot find
+Set `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` (or your libsodium location) if pysodium cannot find
 libsodium on its own. The Rust tests read the checked-in JSON and need neither runtime.
 
 ## Contents

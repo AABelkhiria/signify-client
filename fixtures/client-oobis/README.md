@@ -8,10 +8,10 @@
   `test/app/coring.test.ts`, `test-integration/endroles-by-aid.test.ts`
 - Binary fields: none. Paths and bodies are exact text; the answers are exact JSON.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_oobis.mjs --write   # regenerate
 node tools/reference-vectors/client_oobis.mjs --check   # verify determinism
 ```

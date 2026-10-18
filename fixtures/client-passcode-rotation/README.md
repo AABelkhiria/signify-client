@@ -12,10 +12,10 @@
   compared byte for byte; this fixture records **what each sealed value opens to and under which
   passcode**, which is the property the finding is about.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_passcode_rotation.mjs --write   # regenerate
 node tools/reference-vectors/client_passcode_rotation.mjs --check   # verify determinism
 ```

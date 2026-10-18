@@ -8,10 +8,10 @@
   `test-integration/multisig.test.ts`
 - Binary fields: none. The declarations are exact source text; the verdicts are exact values.
 
-Generate and verify from the repository root after building the pinned checkout:
+Generate and verify from the repository root after installing the pinned references:
 
 ```bash
-npm --prefix reference/signify-ts run build
+npm ci --prefix tools/reference-vectors
 node tools/reference-vectors/client_exchange_routes.mjs --write   # regenerate
 node tools/reference-vectors/client_exchange_routes.mjs --check   # verify determinism
 ```
