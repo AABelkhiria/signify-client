@@ -23,9 +23,22 @@ jobs:
       - run: rustup toolchain install
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all -- --check
+      - run: cargo fmt --manifest-path fuzz/Cargo.toml -- --check
       - run: cargo clippy --workspace --all-targets --all-features
       - run: cargo test --workspace --all-features
       - run: cargo doc --workspace --all-features --no-deps
+
+  fuzz-build:
+    name: Fuzz build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install nightly-2026-08-03 --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fuzz
+      - run: cargo +nightly-2026-08-03 install cargo-fuzz --version 0.13.2 --locked
+      - run: cargo +nightly-2026-08-03 fuzz build
 
   deny:
     name: Licenses, advisories, bans, and sources
