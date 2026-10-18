@@ -166,11 +166,11 @@ use keri_protocol::event::Timestamp;
 use keri_protocol::event::exchange::ExchangeEmbed;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
-use keri_protocol::serialization::Sad;
+use keri_protocol::serialization::{Sad, SadError, SadValue};
 use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::{
     AcceptedHab, ExchangeEmbed as ApiEmbed, ExchangeRecord, GroupMember, Hab, KeyEvent, KeyState,
-    RegistryInceptionRecord, ReplyRecord, Role, Threshold,
+    MultisigExchangeResource, RegistryInceptionRecord, ReplyRecord, Role, Threshold,
 };
 use signify_keys::acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 use signify_keys::acdc::revocation::RevocationEvent;
@@ -182,6 +182,7 @@ use signify_keys::identifier::{
 use crate::client::ConnectedClient;
 use crate::endpoint::body::{sad_error, text_array};
 use crate::endpoint::credentials::{IssuedCredential, RevokedCredential};
+use crate::endpoint::decode_json;
 use crate::endpoint::exchanges::{
     ClassifiedExchange, ExchangeDraft, GROUP_LABEL, MultisigProposal, MultisigRoute, REGISTRY_TOPIC,
     ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL, SentExchange,
@@ -792,14 +793,16 @@ impl<'client> Multisig<'client> {
         timestamp: Timestamp,
     ) -> Result<GroupEvent, ClientError> {
         let member = self.local_member(local_member).await?;
-        let proposed = self.read_proposal(proposal, MultisigRoute::Interaction).await?;
+        let (proposed, embeds) = self
+            .read_proposal_and_embeds(proposal, MultisigRoute::Interaction)
+            .await?;
         let ApiEmbed::Interaction(embed) = &proposed.proposed.message else {
             return Err(ClientError::NotAnInteractionProposal {
                 found: "an embed that is not an interaction",
             });
         };
 
-        let anchors = anchors_of(&embed.ixn)?;
+        let anchors = anchors_of(&embeds)?;
         let signing = proposed.attributes.signing_members.clone().unwrap_or_default();
         let rotation = proposed
             .attributes
@@ -911,7 +914,9 @@ impl<'client> Multisig<'client> {
         timestamp: Timestamp,
     ) -> Result<GroupEvent, ClientError> {
         let member = self.local_member(local_member).await?;
-        let proposed = self.read_proposal(proposal, MultisigRoute::Interaction).await?;
+        let (proposed, embeds) = self
+            .read_proposal_and_embeds(proposal, MultisigRoute::Interaction)
+            .await?;
         let ApiEmbed::Interaction(embed) = &proposed.proposed.message else {
             return Err(ClientError::NotAnInteractionProposal {
                 found: "an embed that is not an interaction",
@@ -919,7 +924,7 @@ impl<'client> Multisig<'client> {
         };
 
         // Every seal, not the first one.
-        let seals = anchors_of(&embed.ixn)?;
+        let seals = anchors_of(&embeds)?;
         if seals.is_empty() {
             return Err(ClientError::NoDelegationSeals);
         }
@@ -1450,23 +1455,64 @@ impl<'client> Multisig<'client> {
     /// The route decides which error a mismatch raises, so a caller learns which round it was
     /// handed rather than that it was handed the wrong one.
     async fn read_proposal(&self, said: &Said, expected: MultisigRoute) -> Result<MultisigProposal, ClientError> {
+        let (proposal, _) = self.read_proposal_and_embeds(said, expected).await?;
+        Ok(proposal)
+    }
+
+    /// [`Self::read_proposal`], together with the proposal's embed block as it was written.
+    ///
+    /// The typed proposal is what the round reasons about; the embed block is what a member
+    /// re-anchors. The second is kept as a [`Sad`] because the agent's JSON decode sorts object
+    /// keys, and a seal re-anchored in a different field order is a different event — one the
+    /// proposer never built and the digest comparison would rightly refuse.
+    async fn read_proposal_and_embeds(
+        &self,
+        said: &Said,
+        expected: MultisigRoute,
+    ) -> Result<(MultisigProposal, Sad), ClientError> {
         let wrong = |found: &'static str| match expected {
             MultisigRoute::Rotation => ClientError::NotARotationProposal { found },
             MultisigRoute::Interaction => ClientError::NotAnInteractionProposal { found },
             MultisigRoute::Reply => ClientError::NotAnEndRoleProposal { found },
             _ => ClientError::NotAnInceptionProposal { found },
         };
-        let listing = self.client.groups().requests(said).await?;
+        let body = self.client.groups().requests_body(said).await?;
+        let listing: Vec<MultisigExchangeResource> = decode_json(&body)?;
         let first = listing.first().ok_or_else(|| wrong("an empty listing"))?;
         let classified = ClassifiedExchange::try_from(first)?;
         let proposal = classified
             .as_multisig()
             .ok_or_else(|| wrong("a message on another route"))?;
-        if proposal.route == expected {
-            Ok(proposal.clone())
-        } else {
-            Err(wrong(proposal.route.as_str()))
+        if proposal.route != expected {
+            return Err(wrong(proposal.route.as_str()));
         }
+        let embeds = first_embed_block(&body).ok_or_else(|| wrong("a message embedding nothing"))?;
+        Ok((proposal.clone(), embeds))
+    }
+}
+
+/// The `e` block of a request listing's first message, in the field order the agent wrote.
+///
+/// `Sad` parses objects, so the listing — a JSON array — is read as the one field of an object
+/// wrapped around it.
+fn first_embed_block(listing: &[u8]) -> Option<Sad> {
+    let mut wrapped = Vec::with_capacity(listing.len().saturating_add(7));
+    wrapped.extend_from_slice(br#"{"l":"#);
+    wrapped.extend_from_slice(listing);
+    wrapped.push(b'}');
+    let wrapped = Sad::from_json_bytes(&wrapped).ok()?;
+    let SadValue::Array(entries) = wrapped.get("l")? else {
+        return None;
+    };
+    let SadValue::Map(first) = entries.first()? else {
+        return None;
+    };
+    let SadValue::Map(exchange) = first.get("exn")? else {
+        return None;
+    };
+    match exchange.get("e")? {
+        SadValue::Map(embeds) => Some(embeds.clone()),
+        _ => None,
     }
 }
 
@@ -1659,26 +1705,29 @@ fn prefixes_of(states: &[KeyState]) -> Result<Vec<IdentifierPrefix>, ClientError
         .collect()
 }
 
-/// The seals an interaction event anchors, read out of its `a` field.
+/// The seals the interaction in an embed block anchors, read out of its `a` field as written.
 ///
 /// The schema types that field `unknown` and the reference wraps a non-array in one, so a seal
 /// list is what arrives and a single seal is what a caller may have sent. Both are read here; a
-/// seal that is not an object is refused rather than dropped.
-fn anchors_of(event: &KeyEvent) -> Result<Vec<Sad>, ClientError> {
-    let KeyEvent::Interaction(record) = event else {
+/// seal that is not an object is refused rather than dropped. The seals come from the block's own
+/// bytes rather than from the typed decode, so each keeps the field order its proposer wrote — the
+/// order its digest, and so the rebuilt event's, depends on.
+fn anchors_of(embeds: &Sad) -> Result<Vec<Sad>, ClientError> {
+    let Some(SadValue::Map(interaction)) = embeds.get("ixn") else {
         return Err(ClientError::NotAnInteractionProposal {
             found: "an embed that is not an interaction",
         });
     };
-    let seals = match &record.anchors {
-        serde_json::Value::Array(seals) => seals.clone(),
-        single => vec![single.clone()],
+    let seals: Vec<&SadValue> = match interaction.get("a") {
+        Some(SadValue::Array(seals)) => seals.iter().collect(),
+        Some(single) => vec![single],
+        None => Vec::new(),
     };
     seals
-        .iter()
-        .map(|anchor| {
-            let bytes = serde_json::to_vec(anchor).map_err(|_| ClientError::UnrepresentableNumber)?;
-            Sad::from_json_bytes(&bytes).map_err(sad_error)
+        .into_iter()
+        .map(|seal| match seal {
+            SadValue::Map(seal) => Ok(seal.clone()),
+            _ => Err(sad_error(SadError::NotAnObject)),
         })
         .collect()
 }
@@ -2334,6 +2383,14 @@ mod tests {
         Ok(serde_json::from_str(&document)?)
     }
 
+    /// The embed block of an interaction proposal anchoring `anchors`, in the order it was written.
+    fn interaction_embeds(anchors: &str) -> Result<Sad, Box<dyn Error>> {
+        let block = format!(
+            r#"{{"ixn":{{"v":"KERI10JSON000_","t":"ixn","d":"EIXNDIGEST","i":"EGRP","s":"1","p":"EICP","a":{anchors}}}}}"#
+        );
+        Ok(Sad::from_json_bytes(block.as_bytes())?)
+    }
+
     /// One key state naming `prefix_text`, of the shape `/states` answers with.
     fn state(prefix_text: &str) -> Result<KeyState, Box<dyn Error>> {
         let document = format!(
@@ -2405,35 +2462,45 @@ mod tests {
     fn an_interaction_reads_the_seals_it_was_shown() -> Result<(), Box<dyn Error>> {
         // The reference's own scenario anchors one seal, written as a bare object; `createInteract`
         // wraps a non-array, so both shapes reach the event and both are read here.
-        let one = interaction(r#"[{"i":"EBgew7O4","s":"0","d":"EBgew7O4"}]"#)?;
+        let one = interaction_embeds(r#"[{"i":"EBgew7O4","s":"0","d":"EBgew7O4"}]"#)?;
         let anchors = anchors_of(&one)?;
         assert_eq!(anchors.len(), 1);
         assert_eq!(anchors.first().and_then(|seal| seal.get_text("i")), Some("EBgew7O4"));
 
-        let bare = interaction(r#"{"i":"EBgew7O4","s":"0","d":"EBgew7O4"}"#)?;
+        let bare = interaction_embeds(r#"{"i":"EBgew7O4","s":"0","d":"EBgew7O4"}"#)?;
         assert_eq!(anchors_of(&bare)?.len(), 1);
 
-        let two = interaction(r#"[{"i":"EBgew7O4"},{"i":"EMQQpnSk"}]"#)?;
+        let two = interaction_embeds(r#"[{"i":"EBgew7O4"},{"i":"EMQQpnSk"}]"#)?;
         assert_eq!(anchors_of(&two)?.len(), 2);
         Ok(())
     }
 
     #[test]
+    fn a_seal_keeps_the_field_order_its_proposer_wrote() -> Result<(), Box<dyn Error>> {
+        // KERIpy and signify-ts write a seal `i, s, d`; a decode through `serde_json::Value` would
+        // hand back `d, i, s`, and a seal re-anchored in that order is a different event.
+        let conventional = br#"{"i":"EBgew7O4","s":"0","d":"EBgew7O4"}"#;
+        let embeds = interaction_embeds(r#"[{"i":"EBgew7O4","s":"0","d":"EBgew7O4"}]"#)?;
+        let seals = anchors_of(&embeds)?;
+        let written = seals.first().ok_or("no seal")?.to_json_bytes()?;
+        assert_eq!(written, conventional);
+        Ok(())
+    }
+
+    #[test]
     fn a_seal_that_is_not_an_object_is_refused_rather_than_dropped() -> Result<(), Box<dyn Error>> {
-        let event = interaction(r#"["not a seal"]"#)?;
-        let refused = anchors_of(&event).is_err();
+        let embeds = interaction_embeds(r#"["not a seal"]"#)?;
+        let refused = anchors_of(&embeds).is_err();
         assert!(refused, "a seal that is not an object was accepted");
         Ok(())
     }
 
     #[test]
     fn an_embed_that_is_not_an_interaction_is_not_read_as_one() -> Result<(), Box<dyn Error>> {
-        let inception: KeyEvent = serde_json::from_str(INCEPTION_EVENT)?;
-        let refused = matches!(
-            anchors_of(&inception),
-            Err(ClientError::NotAnInteractionProposal { .. })
-        );
+        let embeds = Sad::from_json_bytes(format!(r#"{{"icp":{INCEPTION_EVENT}}}"#).as_bytes())?;
+        let refused = matches!(anchors_of(&embeds), Err(ClientError::NotAnInteractionProposal { .. }));
         assert!(refused, "an inception was read for seals");
+        let inception: KeyEvent = serde_json::from_str(INCEPTION_EVENT)?;
         let no_digest = matches!(digest_of(&inception), Err(ClientError::NotAnInteractionProposal { .. }));
         assert!(no_digest, "an inception answered for an interaction's digest");
         Ok(())
@@ -2571,7 +2638,8 @@ mod tests {
     #[test]
     fn a_delegation_approval_anchors_every_seal_it_was_shown() -> Result<(), Box<dyn Error>> {
         // The reference reads `ixn.a[0]`; this reads the list. Two seals in, two seals out.
-        let two = interaction(r#"[{"i":"EBgew7O4","s":"0","d":"EBgew7O4"},{"i":"EMQQpnSk","s":"0","d":"EMQQpnSk"}]"#)?;
+        let two =
+            interaction_embeds(r#"[{"i":"EBgew7O4","s":"0","d":"EBgew7O4"},{"i":"EMQQpnSk","s":"0","d":"EMQQpnSk"}]"#)?;
         let seals = anchors_of(&two)?;
         assert_eq!(seals.len(), 2);
         assert_eq!(seals.first().and_then(|seal| seal.get_text("i")), Some("EBgew7O4"));
@@ -2585,7 +2653,7 @@ mod tests {
     #[test]
     fn a_delegation_approval_that_anchors_nothing_is_refused() -> Result<(), Box<dyn Error>> {
         // An interaction anchoring an empty list is a valid event and a meaningless approval.
-        let empty = interaction("[]")?;
+        let empty = interaction_embeds("[]")?;
         assert_eq!(anchors_of(&empty)?, [] as [Sad; 0]);
         Ok(())
     }

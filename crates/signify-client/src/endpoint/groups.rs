@@ -190,13 +190,22 @@ impl<'client> Groups<'client> {
     /// is not a list of group requests, and the request, transport, and authentication failures
     /// [`ConnectedClient::fetch`] returns.
     pub async fn requests(&self, said: &Said) -> Result<Vec<MultisigExchangeResource>, ClientError> {
+        decode_json(&self.requests_body(said).await?)
+    }
+
+    /// The listing [`Self::requests`] decodes, as the agent wrote it.
+    ///
+    /// A joining member rebuilds the proposed event from content it only passes through — seals,
+    /// most of all — and that content keeps its digest only in the field order it arrived in. The
+    /// typed decode cannot promise that order, so the multisig workflow reads the bytes as well.
+    pub(crate) async fn requests_body(&self, said: &Said) -> Result<Vec<u8>, ClientError> {
         let path = ResourcePath::builder()
             .segment(MULTISIG_SEGMENT)
             .segment(REQUEST_SEGMENT)
             .segment(&said.qb64()?)
             .build()?;
         let response = self.client.fetch(ClientRequest::new(Method::Get, path)).await?;
-        decode_json(response.body())
+        Ok(response.body().to_vec())
     }
 
     /// Proposes one signed exchange message to the group's other members.
