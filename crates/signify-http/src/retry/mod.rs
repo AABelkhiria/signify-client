@@ -161,7 +161,7 @@ impl RetryingTransport {
     ///
     /// Without the `http-client` feature there is no runtime to wait on, so the default clock is a
     /// [`TestClock`] and a caller must supply a real one with [`RetryingTransport::with_clock`]. With
-    /// the feature the default is [`TokioClock`].
+    /// the feature the default is `TokioClock`.
     #[must_use]
     pub fn new(inner: Arc<dyn Transport>) -> Self {
         #[cfg(feature = "http-client")]
