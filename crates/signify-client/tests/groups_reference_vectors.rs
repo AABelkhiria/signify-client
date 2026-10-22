@@ -14,7 +14,7 @@ use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_http::request::ResourcePath;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-groups/v1.json");
+const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-groups/v1.json"));
 
 const REAL_SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";

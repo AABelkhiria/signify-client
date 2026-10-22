@@ -54,7 +54,7 @@ fn manifest() -> Result<Option<Manifest>, Box<dyn Error>> {
         .parent()
         .and_then(Path::parent)
         .ok_or("the workspace root is not two levels above the manifest")?
-        .join("fixtures/keria-integration/environment.json");
+        .join("crates/signify-client/fixtures/keria-integration/environment.json");
     if !path.exists() {
         return Ok(None);
     }

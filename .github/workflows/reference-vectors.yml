@@ -3,13 +3,13 @@ name: Reference vectors
 on:
   pull_request:
     paths:
-      - "fixtures/**"
+      - "crates/*/fixtures/**"
       - "tools/reference-vectors/**"
       - ".github/workflows/reference-vectors.yml"
   push:
     branches: [main]
     paths:
-      - "fixtures/**"
+      - "crates/*/fixtures/**"
       - "tools/reference-vectors/**"
       - ".github/workflows/reference-vectors.yml"
   workflow_dispatch:

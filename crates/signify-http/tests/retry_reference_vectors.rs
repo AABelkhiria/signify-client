@@ -22,7 +22,7 @@ use signify_http::retry::{
 use signify_http::transport::{Method, Request, RequestUrl, Response, ScriptedTransport, StatusCode, Transport};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/http-retry/v1.json");
+const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/http-retry/v1.json"));
 
 #[derive(Debug, Deserialize)]
 struct Fixture {

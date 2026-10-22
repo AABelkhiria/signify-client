@@ -37,7 +37,7 @@ fn captured() -> Result<Option<Captured>, Box<dyn Error>> {
         .parent()
         .and_then(Path::parent)
         .ok_or("the workspace root is not two levels above the manifest")?
-        .join("fixtures/keria-integration/observations/multisig_join.json");
+        .join("crates/signify-client/fixtures/keria-integration/observations/multisig_join.json");
     if !path.exists() {
         return Ok(None);
     }

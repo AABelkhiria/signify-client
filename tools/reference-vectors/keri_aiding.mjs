@@ -468,7 +468,7 @@ const fixture = {
   reference_quirks: quirks,
 };
 
-const outputUrl = new URL("../../fixtures/keri-aiding/v1.json", import.meta.url);
+const outputUrl = new URL("../../crates/signify-keys/fixtures/keri-aiding/v1.json", import.meta.url);
 const rendered = `${JSON.stringify(fixture, null, 2)}\n`;
 if (process.argv.includes("--check")) {
   if (readFileSync(outputUrl, "utf8") !== rendered) {

@@ -16,7 +16,10 @@ use signify_client::presentation::{
 use signify_keys::acdc::ipex::IpexRoute;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-ipex-presentation/v1.json");
+const FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-ipex-presentation/v1.json"
+));
 
 const EXCHANGE_ROUTE: &str = "/multisig/exn";
 

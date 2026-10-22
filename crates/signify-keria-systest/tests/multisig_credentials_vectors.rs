@@ -42,7 +42,7 @@ fn read<T: for<'a> Deserialize<'a>>(name: &str) -> Result<Option<T>, Box<dyn Err
         .parent()
         .and_then(Path::parent)
         .ok_or("the workspace root is not two levels above the manifest")?
-        .join("fixtures/keria-integration/observations")
+        .join("crates/signify-client/fixtures/keria-integration/observations")
         .join(name);
     if !path.exists() {
         return Ok(None);

@@ -2,7 +2,7 @@
   "name": "signify-rs-reference-vectors",
   "private": true,
   "type": "module",
-  "description": "Generators for the cross-language fixtures under fixtures/, run against a pinned signify-ts and a pinned keripy.",
+  "description": "Generators for the cross-language fixtures under crates/*/fixtures/, run against a pinned signify-ts and a pinned keripy.",
   "scripts": {
     "upstream": "node upstream.mjs",
     "generate": "node regenerate.mjs",

@@ -30,7 +30,10 @@ use signify_keys::acdc::revocation::RevocationEventBuilder;
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-credentials/v1.json");
+const FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-credentials/v1.json"
+));
 
 const FIXED_STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 

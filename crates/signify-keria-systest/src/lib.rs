@@ -8,7 +8,7 @@
 //! # How both hold at once
 //!
 //! **A live run's product is a fixture, not a green tick.** Each scenario records what it asked and
-//! what the deployment answered into `fixtures/keria-integration/observations/`, and hermetic tests
+//! what the deployment answered into `crates/signify-client/fixtures/keria-integration/observations/`, and hermetic tests
 //! in `signify-client` then assert against those recordings. That is the same generator/fixture
 //! split the rest of the port already uses, pointed at a deployment instead of at Node — and it is
 //! what turns "passes against latest", which is not reproducible evidence, into something diffable.
@@ -38,13 +38,13 @@
 //! ```
 //!
 //! Add `SIGNIFY_RECORD=1` to write what the run observed back into
-//! `fixtures/keria-integration/`, which is what makes a run evidence rather than a green tick.
+//! `crates/signify-client/fixtures/keria-integration/`, which is what makes a run evidence rather than a green tick.
 //!
 //! The credential and IPEX scenarios additionally need a schema source — any host answering
 //! `/oobi/{said}`, named by `SIGNIFY_KERIA_SCHEMA_URL`. The preset defaults to the vLEI container
 //! the reference's compose file uses; `SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001` points at a
 //! Veridian credential server instead. Which schemas a source serves decides which scenarios can
-//! run, and `fixtures/keria-integration/README.md` carries that table.
+//! run, and `crates/signify-client/fixtures/keria-integration/README.md` carries that table.
 //!
 //! `--test-threads=1` is not decoration. The reference runs its own suite with
 //! `fileParallelism: false` and `bail: 1` because scenarios share one agent's contacts and
@@ -352,7 +352,7 @@ pub fn fixtures_root() -> Result<std::path::PathBuf, Box<dyn Error>> {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(std::path::Path::parent)
-        .map(|root| root.join("fixtures/keria-integration"))
+        .map(|root| root.join("crates/signify-client/fixtures/keria-integration"))
         .ok_or_else(|| "the workspace root is not two levels above the manifest".into())
 }
 

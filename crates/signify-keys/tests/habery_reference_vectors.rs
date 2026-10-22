@@ -18,7 +18,7 @@ use signify_keys::identifier::{Habery, Habitat, HabitatRequest, IdentifierError}
 use signify_keys::manager::ManagerError;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/keri-habery/v1.json");
+const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/keri-habery/v1.json"));
 
 #[derive(Debug, Deserialize)]
 struct Fixture {

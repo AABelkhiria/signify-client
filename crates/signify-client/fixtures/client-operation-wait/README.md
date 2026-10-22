@@ -28,7 +28,7 @@ This port covers `Operations.wait`, together with the private `hasDepends` it co
 `throwIfFailed` it applies at every exit.
 
 The retry policy already recorded this function's **delay schedule** by executing it, and reproduces
-all five recorded schedules exactly (`fixtures/http-retry/`). So what this fixture adds is
+all five recorded schedules exactly (`crates/signify-http/fixtures/http-retry/`). So what this fixture adds is
 everything else the loop does: how many requests each shape costs and in what order, when the
 dependency is walked and when it is skipped, which exits throw, and what the thrown message carries.
 

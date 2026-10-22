@@ -30,7 +30,10 @@ use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateI
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-identifiers/v1.json");
+const FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-identifiers/v1.json"
+));
 
 const MULTISIG_PASSCODE: &str = "0123456789lmnopqrstuv";
 const DELEGATOR: &str = "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C";

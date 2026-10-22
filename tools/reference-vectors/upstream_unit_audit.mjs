@@ -215,7 +215,7 @@ const fixture = {
   cases: inventory,
 };
 
-const outputUrl = new URL("../../fixtures/upstream-unit-audit/v1.json", import.meta.url);
+const outputUrl = new URL("../../crates/signify-client/fixtures/upstream-unit-audit/v1.json", import.meta.url);
 const rendered = `${JSON.stringify(fixture, null, 2)}\n`;
 if (process.argv.includes("--check")) {
   if (readFileSync(outputUrl, "utf8") !== rendered) {

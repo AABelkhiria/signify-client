@@ -63,7 +63,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -75,7 +75,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -87,7 +87,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -99,7 +99,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -111,7 +111,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -123,7 +123,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -155,7 +155,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -167,7 +167,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -179,7 +179,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -191,7 +191,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -203,7 +203,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -215,7 +215,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -227,7 +227,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -239,7 +239,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -251,7 +251,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -263,7 +263,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -275,7 +275,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -287,7 +287,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -299,7 +299,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -311,7 +311,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -323,7 +323,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -335,7 +335,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -347,7 +347,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -359,7 +359,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -371,7 +371,7 @@
       "evidence": [
         "crates/signify-keys/tests/aiding_reference_vectors.rs",
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -383,7 +383,7 @@
       "evidence": [
         "crates/signify-client/tests/lifecycle_reference_vectors.rs",
         "crates/signify-client/tests/lifecycle_properties.rs",
-        "fixtures/client-lifecycle/v1.json"
+        "crates/signify-client/fixtures/client-lifecycle/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -395,7 +395,7 @@
       "evidence": [
         "crates/signify-client/tests/lifecycle_reference_vectors.rs",
         "crates/signify-http/tests/auth_reference_vectors.rs",
-        "fixtures/http-auth/v1.json"
+        "crates/signify-http/fixtures/http-auth/v1.json"
       ],
       "note": "Twenty-eight assertions over the signed pipeline and `createSignedRequest`, composed after final request construction and inside the retry loop."
     },
@@ -408,8 +408,8 @@
         "crates/signify-client/tests/lifecycle_reference_vectors.rs",
         "crates/signify-client/tests/config_reference_vectors.rs",
         "crates/signify-client/tests/passcode_rotation_reference_vectors.rs",
-        "fixtures/client-lifecycle/v1.json",
-        "fixtures/client-passcode-rotation/v1.json"
+        "crates/signify-client/fixtures/client-lifecycle/v1.json",
+        "crates/signify-client/fixtures/client-passcode-rotation/v1.json"
       ],
       "note": "Forty-one assertions spanning construction, boot, connect, both passcode calls, the delegation approval, and `rotate` \u2014 whose one call passes an empty identifier list, which the passcode rotation port drove and recorded."
     },
@@ -421,7 +421,7 @@
       "evidence": [
         "crates/signify-client/tests/contacts_reference_vectors.rs",
         "crates/signify-client/tests/challenges_reference_vectors.rs",
-        "fixtures/client-contacts/v1.json"
+        "crates/signify-client/fixtures/client-contacts/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -433,7 +433,7 @@
       "evidence": [
         "crates/signify-client/tests/contacts_reference_vectors.rs",
         "crates/signify-client/tests/challenges_reference_vectors.rs",
-        "fixtures/client-contacts/v1.json"
+        "crates/signify-client/fixtures/client-contacts/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -445,7 +445,7 @@
       "evidence": [
         "crates/signify-keys/tests/controller_reference_vectors.rs",
         "crates/signify-keys/tests/controller_properties.rs",
-        "fixtures/keri-controller/v1.json"
+        "crates/signify-keys/fixtures/keri-controller/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -457,7 +457,7 @@
       "evidence": [
         "crates/signify-keys/tests/controller_reference_vectors.rs",
         "crates/signify-keys/tests/controller_properties.rs",
-        "fixtures/keri-controller/v1.json"
+        "crates/signify-keys/fixtures/keri-controller/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -468,7 +468,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/config_reference_vectors.rs",
-        "fixtures/client-config/v1.json"
+        "crates/signify-client/fixtures/client-config/v1.json"
       ],
       "note": "The agent's own configuration resource, which this port named `agent_config` because the client lifecycle had already taken `config` for the client's own settings."
     },
@@ -479,7 +479,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "End-role listing with a role filter, whose path and query this port reproduces byte for byte through the request builder's validated resource path."
     },
@@ -490,7 +490,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/identifiers_reference_vectors.rs",
-        "fixtures/client-identifiers/v1.json"
+        "crates/signify-client/fixtures/client-identifiers/v1.json"
       ],
       "note": "End-role listing without a filter \u2014 a different address rather than an omitted parameter, which the recorded requests pin."
     },
@@ -501,7 +501,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/key_state_reference_vectors.rs",
-        "fixtures/client-key-state/v1.json"
+        "crates/signify-client/fixtures/client-key-state/v1.json"
       ],
       "note": "Key events and key states: eleven assertions over both listings and the query that refreshes a state, all byte-exact against the recorded requests."
     },
@@ -512,7 +512,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-oobis/v1.json"
+        "crates/signify-client/fixtures/client-oobis/v1.json"
       ],
       "note": "OOBI resolution and listing: nine assertions over resolve, the aliased form, and the get, each byte-exact against its recorded request and answer."
     },
@@ -546,7 +546,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -558,7 +558,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -570,7 +570,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -582,7 +582,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -594,7 +594,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -606,7 +606,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -618,7 +618,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -630,7 +630,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -642,7 +642,7 @@
       "evidence": [
         "crates/signify-client/tests/operations_reference_vectors.rs",
         "crates/signify-client/tests/oobis_reference_vectors.rs",
-        "fixtures/client-operations/v1.json"
+        "crates/signify-client/fixtures/client-operations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -653,7 +653,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/credentials_reference_vectors.rs",
-        "fixtures/client-credentials/v1.json"
+        "crates/signify-client/fixtures/client-credentials/v1.json"
       ],
       "note": "Thirty-seven assertions over the credential endpoint family: list, get, the CESR form, state, delete, issue, and revoke, all driven through the reference's own mocks."
     },
@@ -698,7 +698,7 @@
       "evidence": [
         "crates/signify-client/tests/delegations_reference_vectors.rs",
         "crates/signify-client/tests/delegations_properties.rs",
-        "fixtures/client-delegations/v1.json"
+        "crates/signify-client/fixtures/client-delegations/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -710,7 +710,7 @@
       "evidence": [
         "crates/signify-client/tests/escrows_reference_vectors.rs",
         "crates/signify-client/tests/escrows_properties.rs",
-        "fixtures/client-escrows/v1.json"
+        "crates/signify-client/fixtures/client-escrows/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -721,7 +721,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/exchanges_reference_vectors.rs",
-        "fixtures/client-exchanges/v1.json"
+        "crates/signify-client/fixtures/client-exchanges/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -732,7 +732,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/exchanges_reference_vectors.rs",
-        "fixtures/client-exchanges/v1.json"
+        "crates/signify-client/fixtures/client-exchanges/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -743,7 +743,7 @@
       "status": "covered",
       "evidence": [
         "crates/signify-client/tests/exchanges_reference_vectors.rs",
-        "fixtures/client-exchanges/v1.json"
+        "crates/signify-client/fixtures/client-exchanges/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -755,7 +755,7 @@
       "evidence": [
         "crates/signify-client/tests/groups_reference_vectors.rs",
         "crates/signify-client/tests/groups_properties.rs",
-        "fixtures/client-groups/v1.json"
+        "crates/signify-client/fixtures/client-groups/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -767,7 +767,7 @@
       "evidence": [
         "crates/signify-keys/tests/habery_reference_vectors.rs",
         "crates/signify-keys/tests/habery_properties.rs",
-        "fixtures/keri-habery/v1.json"
+        "crates/signify-keys/fixtures/keri-habery/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -779,7 +779,7 @@
       "evidence": [
         "crates/signify-keys/tests/habery_reference_vectors.rs",
         "crates/signify-keys/tests/habery_properties.rs",
-        "fixtures/keri-habery/v1.json"
+        "crates/signify-keys/fixtures/keri-habery/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -791,7 +791,7 @@
       "evidence": [
         "crates/signify-client/tests/notifications_reference_vectors.rs",
         "crates/signify-client/tests/notifications_properties.rs",
-        "fixtures/client-notifications/v1.json"
+        "crates/signify-client/fixtures/client-notifications/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -803,7 +803,7 @@
       "evidence": [
         "crates/signify-client/tests/registries_reference_vectors.rs",
         "crates/signify-client/tests/registries_properties.rs",
-        "fixtures/client-registries/v1.json"
+        "crates/signify-client/fixtures/client-registries/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -815,7 +815,7 @@
       "evidence": [
         "crates/signify-client/tests/registries_reference_vectors.rs",
         "crates/signify-client/tests/registries_properties.rs",
-        "fixtures/client-registries/v1.json"
+        "crates/signify-client/fixtures/client-registries/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -827,7 +827,7 @@
       "evidence": [
         "crates/signify-keys/tests/keeper_reference_vectors.rs",
         "crates/signify-keys/tests/keeper_properties.rs",
-        "fixtures/keri-keeping/v1.json"
+        "crates/signify-keys/fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -839,7 +839,7 @@
       "evidence": [
         "crates/signify-keys/tests/keeper_reference_vectors.rs",
         "crates/signify-keys/tests/keeper_properties.rs",
-        "fixtures/keri-keeping/v1.json"
+        "crates/signify-keys/fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -851,7 +851,7 @@
       "evidence": [
         "crates/signify-keys/tests/keeper_reference_vectors.rs",
         "crates/signify-keys/tests/keeper_properties.rs",
-        "fixtures/keri-keeping/v1.json"
+        "crates/signify-keys/fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -863,7 +863,7 @@
       "evidence": [
         "crates/signify-keys/tests/keeper_reference_vectors.rs",
         "crates/signify-keys/tests/keeper_properties.rs",
-        "fixtures/keri-keeping/v1.json"
+        "crates/signify-keys/fixtures/keri-keeping/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -875,7 +875,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -887,7 +887,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -899,7 +899,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -911,7 +911,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -923,7 +923,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -935,7 +935,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -947,7 +947,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -959,7 +959,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -971,7 +971,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -983,7 +983,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     },
@@ -995,7 +995,7 @@
       "evidence": [
         "crates/signify-keys/tests/manager_reference_vectors.rs",
         "crates/signify-keys/tests/manager_properties.rs",
-        "fixtures/keri-manager/v1.json"
+        "crates/signify-keys/fixtures/keri-manager/v1.json"
       ],
       "note": "Covered by the port of this module, with the fixture and tests named."
     }

@@ -20,7 +20,10 @@ use signify_http::transport::{Response, ScriptedTransport, StatusCode};
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-operations/v1.json");
+const FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-operations/v1.json"
+));
 
 const ADMIN: &str = "http://127.0.0.1:3901";
 const BOOT: &str = "http://127.0.0.1:3903";

@@ -21,7 +21,10 @@ use signify_http::transport::Transport;
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-key-state/v1.json");
+const FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-key-state/v1.json"
+));
 
 const PREFIX_ONE: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const PREFIX_TWO: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -486,7 +489,10 @@ fn a_prefix_carrying_query_delimiters_is_not_a_prefix() -> Result<(), Box<dyn Er
 
 #[test]
 fn the_recorded_live_query_answer_decodes_whole() -> Result<(), Box<dyn Error>> {
-    const LIVE: &str = include_str!("../../../fixtures/keria-integration/observations/live_query_answer.json");
+    const LIVE: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/fixtures/keria-integration/observations/live_query_answer.json"
+    ));
     let operation: QueryOperation = serde_json::from_str(LIVE)?;
     let metadata = operation.metadata.ok_or("the live answer carried no metadata")?;
     assert_eq!(metadata.sn, Some(EchoedSequence::Text("a".to_owned())));

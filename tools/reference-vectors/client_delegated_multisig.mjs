@@ -900,7 +900,7 @@ const fixture = {
 
 console.log = realLog;
 
-const outputUrl = new URL("../../fixtures/client-delegated-multisig/v1.json", import.meta.url);
+const outputUrl = new URL("../../crates/signify-client/fixtures/client-delegated-multisig/v1.json", import.meta.url);
 const rendered = `${JSON.stringify(fixture, null, 2)}\n`;
 if (process.argv.includes("--check")) {
   if (readFileSync(outputUrl, "utf8") !== rendered) {

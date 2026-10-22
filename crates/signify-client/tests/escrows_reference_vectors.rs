@@ -22,7 +22,7 @@ use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
-const FIXTURE: &str = include_str!("../../../fixtures/client-escrows/v1.json");
+const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-escrows/v1.json"));
 
 // --- Fixture model ---
 #[derive(Debug, Deserialize)]

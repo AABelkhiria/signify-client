@@ -44,5 +44,5 @@ for (const generator of generators) {
 }
 
 if (process.argv.includes("--check")) {
-  process.exit(run("git", ["diff", "--exit-code", "--stat", "--", "fixtures"], root));
+  process.exit(run("git", ["diff", "--exit-code", "--stat", "--", "crates/signify-client/fixtures", "crates/signify-http/fixtures", "crates/signify-keys/fixtures"], root));
 }

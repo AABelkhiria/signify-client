@@ -9,8 +9,14 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const INVENTORY: &str = include_str!("../../../fixtures/keria-integration/v1.json");
-const LEDGER: &str = include_str!("../../../fixtures/keria-integration/ledger.json");
+const INVENTORY: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/keria-integration/v1.json"
+));
+const LEDGER: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/keria-integration/ledger.json"
+));
 
 // --- The generated inventory ---
 #[derive(Debug, Deserialize)]

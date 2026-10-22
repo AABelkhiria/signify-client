@@ -5,7 +5,7 @@ already holds the delegation-approval interaction at sequence one, so keripy's `
 reads that rotation as a recovery and refuses it -- which a live KERIA, built on keripy, answers
 with 500. This generator replays the log ``client_passcode_rotation.mjs`` recorded -- inception,
 interaction -- into a fresh keripy database and asks keripy's ``Kevery`` to process each candidate
-rotation from ``fixtures/client-passcode-rotation/v1.json``: the reference's own, the corrected one
+rotation from ``crates/signify-client/fixtures/client-passcode-rotation/v1.json``: the reference's own, the corrected one
 this port builds, and a third at the right sequence number with the wrong prior. It records what
 keripy did with each.
 
@@ -31,8 +31,9 @@ from reference import REFERENCE_SHA, REFERENCE_VERSION
 GENERATED_ON = "2026-09-16"
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "fixtures" / "client-passcode-rotation" / "v1.json"
-OUTPUT = ROOT / "fixtures" / "client-passcode-rotation-keripy" / "v1.json"
+FIXTURES = ROOT / "crates" / "signify-client" / "fixtures"
+SOURCE = FIXTURES / "client-passcode-rotation" / "v1.json"
+OUTPUT = FIXTURES / "client-passcode-rotation-keripy" / "v1.json"
 
 CANDIDATES = [
     (

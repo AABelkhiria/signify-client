@@ -23,7 +23,7 @@ node tools/reference-vectors/client_passcode_rotation.mjs --check   # verify det
 ## What the evidence is
 
 This port covers `SignifyClient.rotate` — the client half of moving to a new passcode. The artifact
-half is `Controller.rotate`, recorded in `fixtures/keri-controller/`. This fixture adds the request
+half is `Controller.rotate`, recorded in `crates/signify-keys/fixtures/keri-controller/`. This fixture adds the request
 that carries it and the comparison that decided what the port should do.
 
 ## The finding: the payload is sealed to the passcode being left behind

@@ -31,10 +31,10 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave4_client_setup.rs",
         "crates/signify-keria-systest/tests/client_setup_vectors.rs",
-        "fixtures/keria-integration/observations/client_setup.json",
+        "crates/signify-client/fixtures/keria-integration/observations/client_setup.json",
         "crates/signify-keria-systest/tests/wave0_deployment.rs",
         "crates/signify-keria-systest/tests/deployment_vectors.rs",
-        "fixtures/keria-integration/environment.json"
+        "crates/signify-client/fixtures/keria-integration/environment.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 by wave 4, whole. The pinned passcode derives the pinned controller prefix EB3UGWwIMq7ppzcQ697ImQIuXlBG5jzh-baSx-YG3-tY against a live agent — the reference passes 24 characters and silently derives from the first 21, so the recording carries both spellings and the truncation is explicit. The witnessed identifier's agent and witness OOBIs match the upstream case's local-branch literals exactly, and two further clients cross-resolve each other's agent OOBIs, each resolution answering with the other's prefix. Two findings: the deployment serves six introduction URLs where upstream's `validate config` deep-equals exactly three, so the reference's own assertion would refuse the deployment its suite targets; and the first witnessed record broke the port's decoder — `windexes` arrives as JSON numbers where the reference's schema declares strings — now widened to `WitnessIndex`.",
@@ -55,7 +55,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave5_endpoint_smoke.rs",
         "crates/signify-keria-systest/tests/endpoint_smoke_vectors.rs",
-        "fixtures/keria-integration/observations/endpoint_smoke.json"
+        "crates/signify-client/fixtures/keria-integration/observations/endpoint_smoke.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 by wave 5, whole. An unwitnessed identifier starts with zero agent-role authorisations, gains exactly one on the grant ({cid, agent, agent prefix}), grants the mailbox role to itself ({cid, mailbox, cid}), and after the location scheme the agent derives the OOBI the upstream case pins — the authorised URL joined to /oobi/{cid}/mailbox/{cid}, the identifier appearing twice because the mailbox is self-controlled. One mapping documented: upstream's helper raw-fetches /identifiers/{alias}/endroles/{role} (the reference SDK exposes no such read), while the port reads the same authorisations by AID through /endroles/{aid}/{role}, and the transcript pins which address answered.",
@@ -76,7 +76,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave7_witness_behavior.rs",
         "crates/signify-keria-systest/tests/witness_behavior_vectors.rs",
-        "fixtures/keria-integration/observations/witness_behavior.json"
+        "crates/signify-client/fixtures/keria-integration/observations/witness_behavior.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 by wave 7, whole. The witness's controller OOBI resolves, then four establishment events run at sequences zero to three — incept with Wan at threshold one, rotate keeping it, cut it, add it back — each completing only once the named witness set receipted it, with the key state's witness list evolving [Wan], [Wan], [], [Wan] and the threshold 1, 1, 0, 1 exactly as the upstream case asserts. One finding pinned live: bt changes JSON type with its value inside this single log — text \"1\" on the inception, bare number 1 on the non-zero rotations, text \"0\" at zero — which is the multisig rotation's finding reproduced deliberately by this port's event builders, and a real KERIA accepts all four spellings interleaved. Every event's bytes appear verbatim in a successful POST, and every SAID re-verifies hermetically.",
@@ -97,7 +97,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave3_salty_lifecycle.rs",
         "crates/signify-keria-systest/tests/salty_lifecycle_vectors.rs",
-        "fixtures/keria-integration/observations/salty_lifecycle.json"
+        "crates/signify-client/fixtures/keria-integration/observations/salty_lifecycle.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 against the local preset, whole: three creations, the listing ladder with both paged windows, the rotation, the interaction, the key state, the three-event log, the rename, and the operations postcondition. Sixteen of the eighteen pinned qb64 values reproduce exactly — both prefixes, all four keys, all four next-key digests, both thresholds, and the rotation SAID — with the port's exact bytes accepted verbatim by the agent. The two that do not are one decision seen twice: the upstream interaction anchors the bare string [icp.pre], which the port's Vec<Sad> anchors cannot spell, so the recording anchors a seal of the same inception and the interaction SAID and the state digest repeating it differ by design, with both values recorded.",
@@ -118,7 +118,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave6_randy_lifecycle.rs",
         "crates/signify-keria-systest/tests/randy_lifecycle_vectors.rs",
-        "fixtures/keria-integration/observations/randy_lifecycle.json"
+        "crates/signify-client/fixtures/keria-integration/observations/randy_lifecycle.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 by wave 6, whole. A fresh-entropy identifier incepts, interacts, and rotates against a live agent, the log growing 2 then 3 with every operation waited out and deleted. The decisive check is the key commitment, recomputed hermetically from the recorded events: BLAKE3-256 over the rotation's revealed signing key equals the digest the inception committed to, so a randy rotation rotates to exactly the committed key — and each derived event appears verbatim inside a successful POST body, so the agent accepted the port's own bytes. The interaction anchors a seal of the inception where upstream anchors the bare string [icp.pre], the same Vec<Sad> narrowing wave 3 records.",
@@ -140,10 +140,10 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave3_salty_lifecycle.rs",
         "crates/signify-keria-systest/tests/salty_lifecycle_vectors.rs",
-        "fixtures/keria-integration/observations/salty_lifecycle.json",
+        "crates/signify-client/fixtures/keria-integration/observations/salty_lifecycle.json",
         "crates/signify-keria-systest/tests/wave4_client_setup.rs",
         "crates/signify-keria-systest/tests/client_setup_vectors.rs",
-        "fixtures/keria-integration/observations/client_setup.json"
+        "crates/signify-client/fixtures/keria-integration/observations/client_setup.json"
       ],
       "status": "observed",
       "outcome": "Both halves recorded 2026-08-28. Wave 3 recorded the salty.test.ts half: four pinned identifier inceptions (one single-key, one three-key at threshold two) derived by the port and accepted byte-for-byte by a live agent. Wave 4 recorded the test-setup-single-client.test.ts half: the pinned client passcode deriving the pinned controller prefix, and witnessed inceptions with the environment's whole triple at threshold three, receipted by the running witnesses.",
@@ -164,7 +164,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave8_singlesig_events.rs",
         "crates/signify-keria-systest/tests/singlesig_events_vectors.rs",
-        "fixtures/keria-integration/observations/singlesig_rot.json"
+        "crates/signify-client/fixtures/keria-integration/observations/singlesig_rot.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 by wave 8. A witnessed identifier rotates; the owner's key state moves at once — sequence incremented, both key fields changed — while the observing client's stays one sequence behind until it refreshes with keyStates().query at the new sequence, spelled in hexadecimal (wave 1's answer), after which the remote state carries exactly the new signing key and commitment. The query's exact sequence text is proven sent from the observer's transcript, the rotation's SAID re-verifies over the derived bytes, and both clients end with zero operations listed.",
@@ -185,7 +185,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave8_singlesig_events.rs",
         "crates/signify-keria-systest/tests/singlesig_events_vectors.rs",
-        "fixtures/keria-integration/observations/singlesig_ixn.json"
+        "crates/signify-client/fixtures/keria-integration/observations/singlesig_ixn.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-28 by wave 8, as the rotation's twin: the interaction increments the sequence while changing no keys, the observer is one behind until the hexadecimal refresh, and — unlike the bare-string anchors of waves 3 and 6 — upstream's own anchor here is the empty object, which a Sad can spell, so the event reproduces upstream exactly with \"a\": [{}].",
@@ -207,8 +207,8 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave10_delegated_lifecycle.rs",
         "crates/signify-keria-systest/tests/delegated_lifecycle_vectors.rs",
-        "fixtures/keria-integration/observations/singlesig_dip.json",
-        "fixtures/keria-integration/observations/singlesig_drt.json"
+        "crates/signify-client/fixtures/keria-integration/observations/singlesig_dip.json",
+        "crates/signify-client/fixtures/keria-integration/observations/singlesig_drt.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-29 by wave 10, both files whole. Two delegated inceptions — one unwitnessed, one witnessed by the whole triple at threshold three — and a delegated rotation, every establishment pending under its delegation.{said} operation until the delegator anchored its seal with a plain interaction (byte-identical to wave 9's delegation-address approval but for the path, which is the delegation approval's finding used in the other direction). The delegate's agent saw the first anchor through a sequence query and the second through an anchor query, whose idempotence the upstream case asserts and this recording repeats. The drt is itself a delegated event, completing as t=drt at s=1. The wave found the port's third live-only defect: the agent echoes an anchor query's seal back in the caller's own {i,s,d} shape with no sn at all, so QueryMetadata's required sn and Anchor-typed anchor refused the first anchor-query answer ever received — widened to Option<EchoedSequence> and EchoedAnchor.",
@@ -229,7 +229,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave9_delegation.rs",
         "crates/signify-keria-systest/tests/delegation_vectors.rs",
-        "fixtures/keria-integration/observations/delegation.json"
+        "crates/signify-client/fixtures/keria-integration/observations/delegation.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-29 by wave 9, whole. A delegated inception's operation is proven pending before approval — the identifier does not exist until the delegator anchors a seal of it — then the approving interaction (built through InceptionSeal, whose fields cannot disagree, where upstream hand-assembles the anchor and reads the delegate's prefix out of an operation name) lands at the delegation address, the delegate's key-state query at sequence one lets its agent see the anchor, and the creation completes with the artifact's own prefix. The tail reproduces upstream's odd contact resolution: the delegate's agent OOBI truncated at /agent/ still resolves and answers the delegate's prefix. One operational fact recorded: a delegation approval spawns a witness operation inside its own metadata.depends, so the zero-operations postcondition requires the dependency walk upstream's deleteOperations performs.",
@@ -251,10 +251,10 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave13_multisig_inception.rs",
         "crates/signify-keria-systest/tests/multisig_inception_vectors.rs",
-        "fixtures/keria-integration/observations/multisig_inception.json",
+        "crates/signify-client/fixtures/keria-integration/observations/multisig_inception.json",
         "crates/signify-keria-systest/tests/wave14_multisig_join.rs",
         "crates/signify-keria-systest/tests/multisig_join_vectors.rs",
-        "fixtures/keria-integration/observations/multisig_join.json"
+        "crates/signify-client/fixtures/keria-integration/observations/multisig_join.json"
       ],
       "status": "partly_observed",
       "outcome": "Wave 13 recorded multisig-inception.test.ts whole: witnessed (threshold two) and witnessless groups, both members deriving the same prefix each time, with the witnessless members listing — which upstream dare not assert against keria#189 — answering correctly on this deployment. Wave 14 recorded multisig-join.test.ts's spine: a 1-of-1 group, a rotation committing a third member into rotation authority (two signers, three commitments), then a second rotation he joins by REBUILDING it from the proposal's member lists and his own queried key states — composing the group keeper from KeeperRequest::Group with the prior event's commitments and driving rotate_identifier over the group's queried prior state — comparing the SAID he built with the SAID he was shown before groups().join submits his signature; the SAIDs agree and he seats into a three-key signing set. Two compositions taught the port's shapes: the keeper's next_states are the PRIOR commitments a rotation signature indexes into, and the port's rotation announcement reaches the signing peers, so a rotation-authority-only member is not told — upstream tells him by hand through its free-form recipient list, and he needs nothing from that message. **Still to do:** the four-client member-replacement case under a 3-of-3 threshold at the join file's tail.",
@@ -377,7 +377,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave11_challenge.rs",
         "crates/signify-keria-systest/tests/challenge_vectors.rs",
-        "fixtures/keria-integration/observations/challenge.json"
+        "crates/signify-client/fixtures/keria-integration/observations/challenge.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-29 by wave 11, whole. Both generations answer BIP39's own arithmetic — twelve words at 128 bits, twenty-four at 256, through ChallengeStrength's closed set where upstream stringifies any number. Bob's response travels as an exchange message on /challenge/response, and the message Alice's verification answers with is the very one Bob sent, tied by SAID across two clients; after the acknowledgement, Bob's contact carries the twelve words authenticated and naming that SAID. One operational fact recorded: the respond submission's operation is born done — wave 2's finding — yet stays listed until deleted, and upstream's own case never waits its respond, which would leave its assertOperations one message behind.",
@@ -398,7 +398,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave12_endroles_by_aid.rs",
         "crates/signify-keria-systest/tests/endroles_by_aid_vectors.rs",
-        "fixtures/keria-integration/observations/endroles_by_aid.json"
+        "crates/signify-client/fixtures/keria-integration/observations/endroles_by_aid.json"
       ],
       "status": "observed",
       "outcome": "Recorded 2026-08-29 by wave 12, whole — and the first live drive of the port's multisig machinery: a two-member witnessed group incepted through propose_inception/accept_inception with both members deriving the same prefix, then the group end-role round expressed through public API alone (add_end_role on the group alias signing with the member's indexed key, the reply travelling as an rpy embed under the group's establishment seal on /multisig/rpy, one shared stamp so both members derive the same reply SAID — the group IPEX rounds' one-clock lesson applied). Alice, a third party, resolves the group's truncated OOBI and asks five questions: the group's roles name exactly both agents (all cid the group, all role agent), the agent filter answers the same set, a role nobody granted and a well-formed identifier nobody owns answer empty rather than erroring, and her own identifier answers exactly her agent. One wire fact recorded: the rpy relay must carry the {gid} payload — without it, no /multisig/rpy notification is ever raised, which is how the first run stalled.",
@@ -456,8 +456,8 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave1_sequence_base.rs",
         "crates/signify-keria-systest/tests/sequence_base_vectors.rs",
-        "fixtures/keria-integration/observations/sequence_base.json",
-        "fixtures/keria-integration/observations/live_query_answer.json"
+        "crates/signify-client/fixtures/keria-integration/observations/sequence_base.json",
+        "crates/signify-client/fixtures/keria-integration/observations/live_query_answer.json"
       ]
     },
     {
@@ -472,7 +472,7 @@
       "rust_evidence": [
         "crates/signify-keria-systest/tests/wave2_exchange_answer.rs",
         "crates/signify-keria-systest/tests/exchange_answer_vectors.rs",
-        "fixtures/keria-integration/observations/exchange_answer.json"
+        "crates/signify-client/fixtures/keria-integration/observations/exchange_answer.json"
       ]
     },
     {

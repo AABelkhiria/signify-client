@@ -11,9 +11,15 @@ use serde_json::Value;
 use signify_client::multisig::{REPLY_ROUTE, REPLY_SLOT};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!("../../../fixtures/client-multisig-end-roles/v1.json");
+const FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-multisig-end-roles/v1.json"
+));
 /// The multisig events fixture, for a genuine proposal on another route.
-const INTERACTION_FIXTURE: &str = include_str!("../../../fixtures/client-multisig-events/v1.json");
+const INTERACTION_FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-multisig-events/v1.json"
+));
 
 #[derive(Debug, Deserialize)]
 struct Fixture {

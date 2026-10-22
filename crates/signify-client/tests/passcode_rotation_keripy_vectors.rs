@@ -15,8 +15,14 @@ use signify_keys::controller::{Controller, ControllerOptions};
 
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
 const SIGNIFY_TS_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const VERDICTS: &str = include_str!("../../../fixtures/client-passcode-rotation-keripy/v1.json");
-const RECORDING: &str = include_str!("../../../fixtures/client-passcode-rotation/v1.json");
+const VERDICTS: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-passcode-rotation-keripy/v1.json"
+));
+const RECORDING: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-passcode-rotation/v1.json"
+));
 
 #[derive(Debug, Deserialize)]
 struct KeripyFixture {
