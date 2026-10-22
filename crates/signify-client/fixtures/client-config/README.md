@@ -75,7 +75,7 @@ Only scalars are refused.
 
 That is a leniency rather than a wrong belief — a positional answer is *understood*, not
 misunderstood — and it applies to every record in that crate rather than to this endpoint. It is
-recorded as a limitation for the upstream unit-vector audit rather than changed here, since
+left as a known leniency rather than changed here, since
 changing it would mean altering a verified type for a shape no KERIA sends. The named regression
 `a_sequence_answer_decodes_positionally` pins the exact behaviour.
 
