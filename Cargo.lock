@@ -1262,7 +1262,7 @@ dependencies = [
 
 [[package]]
 name = "signify-client"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "criterion",
  "getrandom 0.3.4",
@@ -1281,7 +1281,7 @@ dependencies = [
 
 [[package]]
 name = "signify-http"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "criterion",
  "getrandom 0.3.4",
@@ -1300,7 +1300,7 @@ dependencies = [
 
 [[package]]
 name = "signify-keria-systest"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "keri-acdc",
  "keri-cesr",
@@ -1316,7 +1316,7 @@ dependencies = [
 
 [[package]]
 name = "signify-keys"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "criterion",
  "keri-acdc",

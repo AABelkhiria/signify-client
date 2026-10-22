@@ -1,10 +1,13 @@
 [package]
 name = "signify-keys"
-version = "0.0.0"
+version.workspace = true
 description = "Signify key management: keepers, identifier habitats, and the client identity"
 edition.workspace = true
 rust-version.workspace = true
-publish.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/signify-keys"
+readme = "README.md"
 keywords.workspace = true
 categories.workspace = true
 

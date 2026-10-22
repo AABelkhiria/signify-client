@@ -1,12 +1,18 @@
 [package]
 name = "signify-http"
-version = "0.0.0"
+version.workspace = true
 description = "HTTP transport, requests, responses and retries for Signify, signed with keri-http-auth"
 edition.workspace = true
 rust-version.workspace = true
-publish.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/signify-http"
+readme = "README.md"
 keywords.workspace = true
 categories.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
 
 [features]
 http-client = [

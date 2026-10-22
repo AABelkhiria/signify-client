@@ -1,6 +1,6 @@
 [package]
 name = "signify-keria-systest"
-version = "0.0.0"
+version.workspace = true
 description = "Opt-in system tests that record a live KERIA deployment's answers as fixtures"
 edition.workspace = true
 rust-version.workspace = true
@@ -14,10 +14,10 @@ serde_json = { workspace = true }
 keri-acdc.workspace = true
 keri-cesr.workspace = true
 keri-protocol.workspace = true
-signify-client = { path = "../signify-client" }
-signify-keys = { path = "../signify-keys" }
+signify-client.workspace = true
+signify-keys.workspace = true
 keria-types.workspace = true
-signify-http = { path = "../signify-http" }
+signify-http.workspace = true
 
 [features]
 # The production transport, and with it a TLS stack. Off by default so the workspace's ordinary

@@ -1,12 +1,18 @@
 [package]
 name = "signify-client"
-version = "0.0.0"
+version.workspace = true
 description = "Rust SDK for signing at the edge with KERI, ACDC, and KERIA: the Signify client and the crates it is built on"
 edition.workspace = true
 rust-version.workspace = true
-publish.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/signify-client"
+readme = "README.md"
 keywords.workspace = true
 categories.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
 
 [features]
 # The production HTTP transport, built on hyper, rustls and tokio.
@@ -17,8 +23,8 @@ keri-acdc.workspace = true
 keri-cesr.workspace = true
 keri-http-auth.workspace = true
 keri-protocol.workspace = true
-signify-http = { path = "../signify-http" }
-signify-keys = { path = "../signify-keys" }
+signify-http.workspace = true
+signify-keys.workspace = true
 keria-types.workspace = true
 
 getrandom.workspace = true

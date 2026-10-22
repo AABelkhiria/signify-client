@@ -8,13 +8,21 @@ members = [
 ]
 
 [workspace.package]
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.97"
-publish = false
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/AABelkhiria/signify-client"
 keywords = ["keri", "acdc", "cesr", "identity", "cryptography"]
 categories = ["authentication", "cryptography", "web-programming::http-client"]
 
 [workspace.dependencies]
+# The workspace's own crates. Their `version` must move together with `workspace.package.version`;
+# cargo refuses to publish when the two drift apart.
+signify-client = { path = "crates/signify-client", version = "0.1.0" }
+signify-http = { path = "crates/signify-http", version = "0.1.0" }
+signify-keys = { path = "crates/signify-keys", version = "0.1.0" }
+
 criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
 getrandom = { version = "0.3.4", default-features = false, features = ["std"] }
 http = { version = "1.4.0", default-features = false, features = ["std"] }
