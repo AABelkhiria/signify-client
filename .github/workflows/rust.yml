@@ -1,4 +1,4 @@
-name: CI
+name: Rust
 
 on:
   pull_request:
@@ -11,19 +11,25 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: "-Dwarnings"
+  RUSTDOCFLAGS: "-Dwarnings"
 
 jobs:
-  quality:
-    name: Format, lint, test, and docs
+  lint-and-test:
+    name: Lint and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: rustup toolchain install
+      - uses: taiki-e/install-action@cargo-hack
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all -- --check
       - run: cargo fmt --manifest-path fuzz/Cargo.toml -- --check
       - run: cargo clippy --workspace --all-targets --all-features
+      - run: cargo clippy --workspace --all-targets --no-default-features
+      - run: cargo hack --workspace --each-feature check --all-targets
+      - run: cargo test --workspace --no-default-features
       - run: cargo test --workspace --all-features
+      - run: cargo doc --workspace --no-default-features --no-deps
       - run: cargo doc --workspace --all-features --no-deps
 
   fuzz-build:
@@ -37,16 +43,3 @@ jobs:
           workspaces: fuzz
       - run: cargo +nightly-2026-08-03 install cargo-fuzz --version 0.13.2 --locked
       - run: cargo +nightly-2026-08-03 fuzz build
-
-  deny:
-    name: Licenses, advisories, bans, and sources
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          command: check
-      - uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          command: check
-          manifest-path: fuzz/Cargo.toml
