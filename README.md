@@ -1,8 +1,8 @@
 # signify-client
 
 A Rust SDK for signing at the edge with KERI, ACDC and KERIA: the Signify client and the crates it
-is built on. The behavior and wire bytes match [signify-ts](https://github.com/WebOfTrust/signify-ts),
-checked against fixtures it generates.
+is built on. The behavior and wire bytes match
+[signify-ts](https://github.com/WebOfTrust/signify-ts), checked against fixtures it generates.
 
 ## Crates
 
