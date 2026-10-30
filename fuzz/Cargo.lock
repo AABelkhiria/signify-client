@@ -143,9 +143,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-bigint"
-version = "0.7.5"
+version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a52aa3fcda4e6302a9f48734f234d35d4721b96f8fe07d073f07ce9df4f0271"
+checksum = "9c035cb64cba03dad2fb921f3e218785e8cf9a41790da5eb3a1400f62fa2be11"
 dependencies = [
  "cpubits",
  "ctutils",
@@ -168,9 +168,9 @@ dependencies = [
 
 [[package]]
 name = "ctutils"
-version = "0.4.2"
+version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d5515a3834141de9eafb9717ad39eea8247b5674e6066c404e8c4b365d2a29e"
+checksum = "a2376ffd6f96d8a9db59875b4b6b0237d6900b5baf64279714e05493ce64828a"
 dependencies = [
  "cmov",
  "subtle",
@@ -383,9 +383,9 @@ dependencies = [
 
 [[package]]
 name = "keri-acdc"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8aa1a67a9682dc8994d2b05e363cd64fecc696b9040a161499f5fc74bbde037e"
+checksum = "7d31570427299dabe25b3e12526c07f7db5a08dc107952671270264dec484e73"
 dependencies = [
  "keri-cesr",
  "keri-protocol",
@@ -420,9 +420,9 @@ dependencies = [
 
 [[package]]
 name = "keri-protocol"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12c4d4106a7ff785708d758376777df8957980df3ce5a86d4caa62c6eddd3021"
+checksum = "ee71975cf4ac02e9e9360a57a1d145bd6d3f1bb9ac286970e9f3d8ed2526f131"
 dependencies = [
  "keri-cesr",
  "serde_json",

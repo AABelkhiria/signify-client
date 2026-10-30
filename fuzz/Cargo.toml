@@ -9,10 +9,10 @@ cargo-fuzz = true
 
 [dependencies]
 keri-cesr = { version = "0.1.0", features = ["crypto"] }
-keri-protocol = "0.1.0"
+keri-protocol = "0.2.0"
 keria-types = "0.1.0"
 libfuzzer-sys = "0.4.13"
-keri-acdc = "0.1.0"
+keri-acdc = "0.2.0"
 signify-client = { path = "../crates/signify-client" }
 signify-http = { path = "../crates/signify-http" }
 signify-keys = { path = "../crates/signify-keys" }
