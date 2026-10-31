@@ -873,7 +873,7 @@ impl ConnectedClient {
         // new place in the log, the request signer onto the new key, and the keeper factory and
         // configuration onto the new passcode — without which this client would go on trying to
         // open its identifiers with a key that no longer seals them.
-        self.controller.apply_passcode_rotation(planned);
+        self.controller.apply_passcode_rotation(planned)?;
         self.signing = rotated;
         self.keepers = keepers;
         self.config = self

@@ -54,6 +54,8 @@ use crate::manager::key_manager::salt_from_passcode;
 use crate::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
 use keri_protocol::event::KeyEvent;
 use keri_protocol::event::rotation::RotationBuilder;
+use keri_protocol::prefix::IdentifierPrefix;
+use keri_protocol::said::Said;
 use keri_protocol::threshold::SigningThreshold;
 
 /// One identifier's key material, re-sealed for the rotation payload.
@@ -108,6 +110,7 @@ pub struct PlannedPasscodeRotation {
     keys: Vec<String>,
     next_digests: Vec<String>,
     current: CurrentEvent,
+    prior_said: Said,
     rotation_index: u32,
     tier: SecurityTier,
     cost: DerivationCost,
@@ -164,16 +167,17 @@ impl Controller {
     ///
     /// Returns [`ControllerError::InvalidSaltyIdentifier`] or
     /// [`ControllerError::InvalidRandyIdentifier`] when a record's decrypted keys do not match its
-    /// key state, [`ControllerError::UnsupportedKeyManager`] for a group or external record, a
-    /// passcode failure via [`ControllerError::Manager`], and layered cipher, derivation, event,
-    /// and signing failures.
+    /// key state, [`ControllerError::UnsupportedKeyManager`] for a group or external record,
+    /// [`ControllerError::UnchangedPasscode`] for the passcode it already has, a passcode failure
+    /// via [`ControllerError::Manager`], and layered cipher, derivation, event, and signing
+    /// failures.
     pub fn rotate_passcode(
         &mut self,
         new_passcode: &str,
         identifiers: &[AcceptedHab],
     ) -> Result<PasscodeRotation, ControllerError> {
         let planned = self.plan_passcode_rotation(new_passcode, identifiers)?;
-        Ok(self.apply_passcode_rotation(planned))
+        self.apply_passcode_rotation(planned)
     }
 
     /// Computes a passcode rotation **without moving this controller to it**.
@@ -192,14 +196,6 @@ impl Controller {
         new_passcode: &str,
         identifiers: &[AcceptedHab],
     ) -> Result<PlannedPasscodeRotation, ControllerError> {
-        // The prior passcode's encryption key pair opens what is already stored.
-        let prior_encryption = self.salt.derive_signer_with_profile(
-            "",
-            KeyTransferability::NonTransferable,
-            self.cost.profile(self.tier),
-        )?;
-        let decrypter = Decrypter::from_signer(&prior_encryption);
-
         // The key the old chain committed to, derived from the *stored* salt — which never moves,
         // so this is always the original passcode's derivation.
         let next_index = self
@@ -216,15 +212,9 @@ impl Controller {
         // The new passcode's chain, at the same indices.
         let new_salt = salt_from_passcode(new_passcode, self.tier)?;
 
-        // And the new passcode's encryption key seals what is stored next, so the rotation moves
-        // the encryption as well as the signing keys. The reference re-uses `prior_encryption`
-        // here; keripy builds its encrypter from the new key, and so does this.
-        let new_encryption = new_salt.derive_signer_with_profile(
-            "",
-            KeyTransferability::NonTransferable,
-            self.cost.profile(self.tier),
-        )?;
-        let encrypter = Encrypter::from_verification_key(new_encryption.verifier())?;
+        // The rotation moves the encryption as well as the signing keys. The reference seals with
+        // the old passcode's key; keripy builds its encrypter from the new one, and so does this.
+        let (encrypter, decrypter) = self.sealing_keys(&new_salt, self.tier)?;
 
         let (new_signer, new_next_signer) = {
             let creator = SaltyKeyCreator::new(&new_salt, stem);
@@ -233,6 +223,9 @@ impl Controller {
                 single_signer(&creator, next_index, profile)?,
             )
         };
+        if new_signer.verifier().qb64()? == self.signer.verifier().qb64()? {
+            return Err(ControllerError::UnchangedPasscode);
+        }
 
         let keys = vec![new_signer.verifier().qb64()?, old_committed.verifier().qb64()?];
         let next_digest = Digest::derive(DigestAlgorithm::Blake3_256, &new_next_signer.verifier().qb64_bytes()?);
@@ -271,7 +264,9 @@ impl Controller {
         for identifier in identifiers {
             let prefix = identifier.common.prefix.clone();
             let state = match &identifier.common.key_manager {
-                KeyManagerState::Salty(salty) => self.re_encrypt_salty(identifier, salty, &encrypter, &decrypter)?,
+                KeyManagerState::Salty(salty) => {
+                    self.re_encrypt_salty(identifier, salty, &new_salt, &encrypter, &decrypter)?
+                }
                 KeyManagerState::Randy(randy) => Self::re_encrypt_randy(identifier, randy, &encrypter, &decrypter)?,
                 other => {
                     return Err(ControllerError::UnsupportedKeyManager {
@@ -296,6 +291,7 @@ impl Controller {
             keys,
             next_digests: vec![next_digest.qb64()?],
             current,
+            prior_said: self.current_said(),
             rotation_index: self.rotation_index,
             tier: self.tier,
             cost: self.cost,
@@ -308,7 +304,18 @@ impl Controller {
     /// behind, so its controller's salt and its keys disagree from there on, and its next rotation
     /// is built at the same place in the log. Here all of them move together: the salt because the
     /// sealing fix requires it, and the rotation becomes the current event so the log goes on.
-    pub fn apply_passcode_rotation(&mut self, planned: PlannedPasscodeRotation) -> PasscodeRotation {
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ControllerError::StaleRotationPlan`], leaving this controller untouched, when the
+    /// plan was built from another controller or from an event this one has moved past.
+    pub fn apply_passcode_rotation(
+        &mut self,
+        planned: PlannedPasscodeRotation,
+    ) -> Result<PasscodeRotation, ControllerError> {
+        if planned.prior_said != self.current_said() {
+            return Err(ControllerError::StaleRotationPlan);
+        }
         let PlannedPasscodeRotation {
             artifacts,
             salt,
@@ -317,6 +324,7 @@ impl Controller {
             keys,
             next_digests,
             current,
+            prior_said: _,
             rotation_index: _,
             tier: _,
             cost: _,
@@ -327,7 +335,20 @@ impl Controller {
         self.keys = keys;
         self.next_digests = next_digests;
         self.current = current;
-        artifacts
+        Ok(artifacts)
+    }
+
+    /// Derives the encrypter for the new passcode and the decrypter for the old one, both at `tier`.
+    fn sealing_keys(&self, new_salt: &Salt, tier: SecurityTier) -> Result<(Encrypter, Decrypter), ControllerError> {
+        let profile = self.cost.profile(tier);
+        let old = self
+            .salt
+            .derive_signer_with_profile("", KeyTransferability::NonTransferable, profile)?;
+        let new = new_salt.derive_signer_with_profile("", KeyTransferability::NonTransferable, profile)?;
+        Ok((
+            Encrypter::from_verification_key(new.verifier())?,
+            Decrypter::from_signer(&old),
+        ))
     }
 
     /// Verifies and re-seals one salty identifier's salt.
@@ -335,10 +356,18 @@ impl Controller {
         &self,
         identifier: &AcceptedHab,
         salty: &SaltyState,
+        new_salt: &Salt,
         encrypter: &Encrypter,
         decrypter: &Decrypter,
     ) -> Result<ReEncryptedKeyState, ControllerError> {
+        // A salty keeper seals at the identifier's tier, which need not be the controller's.
         let tier = security_tier(salty.tier);
+        let tier_keys = (tier != self.tier)
+            .then(|| self.sealing_keys(new_salt, tier))
+            .transpose()?;
+        let (encrypter, decrypter) = tier_keys
+            .as_ref()
+            .map_or((encrypter, decrypter), |(encrypter, decrypter)| (encrypter, decrypter));
         let cipher = Ciphertext::from_qb64(&salty.encrypted_salt)?;
         let salt = decrypter.decrypt_salt(&cipher, tier)?;
 
@@ -375,17 +404,25 @@ impl Controller {
         encrypter: &Encrypter,
         decrypter: &Decrypter,
     ) -> Result<ReEncryptedKeyState, ControllerError> {
+        let invalid = || ControllerError::InvalidRandyIdentifier {
+            prefix: identifier.common.prefix.clone(),
+        };
+        let prefix = IdentifierPrefix::from_qb64(&identifier.common.prefix).map_err(|_| invalid())?;
+        let transferability = if prefix.is_transferable() {
+            KeyTransferability::Transferable
+        } else {
+            KeyTransferability::NonTransferable
+        };
+
         let mut signing_keys = Vec::with_capacity(randy.encrypted_signing_keys.len());
         let mut public_keys = Vec::with_capacity(randy.encrypted_signing_keys.len());
         for sealed in &randy.encrypted_signing_keys {
-            let signer = decrypter.decrypt_seed(&Ciphertext::from_qb64(sealed)?, KeyTransferability::Transferable)?;
+            let signer = decrypter.decrypt_seed(&Ciphertext::from_qb64(sealed)?, transferability)?;
             public_keys.push(signer.verifier().qb64()?);
             signing_keys.push(encrypter.encrypt_signer(&signer)?);
         }
         if public_keys != identifier.state.signing_keys {
-            return Err(ControllerError::InvalidRandyIdentifier {
-                prefix: identifier.common.prefix.clone(),
-            });
+            return Err(invalid());
         }
 
         // The next keys are re-sealed without verification, as the reference does; the seed bytes
@@ -874,6 +911,99 @@ mod tests {
             controller.rotate_passcode(NEW_PASSCODE, std::slice::from_ref(&group)),
             Err(ControllerError::UnsupportedKeyManager { algorithm: "group", .. })
         ));
+        Ok(())
+    }
+
+    #[test]
+    fn a_salty_identifier_at_its_own_tier_is_opened_and_resealed() -> Result<(), Box<dyn Error>> {
+        let mut controller = Controller::new(PASSCODE, SecurityTier::Low)?;
+        let aid_salt = Salt::from_raw(b"fedcba9876543210", SecurityTier::Medium)?;
+        let profile = DerivationCost::Production.profile(SecurityTier::Medium);
+        let keys = SaltyKeyCreator::new(&aid_salt, Stem::new("signify:aid")?)
+            .create(1, KeyTransferability::Transferable, KeyIndices::new(0, 0, 0), profile)?
+            .public_keys()?;
+        let sealing = |salt: &Salt| salt.derive_signer_with_profile("", KeyTransferability::NonTransferable, profile);
+        let sealed = Encrypter::from_verification_key(sealing(controller.salt())?.verifier())?
+            .encrypt_salt(&aid_salt)?
+            .qb64()?;
+        let record = accepted(serde_json::json!({
+            "name": "aid0",
+            "prefix": keys.first(),
+            "icp_dt": "2023-12-01T10:05:25.062609+00:00",
+            "salty": {
+                "tier": "med",
+                "sxlt": sealed,
+                "pidx": 0,
+                "kidx": 0,
+                "stem": "signify:aid",
+                "dcode": "E",
+                "icodes": ["A"],
+                "ncodes": ["A"],
+                "transferable": true
+            },
+            "state": state_with_keys(&keys)
+        }))?;
+
+        let rotation = controller.rotate_passcode(NEW_PASSCODE, std::slice::from_ref(&record))?;
+
+        let Some((_, ReEncryptedKeyState::Salty { sealed_salt })) = rotation.re_encrypted.first() else {
+            return Err("the salty record was not re-encrypted".into());
+        };
+        // A keeper opens it with the new passcode's key at the identifier's tier.
+        let opened =
+            Decrypter::from_signer(&sealing(controller.salt())?).decrypt_salt(sealed_salt, SecurityTier::Medium)?;
+        assert_eq!(opened.expose_qb64()?, aid_salt.expose_qb64()?);
+        Ok(())
+    }
+
+    #[test]
+    fn a_non_transferable_randy_identifier_is_verified_and_resealed() -> Result<(), Box<dyn Error>> {
+        let mut controller = ephemeral()?;
+        let (encrypter, _) = prior_encryption(&controller)?;
+        let signer = Signer::from_seed(&[7; 32], KeyTransferability::NonTransferable)?;
+        let keys = vec![signer.verifier().qb64()?];
+        let record = accepted(serde_json::json!({
+            "name": "aid1",
+            "prefix": keys.first(),
+            "icp_dt": "2023-12-01T10:05:25.062609+00:00",
+            "randy": { "prxs": [encrypter.encrypt_signer(&signer)?.qb64()?], "nxts": [] },
+            "state": state_with_keys(&keys)
+        }))?;
+
+        let rotation = controller.rotate_passcode(NEW_PASSCODE, std::slice::from_ref(&record))?;
+        assert_eq!(rotation.re_encrypted.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn rotating_to_the_same_passcode_is_refused() -> Result<(), Box<dyn Error>> {
+        let mut controller = ephemeral()?;
+        assert!(matches!(
+            controller.rotate_passcode(PASSCODE, &[]),
+            Err(ControllerError::UnchangedPasscode)
+        ));
+
+        controller.rotate_passcode(NEW_PASSCODE, &[])?;
+        assert!(matches!(
+            controller.rotate_passcode(NEW_PASSCODE, &[]),
+            Err(ControllerError::UnchangedPasscode)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn a_plan_applies_only_to_the_event_it_follows() -> Result<(), Box<dyn Error>> {
+        let mut controller = ephemeral()?;
+        let stale = controller.plan_passcode_rotation(NEW_PASSCODE, &[])?;
+
+        controller.rotate_passcode(NEW_PASSCODE, &[])?;
+        let rotated = controller.current_keys().to_vec();
+
+        assert!(matches!(
+            controller.apply_passcode_rotation(stale),
+            Err(ControllerError::StaleRotationPlan)
+        ));
+        assert_eq!(controller.current_keys(), rotated.as_slice());
         Ok(())
     }
 

@@ -63,6 +63,12 @@ pub enum ControllerError {
         /// The identifier's prefix.
         prefix: String,
     },
+    /// A passcode rotation named the passcode the controller already has.
+    ///
+    /// Rotating would reuse the current signing key.
+    UnchangedPasscode,
+    /// A planned passcode rotation was not built from this controller's current event.
+    StaleRotationPlan,
     /// An identifier record names a key manager a passcode rotation cannot re-encrypt.
     ///
     /// A group holds no keys of its own and an external module's keys never leave it, so neither
@@ -146,6 +152,10 @@ impl fmt::Display for ControllerError {
             }
             Self::InvalidRandyIdentifier { prefix } => {
                 write!(formatter, "randy identifier {prefix} does not match its key state")
+            }
+            Self::UnchangedPasscode => formatter.write_str("the new passcode is the same as the current passcode"),
+            Self::StaleRotationPlan => {
+                formatter.write_str("the planned rotation does not follow this controller's current event")
             }
             Self::UnsupportedKeyManager { prefix, algorithm } => write!(
                 formatter,
@@ -239,6 +249,8 @@ mod tests {
                 },
                 false,
             ),
+            (ControllerError::UnchangedPasscode, false),
+            (ControllerError::StaleRotationPlan, false),
             (
                 ControllerError::UnsupportedKeyManager {
                     prefix: "EPRE".to_owned(),
