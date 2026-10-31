@@ -37,6 +37,7 @@ to verify against.
 
 ```bash
 cargo add signify-client --features http-client
+cargo add tokio --features macros,rt-multi-thread
 ```
 
 ```rust
