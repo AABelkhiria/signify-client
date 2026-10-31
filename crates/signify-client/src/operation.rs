@@ -413,7 +413,7 @@ impl PollPolicyBuilder {
             .jitter(self.jitter)
             // A poll is a `GET`, and this is never exposed: a scope excluding it would stop a poll
             // for a transport reason.
-            .scope(RetryScope::IdempotentOnly);
+            .scope(RetryScope::RepeatableOnly);
         schedule = match self.deadline {
             Some(deadline) => schedule.deadline(deadline),
             None => schedule.without_deadline(),
@@ -617,14 +617,14 @@ impl<'client> Poller<'client> {
 
 /// Maps a schedule's stop reason onto the two a poll can actually reach.
 ///
-/// `NotRetryable` and `MethodNotIdempotent` are unreachable: a poll always passes `true` and always
+/// `NotRetryable` and `MethodNotRepeatable` are unreachable: a poll always passes `true` and always
 /// asks with `GET`, and [`PollPolicy`] cannot express a scope that excludes it. Neither is
 /// representable in [`PollingLimit`], so they collapse onto the attempt bound rather than inventing
 /// a state.
 const fn limit_of(reason: StopReason) -> PollingLimit {
     match reason {
         StopReason::DeadlineElapsed => PollingLimit::Deadline,
-        StopReason::NotRetryable | StopReason::MethodNotIdempotent | StopReason::AttemptsExhausted => {
+        StopReason::NotRetryable | StopReason::MethodNotRepeatable | StopReason::AttemptsExhausted => {
             PollingLimit::Attempts
         }
     }
@@ -830,7 +830,7 @@ mod tests {
         assert_eq!(limit_of(StopReason::AttemptsExhausted), PollingLimit::Attempts);
         // The two a poll cannot reach collapse rather than inventing a state.
         assert_eq!(limit_of(StopReason::NotRetryable), PollingLimit::Attempts);
-        assert_eq!(limit_of(StopReason::MethodNotIdempotent), PollingLimit::Attempts);
+        assert_eq!(limit_of(StopReason::MethodNotRepeatable), PollingLimit::Attempts);
         assert_eq!(PollingLimit::Attempts.to_string(), "every allowed attempt was made");
         assert_eq!(PollingLimit::Deadline.to_string(), "the total deadline elapsed");
     }

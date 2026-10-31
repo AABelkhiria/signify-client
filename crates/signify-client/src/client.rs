@@ -191,7 +191,9 @@ pub struct SignifyClient {
 impl SignifyClient {
     /// Derives the controller and prepares a client against `transport`.
     ///
-    /// The transport is the *unsigned* one; connecting wraps it in the signing stack.
+    /// The transport is the *unsigned* one; connecting wraps it in the signing stack. It must not
+    /// retry: a [`RetryingTransport`](signify_http::retry::RetryingTransport) here would resend one
+    /// signature.
     ///
     /// # Errors
     ///
@@ -737,8 +739,6 @@ impl ConnectedClient {
             }
         })?;
 
-        // `SigningTransport` signs the request it is handed, so signing happens inside whatever
-        // the transport beneath it does — so a retry never replays a stale signature.
         let response = self.signing.execute(built).await?;
         require_success(&response)?;
         self.authenticator.authenticate(&target, response.headers())?;

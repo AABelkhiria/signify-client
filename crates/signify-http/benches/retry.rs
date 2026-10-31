@@ -176,7 +176,7 @@ fn benchmark_schedule(criterion: &mut Criterion) {
         .base_delay(Duration::from_millis(50))
         .jitter(Jitter::None)
         .max_attempts(8)
-        .scope(RetryScope::IdempotentOnly)
+        .scope(RetryScope::RepeatableOnly)
         .retry_after(RetryAfterPolicy::Honor {
             maximum: Duration::from_secs(30),
         })

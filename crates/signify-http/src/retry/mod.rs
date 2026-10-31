@@ -459,7 +459,7 @@ mod tests {
         assert_eq!(scripted.answered(), 1);
         assert_eq!(
             observer.give_ups().first().map(|event| event.reason),
-            Some(StopReason::MethodNotIdempotent),
+            Some(StopReason::MethodNotRepeatable),
         );
 
         // The caller may assert that repeating is safe.

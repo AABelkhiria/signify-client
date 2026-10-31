@@ -115,16 +115,16 @@ fn scale(span: Duration, randomness: u32) -> Duration {
 ///
 /// The reference's integration helper retries whatever its callback threw, and the suites wrap
 /// whole credential lookups in it — so a `POST` that already created something is repeated on any
-/// failure. An automatic retry is allowed only when the operation is known idempotent, which is
+/// failure. An automatic retry is allowed only when a request is known repeatable, which is
 /// what the default enforces.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum RetryScope {
-    /// Only the methods HTTP defines as idempotent: `GET`, `PUT`, and `DELETE`.
+    /// Only `GET`.
     ///
-    /// The default. A `POST` is never retried, because repeating one can create a second
-    /// identifier, registry, or credential.
+    /// The default. A `POST` can create a second identifier, registry, or credential, a KERIA `PUT`
+    /// can rotate a passcode or approve a delegation, and a `DELETE` can revoke a credential.
     #[default]
-    IdempotentOnly,
+    RepeatableOnly,
     /// Every method, including `POST`.
     ///
     /// The caller asserts that repeating the request is safe — because the endpoint is idempotent
@@ -139,9 +139,9 @@ impl RetryScope {
     pub const fn admits(self, method: Method) -> bool {
         match self {
             Self::AnyMethod => true,
-            Self::IdempotentOnly => match method {
-                Method::Get | Method::Put | Method::Delete => true,
-                Method::Post => false,
+            Self::RepeatableOnly => match method {
+                Method::Get => true,
+                Method::Post | Method::Put | Method::Delete => false,
             },
         }
     }
@@ -328,7 +328,7 @@ impl Default for RetryPolicy {
     /// The workspace's default policy.
     ///
     /// The reference's own delay shape — 50 ms doubling to a 10 s ceiling — with the bounds it
-    /// lacks: five attempts and a thirty-second total budget, jittered, idempotent methods only.
+    /// lacks: five attempts and a thirty-second total budget, jittered, `GET` only.
     fn default() -> Self {
         Self {
             max_attempts: NonZeroU32::new(5).unwrap_or(NonZeroU32::MIN),
@@ -337,7 +337,7 @@ impl Default for RetryPolicy {
             max_delay: Duration::from_secs(10),
             deadline: Some(Duration::from_secs(30)),
             jitter: Jitter::Equal,
-            scope: RetryScope::IdempotentOnly,
+            scope: RetryScope::RepeatableOnly,
             retry_after: RetryAfterPolicy::default(),
         }
     }
@@ -583,7 +583,7 @@ pub enum StopReason {
     /// The outcome is not one this policy retries.
     NotRetryable,
     /// The request's method is outside the policy's [`RetryScope`].
-    MethodNotIdempotent,
+    MethodNotRepeatable,
     /// Every allowed attempt has been made.
     AttemptsExhausted,
     /// The total deadline would elapse before, or during, the next wait.
@@ -635,7 +635,7 @@ impl Backoff {
             return RetryDecision::Stop(StopReason::NotRetryable);
         }
         if !self.policy.scope.admits(method) {
-            return RetryDecision::Stop(StopReason::MethodNotIdempotent);
+            return RetryDecision::Stop(StopReason::MethodNotRepeatable);
         }
         if self.attempts_made() >= self.policy.max_attempts() {
             return RetryDecision::Stop(StopReason::AttemptsExhausted);
@@ -780,14 +780,13 @@ mod tests {
 
     #[test]
     fn the_scope_guards_unsafe_methods() {
-        for method in [Method::Get, Method::Put, Method::Delete] {
-            assert!(RetryScope::IdempotentOnly.admits(method), "{method}");
-            assert!(RetryScope::AnyMethod.admits(method), "{method}");
-        }
-        // A POST can create a second identifier, registry, or credential.
-        assert!(!RetryScope::IdempotentOnly.admits(Method::Post));
+        assert!(RetryScope::RepeatableOnly.admits(Method::Get));
+        assert!(RetryScope::AnyMethod.admits(Method::Get));
+        assert!(!RetryScope::RepeatableOnly.admits(Method::Post));
+        assert!(!RetryScope::RepeatableOnly.admits(Method::Put));
+        assert!(!RetryScope::RepeatableOnly.admits(Method::Delete));
         assert!(RetryScope::AnyMethod.admits(Method::Post));
-        assert_eq!(RetryScope::default(), RetryScope::IdempotentOnly);
+        assert_eq!(RetryScope::default(), RetryScope::RepeatableOnly);
     }
 
     #[test]
@@ -891,7 +890,7 @@ mod tests {
         let mut backoff = Backoff::new(policy, now);
         assert_eq!(
             backoff.next(now, Method::Post, true, 0, None, wall),
-            RetryDecision::Stop(StopReason::MethodNotIdempotent),
+            RetryDecision::Stop(StopReason::MethodNotRepeatable),
         );
         // Widening the scope admits it.
         let wide = RetryPolicy::builder()
@@ -951,7 +950,7 @@ mod tests {
         assert_eq!(policy.max_delay(), Duration::from_secs(10));
         assert_eq!(policy.deadline(), Some(Duration::from_secs(30)));
         assert_eq!(policy.jitter(), Jitter::Equal);
-        assert_eq!(policy.scope(), RetryScope::IdempotentOnly);
+        assert_eq!(policy.scope(), RetryScope::RepeatableOnly);
         assert_eq!(
             policy.retry_after(),
             RetryAfterPolicy::Honor {

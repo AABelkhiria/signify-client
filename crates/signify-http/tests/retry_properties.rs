@@ -186,21 +186,21 @@ proptest! {
         prop_assert_eq!(backoff.attempts_made(), retries.saturating_add(1));
     }
 
-    /// A non-idempotent method is never retried unless the scope was widened.
+    /// A method that changes state is never retried unless the scope was widened.
     #[test]
     fn the_scope_decides_which_methods_repeat(index in 0_usize..8, widen in any::<bool>()) {
-        let scope = if widen { RetryScope::AnyMethod } else { RetryScope::IdempotentOnly };
+        let scope = if widen { RetryScope::AnyMethod } else { RetryScope::RepeatableOnly };
         let policy = RetryPolicy::builder().max_attempts(5).scope(scope).build().map_err(fail)?;
         let method = method_of(index);
         let now = Instant::now();
         let mut backoff = Backoff::new(policy, now);
 
         let decision = backoff.next(now, method, true, 0, None, SystemTime::UNIX_EPOCH);
-        let admitted = widen || method != Method::Post;
+        let admitted = widen || method == Method::Get;
         match decision {
             RetryDecision::Retry { .. } => prop_assert!(admitted, "an unsafe method was retried"),
-            RetryDecision::Stop(StopReason::MethodNotIdempotent) => {
-                prop_assert!(!admitted, "an idempotent method was refused");
+            RetryDecision::Stop(StopReason::MethodNotRepeatable) => {
+                prop_assert!(!admitted, "a repeatable method was refused");
             }
             other @ RetryDecision::Stop(_) => return Err(fail(format!("{other:?}"))),
         }

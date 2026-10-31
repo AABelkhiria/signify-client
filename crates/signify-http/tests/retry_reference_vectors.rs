@@ -405,8 +405,8 @@ fn the_defects_are_pinned_and_not_reproduced() -> Result<(), Box<dyn Error>> {
     let catches = &quirks.every_failure_is_retried_by_the_helper;
     assert_eq!(catches.catches, "catch (err)");
     assert!(fixture.integration_helper.retries_on_any_error);
-    assert_eq!(RetryPolicy::default().scope(), RetryScope::IdempotentOnly);
-    assert!(!RetryScope::IdempotentOnly.admits(Method::Post));
+    assert_eq!(RetryPolicy::default().scope(), RetryScope::RepeatableOnly);
+    assert!(!RetryScope::RepeatableOnly.admits(Method::Post));
 
     // Every divergence names what this crate does instead.
     for (name, note, decision) in [
@@ -519,7 +519,7 @@ fn a_post_the_helper_would_have_repeated_is_not_repeated() -> Result<(), Box<dyn
     // And the reason is named rather than inferred from the attempt count.
     assert_eq!(
         observer.give_ups().first().map(|event| event.reason),
-        Some(StopReason::MethodNotIdempotent),
+        Some(StopReason::MethodNotRepeatable),
     );
     Ok(())
 }

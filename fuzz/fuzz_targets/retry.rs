@@ -89,7 +89,7 @@ fuzz_target!(|data: &[u8]| {
         _ => Jitter::Full,
     };
     let scope = if selector & 0x80 == 0 {
-        RetryScope::IdempotentOnly
+        RetryScope::RepeatableOnly
     } else {
         RetryScope::AnyMethod
     };
@@ -174,10 +174,10 @@ fuzz_target!(|data: &[u8]| {
             RetryDecision::Stop(reason) => {
                 assert!(matches!(
                     reason,
-                    StopReason::AttemptsExhausted | StopReason::DeadlineElapsed | StopReason::MethodNotIdempotent
+                    StopReason::AttemptsExhausted | StopReason::DeadlineElapsed | StopReason::MethodNotRepeatable
                 ));
-                if reason == StopReason::MethodNotIdempotent {
-                    assert_eq!(scope, RetryScope::IdempotentOnly);
+                if reason == StopReason::MethodNotRepeatable {
+                    assert_eq!(scope, RetryScope::RepeatableOnly);
                     assert_eq!(method, Method::Post);
                 }
                 break;
