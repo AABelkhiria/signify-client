@@ -787,9 +787,17 @@ impl ConnectedClient {
     /// [`signify_keys::controller::rotation`].
     ///
     /// **Nothing moves locally until the agent accepts.** The rotation is computed first, sent
-    /// second, and adopted third: if the request fails, this client is exactly as it was and the
-    /// caller may retry. The reference advances its controller before it sends, so a failed
-    /// rotation there leaves a client signing with a key the agent has never seen.
+    /// second, and adopted third: if the request fails, this client is exactly as it was. The
+    /// reference advances its controller before it sends, so a failed rotation there leaves a
+    /// client signing with a key the agent has never seen.
+    ///
+    /// **The agent may have rotated even when this fails.** A timeout or a dropped answer says
+    /// nothing about whether the rotation applied, and a retry cannot succeed once it has. Persist
+    /// the new passcode and the prefix before rotating, and keep the old passcode until this
+    /// succeeds. After a failure, connect with the new one: if that fails, the rotation did not
+    /// apply, so retry. If it succeeds the controller rotated, but the agent stops at the first
+    /// error, so its identifier keys may still be sealed under the old passcode. KERIA does not
+    /// sign this answer, so it is not proof either way.
     ///
     /// **Persist the controller prefix with the new passcode.** The controller keeps the prefix its
     /// first passcode incepted, and the new passcode derives a different one, so a client started
@@ -831,6 +839,7 @@ impl ConnectedClient {
         let planned = self
             .controller
             .plan_passcode_rotation(new_passcode.expose(), identifiers)?;
+        let keepers = KeeperFactory::new(salt_from_passcode(new_passcode.expose(), self.config.tier())?);
 
         let body = rotation_body(planned.artifacts())?;
         let path = ResourcePath::builder()
@@ -858,7 +867,6 @@ impl ConnectedClient {
         // new place in the log, the request signer onto the new key, and the keeper factory and
         // configuration onto the new passcode — without which this client would go on trying to
         // open its identifiers with a key that no longer seals them.
-        let keepers = KeeperFactory::new(salt_from_passcode(new_passcode.expose(), self.config.tier())?);
         self.controller.apply_passcode_rotation(planned);
         self.signing = rotated;
         self.keepers = keepers;
