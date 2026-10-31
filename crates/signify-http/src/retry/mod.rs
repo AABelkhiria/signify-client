@@ -33,7 +33,7 @@
 //! ```
 //! use core::time::Duration;
 //! use std::sync::Arc;
-//! use signify_http::retry::{FixedJitter, Jitter, RetryPolicy, RetryingTransport, TestClock};
+//! use signify_http::retry::{Clock, FixedJitter, Jitter, RetryPolicy, RetryingTransport, TestClock};
 //! use signify_http::transport::ScriptedTransport;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -44,10 +44,12 @@
 //!     .build()?;
 //!
 //! let clock = Arc::new(TestClock::new());
-//! let transport = RetryingTransport::new(Arc::new(ScriptedTransport::new()))
-//!     .with_policy(policy)
-//!     .with_clock(Arc::clone(&clock) as Arc<dyn signify_http::retry::Clock>)
-//!     .with_jitter_source(Arc::new(FixedJitter::new(0)));
+//! let transport = RetryingTransport::new(
+//!     Arc::new(ScriptedTransport::new()),
+//!     Arc::clone(&clock) as Arc<dyn Clock>,
+//! )
+//! .with_policy(policy)
+//! .with_jitter_source(Arc::new(FixedJitter::new(0)));
 //!
 //! assert_eq!(transport.policy().max_attempts(), 4);
 //! assert!(clock.recorded_sleeps().is_empty());
@@ -157,17 +159,12 @@ pub struct RetryingTransport {
 }
 
 impl RetryingTransport {
-    /// Wraps a transport with the default policy, an operating-system jitter source, and a clock.
+    /// Wraps a transport with the default policy and an operating-system jitter source.
     ///
-    /// Without the `http-client` feature there is no runtime to wait on, so the default clock is a
-    /// [`TestClock`] and a caller must supply a real one with [`RetryingTransport::with_clock`]. With
-    /// the feature the default is `TokioClock`.
+    /// `clock` measures and waits; use `TokioClock` (the `http-client` feature) in production and
+    /// [`TestClock`] in tests.
     #[must_use]
-    pub fn new(inner: Arc<dyn Transport>) -> Self {
-        #[cfg(feature = "http-client")]
-        let clock: Arc<dyn Clock> = Arc::new(TokioClock);
-        #[cfg(not(feature = "http-client"))]
-        let clock: Arc<dyn Clock> = Arc::new(TestClock::new());
+    pub fn new(inner: Arc<dyn Transport>, clock: Arc<dyn Clock>) -> Self {
         Self {
             inner,
             policy: RetryPolicy::default(),
@@ -181,13 +178,6 @@ impl RetryingTransport {
     #[must_use]
     pub fn with_policy(mut self, policy: RetryPolicy) -> Self {
         self.policy = policy;
-        self
-    }
-
-    /// Sets the clock this transport measures and waits with.
-    #[must_use]
-    pub fn with_clock(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.clock = clock;
         self
     }
 
@@ -376,9 +366,11 @@ mod tests {
     fn a_success_is_returned_without_retrying() -> Result<(), Box<dyn Error>> {
         let clock = Arc::new(TestClock::new());
         let scripted = Arc::new(ScriptedTransport::new().respond(response(200, None)?));
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        let transport = RetryingTransport::new(
+            Arc::clone(&scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(reference_policy(5)?);
 
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(200));
@@ -397,10 +389,12 @@ mod tests {
                 .respond(response(503, None)?)
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>)
-            .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
+        let transport = RetryingTransport::new(
+            Arc::clone(&scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(reference_policy(5)?)
+        .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
 
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(200));
@@ -430,9 +424,11 @@ mod tests {
         // 500 is deliberately not in the transient set.
         for status in [400_u16, 404, 500, 501] {
             let scripted = Arc::new(ScriptedTransport::new().respond(response(status, None)?));
-            let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-                .with_policy(reference_policy(5)?)
-                .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+            let transport = RetryingTransport::new(
+                Arc::clone(&scripted) as Arc<dyn Transport>,
+                Arc::clone(&clock) as Arc<dyn Clock>,
+            )
+            .with_policy(reference_policy(5)?);
             let answer = block_on(transport.execute(request(Method::Get)?));
             assert_eq!(
                 answer.map(|response| response.status().as_u16()).ok(),
@@ -453,9 +449,8 @@ mod tests {
                 .respond(response(503, None)?)
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
+        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::new(TestClock::new()))
             .with_policy(reference_policy(5)?)
-            .with_clock(Arc::new(TestClock::new()))
             .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
 
         // Repeating this could create a second identifier.
@@ -473,15 +468,14 @@ mod tests {
                 .respond(response(503, None)?)
                 .respond(response(200, None)?),
         );
-        let widened = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
+        let widened = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::new(TestClock::new()))
             .with_policy(
                 RetryPolicy::builder()
                     .max_attempts(5)
                     .jitter(Jitter::None)
                     .scope(RetryScope::AnyMethod)
                     .build()?,
-            )
-            .with_clock(Arc::new(TestClock::new()));
+            );
         let answer = block_on(widened.execute(request(Method::Post)?));
         assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(200));
         assert_eq!(scripted.answered(), 2);
@@ -497,10 +491,12 @@ mod tests {
                 .respond(response(429, Some("5"))?)
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>)
-            .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
+        let transport = RetryingTransport::new(
+            Arc::clone(&scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(reference_policy(5)?)
+        .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
 
         let _ = block_on(transport.execute(request(Method::Get)?));
         // Five seconds, not the computed fifty milliseconds.
@@ -520,9 +516,11 @@ mod tests {
                 .respond(response(503, Some("soon please"))?)
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        let transport = RetryingTransport::new(
+            Arc::clone(&scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(reference_policy(5)?);
 
         let _ = block_on(transport.execute(request(Method::Get)?));
         // The broken header costs the server its preferred timing, nothing more.
@@ -539,10 +537,12 @@ mod tests {
             scripted = scripted.respond(response(503, None)?);
         }
         let scripted = Arc::new(scripted);
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(3)?)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>)
-            .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
+        let transport = RetryingTransport::new(
+            Arc::clone(&scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(reference_policy(3)?)
+        .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
 
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(503));
@@ -569,19 +569,21 @@ mod tests {
         for _ in 0..20 {
             scripted = scripted.respond(response(503, None)?);
         }
-        let transport = RetryingTransport::new(Arc::new(scripted) as Arc<dyn Transport>)
-            .with_policy(
-                RetryPolicy::builder()
-                    .max_attempts(100)
-                    .base_delay(Duration::from_millis(50))
-                    .min_delay(Duration::from_millis(10))
-                    .max_delay(Duration::from_secs(10))
-                    .deadline(Duration::from_secs(1))
-                    .jitter(Jitter::None)
-                    .build()?,
-            )
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>)
-            .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
+        let transport = RetryingTransport::new(
+            Arc::new(scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(
+            RetryPolicy::builder()
+                .max_attempts(100)
+                .base_delay(Duration::from_millis(50))
+                .min_delay(Duration::from_millis(10))
+                .max_delay(Duration::from_secs(10))
+                .deadline(Duration::from_secs(1))
+                .jitter(Jitter::None)
+                .build()?,
+        )
+        .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
 
         let _ = block_on(transport.execute(request(Method::Get)?));
         // 50 + 100 + 200 + 400 = 750; the next wait of 800 ms would pass one second, so it never
@@ -611,9 +613,11 @@ mod tests {
                 .fail(TransportError::connect("connection refused"))
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        let transport = RetryingTransport::new(
+            Arc::clone(&scripted) as Arc<dyn Transport>,
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
+        .with_policy(reference_policy(5)?);
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(200));
         assert_eq!(clock.recorded_sleeps(), [Duration::from_millis(50)]);
@@ -624,9 +628,8 @@ mod tests {
                 .fail(TransportError::RequestBodyTooLarge { maximum: 1, actual: 2 })
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::new(TestClock::new()));
+        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::new(TestClock::new()))
+            .with_policy(reference_policy(5)?);
         assert!(block_on(transport.execute(request(Method::Get)?)).is_err());
         assert_eq!(scripted.answered(), 1);
         Ok(())
@@ -639,9 +642,8 @@ mod tests {
                 .respond(response(503, None)?)
                 .respond(response(200, None)?),
         );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
-            .with_policy(reference_policy(5)?)
-            .with_clock(Arc::new(TestClock::new()));
+        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::new(TestClock::new()))
+            .with_policy(reference_policy(5)?);
 
         // Never polled, so nothing was sent at all.
         let pending = transport.execute(request(Method::Get)?);
@@ -652,10 +654,10 @@ mod tests {
 
     #[test]
     fn the_transport_is_usable_behind_a_trait_object() -> Result<(), Box<dyn Error>> {
-        let transport: Arc<dyn Transport> = Arc::new(
-            RetryingTransport::new(Arc::new(ScriptedTransport::new().respond(response(200, None)?)))
-                .with_clock(Arc::new(TestClock::new())),
-        );
+        let transport: Arc<dyn Transport> = Arc::new(RetryingTransport::new(
+            Arc::new(ScriptedTransport::new().respond(response(200, None)?)),
+            Arc::new(TestClock::new()),
+        ));
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert!(answer.is_ok());
         assert_ne!(format!("{transport:?}"), "");
@@ -665,7 +667,7 @@ mod tests {
 
     #[test]
     fn the_default_observer_and_policy_are_usable() -> Result<(), Box<dyn Error>> {
-        let transport = RetryingTransport::new(Arc::new(ScriptedTransport::new()));
+        let transport = RetryingTransport::new(Arc::new(ScriptedTransport::new()), Arc::new(TestClock::new()));
         assert_eq!(transport.policy().max_attempts(), 5);
         // The no-op observer accepts both events without doing anything.
         let origin = RequestOrigin::of(&request(Method::Get)?);

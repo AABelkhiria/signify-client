@@ -62,11 +62,14 @@ fn benchmark_signing(criterion: &mut Criterion) {
     let Ok(resource) = HeaderValue::new(RESOURCE) else {
         return;
     };
-    let Ok(transport) = SigningTransport::new(Arc::new(ScriptedTransport::new()), RequestSigner::new(signer), resource)
-    else {
+    let Ok(transport) = SigningTransport::new(
+        Arc::new(ScriptedTransport::new()),
+        RequestSigner::new(signer),
+        resource,
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    ) else {
         return;
     };
-    let transport = transport.with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
 
     // The plainest authenticated call the reference makes: a GET with no body.
     let Ok(url) = RequestUrl::new("http://localhost:3901/identifiers") else {
@@ -111,11 +114,14 @@ fn benchmark_signing(criterion: &mut Criterion) {
                 let Ok(resource) = HeaderValue::new(RESOURCE) else {
                     return;
                 };
-                let Ok(transport) = SigningTransport::new(Arc::new(scripted), RequestSigner::new(signer), resource)
-                else {
+                let Ok(transport) = SigningTransport::new(
+                    Arc::new(scripted),
+                    RequestSigner::new(signer),
+                    resource,
+                    Arc::clone(&clock) as Arc<dyn Clock>,
+                ) else {
                     return;
                 };
-                let transport = transport.with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
                 let Ok(request) = Request::builder(Method::Get, url.clone()).build() else {
                     return;
                 };

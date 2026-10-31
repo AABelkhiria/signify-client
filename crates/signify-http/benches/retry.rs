@@ -161,9 +161,8 @@ fn benchmark_schedule(criterion: &mut Criterion) {
                 {
                     scripted = scripted.respond(response);
                 }
-                RetryingTransport::new(Arc::new(scripted))
+                RetryingTransport::new(Arc::new(scripted), Arc::new(TestClock::new()) as Arc<dyn Clock>)
                     .with_policy(policy)
-                    .with_clock(Arc::new(TestClock::new()) as Arc<dyn Clock>)
                     .with_jitter_source(Arc::new(FixedJitter::new(0)))
             },
             |transport| block_on(transport.execute(request.clone())),
@@ -207,9 +206,8 @@ fn benchmark_schedule(criterion: &mut Criterion) {
                 {
                     scripted = scripted.respond(response);
                 }
-                RetryingTransport::new(Arc::new(scripted))
+                RetryingTransport::new(Arc::new(scripted), Arc::new(TestClock::new()) as Arc<dyn Clock>)
                     .with_policy(guided)
-                    .with_clock(Arc::new(TestClock::new()) as Arc<dyn Clock>)
                     .with_jitter_source(Arc::new(FixedJitter::new(0)))
             },
             |transport| block_on(transport.execute(request.clone())),

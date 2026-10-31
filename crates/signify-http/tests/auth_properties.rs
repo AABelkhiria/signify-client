@@ -58,9 +58,9 @@ fn signing_transport(at_millis: u64) -> Result<(SigningTransport, Arc<TestClock>
         Arc::new(ScriptedTransport::new()),
         RequestSigner::new(signer),
         HeaderValue::new(RESOURCE).map_err(fail)?,
+        Arc::clone(&clock) as Arc<dyn Clock>,
     )
-    .map_err(fail)?
-    .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+    .map_err(fail)?;
     Ok((transport, clock))
 }
 

@@ -331,9 +331,8 @@ proptest! {
             .without_deadline()
             .build()
             .map_err(fail)?;
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
+        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::clone(&clock) as Arc<dyn Clock>)
             .with_policy(policy)
-            .with_clock(Arc::clone(&clock) as Arc<dyn Clock>)
             .with_jitter_source(Arc::new(FixedJitter::new(randomness)));
 
         let url = RequestUrl::new("http://localhost:3901/identifiers").map_err(fail)?;
@@ -363,7 +362,9 @@ proptest! {
         let clock = Arc::new(TestClock::new());
         let transport = RetryingTransport::new(Arc::new(
             ScriptedTransport::new().respond(response).respond(success),
-        ))
+        ),
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )
         .with_policy(
             RetryPolicy::builder()
                 .max_attempts(3)
@@ -373,8 +374,7 @@ proptest! {
                 .retry_after(RetryAfterPolicy::Honor { maximum: Duration::from_secs(30) })
                 .build()
                 .map_err(fail)?,
-        )
-        .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        );
 
         let url = RequestUrl::new("http://localhost:3901/identifiers").map_err(fail)?;
         let request = Request::builder(Method::Get, url).build().map_err(fail)?;

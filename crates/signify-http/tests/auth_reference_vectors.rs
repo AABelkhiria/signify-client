@@ -317,8 +317,8 @@ fn every_recorded_request_is_signed_identically() -> Result<(), Box<dyn Error>> 
         Arc::new(ScriptedTransport::new()),
         RequestSigner::new(controller_signer(&fixture)?),
         HeaderValue::new(&fixture.provenance.controller_prefix)?,
-    )?
-    .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    )?;
 
     for case in &fixture.requests {
         assert!(!case.note.is_empty(), "{}", case.name);
@@ -392,8 +392,8 @@ fn the_query_is_stripped_before_signing() -> Result<(), Box<dyn Error>> {
         Arc::new(ScriptedTransport::new()),
         RequestSigner::new(controller_signer(&fixture)?),
         HeaderValue::new(&fixture.provenance.controller_prefix)?,
-    )?
-    .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    )?;
 
     let queried =
         transport.sign_request(&Request::builder(Method::Get, RequestUrl::new(quirk.url.clone())?).build()?)?;
@@ -657,8 +657,8 @@ fn the_defects_are_pinned_and_not_reproduced() -> Result<(), Box<dyn Error>> {
         Arc::new(ScriptedTransport::new()),
         RequestSigner::new(controller_signer(&fixture)?),
         HeaderValue::new(&fixture.provenance.controller_prefix)?,
-    )?
-    .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    )?;
     let once = transport
         .sign_request(&Request::builder(Method::Get, RequestUrl::new("http://localhost:3901/identifiers")?).build()?)?;
     assert!(transport.sign_request(&once).is_err(), "{}", appended.note);
@@ -720,8 +720,8 @@ fn the_signed_request_reaches_the_transport_beneath() -> Result<(), Box<dyn Erro
         Arc::clone(&scripted) as Arc<dyn Transport>,
         RequestSigner::new(controller_signer(&fixture)?),
         HeaderValue::new(&fixture.provenance.controller_prefix)?,
-    )?
-    .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    )?;
 
     let request = Request::builder(Method::Get, RequestUrl::new(case.request.url.clone())?).build()?;
     assert!(block_on(transport.execute(request)).is_ok());

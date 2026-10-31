@@ -254,9 +254,8 @@ fn the_recorded_schedule_is_driven_end_to_end_through_a_transport() -> Result<()
 
     let clock = Arc::new(TestClock::new());
     let attempts = schedule.polls;
-    let transport = RetryingTransport::new(Arc::new(scripted))
-        .with_policy(policy_for(&schedule.options, attempts)?)
-        .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+    let transport = RetryingTransport::new(Arc::new(scripted), Arc::clone(&clock) as Arc<dyn Clock>)
+        .with_policy(policy_for(&schedule.options, attempts)?);
 
     let request = Request::builder(
         Method::Get,
@@ -438,7 +437,7 @@ fn a_deadline_ends_a_sequence_the_reference_would_have_run_forever() -> Result<(
         scripted = scripted.respond(Response::new(StatusCode::new(503)?, Headers::new(), Vec::new())?);
     }
     let clock = Arc::new(TestClock::new());
-    let transport = RetryingTransport::new(Arc::new(scripted))
+    let transport = RetryingTransport::new(Arc::new(scripted), Arc::clone(&clock) as Arc<dyn Clock>)
         .with_policy(
             RetryPolicy::builder()
                 .base_delay(Duration::from_millis(50))
@@ -449,7 +448,6 @@ fn a_deadline_ends_a_sequence_the_reference_would_have_run_forever() -> Result<(
                 .jitter(Jitter::None)
                 .build()?,
         )
-        .with_clock(Arc::clone(&clock) as Arc<dyn Clock>)
         .with_jitter_source(Arc::new(FixedJitter::new(0)));
 
     let request = Request::builder(Method::Get, RequestUrl::new("http://localhost:3901/operations/x")?).build()?;
@@ -477,18 +475,16 @@ fn guidance_the_reference_would_ignore_is_honoured_and_capped() -> Result<(), Bo
         .respond(Response::new(StatusCode::new(200)?, Headers::new(), Vec::new())?);
 
     let clock = Arc::new(TestClock::new());
-    let transport = RetryingTransport::new(Arc::new(scripted))
-        .with_policy(
-            RetryPolicy::builder()
-                .max_attempts(3)
-                .jitter(Jitter::None)
-                .without_deadline()
-                .retry_after(RetryAfterPolicy::Honor {
-                    maximum: Duration::from_secs(30),
-                })
-                .build()?,
-        )
-        .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+    let transport = RetryingTransport::new(Arc::new(scripted), Arc::clone(&clock) as Arc<dyn Clock>).with_policy(
+        RetryPolicy::builder()
+            .max_attempts(3)
+            .jitter(Jitter::None)
+            .without_deadline()
+            .retry_after(RetryAfterPolicy::Honor {
+                maximum: Duration::from_secs(30),
+            })
+            .build()?,
+    );
 
     let request = Request::builder(Method::Get, RequestUrl::new("http://localhost:3901/identifiers")?).build()?;
     let answer = block_on(transport.execute(request));
@@ -509,9 +505,8 @@ fn a_post_the_helper_would_have_repeated_is_not_repeated() -> Result<(), Box<dyn
             .respond(Response::new(StatusCode::new(200)?, Headers::new(), Vec::new())?),
     );
     let observer = Arc::new(GiveUpRecorder::default());
-    let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>)
+    let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::new(TestClock::new()))
         .with_policy(RetryPolicy::builder().max_attempts(5).jitter(Jitter::None).build()?)
-        .with_clock(Arc::new(TestClock::new()))
         .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
 
     // `identifiers().create` is a POST; repeating it can incept a second identifier.

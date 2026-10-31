@@ -106,11 +106,14 @@ fuzz_target!(|data: &[u8]| {
     let Ok(resource) = HeaderValue::new(RESOURCE) else {
         return;
     };
-    let Ok(transport) = SigningTransport::new(Arc::new(ScriptedTransport::new()), RequestSigner::new(signer), resource)
-    else {
+    let Ok(transport) = SigningTransport::new(
+        Arc::new(ScriptedTransport::new()),
+        RequestSigner::new(signer),
+        resource,
+        Arc::clone(&clock),
+    ) else {
         return;
     };
-    let transport = transport.with_clock(Arc::clone(&clock));
 
     let split = usize::from(*path_len) % text.len().saturating_add(1);
     let candidate = format!("http://localhost:3901/{}", text.get(..split).unwrap_or_default());
@@ -166,10 +169,10 @@ fuzz_target!(|data: &[u8]| {
                 Ok(value) => value,
                 Err(_) => return,
             },
+            Arc::clone(&clock),
         );
         if let Ok(broken) = broken {
             let broken = broken
-                .with_clock(Arc::clone(&clock))
                 .with_covered_components(vec![signify_http::signature::input::SignatureComponent::Header(absent)]);
             match block_on(broken.execute(request)) {
                 Ok(_) => panic!("an unsignable request was sent"),

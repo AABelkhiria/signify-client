@@ -442,8 +442,7 @@ impl ConnectedClient {
     ) -> Result<Self, ClientError> {
         let resource = HeaderValue::new(controller.prefix().qb64().map_err(prefix_error)?)?;
         let signer = RequestSigner::new(controller.derive_signing_key()?);
-        let signing =
-            SigningTransport::new(Arc::clone(&transport), signer, resource.clone())?.with_clock(Arc::clone(&clock));
+        let signing = SigningTransport::new(Arc::clone(&transport), signer, resource.clone(), Arc::clone(&clock))?;
         let verifier = ResponseVerifier::new(agent_key(&agent));
         let agent_resource = HeaderValue::new(agent.prefix().qb64().map_err(prefix_error)?)?;
         let authenticator = ResponseAuthenticator::new(verifier, agent_resource, Arc::clone(&clock));
@@ -688,8 +687,12 @@ impl ConnectedClient {
         let resource = HeaderValue::new(record.common.prefix.clone())?;
         // The signing itself is the signing transport's, which exposes `sign_request` for exactly
         // this call. The inner transport is never used: nothing is sent from here.
-        let signing = SigningTransport::new(Arc::clone(&self.unsigned), RequestSigner::new(signer), resource)?
-            .with_clock(Arc::clone(&self.clock));
+        let signing = SigningTransport::new(
+            Arc::clone(&self.unsigned),
+            RequestSigner::new(signer),
+            resource,
+            Arc::clone(&self.clock),
+        )?;
         Ok(signing.sign_request(&request)?)
     }
 
@@ -858,8 +861,8 @@ impl ConnectedClient {
             Arc::clone(&self.unsigned),
             RequestSigner::new(planned.derive_signing_key()?),
             self.resource.clone(),
-        )?
-        .with_clock(Arc::clone(&self.clock));
+            Arc::clone(&self.clock),
+        )?;
         let response = rotated.execute(request).await?;
         require_success(&response)?;
 

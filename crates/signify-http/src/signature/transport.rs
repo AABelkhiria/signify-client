@@ -143,8 +143,8 @@ impl Freshness {
 ///     Arc::new(ScriptedTransport::new()),
 ///     RequestSigner::new(signer),
 ///     HeaderValue::new("ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose")?,
-/// )?
-/// .with_clock(Arc::new(TestClock::new()));
+///     Arc::new(TestClock::new()),
+/// )?;
 ///
 /// assert_eq!(transport.covered_components().len(), 4);
 /// # Ok(())
@@ -164,7 +164,7 @@ impl SigningTransport {
     ///
     /// `resource` is the `Signify-Resource` value — the controller prefix a KERIA agent knows this
     /// client by. What that prefix *is* stays the client's knowledge; this layer only stamps and
-    /// covers it.
+    /// covers it. `clock` supplies the timestamp and the `created` parameter.
     ///
     /// # Errors
     ///
@@ -174,24 +174,15 @@ impl SigningTransport {
         inner: Arc<dyn Transport>,
         signer: RequestSigner,
         resource: HeaderValue,
+        clock: Arc<dyn Clock>,
     ) -> Result<Self, AuthenticationError> {
         Ok(Self {
             inner,
             signer,
-            #[cfg(feature = "http-client")]
-            clock: Arc::new(crate::retry::TokioClock),
-            #[cfg(not(feature = "http-client"))]
-            clock: Arc::new(crate::retry::TestClock::new()),
+            clock,
             resource,
             components: default_components()?,
         })
-    }
-
-    /// Sets the clock the timestamp and the `created` parameter are read from.
-    #[must_use]
-    pub fn with_clock(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.clock = clock;
-        self
     }
 
     /// Sets which components a signature covers.
@@ -574,8 +565,8 @@ mod tests {
             )?)),
             RequestSigner::new(signer),
             HeaderValue::new(RESOURCE)?,
-        )?
-        .with_clock(clock);
+            clock,
+        )?;
         Ok((transport, copy))
     }
 
@@ -680,8 +671,8 @@ mod tests {
             Arc::clone(&scripted) as Arc<dyn Transport>,
             RequestSigner::new(Signer::generate(KeyTransferability::NonTransferable)?),
             HeaderValue::new(RESOURCE)?,
-        )?
-        .with_clock(Arc::clone(&clock) as Arc<dyn Clock>);
+            Arc::clone(&clock) as Arc<dyn Clock>,
+        )?;
 
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert!(answer.is_ok());

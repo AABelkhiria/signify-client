@@ -9,9 +9,9 @@
 //!
 //! [`Clock::now`] is monotonic and is the only thing a deadline is measured against, because a
 //! wall clock can step backwards when an operator or NTP corrects it — which would either expire a
-//! deadline early or extend it indefinitely. [`Clock::wall_clock`] exists solely to subtract *now*
-//! from the HTTP-date form of `Retry-After`, where a wall reading is what the server's value
-//! means. Nothing else in this crate reads it.
+//! deadline early or extend it indefinitely. [`Clock::wall_clock`] exists to subtract *now* from the
+//! HTTP-date form of `Retry-After`, where a wall reading is what the server's value means, and to
+//! stamp and check signatures.
 
 use core::fmt;
 use core::future::Future;
@@ -44,8 +44,8 @@ pub trait Clock: fmt::Debug + Send + Sync {
 
     /// Returns the current wall-clock time.
     ///
-    /// Used only to interpret the HTTP-date form of `Retry-After`. The default reads the system
-    /// clock; a test clock overrides it so that form is deterministic too.
+    /// The default reads the system clock; a test clock overrides it so `Retry-After` dates and
+    /// signature timestamps are deterministic too.
     fn wall_clock(&self) -> SystemTime {
         SystemTime::now()
     }
