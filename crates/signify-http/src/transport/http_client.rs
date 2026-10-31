@@ -12,6 +12,7 @@
 //! takes a dependency on tokio — deliberately, documented, and behind a feature that is off by
 //! default. A caller who brings its own transport never links it.
 
+use std::net::IpAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -33,18 +34,42 @@ use crate::transport::{Transport, TransportFuture};
 /// a lock across.
 pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// Where `http://` is allowed.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Plaintext {
+    Never,
+    Loopback,
+    Anywhere,
+}
+
+impl Plaintext {
+    fn admits(self, host: Option<&str>) -> bool {
+        match self {
+            Self::Never => false,
+            Self::Loopback => host.is_some_and(is_loopback),
+            Self::Anywhere => true,
+        }
+    }
+}
+
+/// Returns whether a URL's host is `localhost` or a loopback address.
+fn is_loopback(host: &str) -> bool {
+    let address = host.trim_start_matches('[').trim_end_matches(']');
+    host.eq_ignore_ascii_case("localhost") || address.parse().is_ok_and(|address: IpAddr| address.is_loopback())
+}
+
 /// Builds an [`HttpTransport`].
 #[derive(Clone, Debug)]
 pub struct HttpTransportBuilder {
     timeout: Duration,
-    allow_plaintext: bool,
+    plaintext: Plaintext,
 }
 
 impl Default for HttpTransportBuilder {
     fn default() -> Self {
         Self {
             timeout: DEFAULT_TIMEOUT,
-            allow_plaintext: true,
+            plaintext: Plaintext::Loopback,
         }
     }
 }
@@ -60,14 +85,24 @@ impl HttpTransportBuilder {
         self
     }
 
-    /// Refuses `http://` URLs, so every request must be TLS-protected.
+    /// Refuses `http://` URLs everywhere, loopback included.
     ///
-    /// Plaintext is allowed by default because a KERIA agent is routinely reached over loopback
-    /// during development, and because every request already carries its own signatures. A
-    /// deployment talking to a remote agent should turn it off.
+    /// By default `http://` is allowed only to loopback, for local development. Overrides
+    /// [`Self::allow_plaintext`].
     #[must_use]
     pub const fn require_tls(mut self) -> Self {
-        self.allow_plaintext = false;
+        self.plaintext = Plaintext::Never;
+        self
+    }
+
+    /// Allows `http://` to any host.
+    ///
+    /// Signatures cover neither a request's body nor its query, and nothing covers a response's
+    /// body, so anyone on the path can rewrite them. Use this only on a network you trust.
+    /// Overrides [`Self::require_tls`].
+    #[must_use]
+    pub const fn allow_plaintext(mut self) -> Self {
+        self.plaintext = Plaintext::Anywhere;
         self
     }
 
@@ -91,7 +126,7 @@ impl HttpTransportBuilder {
         Ok(HttpTransport {
             client: Arc::new(Client::builder(TokioExecutor::new()).build(https)),
             timeout: self.timeout,
-            allow_plaintext: self.allow_plaintext,
+            plaintext: self.plaintext,
         })
     }
 }
@@ -125,7 +160,7 @@ impl HttpTransportBuilder {
 pub struct HttpTransport {
     client: Arc<Client<hyper_rustls::HttpsConnector<HttpConnector>, Full<Bytes>>>,
     timeout: Duration,
-    allow_plaintext: bool,
+    plaintext: Plaintext,
 }
 
 impl core::fmt::Debug for HttpTransport {
@@ -134,7 +169,7 @@ impl core::fmt::Debug for HttpTransport {
         formatter
             .debug_struct("HttpTransport")
             .field("timeout", &self.timeout)
-            .field("allow_plaintext", &self.allow_plaintext)
+            .field("plaintext", &self.plaintext)
             .finish_non_exhaustive()
     }
 }
@@ -163,13 +198,13 @@ impl HttpTransport {
 
     /// Sends one request and reads its response, both under the configured deadline.
     async fn send(&self, request: Request) -> Result<Response, TransportError> {
-        if !self.allow_plaintext && request.url().scheme() != "https" {
-            return Err(TransportError::InvalidUrl {
-                reason: "this transport requires https",
-            });
-        }
         let limit = request.response_limit();
         let outgoing = build_outgoing(&request)?;
+        if request.url().scheme() != "https" && !self.plaintext.admits(outgoing.uri().host()) {
+            return Err(TransportError::InvalidUrl {
+                reason: "http is not allowed to this host; use https",
+            });
+        }
 
         let exchange = async {
             let response = self
@@ -295,7 +330,7 @@ mod tests {
         assert_eq!(transport.timeout(), Duration::from_millis(250));
         let rendered = format!("{transport:?}");
         assert!(rendered.contains("250ms"), "{rendered}");
-        assert!(rendered.contains("allow_plaintext"), "{rendered}");
+        assert!(rendered.contains("plaintext"), "{rendered}");
         // Cloning shares the pool rather than building a second one.
         let clone = transport.clone();
         assert_eq!(clone.timeout(), transport.timeout());
@@ -377,13 +412,30 @@ mod tests {
     #[test]
     fn a_plaintext_url_is_refused_when_tls_is_required() -> Result<(), Box<dyn Error>> {
         let transport = HttpTransport::builder().require_tls().build()?;
+        let outcome = futures_block_on(transport.send(request(Method::Get, "http://127.0.0.1/a")?))?;
+        assert!(matches!(outcome, Err(TransportError::InvalidUrl { .. })));
+        Ok(())
+    }
+
+    #[test]
+    fn a_remote_plaintext_url_is_refused_by_default() -> Result<(), Box<dyn Error>> {
+        let transport = HttpTransport::new()?;
         let outcome = futures_block_on(transport.send(request(Method::Get, "http://keria.example/a")?))?;
         assert!(matches!(outcome, Err(TransportError::InvalidUrl { .. })));
-
-        // The default allows plaintext, which loopback development needs.
-        let permissive = HttpTransport::new()?;
-        assert!(permissive.allow_plaintext);
         Ok(())
+    }
+
+    #[test]
+    fn plaintext_reaches_only_what_its_policy_admits() {
+        for host in ["localhost", "LOCALHOST", "127.0.0.1", "127.1.2.3", "[::1]"] {
+            assert!(Plaintext::Loopback.admits(Some(host)), "{host}");
+        }
+        for host in ["keria.example", "localhost.example", "10.0.0.1", "[::2]"] {
+            assert!(!Plaintext::Loopback.admits(Some(host)), "{host}");
+            assert!(Plaintext::Anywhere.admits(Some(host)), "{host}");
+        }
+        assert!(!Plaintext::Loopback.admits(None));
+        assert!(!Plaintext::Never.admits(Some("localhost")));
     }
 
     #[test]
