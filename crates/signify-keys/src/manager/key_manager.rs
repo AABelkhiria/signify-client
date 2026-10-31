@@ -6,9 +6,8 @@
 //! independent fields, and then guards against the combinations that cannot work — "Unauthorized
 //! decryption attempt. Aeid but no decrypter." appears twice. Here one optional value holds all of
 //! them, derived from the seed signer the caller supplies, so a manager either can seal and open
-//! private keys or does not claim to. The reference's `verifySeed` check, which asks whether the
-//! supplied seed matches the supplied identifier, has nothing to check: the identifier *is* the
-//! seed's public key.
+//! private keys or does not claim to. The identifier *is* the seed's public key, so only
+//! [`KeyManager::restore`] has anything to check: it compares the seed with the saved identifier.
 //!
 //! # Two ways a private key is recovered
 //!
@@ -131,7 +130,7 @@ pub struct InceptionRequest {
     pub stem: Stem,
     /// Whether the identifier may rotate.
     pub transferability: KeyTransferability,
-    /// Derivation cost. The tier recorded for the identifier comes from the salt, not from here.
+    /// Derivation cost. A standard profile's tier is recorded, and rotations derive under it.
     pub profile: KeyDerivationProfile,
     /// Digest algorithm committing to the next keys.
     pub digest: DigestAlgorithm,
@@ -161,7 +160,7 @@ pub struct RotationRequest {
     pub next_keys: usize,
     /// Whether the new keys may rotate again.
     pub transferability: KeyTransferability,
-    /// Derivation cost for the new keys.
+    /// Derivation cost for the new keys. An identifier's recorded tier overrides a standard profile.
     pub profile: KeyDerivationProfile,
     /// Digest algorithm committing to the new keys.
     pub digest: DigestAlgorithm,
@@ -307,6 +306,12 @@ impl KeyManagerBuilder {
     }
 }
 
+/// How one new private key will be recovered.
+enum RetainedKey {
+    Sealed(String),
+    Derivable(StoredPath),
+}
+
 /// Creates, stores, rotates, and signs with the keys of the identifiers one controller holds.
 ///
 /// ```
@@ -381,13 +386,28 @@ impl KeyManager {
 
     /// Restores a manager over saved state, sealing private keys to `seed`'s public key.
     ///
+    /// Without a `salt`, the one sealed in the store is opened.
+    ///
     /// # Errors
     ///
-    /// Returns whatever [`KeyManagerBuilder::build_encrypted`] returns.
-    pub fn restore(store: KeyStore, salt: Option<Salt>, seed: &Signer) -> Result<Self, ManagerError> {
+    /// Returns [`ManagerError::SeedDoesNotMatchIdentifier`] when the store's keys are sealed to
+    /// another seed, a layered [`ManagerError::Crypto`] when its salt cannot be opened, and
+    /// whatever [`KeyManagerBuilder::build_encrypted`] returns.
+    pub fn restore(store: KeyStore, mut salt: Option<Salt>, seed: &Signer) -> Result<Self, ManagerError> {
         let globals = store.globals().cloned();
         let mut builder = Self::builder().store(store);
         if let Some(globals) = globals {
+            if let Some(identifier) = &globals.encryption_identifier
+                && *identifier != seed.verifier().qb64()?
+            {
+                return Err(ManagerError::SeedDoesNotMatchIdentifier);
+            }
+            if salt.is_none()
+                && let Some(sealed) = &globals.sealed_salt
+            {
+                let decrypter = Decrypter::from_signer(seed);
+                salt = Some(decrypter.decrypt_salt(&Ciphertext::from_qb64(sealed)?, globals.tier)?);
+            }
             builder = builder
                 .prefix_index(globals.prefix_index)
                 .algorithm(globals.algorithm)
@@ -503,7 +523,10 @@ impl KeyManager {
                 _ => None,
             },
             stem: request.stem,
-            tier: salt.map(Salt::tier),
+            tier: salt.map(|salt| match request.profile {
+                KeyDerivationProfile::Standard(tier) => tier,
+                _ => salt.tier(),
+            }),
         };
         let situation = PrefixSituation {
             old: PublicKeyLot::default(),
@@ -519,17 +542,23 @@ impl KeyManager {
             },
         };
 
-        if !self.store.insert_alias(&prefix, prefix.clone())
-            || !self.store.insert_parameters(&prefix, parameters)
-            || !self.store.insert_situation(&prefix, situation)
+        if self.store.alias(&prefix).is_some()
+            || self.store.parameters(&prefix).is_some()
+            || self.store.situation(&prefix).is_some()
         {
             return Err(ManagerError::AlreadyIncepted { prefix });
         }
 
-        self.retain(current, request.profile)?;
-        self.retain(next, request.profile)?;
+        // Everything that can fail comes first, so a failed inception leaves no trace.
+        let retained_current = self.prepare(current, request.profile)?;
+        let retained_next = self.prepare(next, request.profile)?;
         self.advance_prefix_index()?;
 
+        self.store.insert_alias(&prefix, prefix.clone());
+        self.store.insert_parameters(&prefix, parameters);
+        self.store.insert_situation(&prefix, situation);
+        self.retain(retained_current);
+        self.retain(retained_next);
         self.store.insert_key_set(&RotationKey::new(&prefix, 0), current_keys);
         self.store.insert_key_set(&RotationKey::new(&prefix, 1), next_keys);
 
@@ -575,21 +604,7 @@ impl KeyManager {
             .collect::<Result<Vec<_>, _>>()?;
 
         // The identifier's own salt when it has one, otherwise the manager's.
-        let identifier_salt = match &parameters.sealed_salt {
-            Some(sealed) => {
-                let encryption = self
-                    .encryption
-                    .as_ref()
-                    .ok_or(ManagerError::SaltDecryptionUnavailable)?;
-                let tier = parameters.tier.unwrap_or_else(|| self.tier());
-                Some(
-                    encryption
-                        .decrypter
-                        .decrypt_salt(&Ciphertext::from_qb64(sealed)?, tier)?,
-                )
-            }
-            None => None,
-        };
+        let identifier_salt = self.open_identifier_salt(&parameters)?;
         let salt = match parameters.algorithm.creator_kind()? {
             CreatorKind::Salty => Some(
                 identifier_salt
@@ -620,30 +635,39 @@ impl KeyManager {
             )
             .ok_or(ManagerError::IndexOverflow { index: "key" })?;
 
+        let profile = match (request.profile, parameters.tier) {
+            (KeyDerivationProfile::Standard(_), Some(tier)) => KeyDerivationProfile::Standard(tier),
+            (profile, _) => profile,
+        };
         let created = creator.create(
             request.next_keys,
             request.transferability,
             KeyIndices::new(parameters.prefix_index, rotation_index, key_index),
-            request.profile,
+            profile,
         )?;
         let next_digests = digests(&created, request.digest)?;
         let next_keys = created.public_keys()?;
+        let retained = self.prepare(created, profile)?;
 
         situation.next = PublicKeyLot {
             public_keys: next_keys.clone(),
             rotation_index,
             key_index,
         };
-        self.store.replace_situation(&prefix, situation);
+        // An empty stem reuses one key at every position, so a retired key can still be in use.
+        let in_use =
+            |key: &String| situation.current.public_keys.contains(key) || situation.next.public_keys.contains(key);
+        let erased: Vec<String> = match request.retired_keys {
+            RetiredKeyPolicy::Erase => retired.public_keys.into_iter().filter(|key| !in_use(key)).collect(),
+            RetiredKeyPolicy::Keep => Vec::new(),
+        };
 
-        self.retain(created, request.profile)?;
+        self.store.replace_situation(&prefix, situation);
+        self.retain(retained);
         self.store
             .insert_key_set(&RotationKey::new(&prefix, rotation_index), next_keys);
-
-        if request.retired_keys == RetiredKeyPolicy::Erase {
-            for public_key in &retired.public_keys {
-                self.store.remove_sealed_key(public_key);
-            }
+        for public_key in &erased {
+            self.store.remove_sealed_key(public_key);
         }
 
         Ok(RotatedKeys {
@@ -803,26 +827,60 @@ impl KeyManager {
         Ok(salt.derive_signer_with_profile(stored.path.as_str(), transferability, stored.profile)?)
     }
 
-    /// Stores a created key set, sealing it or recording the paths that recreate it.
-    fn retain(&mut self, keys: CreatedKeys, profile: KeyDerivationProfile) -> Result<(), ManagerError> {
+    /// Opens the identifier's own sealed salt, if it has one.
+    fn open_identifier_salt(&self, parameters: &PrefixParameters) -> Result<Option<Salt>, ManagerError> {
+        let Some(sealed) = &parameters.sealed_salt else {
+            return Ok(None);
+        };
+        let encryption = self
+            .encryption
+            .as_ref()
+            .ok_or(ManagerError::SaltDecryptionUnavailable)?;
+        let tier = parameters.tier.unwrap_or_else(|| self.tier());
+        Ok(Some(
+            encryption
+                .decrypter
+                .decrypt_salt(&Ciphertext::from_qb64(sealed)?, tier)?,
+        ))
+    }
+
+    /// Works out what to store for new keys, without storing it yet.
+    fn prepare(
+        &self,
+        keys: CreatedKeys,
+        profile: KeyDerivationProfile,
+    ) -> Result<Vec<(String, RetainedKey)>, ManagerError> {
+        let mut prepared = Vec::new();
         for (signer, path) in keys.into_entries() {
             let public_key = signer.verifier().qb64()?;
-            match (&self.encryption, path) {
-                (Some(encryption), _) => {
-                    let ciphertext = encryption.encrypter.encrypt_signer(&signer)?.qb64()?;
-                    self.store.insert_sealed_key(&public_key, ciphertext);
-                }
+            let retained = match (&self.encryption, path) {
+                (Some(encryption), _) => RetainedKey::Sealed(encryption.encrypter.encrypt_signer(&signer)?.qb64()?),
                 (None, Some(path)) => {
                     // The reference forgets the derivation code when a *rotation* stores a path,
                     // which leaves the rotated key unusable for signing; there is no separate code
                     // here to forget, and the profile is the one the key was actually derived
                     // under. See the `keri-manager` fixture.
-                    self.store.insert_path(&public_key, StoredPath { path, profile });
+                    RetainedKey::Derivable(StoredPath { path, profile })
                 }
                 (None, None) => return Err(ManagerError::RandomKeysNeedEncryption),
+            };
+            prepared.push((public_key, retained));
+        }
+        Ok(prepared)
+    }
+
+    /// Stores prepared keys, sealed or as the paths that recreate them.
+    fn retain(&mut self, keys: Vec<(String, RetainedKey)>) {
+        for (public_key, retained) in keys {
+            match retained {
+                RetainedKey::Sealed(ciphertext) => {
+                    self.store.insert_sealed_key(&public_key, ciphertext);
+                }
+                RetainedKey::Derivable(path) => {
+                    self.store.insert_path(&public_key, path);
+                }
             }
         }
-        Ok(())
     }
 
     fn advance_prefix_index(&mut self) -> Result<(), ManagerError> {
@@ -1380,6 +1438,100 @@ mod tests {
     fn a_salty_manager_without_a_salt_cannot_incept() -> Result<(), Box<dyn Error>> {
         let mut manager = KeyManager::builder().build()?;
         assert!(matches!(manager.incept(temporary()), Err(ManagerError::MissingSalt)));
+        Ok(())
+    }
+
+    #[test]
+    fn restoring_with_another_seed_is_refused() -> Result<(), Box<dyn Error>> {
+        let mut manager = KeyManager::builder().salt(salt()?).build_encrypted(&crypt_seed()?)?;
+        manager.incept(temporary())?;
+        let other = Signer::from_seed(&[7; 32], KeyTransferability::NonTransferable)?;
+
+        assert!(matches!(
+            KeyManager::restore(manager.store().clone(), None, &other),
+            Err(ManagerError::SeedDoesNotMatchIdentifier)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn restoring_without_a_salt_opens_the_sealed_one() -> Result<(), Box<dyn Error>> {
+        let seed = crypt_seed()?;
+        let mut manager = KeyManager::builder().salt(salt()?).build_encrypted(&seed)?;
+        manager.incept(temporary())?;
+
+        let mut restored = KeyManager::restore(manager.store().clone(), None, &seed)?;
+        assert!(
+            restored
+                .store()
+                .globals()
+                .is_some_and(|globals| globals.sealed_salt.is_some())
+        );
+        assert_eq!(restored.prefix_index(), 1);
+        assert_eq!(
+            restored.incept(temporary())?.prefix,
+            manager.incept(temporary())?.prefix
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_failed_inception_leaves_nothing_behind() -> Result<(), Box<dyn Error>> {
+        let mut manager = KeyManager::builder().salt(salt()?).build()?;
+        let refused = manager.incept(InceptionRequest {
+            algorithm: Some(KeyAlgorithm::Randy),
+            ..temporary()
+        });
+
+        assert!(matches!(refused, Err(ManagerError::RandomKeysNeedEncryption)));
+        assert_eq!(manager.prefix_index(), 0);
+        assert_eq!(
+            format!("{:?}", manager.store()),
+            format!("{:?}", KeyManager::builder().salt(salt()?).build()?.store())
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn an_empty_stem_keeps_its_one_key_through_rotations() -> Result<(), Box<dyn Error>> {
+        let mut manager = KeyManager::builder().salt(salt()?).build_encrypted(&crypt_seed()?)?;
+        let incepted = manager.incept(temporary())?;
+
+        for _ in 0..3 {
+            manager.rotate(RotationRequest {
+                profile: KeyDerivationProfile::Temporary,
+                ..RotationRequest::new(&incepted.prefix)
+            })?;
+        }
+        assert!(manager.store().sealed_key(&incepted.prefix).is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn a_rotation_derives_under_the_recorded_tier() -> Result<(), Box<dyn Error>> {
+        let stem = Stem::new("tiered")?;
+        let medium = KeyDerivationProfile::Standard(SecurityTier::Medium);
+        let mut manager = KeyManager::builder().salt(salt()?).build()?;
+        let incepted = manager.incept(InceptionRequest {
+            stem: stem.clone(),
+            profile: medium,
+            ..InceptionRequest::default()
+        })?;
+
+        // The request asks for the low tier.
+        manager.rotate(RotationRequest::new(&incepted.prefix))?;
+
+        let expected = SaltyKeyCreator::new(&salt()?, stem).create(
+            1,
+            KeyTransferability::Transferable,
+            KeyIndices::new(0, 2, 2),
+            medium,
+        )?;
+        let situation = manager.store().situation(&incepted.prefix);
+        assert_eq!(
+            situation.map(|lot| lot.next.public_keys.clone()),
+            Some(expected.public_keys()?)
+        );
         Ok(())
     }
 
