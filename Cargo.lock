@@ -1293,6 +1293,7 @@ dependencies = [
  "keri-cesr",
  "keri-http-auth",
  "proptest",
+ "rustls",
  "serde",
  "serde_json",
  "tokio",

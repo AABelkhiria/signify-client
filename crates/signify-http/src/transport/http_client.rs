@@ -113,9 +113,10 @@ impl HttpTransportBuilder {
     /// Returns [`TransportError::Connect`] when the platform's trust store cannot be read.
     pub fn build(self) -> Result<HttpTransport, TransportError> {
         // The platform trust store, so a private or enterprise certificate authority works
-        // without the SDK shipping its own root list.
+        // without the SDK shipping its own root list. The provider is named because rustls panics
+        // on the process default when an application compiles in a second provider.
         let roots = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
+            .with_provider_and_native_roots(rustls::crypto::ring::default_provider())
             .map_err(|error| TransportError::connect(format!("cannot read the platform trust store: {error}")))?
             .https_or_http()
             .enable_all_versions();
