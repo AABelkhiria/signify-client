@@ -26,7 +26,7 @@
 //! implementations awaits anything: no key operation here performs I/O. `signify-keys` may not
 //! acquire an async runtime, so the trait is synchronous. An external module backed by a network
 //! HSM has to bridge that itself; an asynchronous external contract, if one is ever needed, belongs
-//! with the client phases that own transport.
+//! in `signify-client`, which owns transport.
 //!
 //! # Derivation differs from the key manager's
 //!

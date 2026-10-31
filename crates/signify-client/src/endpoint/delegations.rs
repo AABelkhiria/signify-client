@@ -137,8 +137,8 @@ impl InceptionSeal {
     /// Writes the seal in the reference's own field order.
     ///
     /// The sequence number is `"0"` and always `"0"`: an inception is the first event of its log,
-    /// and this seal approves an inception. A delegated *rotation* is the delegated multisig
-    /// workflow's, and will name a sequence number it is given.
+    /// and this seal approves an inception. A delegated *rotation* belongs to the multisig
+    /// delegation workflow, which names the sequence number it is given.
     ///
     /// # Errors
     ///

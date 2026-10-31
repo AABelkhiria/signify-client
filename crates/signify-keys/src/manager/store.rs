@@ -6,7 +6,6 @@
 //! implementation, an in-memory `Keeper`. A public trait should not be introduced ahead of a second
 //! implementation, and storage need only be *injected* rather than ambient — which
 //! [`KeyManager::restore`](super::KeyManager::restore) does by taking a store the caller assembled.
-//! A trait belongs here once a persistent store exists.
 //!
 //! # What is stored, and what is not
 //!

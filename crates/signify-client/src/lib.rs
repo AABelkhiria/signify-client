@@ -1,16 +1,14 @@
 //! High-level Signify client and KERIA endpoint families.
 //!
-//! The crate opens with the client lifecycle: [`config`] validates what a client is built from,
-//! [`client`] boots an agent, reads its state, connects to it, and sends signed requests, and
-//! [`random`] generates the two values a client draws from the operating system. [`endpoint`] holds
-//! the endpoint families, starting with operations. [`operation`] is the first *workflow* here
-//! rather than an address: waiting for a long-running agent operation to finish.
+//! [`config`] validates what a client is built from, [`client`] boots an agent, reads its state,
+//! connects to it, and sends signed requests, and [`random`] generates the two values a client
+//! draws from the operating system. [`endpoint`] holds the endpoint families, and [`operation`]
+//! waits for a long-running agent operation to finish.
 //!
 //! Nothing in this crate implements protocol logic of its own. Events come from `signify-keys`,
-//! credentials from `keri-acdc` signed through `signify-keys`, and the whole signed-request mechanism
-//! from `signify-http`;
-//! what the client adds is which URL to send to, which prefix to stamp, and which key to verify
-//! against.
+//! credentials from `keri-acdc` signed through `signify-keys`, and the whole signed-request
+//! mechanism from `signify-http`; what the client adds is which URL to send to, which prefix to
+//! stamp, and which key to verify against.
 //!
 //! This crate is also the SDK's single entry point. The crates it is built on are re-exported at
 //! the root — [`keys`], [`http`], [`protocol`], [`acdc`], [`cesr`], [`crypto`], [`auth`] and

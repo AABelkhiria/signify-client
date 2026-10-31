@@ -52,8 +52,7 @@ pub const STRENGTH_PARAMETER: &str = "strength";
 /// The exchange route a challenge answer is sent over.
 ///
 /// The exchange family owns the submission (see the module documentation); the constant is here
-/// because it is a fact about *challenges* rather than about exchanges, and a caller answering one
-/// before then needs it.
+/// because it is a fact about *challenges* rather than about exchanges.
 pub const CHALLENGE_RESPONSE_ROUTE: &str = "/challenge/response";
 
 /// The exchange topic a challenge answer is filed under; the reference's `'challenge'`.

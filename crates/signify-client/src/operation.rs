@@ -80,7 +80,7 @@ pub const DEFAULT_DEADLINE: Duration = Duration::from_secs(30);
 ///
 /// The reference makes unboundedly many. Twenty is what the default schedule fits inside
 /// [`DEFAULT_DEADLINE`] with room to spare: the un-jittered delays sum past thirty seconds by the
-/// ninth, so in practice the deadline is the binding limit and this is a backstop.
+/// tenth, so in practice the deadline is the binding limit and this is a backstop.
 pub const DEFAULT_MAX_ATTEMPTS: u32 = 20;
 
 /// One operation another is waiting on.

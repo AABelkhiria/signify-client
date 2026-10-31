@@ -1,7 +1,6 @@
 //! The client lifecycle: boot an agent, read its state, connect to it, and send signed requests.
 //!
-//! This ports `SignifyClient` from the pinned `src/keri/app/clienting.ts`, minus the endpoint
-//! accessors and the passcode rotation. The order is fixed by the protocol:
+//! The order is fixed by the protocol:
 //!
 //! ```text
 //! boot     POST {boot}/boot            unsigned — no agent exists yet to sign to
@@ -713,7 +712,7 @@ impl ConnectedClient {
 
     /// Sends one signed request and authenticates the response.
     ///
-    /// This is the pipeline every endpoint family will use: stamp the resource and the timestamp,
+    /// This is the pipeline every endpoint family uses: stamp the resource and the timestamp,
     /// sign at the request's final form, send, refuse a non-success status, then check the
     /// response came from the expected agent and really said what it says.
     ///

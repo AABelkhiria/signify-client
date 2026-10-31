@@ -1,9 +1,7 @@
 //! The configuration endpoint: what the agent was set up with.
 //!
-//! One call, `get`, returning the agent's own configuration — today a single optional list of
-//! introduction OOBIs the agent resolves at startup. This ports `Config` from the pinned
-//! `src/keri/app/coring.ts`. It is the last capability *that file* owes apart from its OOBI and
-//! polling halves, which are the OOBI family and the operation poller.
+//! One call, `get`, returning the agent's own configuration: a single optional list of introduction
+//! OOBIs the agent resolves at startup.
 //!
 //! # The only address in the port that carries no caller input
 //!
