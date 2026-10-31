@@ -98,7 +98,7 @@ impl fmt::Display for MultisigRoute {
 ///
 /// ```
 /// use signify_client::endpoint::exchanges::{ExchangeRoute, MultisigRoute};
-/// use signify_keys::acdc::ipex::IpexRoute;
+/// use signify_client::keys::acdc::ipex::IpexRoute;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(ExchangeRoute::ALL.len(), 13);

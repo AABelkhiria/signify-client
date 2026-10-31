@@ -122,7 +122,7 @@ impl OobiResolution {
     ///
     /// ```
     /// use signify_client::endpoint::oobis::OobiResolution;
-    /// use signify_http::transport::RequestUrl;
+    /// use signify_client::http::transport::RequestUrl;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let url = RequestUrl::new("http://oobiurl.com")?;

@@ -68,8 +68,8 @@ pub const SEAL_DIGEST_LABEL: &str = "d";
 ///
 /// ```
 /// use signify_client::endpoint::delegations::InceptionSeal;
-/// use keri_protocol::prefix::IdentifierPrefix;
-/// use keri_protocol::said::Said;
+/// use signify_client::protocol::prefix::IdentifierPrefix;
+/// use signify_client::protocol::said::Said;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // A delegated inception is its own digest, so the seal names one value twice.

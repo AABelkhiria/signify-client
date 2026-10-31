@@ -107,8 +107,8 @@ pub const REGISTRY_TOPIC: &str = "registry";
 ///
 /// ```
 /// use signify_client::endpoint::exchanges::ExchangeDraft;
-/// use keri_protocol::prefix::IdentifierPrefix;
-/// use keri_protocol::serialization::{Sad, SadValue};
+/// use signify_client::protocol::prefix::IdentifierPrefix;
+/// use signify_client::protocol::serialization::{Sad, SadValue};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let addressee = IdentifierPrefix::from_qb64("EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p")?;

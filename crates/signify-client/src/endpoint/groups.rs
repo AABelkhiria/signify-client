@@ -172,7 +172,7 @@ impl<'client> Groups<'client> {
     /// ```no_run
     /// # use signify_client::client::ConnectedClient;
     /// # use signify_client::endpoint::exchanges::ClassifiedExchange;
-    /// # use keri_protocol::said::Said;
+    /// # use signify_client::protocol::said::Said;
     /// # async fn read(client: &ConnectedClient, said: &Said) -> Result<(), Box<dyn std::error::Error>> {
     /// for resource in client.groups().requests(said).await? {
     ///     let proposal = ClassifiedExchange::try_from(&resource)?;

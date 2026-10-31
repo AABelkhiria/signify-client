@@ -1765,7 +1765,7 @@ fn digest_of(event: &KeyEvent) -> Result<String, ClientError> {
 ///
 /// ```
 /// use signify_client::multisig::delivery_list;
-/// use keri_protocol::prefix::IdentifierPrefix;
+/// use signify_client::protocol::prefix::IdentifierPrefix;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let members = ["ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK", "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p"]

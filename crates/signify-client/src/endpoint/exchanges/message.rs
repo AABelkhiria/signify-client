@@ -217,7 +217,7 @@ pub struct IpexStep {
 ///
 /// ```
 /// use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
-/// use keria_types::api::ExchangeResource;
+/// use signify_client::types::api::ExchangeResource;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // A route the table does not name is a message, not a failure: this crate sends one.
