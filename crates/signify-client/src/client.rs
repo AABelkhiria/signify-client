@@ -937,12 +937,24 @@ impl ConnectedClient {
 /// The reference's `fetch(path, method, data, extraHeaders)` takes a raw string path and an `any`
 /// body. Here the path is a [`ResourcePath`], which encodes every dynamic component exactly once,
 /// and the body is already-serialized bytes — this crate never decides a document's shape.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ClientRequest {
     method: Method,
     path: ResourcePath,
     headers: Headers,
     body: Option<Vec<u8>>,
+}
+
+impl core::fmt::Debug for ClientRequest {
+    /// Names the method, path and body size; the body and headers can carry secrets.
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_struct("ClientRequest")
+            .field("method", &self.method)
+            .field("path", &self.path)
+            .field("body_bytes", &self.body.as_ref().map(Vec::len))
+            .finish_non_exhaustive()
+    }
 }
 
 impl ClientRequest {

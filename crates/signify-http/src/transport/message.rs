@@ -133,13 +133,25 @@ impl fmt::Display for StatusCode {
 ///
 /// Every setter is infallible; [`RequestBuilder::build`] validates the whole request at once, so
 /// a duplicate header and an oversized body are reported the same way.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RequestBuilder {
     method: Method,
     url: RequestUrl,
     headers: Vec<(HeaderName, HeaderValue)>,
     body: Option<Vec<u8>>,
     response_limit: usize,
+}
+
+impl fmt::Debug for RequestBuilder {
+    /// Names the method, URL and body size; the body and headers can carry secrets.
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RequestBuilder")
+            .field("method", &self.method)
+            .field("url", &self.url)
+            .field("body_bytes", &self.body.as_ref().map(Vec::len))
+            .finish_non_exhaustive()
+    }
 }
 
 impl RequestBuilder {
@@ -224,13 +236,25 @@ impl RequestBuilder {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Request {
     method: Method,
     url: RequestUrl,
     headers: Headers,
     body: Option<Vec<u8>>,
     response_limit: usize,
+}
+
+impl fmt::Debug for Request {
+    /// Names the method, URL and body size; the body and headers can carry secrets.
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Request")
+            .field("method", &self.method)
+            .field("url", &self.url)
+            .field("body_bytes", &self.body.as_ref().map(Vec::len))
+            .finish_non_exhaustive()
+    }
 }
 
 impl Request {
@@ -363,6 +387,19 @@ mod tests {
 
     fn header(name: &str, value: &str) -> Result<(HeaderName, HeaderValue), Box<dyn Error>> {
         Ok((HeaderName::new(name)?, HeaderValue::new(value)?))
+    }
+
+    #[test]
+    fn debug_hides_body_and_headers() -> Result<(), Box<dyn Error>> {
+        let builder = Request::builder(Method::Put, RequestUrl::new("http://localhost/salt")?)
+            .header(HeaderName::new("Signature")?, HeaderValue::new("hidden-header")?)
+            .body(b"hidden-body".to_vec());
+
+        for rendered in [format!("{builder:?}"), format!("{:?}", builder.clone().build()?)] {
+            assert!(rendered.contains("body_bytes: Some(11)"), "{rendered}");
+            assert!(!rendered.contains("hidden"), "{rendered}");
+        }
+        Ok(())
     }
 
     #[test]
