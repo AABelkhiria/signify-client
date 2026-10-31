@@ -77,7 +77,7 @@ fn key_state() -> Option<KeyState> {
 fn keeper() -> Option<Box<dyn IdentifierKeeper>> {
     let factory = KeeperFactory::new(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).ok()?);
     let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some("0123456789abcdefghijk".to_owned()),
+        passcode: Some("0123456789abcdefghijk".into()),
         tier: SecurityTier::Low,
         current_count: 1,
         next_count: 1,

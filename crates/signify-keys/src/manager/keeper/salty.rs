@@ -11,6 +11,7 @@ use super::super::algorithm::KeyAlgorithm;
 use super::super::creator::{KeyIndices, SaltyKeyCreator, Stem};
 use super::super::error::ManagerError;
 use super::super::key_manager::{ManagedSignatures, SignatureForm};
+use super::super::passcode::IdentifierPasscode;
 use super::{DerivationCost, IdentifierKeeper, KeeperRotation, KeyMaterial, SigningPurpose, public_keys, sign_with};
 
 /// The stem a salty keeper uses when the caller names none.
@@ -27,7 +28,7 @@ pub const DEFAULT_STEM: &str = "signify:aid";
 #[derive(Debug)]
 pub enum SaltySource {
     /// Derive the salt from a passcode, as the reference's `bran` argument does.
-    Passcode(String),
+    Passcode(IdentifierPasscode),
     /// Generate a fresh salt from operating-system entropy.
     Generated,
     /// Open a salt this keeper sealed earlier, which is how a stored identifier is reloaded.
@@ -129,7 +130,7 @@ impl SaltyKeeper {
 
         let (salt, sealed_salt) = match source {
             SaltySource::Passcode(passcode) => {
-                let salt = super::super::key_manager::salt_from_passcode(&passcode, config.tier)?;
+                let salt = super::super::key_manager::salt_from_passcode(passcode.expose(), config.tier)?;
                 let sealed = encrypter.encrypt_salt(&salt)?.qb64()?;
                 (salt, sealed)
             }
@@ -458,12 +459,12 @@ mod tests {
     fn a_passcode_source_derives_the_salt_from_it() -> Result<(), Box<dyn Error>> {
         let mut first = SaltyKeeper::new(
             &passcode_salt()?,
-            SaltySource::Passcode("0123456789abcdefghijk".to_owned()),
+            SaltySource::Passcode("0123456789abcdefghijk".into()),
             ephemeral(),
         )?;
         let mut second = SaltyKeeper::new(
             &passcode_salt()?,
-            SaltySource::Passcode("0123456789abcdefghijk".to_owned()),
+            SaltySource::Passcode("0123456789abcdefghijk".into()),
             ephemeral(),
         )?;
         // The same passcode always gives the same identifier keys.
@@ -475,7 +476,7 @@ mod tests {
         // A different passcode does not.
         let mut other = SaltyKeeper::new(
             &passcode_salt()?,
-            SaltySource::Passcode("abcdefghijk0123456789".to_owned()),
+            SaltySource::Passcode("abcdefghijk0123456789".into()),
             ephemeral(),
         )?;
         assert_ne!(
@@ -484,11 +485,7 @@ mod tests {
         );
 
         assert!(matches!(
-            SaltyKeeper::new(
-                &passcode_salt()?,
-                SaltySource::Passcode("short".to_owned()),
-                ephemeral()
-            ),
+            SaltyKeeper::new(&passcode_salt()?, SaltySource::Passcode("short".into()), ephemeral()),
             Err(ManagerError::PasscodeTooShort { .. })
         ));
         Ok(())

@@ -84,7 +84,7 @@ fuzz_target!(|data: &[u8]| {
         1 => {
             match SaltyKeeper::new(
                 &salt,
-                SaltySource::Passcode(text.clone()),
+                SaltySource::Passcode(text.clone().into()),
                 SaltyKeeperConfig {
                     stem: Stem::new(text.chars().take(32).collect::<String>()).unwrap_or_else(|_| Stem::empty()),
                     profile: DerivationCost::Ephemeral,
@@ -156,7 +156,7 @@ fuzz_target!(|data: &[u8]| {
 
             let Ok(mut inner) = SaltyKeeper::new(
                 &salt,
-                SaltySource::Passcode("0123456789abcdefghijk".to_owned()),
+                SaltySource::Passcode("0123456789abcdefghijk".into()),
                 SaltyKeeperConfig {
                     profile: DerivationCost::Ephemeral,
                     transferability: KeyTransferability::Transferable,

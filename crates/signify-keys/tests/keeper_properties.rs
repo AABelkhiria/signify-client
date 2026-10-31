@@ -24,7 +24,7 @@ fn salt() -> Result<Salt, ManagerError> {
 fn salty(config: SaltyKeeperConfig) -> Result<SaltyKeeper, ManagerError> {
     SaltyKeeper::new(
         &salt()?,
-        SaltySource::Passcode("0123456789abcdefghijk".to_owned()),
+        SaltySource::Passcode("0123456789abcdefghijk".into()),
         SaltyKeeperConfig {
             profile: DerivationCost::Ephemeral,
             ..config

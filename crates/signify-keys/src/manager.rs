@@ -12,6 +12,7 @@ pub mod creator;
 pub mod error;
 pub mod keeper;
 pub mod key_manager;
+pub mod passcode;
 pub mod store;
 
 pub use algorithm::{CreatorKind, KeyAlgorithm};
@@ -29,4 +30,5 @@ pub use key_manager::{
     InceptedKeys, InceptionRequest, KeyManager, KeyManagerBuilder, ManagedSignatures, PASSCODE_LENGTH,
     RetiredKeyPolicy, RotatedKeys, RotationRequest, SignatureForm,
 };
+pub use passcode::IdentifierPasscode;
 pub use store::{KeyStore, ManagerGlobals, PrefixParameters, PrefixSituation, PublicKeyLot, RotationKey, StoredPath};

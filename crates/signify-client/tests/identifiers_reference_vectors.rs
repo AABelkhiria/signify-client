@@ -578,7 +578,7 @@ fn a_member_listing_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> 
 // --- Writes ---
 fn salty_request(passcode: &str, keys: usize) -> CreateIdentifierRequest {
     CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some(passcode.to_owned()),
+        passcode: Some(passcode.into()),
         tier: SecurityTier::Low,
         current_count: keys,
         next_count: keys,

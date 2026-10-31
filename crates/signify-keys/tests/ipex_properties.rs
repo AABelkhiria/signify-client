@@ -43,7 +43,7 @@ fn keeper() -> Result<Box<dyn IdentifierKeeper>, Box<dyn std::error::Error>> {
 
 fn request() -> CreateIdentifierRequest {
     CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some("0123456789abcdefghijk".to_owned()),
+        passcode: Some("0123456789abcdefghijk".into()),
         tier: SecurityTier::Low,
         current_count: 1,
         next_count: 1,

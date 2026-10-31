@@ -213,7 +213,7 @@ fn benchmark_keepers(criterion: &mut Criterion) {
             bencher.iter(|| {
                 SaltyKeeper::new(
                     &salt,
-                    SaltySource::Passcode(passcode.to_owned()),
+                    SaltySource::Passcode(passcode.into()),
                     SaltyKeeperConfig {
                         transferability: KeyTransferability::Transferable,
                         profile: cost,
@@ -228,7 +228,7 @@ fn benchmark_keepers(criterion: &mut Criterion) {
     // Rotation and signing, measured on an already-built keeper.
     if let Ok(mut keeper) = SaltyKeeper::new(
         &salt,
-        SaltySource::Passcode(passcode.to_owned()),
+        SaltySource::Passcode(passcode.into()),
         SaltyKeeperConfig {
             transferability: KeyTransferability::Transferable,
             profile: DerivationCost::Ephemeral,

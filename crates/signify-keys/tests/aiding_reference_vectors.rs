@@ -254,7 +254,7 @@ fn assert_salty_params(keeper: &dyn IdentifierKeeper, bran: &str, expected: &Val
 /// Rebuilds one creation case's request from its recorded name and provenance.
 fn creation_request(fixture: &Fixture, case: &CreationCase) -> Result<CreateIdentifierRequest, Box<dyn Error>> {
     let salty = |passcode: &str, current: usize, next: usize| CreateAlgorithm::Salty {
-        passcode: Some(passcode.to_owned()),
+        passcode: Some(passcode.into()),
         tier: SecurityTier::Low,
         current_count: current,
         next_count: next,
@@ -696,7 +696,7 @@ fn every_reference_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>>
         match rejection.name.as_str() {
             "witnessed_without_toad" => {
                 let mut request =
-                    CreateIdentifierRequest::new(CreateAlgorithm::salty(Some(fixture.provenance.bran.clone())));
+                    CreateIdentifierRequest::new(CreateAlgorithm::salty(Some(fixture.provenance.bran.clone().into())));
                 request.witnesses = vec![IdentifierPrefix::from_qb64(
                     fixture
                         .provenance

@@ -244,7 +244,7 @@ mod tests {
         let request = CreateIdentifierRequest {
             delegator: delegator.map(IdentifierPrefix::from_qb64).transpose()?,
             ..CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-                passcode: Some("0123456789abcdefghijk".to_owned()),
+                passcode: Some("0123456789abcdefghijk".into()),
                 tier: SecurityTier::Low,
                 current_count: 1,
                 next_count: 1,

@@ -18,7 +18,7 @@ const PASSCODE: &str = "0123456789abcdefghijk";
 
 fn request(cost: DerivationCost) -> CreateIdentifierRequest {
     CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some(PASSCODE.to_owned()),
+        passcode: Some(PASSCODE.into()),
         tier: SecurityTier::Low,
         current_count: 1,
         next_count: 1,

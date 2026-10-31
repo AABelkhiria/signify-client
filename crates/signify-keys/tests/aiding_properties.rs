@@ -15,7 +15,7 @@ use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,
 };
-use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
+use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures, SaltySource};
 
 const PASSCODE: &str = "0123456789abcdefghijk";
 
@@ -31,7 +31,7 @@ fn factory() -> Result<KeeperFactory, TestCaseError> {
 
 fn salty_request(passcode: &str, current: usize, next: usize) -> CreateIdentifierRequest {
     CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some(passcode.to_owned()),
+        passcode: Some(passcode.into()),
         tier: SecurityTier::Low,
         current_count: current,
         next_count: next,
@@ -75,6 +75,19 @@ fn state_of(
 
 fn signature_count(signatures: &ManagedSignatures) -> usize {
     signatures.len()
+}
+
+#[test]
+fn a_request_never_prints_its_passcode() {
+    const PASSCODE: &str = "0123456789abcdefghijk";
+
+    let request = salty_request(PASSCODE, 1, 1);
+    let source = SaltySource::Passcode(PASSCODE.into());
+
+    for printed in [format!("{request:?}"), format!("{source:?}")] {
+        assert!(!printed.contains(PASSCODE), "the passcode leaked: {printed}");
+        assert!(printed.contains("<redacted>"));
+    }
 }
 
 proptest! {

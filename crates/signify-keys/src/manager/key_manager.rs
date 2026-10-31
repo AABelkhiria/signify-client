@@ -23,6 +23,7 @@ use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signature::{IndexedSignature, UnindexedSignature};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
+use zeroize::Zeroizing;
 
 use super::algorithm::{CreatorKind, KeyAlgorithm};
 use super::creator::{CreatedKeys, KeyCreator, KeyIndices, RandyKeyCreator, SaltyKeyCreator, Stem};
@@ -864,8 +865,12 @@ pub fn salt_from_passcode(passcode: &str, tier: SecurityTier) -> Result<Salt, Ma
     {
         return Err(ManagerError::InvalidPasscode { offset });
     }
-    let material: String = passcode.chars().take(PASSCODE_LENGTH).collect();
-    Ok(Salt::from_qb64(&format!("{SALT_CODE}A{material}"), tier)?)
+    // Sized up front: a buffer that grew would leave its earlier copies unwiped.
+    let mut qualified = Zeroizing::new(String::with_capacity(SALT_CODE.len() + 1 + PASSCODE_LENGTH));
+    qualified.push_str(SALT_CODE);
+    qualified.push('A');
+    qualified.extend(passcode.chars().take(PASSCODE_LENGTH));
+    Ok(Salt::from_qb64(&qualified, tier)?)
 }
 
 /// Parses one managed public key.

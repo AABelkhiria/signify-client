@@ -186,7 +186,7 @@ fn keeper(passcode: &str) -> Result<Box<dyn IdentifierKeeper>, Box<dyn Error>> {
     let salt = Salt::from_qb64(&format!("0AA{}", &passcode[..21]), SecurityTier::Low)?;
     let factory = KeeperFactory::new(salt);
     let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some(passcode.to_owned()),
+        passcode: Some(passcode.into()),
         tier: SecurityTier::Low,
         current_count: 1,
         next_count: 1,

@@ -738,6 +738,7 @@ dependencies = [
  "keri-protocol",
  "keria-types",
  "serde_json",
+ "zeroize",
 ]
 
 [[package]]

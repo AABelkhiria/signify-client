@@ -176,7 +176,7 @@ async fn run_creations(
         "aid1",
         Some(AID1_PASSCODE),
         &CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-            passcode: Some(AID1_PASSCODE.to_owned()),
+            passcode: Some(AID1_PASSCODE.into()),
             tier: SecurityTier::Low,
             current_count: 1,
             next_count: 1,
@@ -188,7 +188,7 @@ async fn run_creations(
     listings.push(list_names(client, ItemRange::DEFAULT).await?);
 
     let mut aid2_request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some(AID2_PASSCODE.to_owned()),
+        passcode: Some(AID2_PASSCODE.into()),
         tier: SecurityTier::Low,
         current_count: 3,
         next_count: 3,

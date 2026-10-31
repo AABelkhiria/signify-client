@@ -44,7 +44,9 @@ pub fn random_passcode() -> Result<Passcode, ClientError> {
     let qualified = salt.expose_qb64()?;
     // The reference slices `substring(2, 23)`: two characters of derivation code, then 21 of the
     // 22 that follow.
-    let text: String = qualified.chars().skip(SALT_CODE_LENGTH).take(PASSCODE_LENGTH).collect();
+    // Sized up front: a buffer that grew would leave its earlier copies unwiped.
+    let mut text = String::with_capacity(PASSCODE_LENGTH);
+    text.extend(qualified.chars().skip(SALT_CODE_LENGTH).take(PASSCODE_LENGTH));
     Passcode::new(text)
 }
 

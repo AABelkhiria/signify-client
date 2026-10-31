@@ -10,7 +10,7 @@ use core::fmt;
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_protocol::prefix::IdentifierPrefix;
 use signify_http::request::BaseUrl;
-use signify_keys::manager::DerivationCost;
+use signify_keys::manager::{DerivationCost, IdentifierPasscode};
 
 use crate::error::ClientError;
 
@@ -30,7 +30,7 @@ pub const PASSCODE_LENGTH: usize = 21;
 /// `Display` and exposes its characters through one narrowly named accessor.
 #[derive(Clone)]
 pub struct Passcode {
-    text: String,
+    text: IdentifierPasscode,
 }
 
 impl Passcode {
@@ -42,8 +42,8 @@ impl Passcode {
     /// [`PASSCODE_LENGTH`] characters, and [`ClientError::PasscodeNotBase64`] when a character is
     /// outside the URL-safe Base64 alphabet the reference's own `randomPasscode` produces.
     pub fn new(text: impl Into<String>) -> Result<Self, ClientError> {
-        let text = text.into();
-        let length = text.chars().count();
+        let text = IdentifierPasscode::from(text.into());
+        let length = text.expose().chars().count();
         if length != PASSCODE_LENGTH {
             return Err(ClientError::InvalidPasscodeLength {
                 expected: PASSCODE_LENGTH,
@@ -51,6 +51,7 @@ impl Passcode {
             });
         }
         if let Some(position) = text
+            .expose()
             .chars()
             .position(|character| !character.is_ascii_alphanumeric() && character != '-' && character != '_')
         {
@@ -64,7 +65,7 @@ impl Passcode {
     /// Named to make a call site read as the disclosure it is.
     #[must_use]
     pub fn expose(&self) -> &str {
-        &self.text
+        self.text.expose()
     }
 }
 

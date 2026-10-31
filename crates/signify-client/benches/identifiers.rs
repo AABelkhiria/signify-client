@@ -107,7 +107,7 @@ fn benchmark_identifiers(criterion: &mut Criterion) {
         criterion.bench_function(name, |bencher| {
             bencher.iter(|| {
                 let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-                    passcode: Some(PASSCODE.to_owned()),
+                    passcode: Some(PASSCODE.into()),
                     tier: SecurityTier::Low,
                     current_count: 1,
                     next_count: 1,

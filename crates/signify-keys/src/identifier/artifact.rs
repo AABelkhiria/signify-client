@@ -21,8 +21,8 @@ use serde_json::{Map, Value};
 use crate::identifier::error::IdentifierError;
 use crate::manager::key_manager::{ManagedSignatures, SignatureForm};
 use crate::manager::{
-    DerivationCost, IdentifierKeeper, KeeperRequest, KeeperRotation, KeyMaterial, ManagerError, RandyKeeperRequest,
-    SaltyKeeperRequest, SaltySource, SigningPurpose,
+    DerivationCost, IdentifierKeeper, IdentifierPasscode, KeeperRequest, KeeperRotation, KeyMaterial, ManagerError,
+    RandyKeeperRequest, SaltyKeeperRequest, SaltySource, SigningPurpose,
 };
 use keri_protocol::event::inception::InceptionBuilder;
 use keri_protocol::event::interaction::InteractionBuilder;
@@ -74,7 +74,7 @@ pub enum CreateAlgorithm {
     Salty {
         /// Passcode the identifier's salt derives from; the reference's `bran`. Absent, the salt
         /// is generated from operating-system entropy.
-        passcode: Option<String>,
+        passcode: Option<IdentifierPasscode>,
         /// Security tier the keys derive under; the reference's `tier`.
         tier: SecurityTier,
         /// How many keys sign; the reference's `count`.
@@ -114,7 +114,7 @@ pub enum CreateAlgorithm {
 impl CreateAlgorithm {
     /// A one-key salty identifier at the reference's defaults.
     #[must_use]
-    pub fn salty(passcode: Option<String>) -> Self {
+    pub fn salty(passcode: Option<IdentifierPasscode>) -> Self {
         Self::Salty {
             passcode,
             tier: SecurityTier::Low,
@@ -455,7 +455,7 @@ impl RotateIdentifierRequest {
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-///     passcode: Some("0123456789abcdefghijk".to_owned()),
+///     passcode: Some("0123456789abcdefghijk".into()),
 ///     tier: SecurityTier::Low,
 ///     current_count: 1,
 ///     next_count: 1,
@@ -741,7 +741,7 @@ mod tests {
     /// A deterministic, cheap salty request.
     fn salty_request() -> CreateIdentifierRequest {
         CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-            passcode: Some(PASSCODE.to_owned()),
+            passcode: Some(PASSCODE.into()),
             tier: SecurityTier::Low,
             current_count: 1,
             next_count: 1,
@@ -828,7 +828,7 @@ mod tests {
     #[test]
     fn a_multisig_creation_carries_its_thresholds() -> Result<(), Box<dyn Error>> {
         let mut request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-            passcode: Some(PASSCODE.to_owned()),
+            passcode: Some(PASSCODE.into()),
             tier: SecurityTier::Low,
             current_count: 3,
             next_count: 2,
@@ -852,7 +852,7 @@ mod tests {
     #[test]
     fn a_non_transferable_creation_commits_to_nothing() -> Result<(), Box<dyn Error>> {
         let mut request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-            passcode: Some(PASSCODE.to_owned()),
+            passcode: Some(PASSCODE.into()),
             tier: SecurityTier::Low,
             current_count: 1,
             next_count: 0,
@@ -872,7 +872,7 @@ mod tests {
         let base = |next_count| CreateIdentifierRequest {
             transferability: KeyTransferability::NonTransferable,
             ..CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-                passcode: Some(PASSCODE.to_owned()),
+                passcode: Some(PASSCODE.into()),
                 tier: SecurityTier::Low,
                 current_count: 1,
                 next_count,
@@ -1089,7 +1089,7 @@ mod tests {
         // inception count — the `keri-keeping` fixture's pinned quirk — so a rotation to two keys
         // writes both into the event but signs with one.
         let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-            passcode: Some(PASSCODE.to_owned()),
+            passcode: Some(PASSCODE.into()),
             tier: SecurityTier::Low,
             current_count: 1,
             next_count: 2,
@@ -1128,7 +1128,7 @@ mod tests {
     #[test]
     fn a_weighted_next_threshold_carries_into_the_rotation() -> Result<(), Box<dyn Error>> {
         let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-            passcode: Some(PASSCODE.to_owned()),
+            passcode: Some(PASSCODE.into()),
             tier: SecurityTier::Low,
             current_count: 2,
             next_count: 2,

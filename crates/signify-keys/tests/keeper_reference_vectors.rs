@@ -234,7 +234,7 @@ fn passcode_salt(fixture: &Fixture) -> Result<Salt, Box<dyn Error>> {
 fn walk_keeper(fixture: &Fixture, config: SaltyKeeperConfig) -> Result<SaltyKeeper, Box<dyn Error>> {
     Ok(SaltyKeeper::new(
         &passcode_salt(fixture)?,
-        SaltySource::Passcode(fixture.provenance.passcode.clone()),
+        SaltySource::Passcode(fixture.provenance.passcode.clone().into()),
         config,
     )?)
 }
@@ -591,7 +591,7 @@ fn the_group_keeper_places_signatures_where_the_reference_places_them() -> Resul
 fn member_keeper(fixture: &Fixture) -> Result<Box<dyn IdentifierKeeper>, Box<dyn Error>> {
     let mut keeper = SaltyKeeper::new(
         &passcode_salt(fixture)?,
-        SaltySource::Passcode(fixture.provenance.passcode.clone()),
+        SaltySource::Passcode(fixture.provenance.passcode.clone().into()),
         SaltyKeeperConfig {
             transferability: KeyTransferability::Transferable,
             profile: DerivationCost::Ephemeral,
