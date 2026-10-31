@@ -355,7 +355,7 @@ async fn a_duplicated_response_header_is_refused() -> Result<(), Box<dyn Error>>
     // refused rather than silently joined or half-dropped.
     let server = Loopback::start(reply(
         "200 OK",
-        &[("X-Signed-Thing", "first"), ("X-Signed-Thing", "second")],
+        &[("Signify-Timestamp", "first"), ("Signify-Timestamp", "second")],
         "{}",
     ))
     .await?;

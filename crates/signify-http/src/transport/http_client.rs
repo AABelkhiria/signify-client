@@ -295,23 +295,48 @@ async fn read_response(
     Response::new(status, headers, collected)
 }
 
+/// Returns whether this crate reads a response header, so two values for it would be ambiguous.
+///
+/// Keep in sync with the headers the crate reads.
+fn is_read_header(name: &str) -> bool {
+    name.starts_with("signify-")
+        || matches!(
+            name,
+            "signature" | "signature-input" | "content-range" | "content-type" | "retry-after"
+        )
+}
+
 /// Converts a response's headers into this crate's collection.
 ///
-/// A repeated name is **refused** rather than joined or silently dropped. This crate's [`Headers`]
-/// makes one-name-one-value an invariant precisely because joining changes what a signature
-/// covers, and in a protocol whose responses are signed a duplicated header is ambiguous. A proxy
-/// that inserts one would therefore make responses unreadable.
+/// A repeated or non-text value is **refused** for a header this crate reads, rather than joined,
+/// because joining changes what a signature covers. Any other header keeps its first usable value,
+/// so a proxy adding `Set-Cookie` or `Vary` lines leaves the response readable.
 fn convert_headers(source: &http::HeaderMap) -> Result<Headers, TransportError> {
     let mut headers = Headers::new();
     for (name, value) in source {
-        let text = value
-            .to_str()
-            .map_err(|_| TransportError::invalid_response("a response header value is not text"))?;
-        let name = HeaderName::new(name.as_str())?;
-        let value = HeaderValue::new(text)?;
-        headers.insert(name, value)?;
+        let is_read = is_read_header(name.as_str());
+        // The first usable value wins.
+        if !is_read && headers.get(name.as_str()).is_some() {
+            continue;
+        }
+        match convert_header(name, value) {
+            Ok((name, value)) => headers.insert(name, value)?,
+            Err(error) if is_read => return Err(error),
+            Err(_) => {}
+        }
     }
     Ok(headers)
+}
+
+/// Converts one header, refusing a non-text value.
+fn convert_header(
+    name: &http::HeaderName,
+    value: &http::HeaderValue,
+) -> Result<(HeaderName, HeaderValue), TransportError> {
+    let text = value
+        .to_str()
+        .map_err(|_| TransportError::invalid_response("a response header value is not text"))?;
+    Ok((HeaderName::new(name.as_str())?, HeaderValue::new(text)?))
 }
 
 #[cfg(test)]
@@ -440,21 +465,32 @@ mod tests {
     }
 
     #[test]
-    fn duplicate_response_headers_are_refused() {
+    fn a_repeated_header_this_crate_reads_is_refused() {
         let mut map = http::HeaderMap::new();
-        map.append(http::header::WARNING, http::HeaderValue::from_static("first"));
-        map.append(http::header::WARNING, http::HeaderValue::from_static("second"));
+        map.append(http::header::CONTENT_RANGE, http::HeaderValue::from_static("first"));
+        map.append(http::header::CONTENT_RANGE, http::HeaderValue::from_static("second"));
         // A duplicate is ambiguous where responses are signed, so it does not become one value.
         assert!(matches!(convert_headers(&map), Err(TransportError::Header { .. })));
     }
 
     #[test]
-    fn a_non_text_response_header_is_refused() -> Result<(), Box<dyn Error>> {
+    fn a_repeated_header_nothing_reads_keeps_its_first_value() -> Result<(), Box<dyn Error>> {
         let mut map = http::HeaderMap::new();
-        map.insert(
-            http::header::ETAG,
-            http::HeaderValue::from_bytes(&[0xff, 0xfe]).map_err(|_| "unbuildable header")?,
-        );
+        map.append(http::header::SET_COOKIE, http::HeaderValue::from_static("first"));
+        map.append(http::header::SET_COOKIE, http::HeaderValue::from_static("second"));
+
+        assert_eq!(convert_headers(&map)?.get("set-cookie"), Some("first"));
+        Ok(())
+    }
+
+    #[test]
+    fn a_non_text_header_is_refused_only_when_this_crate_reads_it() -> Result<(), Box<dyn Error>> {
+        let binary = http::HeaderValue::from_bytes(&[0xff, 0xfe]).map_err(|_| "unbuildable header")?;
+        let mut map = http::HeaderMap::new();
+        map.insert(http::header::ETAG, binary.clone());
+        assert_eq!(convert_headers(&map)?.get("etag"), None);
+
+        map.insert(http::header::CONTENT_TYPE, binary);
         assert!(matches!(
             convert_headers(&map),
             Err(TransportError::InvalidResponse { .. })
