@@ -6,7 +6,7 @@ mod support;
 
 use std::error::Error;
 
-use keria_types::api::{Credential, ExchangeResource};
+use keria_types::api::{Credential, ExchangeResource, Notification};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::error::ClientError;
@@ -686,6 +686,7 @@ mod driven {
     use signify_client::client::{ConnectedClient, SignifyClient};
     use signify_client::config::ClientConfig;
     use signify_client::multisig::GroupDisclosureRequest;
+    use signify_http::request::ItemRange;
     use signify_http::transport::Transport;
     use signify_keys::acdc::ipex::Disclosure;
     use signify_keys::manager::DerivationCost;
@@ -696,6 +697,7 @@ mod driven {
     const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
     const THIRD: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
     const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
+    const APPLY_SAID: &str = "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg";
 
     fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
         let configuration = || {
@@ -810,6 +812,64 @@ mod driven {
 
     fn disclosure(fixture: &Fixture) -> Result<Disclosure, Box<dyn Error>> {
         Ok(disclosure_of(&fixture.held_credential)?)
+    }
+
+    fn notification(id: &str, read: bool, route: &str) -> String {
+        format!(r#"{{"i":"{id}","dt":"{STAMP}","r":{read},"a":{{"r":"{route}","d":"{APPLY_SAID}","m":""}}}}"#)
+    }
+
+    fn notified(route: &str) -> Result<Notification, Box<dyn Error>> {
+        Ok(serde_json::from_str(&notification("0AAnote", false, route))?)
+    }
+
+    fn apply_exchange() -> String {
+        format!(
+            r#"{{"exn":{{"v":"KERI10JSON000100_","t":"exn","d":"{APPLY_SAID}","i":"{PEER}","rp":"{LOCAL}","p":"","dt":"{STAMP}","r":"/ipex/apply","q":{{}},"a":{{"m":"","s":"{LOCAL}","a":{{}}}},"e":{{}}}},"pathed":{{}}}}"#
+        )
+    }
+
+    #[test]
+    fn waiting_finds_the_unread_notifications_of_a_route() -> Result<(), Box<dyn Error>> {
+        let listing = format!(
+            "[{},{},{},{}]",
+            notification("0AAgrant", false, "/exn/ipex/grant"),
+            notification("0AAread", true, "/exn/ipex/grant"),
+            notification("0AAadmit", false, "/exn/ipex/admit"),
+            notification("0AAbare", false, "/ipex/grant"),
+        );
+        let (client, _) = connected(&[listing.as_bytes()])?;
+
+        let waiting = block_on(client.presentation().waiting(IpexRoute::Grant, ItemRange::DEFAULT))?;
+
+        let ids: Vec<&str> = waiting.iter().map(|notification| notification.id.as_str()).collect();
+        assert_eq!(ids, ["0AAgrant"]);
+        Ok(())
+    }
+
+    #[test]
+    fn a_notification_reads_the_step_it_announces() -> Result<(), Box<dyn Error>> {
+        let exchange = apply_exchange();
+        let (client, _) = connected(&[exchange.as_bytes()])?;
+
+        let step = block_on(client.presentation().read(&notified("/exn/ipex/apply")?))?;
+
+        assert_eq!(step.route(), IpexRoute::Apply);
+        Ok(())
+    }
+
+    #[test]
+    fn a_notification_announcing_another_step_is_refused() -> Result<(), Box<dyn Error>> {
+        let exchange = apply_exchange();
+        let (client, _) = connected(&[exchange.as_bytes()])?;
+
+        let outcome = block_on(client.presentation().read(&notified("/exn/ipex/grant")?));
+
+        assert!(matches!(
+            outcome,
+            Err(ClientError::DisclosureRouteMismatch { notified, carried: "/ipex/apply" })
+                if notified == "/exn/ipex/grant"
+        ));
+        Ok(())
     }
 
     /// The proposer's round, scripted whole: the member, the group twice, the grant's answer, the

@@ -97,6 +97,9 @@ pub const SCHEMA_FILTER: &str = "-s";
 /// Prefix of a filter label matching one credential attribute, the reference's `-a-`.
 pub const ATTRIBUTE_FILTER_PREFIX: &str = "-a-";
 
+/// What keripy puts before an IPEX route in a notification's `a.r`.
+const NOTIFICATION_ROUTE_PREFIX: &str = "/exn";
+
 /// What an apply asks a holder for.
 ///
 /// The schema is required and the attributes narrow it: an apply for a schema with no attributes
@@ -253,6 +256,11 @@ pub fn disclosure_of(credential: &Credential) -> Result<Disclosure, ClientError>
         anchor,
         credential.ancatc.concat().into_bytes(),
     ))
+}
+
+/// Returns whether a notification's route announces this IPEX step.
+fn announces(notified: &str, route: IpexRoute) -> bool {
+    notified.strip_prefix(NOTIFICATION_ROUTE_PREFIX) == Some(route.as_str())
 }
 
 /// Re-serializes one record of a credential and requires the bytes to be canonical.
@@ -427,7 +435,10 @@ impl<'client> Presentation<'client> {
         let listing = self.client.notifications().list(window).await?;
         Ok(listing
             .unread()
-            .filter(|notification| notification.attributes.route.as_deref() == Some(route.as_str()))
+            .filter(|notification| {
+                let notified = notification.attributes.route.as_deref();
+                notified.is_some_and(|notified| announces(notified, route))
+            })
             .cloned()
             .collect())
     }
@@ -460,7 +471,7 @@ impl<'client> Presentation<'client> {
         let step = ReceivedStep::of(&notification.id, &resource)?;
 
         if let Some(notified) = notification.attributes.route.as_deref()
-            && notified != step.route().as_str()
+            && !announces(notified, step.route())
         {
             return Err(ClientError::DisclosureRouteMismatch {
                 notified: notified.to_owned(),
