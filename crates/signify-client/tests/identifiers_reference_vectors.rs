@@ -514,8 +514,9 @@ fn a_get_addresses_the_recorded_path_and_encodes_its_name() -> Result<(), Box<dy
     let encoded = request_of(&fixture, "get_name_needing_encoding")?;
     let (client, transport) = connected(&[&document])?;
     let _ = block_on(client.identifiers().get("a name with ñ!"));
-    assert_eq!(sent(&transport, 0)?.0, encoded.path);
+    // KERIA verifies the `!` escaped, which the reference does not send.
     assert_eq!(encoded.path, "/identifiers/a%20name%20with%20%C3%B1!");
+    assert_eq!(sent(&transport, 0)?.0, encoded.path.replace('!', "%21"));
     Ok(())
 }
 
@@ -584,6 +585,25 @@ fn salty_request(passcode: &str, keys: usize) -> CreateIdentifierRequest {
         next_count: keys,
         cost: DerivationCost::Production,
     })
+}
+
+#[test]
+fn an_alias_holding_a_separator_is_refused_before_anything_is_sent() -> Result<(), Box<dyn Error>> {
+    let (client, transport) = connected(&[])?;
+    let refused = block_on(client.identifiers().create("a/b", &salty_request(PASSCODE, 1)));
+
+    assert!(matches!(refused, Err(ClientError::InvalidAlias { name }) if name == "a/b"));
+    assert!(sent(&transport, 0).is_err());
+    assert_eq!(client.prefix_index(), 0);
+
+    let renamed = block_on(
+        client
+            .identifiers()
+            .update_any("aid1", &IdentifierUpdate::rename("a/b")),
+    );
+    assert!(matches!(renamed, Err(ClientError::InvalidAlias { name }) if name == "a/b"));
+    assert!(sent(&transport, 0).is_err());
+    Ok(())
 }
 
 #[test]

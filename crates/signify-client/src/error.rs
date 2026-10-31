@@ -91,6 +91,11 @@ pub enum ClientError {
         /// Which half was missing.
         missing: &'static str,
     },
+    /// An identifier alias holds a `/`, which KERIA would read as a path separator.
+    InvalidAlias {
+        /// The alias refused.
+        name: String,
+    },
     /// The agent state response carried an index that is not an unsigned 32-bit integer.
     InvalidAgentIndex {
         /// Which index: `ridx` or `pidx`.
@@ -585,6 +590,7 @@ impl fmt::Display for ClientError {
             Self::IncompleteAgentState { missing } => {
                 write!(formatter, "the agent state carried no {missing}")
             }
+            Self::InvalidAlias { name } => write!(formatter, "the alias {name:?} must not contain '/'"),
             Self::InvalidAgentIndex { label } => write!(formatter, "the agent state carried an invalid {label}"),
             Self::Status { status, detail } => write!(formatter, "the agent answered {status}: {detail}"),
             Self::Decode { source } => write!(formatter, "response decoding failed: {source}"),
@@ -814,6 +820,7 @@ impl Error for ClientError {
             | Self::ControllerPrefixMismatch { .. }
             | Self::ControllerKeyMismatch { .. }
             | Self::IncompleteAgentState { .. }
+            | Self::InvalidAlias { .. }
             | Self::InvalidAgentIndex { .. }
             | Self::Status { .. }
             | Self::OperationPending { .. }
@@ -972,6 +979,7 @@ mod tests {
                 actual: "EOTHER".to_owned(),
             },
             ClientError::IncompleteAgentState { missing: "agent" },
+            ClientError::InvalidAlias { name: "a/b".to_owned() },
             ClientError::InvalidAgentIndex { label: "pidx" },
             ClientError::status(404, b"missing"),
             ClientError::IdentifierNotAccepted {

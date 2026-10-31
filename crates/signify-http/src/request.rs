@@ -64,14 +64,14 @@ pub const MAX_RANGE_UNIT_BYTES: usize = 32;
 // Percent-encoding
 // ---------------------------------------------------------------------------
 
-/// Returns whether a byte survives `encodeURIComponent` unescaped.
+/// Returns whether a byte stays unescaped in a path component.
 ///
-/// The set is the ASCII alphanumerics plus `-_.!~*'()`, which is what ECMAScript's
-/// `encodeURIComponent` leaves alone. Note that `.` is in it, so a component of `..` is **not**
-/// escaped by the reference; this crate never puts an unencoded component in a path, but the
-/// encoding function itself must still match the reference byte for byte where it is used.
+/// The set is the ASCII alphanumerics plus `-_.~`. KERIA verifies signatures over a path rebuilt
+/// with Python's `quote`, which escapes `!*'()` where JavaScript's `encodeURIComponent` does not;
+/// a signature over the unescaped form is refused with a 401. `.` is in the set, so a component of
+/// `..` stays as it is.
 const fn is_component_unreserved(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'!' | b'~' | b'*' | b'\'' | b'(' | b')')
+    byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~')
 }
 
 /// Returns whether a byte survives `application/x-www-form-urlencoded` serialization unescaped.
@@ -96,14 +96,14 @@ fn push_escape(target: &mut String, byte: u8) {
     }
 }
 
-/// Percent-encodes one path component exactly as `encodeURIComponent` does.
+/// Percent-encodes one path component as KERIA rebuilds it.
 ///
 /// ```
 /// use signify_http::request::encode_path_component;
 ///
-/// assert_eq!(encode_path_component("a name with ñ!"), "a%20name%20with%20%C3%B1!");
+/// assert_eq!(encode_path_component("a name with ñ!"), "a%20name%20with%20%C3%B1%21");
 /// assert_eq!(encode_path_component("a/b"), "a%2Fb");
-/// // Already-escaped input is escaped again, exactly as the reference does.
+/// // Already-escaped input is escaped again.
 /// assert_eq!(encode_path_component("%41"), "%2541");
 /// ```
 #[must_use]
@@ -162,7 +162,7 @@ pub fn encode_query_component(value: &str) -> String {
 ///     .segment("identifiers")
 ///     .segment("a name with ñ!")
 ///     .build()?;
-/// assert_eq!(path.path(), "/identifiers/a%20name%20with%20%C3%B1!");
+/// assert_eq!(path.path(), "/identifiers/a%20name%20with%20%C3%B1%21");
 /// assert_eq!(path.query(), None);
 ///
 /// let filtered = ResourcePath::builder()
@@ -240,9 +240,8 @@ impl ResourcePathBuilder {
     ///
     /// # A component of exactly `.` or `..` is preserved
     ///
-    /// `.` is unreserved, so `encodeURIComponent` does not escape it and neither does this. A
-    /// caller naming an identifier `..` therefore still produces `/identifiers/..`, byte for byte
-    /// what the reference sends for the same alias. What a component can no longer do is
+    /// `.` is unreserved, so it is not escaped. A caller naming an identifier `..` therefore still
+    /// produces `/identifiers/..`, as the reference does. What a component can no longer do is
     /// *introduce* a dot segment: the reference's `operations().get("../identifiers")` becomes two
     /// components there and one — `..%2Fidentifiers` — here. Nothing in this crate's URL or
     /// transport stack resolves a dot segment, so the path signed is the path sent; an
@@ -1141,8 +1140,8 @@ mod tests {
     fn path_components_are_encoded_exactly_once() {
         for (input, expected) in [
             ("aid1", "aid1"),
-            ("a name with ñ!", "a%20name%20with%20%C3%B1!"),
-            ("-_.!~*'()", "-_.!~*'()"),
+            ("a name with ñ!", "a%20name%20with%20%C3%B1%21"),
+            ("-_.!~*'()", "-_.%21~%2A%27%28%29"),
             ("a/b", "a%2Fb"),
             ("a?b", "a%3Fb"),
             ("a#b", "a%23b"),
@@ -1180,7 +1179,7 @@ mod tests {
             .segment("identifiers")
             .segment("a name with ñ!")
             .build()?;
-        assert_eq!(path.path(), "/identifiers/a%20name%20with%20%C3%B1!");
+        assert_eq!(path.path(), "/identifiers/a%20name%20with%20%C3%B1%21");
         assert_eq!(path.as_str(), path.path());
         assert_eq!(path.query(), None);
         assert_eq!(path.to_string(), path.as_str());

@@ -148,7 +148,7 @@ proptest! {
     }
 
     #[test]
-    fn an_update_body_is_always_exactly_one_field(name in "[\\PC]{0,40}") {
+    fn an_update_body_is_always_exactly_one_field(name in "[\\PC&&[^/]]{0,40}") {
         let record = record(
             "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
             "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",

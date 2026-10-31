@@ -102,6 +102,14 @@ impl IdentifierUpdate {
     }
 }
 
+/// Refuses an alias KERIA would split at a `/`, which no name-based path could then reach.
+fn require_routable(name: &str) -> Result<(), ClientError> {
+    if name.contains('/') {
+        return Err(ClientError::InvalidAlias { name: name.to_owned() });
+    }
+    Ok(())
+}
+
 /// What to authorize as an endpoint location; the reference's `LocSchemeArgs`.
 #[derive(Clone, Debug)]
 pub struct LocationSchemeRequest {
@@ -258,8 +266,10 @@ impl<'client> Identifiers<'client> {
     ///
     /// # Errors
     ///
-    /// Returns whatever [`Self::get_any`] returns.
+    /// Returns [`ClientError::InvalidAlias`] for a new alias holding a `/`, plus whatever
+    /// [`Self::get_any`] returns.
     pub async fn update_any(&self, name: &str, update: &IdentifierUpdate) -> Result<Hab, ClientError> {
+        require_routable(&update.name)?;
         let mut body = Sad::new();
         body.insert("name", update.name.clone()).map_err(sad_error)?;
         let request =
@@ -277,14 +287,16 @@ impl<'client> Identifiers<'client> {
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::Manager`] when the keeper cannot be built, layered identifier
-    /// failures when the request is inconsistent or the event cannot be signed, and whatever
+    /// Returns [`ClientError::InvalidAlias`] for an alias holding a `/`,
+    /// [`ClientError::Manager`] when the keeper cannot be built, layered identifier failures when
+    /// the request is inconsistent or the event cannot be signed, and whatever
     /// [`ConnectedClient::fetch`] returns.
     pub async fn create(
         &self,
         name: &str,
         request: &CreateIdentifierRequest,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
+        require_routable(name)?;
         let index = self.client.reserve_prefix_index();
         let mut keeper = self.client.keepers().create(request.keeper_request(index)?)?;
         let artifact = incept_identifier(keeper.as_mut(), request)?;
@@ -567,7 +579,7 @@ mod tests {
         );
         assert_eq!(
             Identifiers::record_path("a name with ñ!")?.as_str(),
-            "/identifiers/a%20name%20with%20%C3%B1!"
+            "/identifiers/a%20name%20with%20%C3%B1%21"
         );
         Ok(())
     }

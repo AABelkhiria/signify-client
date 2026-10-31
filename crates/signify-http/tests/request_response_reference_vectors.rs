@@ -293,6 +293,16 @@ fn find<'cases>(cases: &'cases [RequestCase], name: &str) -> Result<&'cases Requ
 // Request: URL composition
 // ---------------------------------------------------------------------------
 
+/// Escapes what `encodeURIComponent` leaves alone and KERIA verifies escaped.
+fn escaped_for_keria(recorded: &str) -> String {
+    recorded
+        .replace('!', "%21")
+        .replace('\'', "%27")
+        .replace('(', "%28")
+        .replace(')', "%29")
+        .replace('*', "%2A")
+}
+
 #[test]
 fn every_path_component_encodes_as_the_reference_does() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -301,7 +311,7 @@ fn every_path_component_encodes_as_the_reference_does() -> Result<(), Box<dyn Er
         assert!(!case.note.is_empty(), "{}", case.input);
         assert_eq!(
             encode_path_component(&case.input),
-            case.encoded,
+            escaped_for_keria(&case.encoded),
             "component {:?} ({})",
             case.input,
             case.note,
@@ -423,7 +433,7 @@ fn every_recorded_request_url_is_rebuilt_or_refused() -> Result<(), Box<dyn Erro
     for (name, path) in rebuilt {
         let case = find(&fixture.requests, name)?;
         let url = base.join(&path)?;
-        assert_eq!(url.as_str(), case.request.url, "{name}");
+        assert_eq!(url.as_str(), escaped_for_keria(&case.request.url), "{name}");
     }
     Ok(())
 }
