@@ -18,11 +18,11 @@
 //! is refused.
 
 use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
+use keria_types::api::{EndRole, Oobi, Role};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::oobis::{
-    END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
+    END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, OobiResolutionOperation, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
 };
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
@@ -184,7 +184,7 @@ fuzz_target!(|data: &[u8]| {
         assert_eq!(again.map(|records| records.len()).ok(), Some(roles.len()));
     }
 
-    if let Ok(operation) = serde_json::from_slice::<OobiOperation>(document) {
+    if let Ok(operation) = serde_json::from_slice::<OobiResolutionOperation>(document) {
         // An operation is pending or finished, never both and never neither.
         let done = operation.outcome.is_done();
         assert_eq!(

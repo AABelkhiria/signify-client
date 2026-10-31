@@ -15,7 +15,7 @@ use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
 use signify_client::endpoint::oobis::{
-    DEFAULT_ROLE, END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
+    DEFAULT_ROLE, END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, RESOLUTIONS_SEGMENT, ROLE_PARAMETER, ResolvedOobi,
 };
 use signify_client::error::ClientError;
 use signify_http::transport::{RequestUrl, Transport};
@@ -517,8 +517,35 @@ fn a_resolution_returns_an_operation_rather_than_waiting() -> Result<(), Box<dyn
     )?;
     assert!(operation.outcome.is_done());
     assert_eq!(
-        operation.outcome.response().map(|state| state.identifier.as_str()),
+        operation
+            .outcome
+            .response()
+            .and_then(ResolvedOobi::key_state)
+            .map(|state| state.identifier.as_str()),
         Some(GROUP_AID)
+    );
+    Ok(())
+}
+
+/// KERIA answers the OOBI alone when it introduced no controller.
+#[test]
+fn a_resolution_that_introduces_no_controller_answers_the_oobi() -> Result<(), Box<dyn Error>> {
+    let answer = format!(
+        r#"{{"name":"oobi.{SCHEMA_OOBI}","metadata":{{"oobi":"{SCHEMA_OOBI}"}},"done":true,"response":{{"oobi":"{SCHEMA_OOBI}"}}}}"#
+    );
+    let (client, _) = connected(&[answer.as_bytes()])?;
+
+    let operation = block_on(
+        client
+            .oobis()
+            .resolve(&OobiResolution::new(RequestUrl::new(SCHEMA_OOBI)?)),
+    )?;
+
+    assert_eq!(
+        operation.outcome.response(),
+        Some(&ResolvedOobi::Url {
+            oobi: SCHEMA_OOBI.to_owned()
+        })
     );
     Ok(())
 }

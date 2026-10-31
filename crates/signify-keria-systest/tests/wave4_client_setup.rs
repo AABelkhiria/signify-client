@@ -145,8 +145,9 @@ async fn resolve_contact(
     let resolved = to.oobis().resolve(&resolution).await?;
     let completed = to.poller().wait(resolved).await?;
     let name = completed.name().to_owned();
-    let state = completed.into_response();
+    let resolved = completed.into_response();
     to.operations().delete(&name).await?;
+    let state = resolved.into_key_state().ok_or("the OOBI introduced no controller")?;
     Ok(state.identifier)
 }
 

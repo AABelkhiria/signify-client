@@ -8,11 +8,10 @@ use std::error::Error;
 use keri_protocol::said::Said;
 use keria_types::api::{Notification, Role};
 use serde_json::Value;
-use signify_client::client::{ClientRequest, ConnectedClient};
-use signify_client::endpoint::oobis::{OobiResolution, RESOLUTIONS_SEGMENT};
-use signify_http::request::{ItemRange, ResourcePath};
+use signify_client::client::ConnectedClient;
+use signify_client::endpoint::oobis::OobiResolution;
+use signify_http::request::ItemRange;
 use signify_http::retry::{Clock, TokioClock};
-use signify_http::transport::Method;
 use signify_http::transport::RequestUrl;
 
 use crate::preset::Environment;
@@ -153,8 +152,9 @@ pub async fn resolve_oobi(client: &ConnectedClient, url: &str, alias: &str) -> R
     let submitted = client.oobis().resolve(&resolution).await?;
     let completed = client.poller().wait(submitted).await?;
     let name = completed.name().to_owned();
-    let state = completed.into_response();
+    let resolved = completed.into_response();
     client.operations().delete(&name).await?;
+    let state = resolved.into_key_state().ok_or("the OOBI introduced no controller")?;
     Ok(state.identifier)
 }
 
@@ -193,18 +193,11 @@ pub async fn resolve_schema(
     let said = schema.qb64()?;
     let url = format!("{}/oobi/{said}", environment.schema_url);
     crate::progress(&format!("resolving the schema OOBI {said}"));
-    // A schema resolution's operation answers with the schema, not a key state, which the typed
-    // `oobis().resolve` cannot read (a live KERIA answers `missing field i`). The harness posts
-    // the same body and waits on the operation untyped; the typed decoder is a separate defect.
     let resolution = OobiResolution {
         url: RequestUrl::new(url)?,
         alias: Some(said.clone()),
     };
-    let path = ResourcePath::builder().segment(RESOLUTIONS_SEGMENT).build()?;
-    let response = client
-        .fetch(ClientRequest::new(Method::Post, path).body(resolution.body()?))
-        .await?;
-    let submitted: keria_types::api::UntypedOperation = serde_json::from_slice(response.body())?;
+    let submitted = client.oobis().resolve(&resolution).await?;
     wait_and_delete(client, &submitted.name).await?;
     Ok(())
 }

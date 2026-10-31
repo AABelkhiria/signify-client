@@ -11,7 +11,7 @@
 //!
 //! # Resolving does not wait
 //!
-//! [`Oobis::resolve`] returns an [`OobiOperation`], not a resolved OOBI: the agent has to go and
+//! [`Oobis::resolve`] returns an [`OobiResolutionOperation`], not a resolved OOBI: the agent has to go and
 //! fetch the URL, which can take as long as the far end takes. Every caller in the pinned tree
 //! hands the operation straight to `waitOperation`. Polling is the [`operation`](crate::operation)
 //! module's — on the schedule `Operations.wait` uses — so here a caller drives the operation itself
@@ -43,7 +43,8 @@
 
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::Sad;
-use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
+use keria_types::api::{EndRole, KeyState, Oobi, OobiMetadata, Operation, Role};
+use serde::Deserialize;
 use signify_http::request::ResourcePath;
 use signify_http::transport::{Method, RequestUrl};
 
@@ -150,6 +151,43 @@ impl OobiResolution {
     }
 }
 
+/// What a finished OOBI resolution answers.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[serde(untagged)]
+#[non_exhaustive]
+pub enum ResolvedOobi {
+    /// The key state of the controller the OOBI introduced.
+    KeyState(Box<KeyState>),
+    /// The OOBI alone, when it introduced no controller, as a schema OOBI does.
+    Url {
+        /// The resolved URL.
+        oobi: String,
+    },
+}
+
+impl ResolvedOobi {
+    /// Returns the introduced controller's key state, when the OOBI introduced one.
+    #[must_use]
+    pub fn key_state(&self) -> Option<&KeyState> {
+        match self {
+            Self::KeyState(state) => Some(state),
+            Self::Url { .. } => None,
+        }
+    }
+
+    /// Consumes the answer, returning the introduced controller's key state, if any.
+    #[must_use]
+    pub fn into_key_state(self) -> Option<KeyState> {
+        match self {
+            Self::KeyState(state) => Some(*state),
+            Self::Url { .. } => None,
+        }
+    }
+}
+
+/// The long-running operation behind [`Oobis::resolve`].
+pub type OobiResolutionOperation = Operation<OobiMetadata, ResolvedOobi>;
+
 /// The OOBI endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
@@ -198,7 +236,7 @@ impl<'client> Oobis<'client> {
     ///
     /// Returns [`ClientError::Api`] when the answer is not an OOBI operation, plus whatever
     /// [`Self::get`] returns.
-    pub async fn resolve(&self, request: &OobiResolution) -> Result<OobiOperation, ClientError> {
+    pub async fn resolve(&self, request: &OobiResolution) -> Result<OobiResolutionOperation, ClientError> {
         let path = ResourcePath::builder().segment(RESOLUTIONS_SEGMENT).build()?;
         let submitted = ClientRequest::new(Method::Post, path).body(request.body()?);
         let response = self.client.fetch(submitted).await?;

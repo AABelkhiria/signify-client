@@ -18,10 +18,10 @@ use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{EndRole, Oobi, OobiOperation, Role};
+use keria_types::api::{EndRole, Oobi, Role};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::oobis::{
-    END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
+    END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, OobiResolutionOperation, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
 };
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
@@ -140,7 +140,7 @@ fn benchmark_oobis(criterion: &mut Criterion) {
     }
     let operation = pending_operation();
     criterion.bench_function("oobis_decode_operation", |bencher| {
-        bencher.iter(|| serde_json::from_str::<OobiOperation>(black_box(&operation)).is_ok());
+        bencher.iter(|| serde_json::from_str::<OobiResolutionOperation>(black_box(&operation)).is_ok());
     });
 }
 

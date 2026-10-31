@@ -72,8 +72,9 @@ async fn resolve_contact(
     let resolved = observer.oobis().resolve(&resolution).await?;
     let completed = observer.poller().wait(resolved).await?;
     let name = completed.name().to_owned();
-    let state = completed.into_response();
+    let resolved = completed.into_response();
     observer.operations().delete(&name).await?;
+    let state = resolved.into_key_state().ok_or("the OOBI introduced no controller")?;
     Ok(state.identifier)
 }
 
