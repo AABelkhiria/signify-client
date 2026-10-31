@@ -91,6 +91,11 @@ pub enum ClientError {
         /// Which half was missing.
         missing: &'static str,
     },
+    /// The agent state response carried an index that is not an unsigned 32-bit integer.
+    InvalidAgentIndex {
+        /// Which index: `ridx` or `pidx`.
+        label: &'static str,
+    },
     /// A request returned a non-success status.
     ///
     /// The reference builds one message out of the method, path, status, status text, and body;
@@ -580,6 +585,7 @@ impl fmt::Display for ClientError {
             Self::IncompleteAgentState { missing } => {
                 write!(formatter, "the agent state carried no {missing}")
             }
+            Self::InvalidAgentIndex { label } => write!(formatter, "the agent state carried an invalid {label}"),
             Self::Status { status, detail } => write!(formatter, "the agent answered {status}: {detail}"),
             Self::Decode { source } => write!(formatter, "response decoding failed: {source}"),
             Self::Request { source } => write!(formatter, "request construction failed: {source}"),
@@ -808,6 +814,7 @@ impl Error for ClientError {
             | Self::ControllerPrefixMismatch { .. }
             | Self::ControllerKeyMismatch { .. }
             | Self::IncompleteAgentState { .. }
+            | Self::InvalidAgentIndex { .. }
             | Self::Status { .. }
             | Self::OperationPending { .. }
             | Self::OperationFailed { .. }
@@ -965,6 +972,7 @@ mod tests {
                 actual: "EOTHER".to_owned(),
             },
             ClientError::IncompleteAgentState { missing: "agent" },
+            ClientError::InvalidAgentIndex { label: "pidx" },
             ClientError::status(404, b"missing"),
             ClientError::IdentifierNotAccepted {
                 name: "group1".to_owned(),

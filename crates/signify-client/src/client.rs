@@ -162,17 +162,20 @@ impl AgentState {
         Ok(Self {
             agent: agent_state,
             controller_event,
-            rotation_index: read_index(&document, "ridx"),
-            prefix_index: read_index(&document, "pidx"),
+            rotation_index: read_index(&document, "ridx")?,
+            prefix_index: read_index(&document, "pidx")?,
         })
     }
 }
 
-/// Reads one optional non-negative index, defaulting to zero as the reference does.
-fn read_index(document: &Sad, label: &str) -> u32 {
+/// Reads one optional index, taking an absent or null value as zero.
+///
+/// An unreadable index is refused: taking it for zero would derive the keys of index zero again.
+fn read_index(document: &Sad, label: &'static str) -> Result<u32, ClientError> {
     match document.get(label) {
-        Some(SadValue::Integer(value)) => u32::try_from(*value).unwrap_or_default(),
-        _ => 0,
+        None | Some(SadValue::Null) => Ok(0),
+        Some(SadValue::Integer(value)) => u32::try_from(*value).map_err(|_| ClientError::InvalidAgentIndex { label }),
+        Some(_) => Err(ClientError::InvalidAgentIndex { label }),
     }
 }
 
@@ -286,8 +289,8 @@ impl SignifyClient {
     ///
     /// Returns [`ClientError::AgentNotFound`] for a 404 — the reference's own special case —
     /// [`ClientError::Status`] for any other non-success answer, which the reference instead
-    /// parses as if it were state, and [`ClientError::IncompleteAgentState`] for a body missing
-    /// either half.
+    /// parses as if it were state, [`ClientError::IncompleteAgentState`] for a body missing
+    /// either half, and [`ClientError::InvalidAgentIndex`] for an unreadable index.
     pub async fn state(&self) -> Result<AgentState, ClientError> {
         // A rotated controller keeps the prefix its first passcode incepted, which the current
         // passcode no longer derives; the caller names it through the configuration.

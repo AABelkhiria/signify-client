@@ -51,6 +51,9 @@ fn config(passcode: &str) -> Result<ClientConfig, ClientError> {
         .with_derivation_cost(DerivationCost::Ephemeral))
 }
 
+/// Largest integer a JSON number carries exactly.
+const JSON_SAFE_MAX: i64 = (1 << 53) - 1;
+
 fn agent_state(controller_prefix: &str, inception: &str, rotation_index: u32) -> String {
     let agent = format!(
         r#"{{"vn":[1,0],"i":"{AGENT}","s":"0","p":"","d":"{AGENT}","f":"0","dt":"2023-12-01T10:05:25.062609+00:00","et":"dip","kt":"1","k":["{AGENT_KEY}"],"nt":"1","n":["EL6zVoZ0F8OXcbXP4LOm5oJTxCXP6ZLp5o3vNfvVZ9YB"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{AGENT}","br":[],"ba":[]}},"di":"{controller_prefix}"}}"#
@@ -231,6 +234,33 @@ proptest! {
             ),
             "an incomplete state body was accepted"
         );
+    }
+
+    #[test]
+    fn an_unreadable_index_is_refused(
+        label in prop_oneof![Just("ridx"), Just("pidx")],
+        // Too large, negative, and not an integer.
+        value in prop_oneof![
+            (i64::from(u32::MAX) + 1..=JSON_SAFE_MAX).prop_map(|value| value.to_string()),
+            (-JSON_SAFE_MAX..0).prop_map(|value| value.to_string()),
+            Just(r#""1""#.to_owned()),
+        ],
+    ) {
+        let transport = Arc::new(ScriptedTransport::new());
+        let client = SignifyClient::new(config(PASSCODE).map_err(fail)?, Arc::clone(&transport) as Arc<_>, clock())
+            .map_err(fail)?;
+        let inception = core::str::from_utf8(client.controller().current_event().raw())
+            .map_err(fail)?
+            .to_owned();
+        let prefix = client.controller().prefix().qb64().map_err(fail)?;
+        let state = agent_state(&prefix, &inception, 0)
+            .replace(&format!(r#""{label}":0"#), &format!(r#""{label}":{value}"#));
+        transport.push_response(response(200, state.into_bytes())?);
+
+        match block_on(client.state()) {
+            Err(ClientError::InvalidAgentIndex { label: reported }) => prop_assert_eq!(reported, label),
+            other => return Err(fail(format!("{label}={value} was not refused: {other:?}"))),
+        }
     }
 
     #[test]
