@@ -114,7 +114,9 @@ impl KeeperRotation<'_> {
 }
 
 /// Holds one identifier's keys, and knows how to establish, rotate, and sign with them.
-pub trait IdentifierKeeper {
+///
+/// `Send + Sync`, so a client holding a keeper can cross threads.
+pub trait IdentifierKeeper: Send + Sync {
     /// Returns which strategy this keeper implements.
     fn algorithm(&self) -> KeyAlgorithm;
 

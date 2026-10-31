@@ -39,7 +39,6 @@ fn is_expected(error: &ManagerError) -> bool {
             | ManagerError::NotIncepted { .. }
             | ManagerError::Abandoned { .. }
             | ManagerError::MissingPrivateKey { .. }
-            | ManagerError::DecryptionUnavailable
             | ManagerError::SaltDecryptionUnavailable
             | ManagerError::NoSigningKeysRequested
             | ManagerError::PlacementCountMismatch { .. }

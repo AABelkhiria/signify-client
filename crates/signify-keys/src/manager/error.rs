@@ -103,11 +103,6 @@ pub enum ManagerError {
         /// Public key whose private half is absent.
         public_key: String,
     },
-    /// A stored key needs decryption but the manager has no decrypter.
-    ///
-    /// The manager holds an encryption identifier, so a private key was stored encrypted, but no
-    /// seed was supplied to open it.
-    DecryptionUnavailable,
     /// A salty identifier stores an encrypted salt but the manager has no decrypter.
     SaltDecryptionUnavailable,
     /// A signing request named neither public keys nor verification keys.
@@ -211,9 +206,6 @@ impl fmt::Display for ManagerError {
             Self::Abandoned { prefix } => write!(formatter, "{prefix} has no next keys and cannot rotate"),
             Self::MissingPrivateKey { public_key } => {
                 write!(formatter, "no private key is stored for {public_key}")
-            }
-            Self::DecryptionUnavailable => {
-                formatter.write_str("a stored key needs decryption but no seed was supplied")
             }
             Self::SaltDecryptionUnavailable => {
                 formatter.write_str("an identifier stores an encrypted salt but no seed was supplied")
@@ -321,7 +313,6 @@ mod tests {
             ManagerError::MissingPrivateKey {
                 public_key: "DABC".to_owned(),
             },
-            ManagerError::DecryptionUnavailable,
             ManagerError::SaltDecryptionUnavailable,
             ManagerError::NoSigningKeysRequested,
             ManagerError::PlacementCountMismatch { placements: 2, keys: 1 },

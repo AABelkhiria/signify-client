@@ -588,6 +588,16 @@ fn salty_request(passcode: &str, keys: usize) -> CreateIdentifierRequest {
 }
 
 #[test]
+fn a_pending_creation_is_send() -> Result<(), Box<dyn Error>> {
+    fn assert_send<T: Send>(_: &T) {}
+
+    let (client, _transport) = connected(&[])?;
+    let request = salty_request(PASSCODE, 1);
+    assert_send(&client.identifiers().create("aid1", &request));
+    Ok(())
+}
+
+#[test]
 fn an_alias_holding_a_separator_is_refused_before_anything_is_sent() -> Result<(), Box<dyn Error>> {
     let (client, transport) = connected(&[])?;
     let refused = block_on(client.identifiers().create("a/b", &salty_request(PASSCODE, 1)));
