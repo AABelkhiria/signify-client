@@ -52,6 +52,8 @@ fn embed_for(route: MultisigRoute) -> String {
             r#""rev":{},"anc":{ANCHOR}"#,
             r#"{"v":"KERI10JSON000_","t":"rev","d":"EREV","i":"ECRED","s":"1","ri":"EREG","p":"EISS","dt":"2023-11-14T22:13:20.123000+00:00"}"#
         ),
+        // A route added later has no embed here.
+        _ => String::new(),
     };
     format!(r#"{{"d":"EEMB",{inner}}}"#)
 }
@@ -66,6 +68,8 @@ fn slot_matches(route: MultisigRoute, embed: &ExchangeEmbed) -> bool {
         MultisigRoute::Issuance => matches!(embed, ExchangeEmbed::Issuance(_)),
         MultisigRoute::Exchange => matches!(embed, ExchangeEmbed::Exchange(_)),
         MultisigRoute::Revocation => matches!(embed, ExchangeEmbed::Revocation(_)),
+        // A route added later has no embed here.
+        _ => false,
     }
 }
 

@@ -116,6 +116,7 @@ impl Default for RandyKeeperRequest {
 /// This replaces the reference's `new(algo, pidx, kargs)`, whose third argument is an untyped bag
 /// read with string keys. Its `Unknown algo` failure is unrepresentable here.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum KeeperRequest<'states> {
     /// A new or reloaded salty identifier.
     Salty(SaltyKeeperRequest),

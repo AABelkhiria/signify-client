@@ -106,7 +106,8 @@ fn benchmark_exchange_routes(criterion: &mut Criterion) {
 
     // Every route in turn, which is what a member polling a busy group does.
     let proposals: Vec<ExchangeRecord> = MultisigRoute::ALL
-        .into_iter()
+        .iter()
+        .copied()
         .filter_map(|route| {
             let embeds = match route {
                 MultisigRoute::Issuance => format!(r#"{{"d":"EEMB","acdc":{ACDC},"iss":{ISSUANCE},"anc":{ANCHOR}}}"#),

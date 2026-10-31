@@ -215,6 +215,7 @@ impl<M, R> Completed<M, R> {
 ///
 /// The reference has neither, so it has no such state: its loop simply does not end.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum PollingLimit {
     /// Every attempt the policy allows had been made.
     Attempts,
@@ -624,9 +625,8 @@ impl<'client> Poller<'client> {
 const fn limit_of(reason: StopReason) -> PollingLimit {
     match reason {
         StopReason::DeadlineElapsed => PollingLimit::Deadline,
-        StopReason::NotRetryable | StopReason::MethodNotRepeatable | StopReason::AttemptsExhausted => {
-            PollingLimit::Attempts
-        }
+        // `NotRetryable`, `MethodNotRepeatable`, `AttemptsExhausted`, and any later reason.
+        _ => PollingLimit::Attempts,
     }
 }
 

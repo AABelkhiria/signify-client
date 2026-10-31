@@ -24,6 +24,7 @@ use super::error::ManagerError;
 /// # }
 /// ```
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum KeyAlgorithm {
     /// Keys derived deterministically from a salt and a path, so only the salt is stored.
     #[default]
@@ -51,7 +52,7 @@ pub enum CreatorKind {
 
 impl KeyAlgorithm {
     /// Every algorithm the reference declares, in declaration order.
-    pub const ALL: [Self; 4] = [Self::Randy, Self::Salty, Self::Group, Self::Extern];
+    pub const ALL: &'static [Self] = &[Self::Randy, Self::Salty, Self::Group, Self::Extern];
 
     /// Returns the exact wire text.
     #[must_use]
@@ -102,7 +103,8 @@ impl FromStr for KeyAlgorithm {
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
         Self::ALL
-            .into_iter()
+            .iter()
+            .copied()
             .find(|algorithm| algorithm.as_str() == text)
             .ok_or(ManagerError::UnsupportedAlgorithm {
                 // An unknown name is reported against the algorithm the reference defaults to,
@@ -125,7 +127,7 @@ mod tests {
 
     #[test]
     fn every_algorithm_round_trips_through_its_wire_text() -> Result<(), Box<dyn Error>> {
-        for algorithm in KeyAlgorithm::ALL {
+        for &algorithm in KeyAlgorithm::ALL {
             assert_eq!(algorithm.as_str().parse::<KeyAlgorithm>()?, algorithm);
             assert_eq!(algorithm.to_string(), algorithm.as_str());
         }

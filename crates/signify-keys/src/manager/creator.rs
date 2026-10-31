@@ -204,6 +204,7 @@ pub struct DerivedKey {
 /// length as signers" check from being needed: a derived set carries one path per key by
 /// construction, and a random set has no paths at all.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum CreatedKeys {
     /// Deterministically derived keys, each with its path.
     Derived(Vec<DerivedKey>),

@@ -137,7 +137,8 @@ fn rebuild(recorded: &RecordedRequest, port: u16) -> Result<Request, Box<dyn Err
         None => format!("http://127.0.0.1:{port}{}", original.path()),
     };
     let method = Method::ALL
-        .into_iter()
+        .iter()
+        .copied()
         .find(|method| method.as_str() == recorded.method)
         .ok_or_else(|| format!("unmodelled method {:?}", recorded.method))?;
 

@@ -26,6 +26,7 @@ pub const DEFAULT_STEM: &str = "signify:aid";
 /// is sealed to. This enum replaces the reference's three-branch `if` over a `bran` argument, an
 /// `sxlt` argument, and neither.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum SaltySource {
     /// Derive the salt from a passcode, as the reference's `bran` argument does.
     Passcode(IdentifierPasscode),

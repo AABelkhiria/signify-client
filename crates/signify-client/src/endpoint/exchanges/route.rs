@@ -27,6 +27,7 @@ use signify_keys::acdc::ipex::IpexRoute;
 /// the route text spells: `/multisig/vcp` proposes a registry inception, and `/multisig/exn`
 /// proposes another exchange message.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum MultisigRoute {
     /// Propose the group's inception; route `/multisig/icp`.
     Inception,
@@ -48,7 +49,7 @@ pub enum MultisigRoute {
 
 impl MultisigRoute {
     /// Every multisig route, in the order the reference declares its constants.
-    pub const ALL: [Self; 8] = [
+    pub const ALL: &'static [Self] = &[
         Self::Inception,
         Self::Rotation,
         Self::Interaction,
@@ -112,6 +113,7 @@ impl fmt::Display for MultisigRoute {
 /// # }
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum ExchangeRoute {
     /// One of the eight multisig coordination steps.
     Multisig(MultisigRoute),
@@ -121,7 +123,7 @@ pub enum ExchangeRoute {
 
 impl ExchangeRoute {
     /// Every route the reference declares a constant for, multisig first.
-    pub const ALL: [Self; 13] = [
+    pub const ALL: &'static [Self] = &[
         Self::Multisig(MultisigRoute::Inception),
         Self::Multisig(MultisigRoute::Rotation),
         Self::Multisig(MultisigRoute::Interaction),
@@ -152,7 +154,7 @@ impl ExchangeRoute {
     /// an ordinary message rather than a mistake.
     #[must_use]
     pub fn parse(text: &str) -> Option<Self> {
-        Self::ALL.into_iter().find(|route| route.as_str() == text)
+        Self::ALL.iter().copied().find(|route| route.as_str() == text)
     }
 }
 
@@ -197,7 +199,11 @@ mod tests {
     #[test]
     fn every_route_writes_the_references_own_literal() {
         assert_eq!(
-            MultisigRoute::ALL.map(MultisigRoute::as_str),
+            MultisigRoute::ALL
+                .iter()
+                .copied()
+                .map(MultisigRoute::as_str)
+                .collect::<Vec<_>>(),
             [
                 "/multisig/icp",
                 "/multisig/rot",
@@ -212,7 +218,8 @@ mod tests {
         // The five IPEX routes are `IpexRoute`'s, not redefined here.
         assert_eq!(
             ExchangeRoute::ALL
-                .into_iter()
+                .iter()
+                .copied()
                 .filter_map(|route| match route {
                     ExchangeRoute::Ipex(ipex) => Some(ipex.as_str()),
                     ExchangeRoute::Multisig(_) => None,
@@ -240,7 +247,7 @@ mod tests {
 
     #[test]
     fn every_route_round_trips_through_its_text() {
-        for route in ExchangeRoute::ALL {
+        for &route in ExchangeRoute::ALL {
             assert_eq!(ExchangeRoute::parse(route.as_str()), Some(route));
             assert_eq!(route.as_str().parse::<ExchangeRoute>(), Ok(route));
             assert_eq!(route.to_string(), route.as_str());
@@ -286,7 +293,8 @@ mod tests {
     fn only_the_three_member_bearing_steps_name_members() {
         // The reference declares `smids` required on exactly these three.
         let naming: Vec<&str> = MultisigRoute::ALL
-            .into_iter()
+            .iter()
+            .copied()
             .filter(|route| route.names_members())
             .map(MultisigRoute::as_str)
             .collect();

@@ -211,6 +211,8 @@ fn embed_for(route: MultisigRoute) -> String {
             r#"{"v":"KERI10JSON000_","t":"rev","d":"EREV","i":"ECRED","s":"1","ri":"EREG","p":"EISS","dt":"2023-11-14T22:13:20.123000+00:00"}"#,
             ANCHOR
         ),
+        // A route added later has no embed here.
+        _ => String::new(),
     };
     format!(r#"{{"d":"EEMB",{inner}}}"#)
 }
@@ -361,7 +363,7 @@ fn the_thirteen_guards_have_no_consumers_and_six_assertions_have_none_either() -
 #[test]
 fn every_variant_declares_the_slot_this_port_requires() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    for route in MultisigRoute::ALL {
+    for &route in MultisigRoute::ALL {
         let recorded = fixture
             .variant_shapes
             .iter()
@@ -377,6 +379,7 @@ fn every_variant_declares_the_slot_this_port_requires() -> Result<(), Box<dyn Er
             MultisigRoute::Issuance => "acdc:",
             MultisigRoute::Exchange => "exn:",
             MultisigRoute::Revocation => "rev:",
+            _ => return Err(format!("{} has no slot here", route.as_str()).into()),
         };
         assert!(
             block.starts_with(slot),
@@ -390,7 +393,7 @@ fn every_variant_declares_the_slot_this_port_requires() -> Result<(), Box<dyn Er
 #[test]
 fn only_the_three_member_bearing_routes_declare_members() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    for route in MultisigRoute::ALL {
+    for &route in MultisigRoute::ALL {
         let recorded = fixture
             .variant_shapes
             .iter()
@@ -565,7 +568,7 @@ fn every_guard_agreed_with_its_own_route_and_refused_another() -> Result<(), Box
 fn a_route_that_promises_a_payload_it_does_not_carry_is_accepted_upstream_and_refused_here()
 -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    for route in MultisigRoute::ALL {
+    for &route in MultisigRoute::ALL {
         let record = entry(&fixture, route.as_str())?;
         assert_eq!(
             record.guard_on_empty_payload.value,
@@ -595,7 +598,7 @@ fn a_route_that_promises_a_payload_it_does_not_carry_is_accepted_upstream_and_re
 
 #[test]
 fn every_multisig_route_classifies_the_message_it_promises() -> Result<(), Box<dyn Error>> {
-    for route in MultisigRoute::ALL {
+    for &route in MultisigRoute::ALL {
         let classified = ClassifiedExchange::classify(&message(route.as_str(), &group_block(), &embed_for(route))?)?;
         let proposal = classified
             .as_multisig()
@@ -613,6 +616,8 @@ fn every_multisig_route_classifies_the_message_it_promises() -> Result<(), Box<d
             MultisigRoute::Issuance => matches!(proposal.proposed.message, ExchangeEmbed::Issuance(_)),
             MultisigRoute::Exchange => matches!(proposal.proposed.message, ExchangeEmbed::Exchange(_)),
             MultisigRoute::Revocation => matches!(proposal.proposed.message, ExchangeEmbed::Revocation(_)),
+            // A route added later has no embed here.
+            _ => false,
         };
         assert!(expected, "{} carried the wrong embed", route.as_str());
     }

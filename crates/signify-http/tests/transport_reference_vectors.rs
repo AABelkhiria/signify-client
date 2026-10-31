@@ -117,7 +117,8 @@ fn fixture() -> Result<Fixture, Box<dyn Error>> {
 /// Maps a recorded method name onto the typed method.
 fn method_of(text: &str) -> Result<Method, Box<dyn Error>> {
     Method::ALL
-        .into_iter()
+        .iter()
+        .copied()
         .find(|method| method.as_str() == text)
         .ok_or_else(|| format!("the reference sent an unmodelled method {text:?}").into())
 }

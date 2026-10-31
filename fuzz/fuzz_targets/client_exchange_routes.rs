@@ -61,6 +61,8 @@ fn promised_slot(route: MultisigRoute) -> &'static str {
         MultisigRoute::Issuance => "acdc",
         MultisigRoute::Exchange => "exn",
         MultisigRoute::Revocation => "rev",
+        // No slot, so a route added later fails the soundness check until it is listed here.
+        _ => "",
     }
 }
 
@@ -136,6 +138,7 @@ fn check(record: &ExchangeRecord) {
             assert!(classified.as_multisig().is_none());
             assert!(classified.as_ipex().is_none());
         }
+        _ => panic!("a classification added later needs its invariants checked here"),
     }
 
     // A named route never classifies as unnamed, whatever the payload is: only the payload can be

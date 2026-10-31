@@ -27,6 +27,7 @@ pub const MAX_RESPONSE_BODY_LIMIT: usize = 64 << 20;
 /// These are exactly the four the pinned reference issues across every endpoint module. A method
 /// it never sends is not modelled, so an endpoint cannot invent one by writing a string.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum Method {
     /// `GET`, which carries no body.
     Get,
@@ -40,7 +41,7 @@ pub enum Method {
 
 impl Method {
     /// Every method, in the order this table declares them.
-    pub const ALL: [Self; 4] = [Self::Get, Self::Post, Self::Put, Self::Delete];
+    pub const ALL: &'static [Self] = &[Self::Get, Self::Post, Self::Put, Self::Delete];
 
     /// Returns the exact wire spelling, which is uppercase.
     #[must_use]

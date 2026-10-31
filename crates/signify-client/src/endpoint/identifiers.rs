@@ -76,6 +76,7 @@ pub struct Identifiers<'client> {
 /// is `None` rather than three zeroes, and a caller can tell an empty window from an unreported
 /// one.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct IdentifierListing {
     /// The window the agent reported, when it reported one.
     pub window: Option<ContentRange>,

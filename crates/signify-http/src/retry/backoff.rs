@@ -65,6 +65,7 @@ pub const MAX_ATTEMPTS: u32 = 1_024;
 /// assert_eq!(Jitter::Full.apply(delay, 0), Duration::ZERO);
 /// ```
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum Jitter {
     /// The computed delay, unchanged. Reproduces the reference's schedule.
     None,
@@ -118,6 +119,7 @@ fn scale(span: Duration, randomness: u32) -> Duration {
 /// failure. An automatic retry is allowed only when a request is known repeatable, which is
 /// what the default enforces.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum RetryScope {
     /// Only `GET`.
     ///
@@ -178,6 +180,7 @@ pub const fn is_transient_error(error: &TransportError) -> bool {
 
 /// What a policy does with a `Retry-After` header.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum RetryAfterPolicy {
     /// Ignore the header and use the computed backoff, as the reference does.
     Ignore,
@@ -579,6 +582,7 @@ pub enum RetryDecision {
 
 /// Why a schedule stopped.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum StopReason {
     /// The outcome is not one this policy retries.
     NotRetryable,

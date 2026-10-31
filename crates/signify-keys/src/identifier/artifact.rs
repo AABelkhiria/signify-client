@@ -69,6 +69,7 @@ pub struct SignedReply {
 /// bag — where a randy creation silently ignores `count`-less salty arguments and vice versa —
 /// becomes four shapes that cannot mix.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum CreateAlgorithm {
     /// Keys derived from a salt of the identifier's own.
     Salty {

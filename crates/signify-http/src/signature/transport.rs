@@ -61,6 +61,7 @@ use crate::transport::{Request, Transport, TransportError, TransportFuture};
 /// it is a window rather than a maximum age because two machines' clocks disagree in both
 /// directions.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum Freshness {
     /// Accept any `created`, as the reference does.
     Ignore,

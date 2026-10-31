@@ -178,6 +178,7 @@ pub struct MultisigProposal {
 /// The reference declares these shapes by hand in `exchanging.ts`; **the generated schema models
 /// none of them**, because its `ExnEmbeds` union is the multisig one.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum IpexPayload {
     /// Apply, agree, and admit embed nothing at all.
     Empty,
@@ -230,6 +231,7 @@ pub struct IpexStep {
 /// # }
 /// ```
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum ClassifiedExchange {
     /// One of the eight multisig coordination steps.
     Multisig(Box<MultisigProposal>),
@@ -756,7 +758,7 @@ mod tests {
     #[test]
     fn every_multisig_route_expects_a_distinct_slot() {
         // The correspondence that makes the check possible: eight routes, eight embed variants.
-        let slots: Vec<&str> = MultisigRoute::ALL.into_iter().map(expected_slot).collect();
+        let slots: Vec<&str> = MultisigRoute::ALL.iter().copied().map(expected_slot).collect();
         let unique: std::collections::BTreeSet<&str> = slots.iter().copied().collect();
         assert_eq!(unique.len(), 8, "two routes expect one slot: {slots:?}");
         // An issuance proposal is discriminated by its credential, which is also a grant's slot.
