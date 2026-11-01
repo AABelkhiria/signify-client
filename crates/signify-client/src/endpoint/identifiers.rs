@@ -411,6 +411,22 @@ impl<'client> Identifiers<'client> {
         segment: &str,
         anchors: Vec<Sad>,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
+        let (artifact, body) = self.build_interaction(name, anchors).await?;
+        let path = Self::sub_path(name, segment)?;
+        let request = ClientRequest::new(Method::Post, path).body(body.to_json_bytes().map_err(sad_error)?);
+        let response = self.client.fetch(request).await?;
+        Ok(Submission {
+            artifact,
+            response: response.into_body(),
+        })
+    }
+
+    /// Builds and signs an interaction and its request body.
+    pub(crate) async fn build_interaction(
+        &self,
+        name: &str,
+        anchors: Vec<Sad>,
+    ) -> Result<(IdentifierArtifact, Sad), ClientError> {
         let record = self.get(name).await?;
         let keeper = self.client.keepers().keeper_for(&Hab::Accepted(record.clone()))?;
         let artifact = interact_identifier(keeper.as_ref(), &record.state, anchors)?;
@@ -420,14 +436,7 @@ impl<'client> Identifiers<'client> {
             .map_err(sad_error)?;
         insert_signatures(&mut body, &artifact)?;
         insert_algorithm(&mut body, keeper.as_ref(), stored_transferability(&record)?)?;
-
-        let path = Self::sub_path(name, segment)?;
-        let request = ClientRequest::new(Method::Post, path).body(body.to_json_bytes().map_err(sad_error)?);
-        let response = self.client.fetch(request).await?;
-        Ok(Submission {
-            artifact,
-            response: response.into_body(),
-        })
+        Ok((artifact, body))
     }
 
     /// Rotates a managed identifier to the keys it committed to.

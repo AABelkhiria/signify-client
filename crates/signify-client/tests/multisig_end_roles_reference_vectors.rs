@@ -420,6 +420,24 @@ mod driven {
         Ok((said, serde_json::to_vec(&listing)?))
     }
 
+    /// The reference's own interaction proposal, recorded by the `client-multisig-events` fixture.
+    fn interaction_exn() -> Result<Value, Box<dyn Error>> {
+        let events: Value = serde_json::from_str(INTERACTION_FIXTURE)?;
+        let announcement = events
+            .get("calls")
+            .and_then(Value::as_array)
+            .and_then(|calls| {
+                calls
+                    .iter()
+                    .find(|call| call.get("name").and_then(Value::as_str) == Some("announce_interaction"))
+            })
+            .and_then(|call| call.pointer("/requests/0/body"))
+            .and_then(Value::as_str)
+            .ok_or("the events fixture records no interaction announcement")?;
+        let posted: Value = serde_json::from_str(announcement)?;
+        Ok(posted.get("exn").ok_or("the announcement carries no exn")?.clone())
+    }
+
     #[test]
     fn the_proposing_half_sends_the_references_replies_and_attachments() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
@@ -619,6 +637,35 @@ mod driven {
     }
 
     #[test]
+    fn an_interaction_this_member_would_not_build_is_refused_unsent() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let member = member(&fixture)?;
+        let group = group(&fixture)?;
+        let mut exn = interaction_exn()?;
+        let digest = exn
+            .pointer_mut("/e/ixn/d")
+            .ok_or("the proposal embeds no interaction")?;
+        *digest = Value::String(fixture.pinned_confirmations.group.clone());
+        let said = Said::from_qb64(exn.get("d").and_then(Value::as_str).ok_or("no SAID")?)?;
+        let listing = serde_json::to_vec(&serde_json::json!([{ "exn": exn, "paths": {} }]))?;
+        let (client, transport) = connected(&[&member, &listing, &group, b"{}"])?;
+
+        let outcome = block_on(
+            client
+                .multisig()
+                .accept_interaction(GROUP_NAME, ALIAS, &said, stamp(&fixture)?),
+        );
+        assert!(
+            matches!(outcome, Err(ClientError::ProposalMismatch { .. })),
+            "{outcome:?}"
+        );
+        let requests = sent(&transport)?;
+        assert_eq!(requests.len(), 3, "the member, the proposal, and the group");
+        assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+        Ok(())
+    }
+
+    #[test]
     fn a_reply_for_another_controller_or_route_is_refused() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let member = member(&fixture)?;
@@ -665,20 +712,7 @@ mod driven {
     fn a_proposal_on_another_route_is_not_an_end_role() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let member = member(&fixture)?;
-        let events: Value = serde_json::from_str(INTERACTION_FIXTURE)?;
-        let announcement = events
-            .get("calls")
-            .and_then(Value::as_array)
-            .and_then(|calls| {
-                calls
-                    .iter()
-                    .find(|call| call.get("name").and_then(Value::as_str) == Some("announce_interaction"))
-            })
-            .and_then(|call| call.pointer("/requests/0/body"))
-            .and_then(Value::as_str)
-            .ok_or("the events fixture records no interaction announcement")?;
-        let posted: Value = serde_json::from_str(announcement)?;
-        let exn = posted.get("exn").ok_or("the announcement carries no exn")?;
+        let exn = interaction_exn()?;
         assert_eq!(
             exn.pointer("/a/gid").and_then(Value::as_str),
             Some(fixture.pinned_confirmations.group.as_str())

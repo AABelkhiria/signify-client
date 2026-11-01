@@ -675,7 +675,7 @@ impl<'client> Multisig<'client> {
     ///
     /// Returns [`ClientError::NotARotationProposal`] when the message under `proposal` is not a
     /// group rotation, [`ClientError::ProposalMismatch`] when the rotation this member builds is
-    /// not the one it was shown, in which case nothing was sent, and whatever
+    /// not the one it was shown (nothing is sent), and whatever
     /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Identifiers::rotate`](crate::endpoint::identifiers::Identifiers::rotate), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
@@ -786,7 +786,7 @@ impl<'client> Multisig<'client> {
     ///
     /// Returns [`ClientError::NotAnInteractionProposal`] when the message under `proposal` is not a
     /// group interaction, [`ClientError::ProposalMismatch`] when the event this member builds is
-    /// not the event it was shown, and whatever
+    /// not the event it was shown (nothing is sent), and whatever
     /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Identifiers::interact`](crate::endpoint::identifiers::Identifiers::interact), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
@@ -816,17 +816,19 @@ impl<'client> Multisig<'client> {
             .unwrap_or_else(|| signing.clone());
         let recipients = peers(&member, &signing)?;
 
-        let submission = self.client.identifiers().interact(group_name, anchors).await?;
+        let identifiers = self.client.identifiers();
+        let (artifact, body) = identifiers.build_interaction(group_name, anchors).await?;
 
         // What was built against what was shown. The reference compares nothing anywhere.
         let proposed_digest = digest_of(&embed.ixn)?;
-        let built = submission.artifact().event.said().qb64()?;
+        let built = artifact.event.said().qb64()?;
         if built != proposed_digest {
             return Err(ClientError::ProposalMismatch {
                 proposed: proposed_digest,
                 built,
             });
         }
+        let submission = identifiers.submit_event(group_name, artifact, body).await?;
 
         self.announce(
             submission,
