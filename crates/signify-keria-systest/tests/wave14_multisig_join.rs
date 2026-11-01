@@ -140,6 +140,7 @@ async fn propose_group_rotation(
             local_member: "member1",
             signing_states: signing,
             rotation_states: rotation,
+            signing_threshold: None,
             next_threshold: None,
             witness_threshold: None,
             witness_cuts: &[],

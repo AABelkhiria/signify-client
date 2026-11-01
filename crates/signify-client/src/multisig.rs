@@ -299,9 +299,8 @@ impl GroupInception {
 /// What a group rotation commits to.
 ///
 /// As with an inception every field here is inside the event's digest, so two members that differ
-/// about one of them produce different rotations. Unlike an inception, the joining half takes
-/// **none** of them: [`Multisig::accept_rotation`] signs the event it was shown rather than
-/// rebuilding one, which is why there is no accepting counterpart to this type.
+/// about one of them produce different rotations: [`Multisig::accept_rotation`] takes the same
+/// request and refuses a rotation that is not the one it was shown.
 #[derive(Debug)]
 pub struct GroupRotationRequest<'a> {
     /// Local alias of the group; also the notification topic, as the reference passes it.
@@ -316,7 +315,9 @@ pub struct GroupRotationRequest<'a> {
     /// call sites disagree about which one reaches `rmids`, which is the same conflation the
     /// `client-multisig-inception` fixture recorded in the accepting half of an inception.
     pub rotation_states: &'a [KeyState],
-    /// Next-key threshold; the reference's `nsith`, defaulting to the state's own.
+    /// Signing threshold; the reference's `isith`, defaulting to the state's own next threshold.
+    pub signing_threshold: Option<SigningThreshold>,
+    /// Next-key threshold; the reference's `nsith`, defaulting to the signing threshold.
     pub next_threshold: Option<SigningThreshold>,
     /// Witness threshold; the reference's `toad`, computed from the surviving witnesses when absent.
     pub witness_threshold: Option<u32>,
@@ -625,6 +626,7 @@ impl<'client> Multisig<'client> {
         let recipients = peers(&member, &signing)?;
 
         let rotate = RotateIdentifierRequest {
+            signing_threshold: request.signing_threshold.clone(),
             next_threshold: request.next_threshold.clone(),
             witness_threshold: request.witness_threshold,
             witness_cuts: request.witness_cuts.to_vec(),
@@ -702,6 +704,7 @@ impl<'client> Multisig<'client> {
         let recipients = peers(&member, &signing)?;
 
         let rotate = RotateIdentifierRequest {
+            signing_threshold: request.signing_threshold.clone(),
             next_threshold: request.next_threshold.clone(),
             witness_threshold: request.witness_threshold,
             witness_cuts: request.witness_cuts.to_vec(),

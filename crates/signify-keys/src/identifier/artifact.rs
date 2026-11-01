@@ -392,8 +392,9 @@ pub struct RotateIdentifierRequest {
     /// A salty identifier must keep one key count throughout; see
     /// [`SaltyKeeper`](crate::manager::keeper::SaltyKeeper).
     pub next_count: usize,
-    /// Next-key threshold; the reference's `nsith`, defaulting to the state's own next threshold
-    /// — which also becomes the rotation's signing threshold.
+    /// Signing threshold; the reference's `isith`, defaulting to the state's own next threshold.
+    pub signing_threshold: Option<SigningThreshold>,
+    /// Next-key threshold; the reference's `nsith`, defaulting to the signing threshold.
     pub next_threshold: Option<SigningThreshold>,
     /// Witness threshold; the reference's `toad`, computed from the surviving witnesses when
     /// absent.
@@ -416,6 +417,7 @@ impl Default for RotateIdentifierRequest {
         Self {
             transferability: KeyTransferability::Transferable,
             next_count: 1,
+            signing_threshold: None,
             next_threshold: None,
             witness_threshold: None,
             witness_cuts: Vec::new(),
@@ -536,11 +538,11 @@ pub fn interact_identifier(
 /// Builds and signs a rotation event on a stored identifier; the artifact half of the reference's
 /// `rotate`.
 ///
-/// The state's own next threshold becomes the rotation's signing threshold, its digest the prior,
-/// its witnesses the surviving witness list, and a non-empty delegator makes the event a
-/// delegated rotation — all exactly as the reference reads them. The signatures carry
-/// [`SigningPurpose::Rotation`], the reference's `rotated = true`, so a group keeper exposes the
-/// prior commitment position.
+/// Unless the request names one, the state's next threshold becomes the rotation's signing
+/// threshold. Its digest is the prior, its witnesses the surviving witness list, and a non-empty
+/// delegator makes the event a delegated rotation — all as the reference reads them. The
+/// signatures carry [`SigningPurpose::Rotation`], the reference's `rotated = true`, so a group
+/// keeper exposes the prior commitment position.
 ///
 /// # Errors
 ///
@@ -560,7 +562,10 @@ pub fn rotate_identifier(
         .map(|witness| IdentifierPrefix::from_qb64(witness))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let signing_threshold = signing_threshold_of(&state.next_threshold)?;
+    let signing_threshold = match &request.signing_threshold {
+        Some(threshold) => threshold.clone(),
+        None => signing_threshold_of(&state.next_threshold)?,
+    };
     let next_threshold = match &request.next_threshold {
         Some(threshold) => threshold.clone(),
         None => signing_threshold.clone(),
@@ -1158,6 +1163,64 @@ mod tests {
             Some(&SadValue::Array(vec![SadValue::text("1/2"), SadValue::text("1/2")]))
         );
         assert_eq!(rotation.event.sad().get_text("nt"), Some("1"));
+        Ok(())
+    }
+
+    #[test]
+    fn an_explicit_signing_threshold_replaces_the_stored_next_threshold() -> Result<(), Box<dyn Error>> {
+        let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
+            passcode: Some(PASSCODE.into()),
+            tier: SecurityTier::Low,
+            current_count: 2,
+            next_count: 2,
+            cost: DerivationCost::Ephemeral,
+        });
+        let mut keeper = keeper_for(&request)?;
+        let artifact = incept_identifier(keeper.as_mut(), &request)?;
+        let state = state_after(&artifact, |value| {
+            value["kt"] = serde_json::json!("2");
+            value["nt"] = serde_json::json!("1");
+        })?;
+        let rotation = rotate_identifier(
+            keeper.as_mut(),
+            &state,
+            &RotateIdentifierRequest {
+                next_count: 2,
+                signing_threshold: Some(SigningThreshold::numeric(2)),
+                next_threshold: Some(SigningThreshold::numeric(1)),
+                ..RotateIdentifierRequest::default()
+            },
+        )?;
+        assert_eq!(rotation.event.sad().get_text("kt"), Some("2"));
+        assert_eq!(rotation.event.sad().get_text("nt"), Some("1"));
+        Ok(())
+    }
+
+    #[test]
+    fn the_next_threshold_defaults_to_an_explicit_signing_threshold() -> Result<(), Box<dyn Error>> {
+        let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
+            passcode: Some(PASSCODE.into()),
+            tier: SecurityTier::Low,
+            current_count: 2,
+            next_count: 2,
+            cost: DerivationCost::Ephemeral,
+        });
+        let mut keeper = keeper_for(&request)?;
+        let artifact = incept_identifier(keeper.as_mut(), &request)?;
+        let state = state_after(&artifact, |value| {
+            value["nt"] = serde_json::json!("1");
+        })?;
+        let rotation = rotate_identifier(
+            keeper.as_mut(),
+            &state,
+            &RotateIdentifierRequest {
+                next_count: 2,
+                signing_threshold: Some(SigningThreshold::numeric(2)),
+                ..RotateIdentifierRequest::default()
+            },
+        )?;
+        assert_eq!(rotation.event.sad().get_text("kt"), Some("2"));
+        assert_eq!(rotation.event.sad().get_text("nt"), Some("2"));
         Ok(())
     }
 
