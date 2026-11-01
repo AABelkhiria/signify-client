@@ -152,6 +152,15 @@ impl CreatedRegistry {
     }
 }
 
+/// A registry built and signed but not yet sent.
+#[derive(Debug)]
+pub(crate) struct RegistryArtifacts {
+    /// The registry's own inception event.
+    pub(crate) inception: keri_protocol::event::KeyEvent,
+    anchor: keri_protocol::event::KeyEvent,
+    signatures: signify_keys::manager::ManagedSignatures,
+}
+
 /// The registries endpoint family.
 ///
 /// Borrowed from a connected client, so it costs nothing to hold and cannot outlive the client it
@@ -199,6 +208,15 @@ impl<'client> Registries<'client> {
     /// [`ClientError::Manager`] when the keeper cannot be rebuilt, layered registry and identifier
     /// failures, and whatever [`ConnectedClient::fetch`] returns.
     pub async fn create(&self, request: &CreateRegistryRequest) -> Result<CreatedRegistry, ClientError> {
+        let (artifacts, body) = self.build_registry(request).await?;
+        self.submit_registry(&request.identifier, artifacts, &body).await
+    }
+
+    /// Builds and signs a registry's inception, its anchor, and the request body.
+    pub(crate) async fn build_registry(
+        &self,
+        request: &CreateRegistryRequest,
+    ) -> Result<(RegistryArtifacts, Sad), ClientError> {
         let record = self.client.identifiers().get(&request.identifier).await?;
 
         // The reference builds the whole registry inception and only then throws. Nothing is
@@ -241,14 +259,31 @@ impl<'client> Registries<'client> {
             .map_err(sad_error)?;
         insert_algorithm(&mut body, keeper.as_ref(), stored_transferability(&record)?)?;
 
-        let submitted = ClientRequest::new(Method::Post, Self::collection_path(&request.identifier)?)
+        Ok((
+            RegistryArtifacts {
+                inception,
+                anchor: anchor.event,
+                signatures: anchor.signatures,
+            },
+            body,
+        ))
+    }
+
+    /// Posts a built registry.
+    pub(crate) async fn submit_registry(
+        &self,
+        identifier: &str,
+        artifacts: RegistryArtifacts,
+        body: &Sad,
+    ) -> Result<CreatedRegistry, ClientError> {
+        let submitted = ClientRequest::new(Method::Post, Self::collection_path(identifier)?)
             .body(body.to_json_bytes().map_err(sad_error)?);
         let response = self.client.fetch(submitted).await?;
 
         Ok(CreatedRegistry {
-            inception,
-            anchor: anchor.event,
-            signatures: anchor.signatures,
+            inception: artifacts.inception,
+            anchor: artifacts.anchor,
+            signatures: artifacts.signatures,
             response: response.into_body(),
         })
     }

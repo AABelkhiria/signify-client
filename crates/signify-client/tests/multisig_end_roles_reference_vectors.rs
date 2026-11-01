@@ -20,6 +20,11 @@ const INTERACTION_FIXTURE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/fixtures/client-multisig-events/v1.json"
 ));
+/// The multisig credentials fixture, for genuine proposals on the credential routes.
+const CREDENTIALS_FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-multisig-credentials/v1.json"
+));
 
 #[derive(Debug, Deserialize)]
 struct Fixture {
@@ -312,10 +317,12 @@ mod driven {
     use std::sync::Arc;
 
     use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+    use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
     use keri_cesr::crypto::cipher::Encrypter;
     use keri_cesr::crypto::salt::{Salt, SecurityTier};
     use keri_cesr::crypto::verifier::KeyTransferability;
     use keri_protocol::event::Timestamp;
+    use keri_protocol::prefix::IdentifierPrefix;
     use keri_protocol::said::Said;
     use keria_types::api::Role;
     use signify_client::client::{ConnectedClient, SignifyClient};
@@ -323,6 +330,7 @@ mod driven {
     use signify_client::error::ClientError;
     use signify_client::multisig::GroupEndRoleRequest;
     use signify_http::transport::Transport;
+    use signify_keys::acdc::revocation::{RevocationEvent, RevocationEventBuilder};
     use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
@@ -436,6 +444,116 @@ mod driven {
             .ok_or("the events fixture records no interaction announcement")?;
         let posted: Value = serde_json::from_str(announcement)?;
         Ok(posted.get("exn").ok_or("the announcement carries no exn")?.clone())
+    }
+
+    /// The reference's own proposal from `call` in the `client-multisig-credentials` fixture.
+    fn credential_exn(call: &str) -> Result<Value, Box<dyn Error>> {
+        let events: Value = serde_json::from_str(CREDENTIALS_FIXTURE)?;
+        let announcement = events
+            .get("calls")
+            .and_then(Value::as_array)
+            .and_then(|calls| {
+                calls
+                    .iter()
+                    .find(|recorded| recorded.get("name").and_then(Value::as_str) == Some(call))
+            })
+            .and_then(|recorded| recorded.get("requests"))
+            .and_then(Value::as_array)
+            .and_then(|requests| requests.last())
+            .and_then(|request| request.get("body"))
+            .and_then(Value::as_str)
+            .ok_or("the credentials fixture records no such announcement")?;
+        let posted: Value = serde_json::from_str(announcement)?;
+        Ok(posted.get("exn").ok_or("the announcement carries no exn")?.clone())
+    }
+
+    /// A proposal as `GET /multisig/request/{said}` lists it, with `pointer` set to `value`.
+    fn listed(mut exn: Value, pointer: &str, value: &str) -> Result<(Said, Vec<u8>), Box<dyn Error>> {
+        *exn.pointer_mut(pointer).ok_or("the proposal lacks that field")? = Value::String(value.to_owned());
+        let said = Said::from_qb64(exn.get("d").and_then(Value::as_str).ok_or("no SAID")?)?;
+        Ok((
+            said,
+            serde_json::to_vec(&serde_json::json!([{ "exn": exn, "paths": {} }]))?,
+        ))
+    }
+
+    /// The agent's answers to a joining member, up to and including its submission.
+    fn joining_answers<'a>(member: &'a [u8], listing: &'a [u8], members: &'a [u8], group: &'a [u8]) -> [&'a [u8]; 8] {
+        [member, listing, members, group, b"{}", group, member, b"{}"]
+    }
+
+    /// Asserts a refused round read its four resources and wrote nothing.
+    fn assert_nothing_written(transport: &AgentTransport) -> Result<(), Box<dyn Error>> {
+        let requests = sent(transport)?;
+        assert_eq!(
+            requests.len(),
+            4,
+            "the member, the proposal, the members, and the group"
+        );
+        assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+        Ok(())
+    }
+
+    /// The first write a round made, as its method and resource.
+    fn first_write(transport: &AgentTransport) -> Result<(String, String), Box<dyn Error>> {
+        let (resource, method, _) = sent(transport)?
+            .into_iter()
+            .find(|(_, method, _)| method != "GET")
+            .ok_or("nothing was written")?;
+        Ok((method, resource))
+    }
+
+    /// One pinned value from the `client-multisig-credentials` fixture.
+    fn credential_confirmation(field: &str) -> Result<String, Box<dyn Error>> {
+        let events: Value = serde_json::from_str(CREDENTIALS_FIXTURE)?;
+        let value = events
+            .pointer(&format!("/pinned_confirmations/{field}"))
+            .and_then(Value::as_str)
+            .ok_or_else(|| format!("no {field}"))?;
+        Ok(value.to_owned())
+    }
+
+    /// A credential the group issues, with attributes of this test's own.
+    fn group_credential(fixture: &Fixture) -> Result<Credential, Box<dyn Error>> {
+        let attributes = CredentialAttributes::new(stamp(fixture)?)
+            .text("LEI", "5493001KJTIIGC8Y1R17")?
+            .timestamp()?;
+        Ok(CredentialBuilder::new(
+            IdentifierPrefix::from_qb64(&fixture.pinned_confirmations.group)?,
+            RegistryIdentifier::from_qb64(&credential_confirmation("registry")?)?,
+            Said::from_qb64(&credential_confirmation("schema")?)?,
+            attributes,
+        )
+        .build()?)
+    }
+
+    /// A revocation of the fixture's credential.
+    fn group_revocation(fixture: &Fixture) -> Result<RevocationEvent, Box<dyn Error>> {
+        let credential = Said::from_qb64(&credential_confirmation("credential")?)?;
+        Ok(RevocationEventBuilder::new(
+            credential,
+            RegistryIdentifier::from_qb64(&credential_confirmation("registry")?)?,
+            credential,
+            fixture.pinned_confirmations.stamp.parse()?,
+        )
+        .build()?)
+    }
+
+    /// The reference's revocation proposal in the slot its route names.
+    fn revocation_exn() -> Result<Value, Box<dyn Error>> {
+        let mut exn = credential_exn("propose_the_revocation")?;
+        let embeds = exn
+            .get_mut("e")
+            .and_then(Value::as_object_mut)
+            .ok_or("the proposal embeds nothing")?;
+        let revocation = embeds.remove("iss").ok_or("the reference moved its revocation")?;
+        embeds.insert("rev".to_owned(), revocation);
+        Ok(exn)
+    }
+
+    /// That proposal, as `GET /multisig/request/{said}` lists it, claiming `digest` for its event.
+    fn interaction_proposal(digest: &str) -> Result<(Said, Vec<u8>), Box<dyn Error>> {
+        listed(interaction_exn()?, "/e/ixn/d", digest)
     }
 
     #[test]
@@ -641,13 +759,7 @@ mod driven {
         let fixture = fixture()?;
         let member = member(&fixture)?;
         let group = group(&fixture)?;
-        let mut exn = interaction_exn()?;
-        let digest = exn
-            .pointer_mut("/e/ixn/d")
-            .ok_or("the proposal embeds no interaction")?;
-        *digest = Value::String(fixture.pinned_confirmations.group.clone());
-        let said = Said::from_qb64(exn.get("d").and_then(Value::as_str).ok_or("no SAID")?)?;
-        let listing = serde_json::to_vec(&serde_json::json!([{ "exn": exn, "paths": {} }]))?;
+        let (said, listing) = interaction_proposal(&fixture.pinned_confirmations.group)?;
         let (client, transport) = connected(&[&member, &listing, &group, b"{}"])?;
 
         let outcome = block_on(
@@ -662,6 +774,167 @@ mod driven {
         let requests = sent(&transport)?;
         assert_eq!(requests.len(), 3, "the member, the proposal, and the group");
         assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+        Ok(())
+    }
+
+    #[test]
+    fn an_approval_this_member_would_not_build_is_refused_unsent() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let member = member(&fixture)?;
+        let group = group(&fixture)?;
+        let (said, listing) = interaction_proposal(&fixture.pinned_confirmations.group)?;
+        let (client, transport) = connected(&[&member, &listing, &group, b"{}"])?;
+
+        let outcome = block_on(client.multisig().accept_delegation_approval(
+            GROUP_NAME,
+            ALIAS,
+            &said,
+            stamp(&fixture)?,
+        ));
+        let Err(ClientError::ProposalMismatch { built, .. }) = outcome else {
+            return Err(format!("{outcome:?}").into());
+        };
+        let requests = sent(&transport)?;
+        assert_eq!(requests.len(), 3, "the member, the proposal, and the group");
+        assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+
+        // The same proposal naming the event this member builds goes through to the delegation address.
+        let (said, listing) = interaction_proposal(&built)?;
+        let (client, transport) = connected(&[&member, &listing, &group, b"{}", &group, &member, b"{}"])?;
+        let outcome = block_on(client.multisig().accept_delegation_approval(
+            GROUP_NAME,
+            ALIAS,
+            &said,
+            stamp(&fixture)?,
+        ));
+        assert!(outcome.is_ok(), "{outcome:?}");
+        let posted = sent(&transport)?
+            .into_iter()
+            .find(|(_, method, _)| method == "POST")
+            .ok_or("nothing was posted")?;
+        assert_eq!(posted.0, format!("/identifiers/{GROUP_NAME}/delegation"));
+        Ok(())
+    }
+
+    #[test]
+    fn a_registry_this_member_would_not_derive_is_refused_unsent() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (member, group) = (member(&fixture)?, group(&fixture)?);
+        let members = serde_json::to_vec(&fixture.members)?;
+        let exn = credential_exn("propose_the_registry")?;
+        let proposed = exn
+            .pointer("/e/vcp/i")
+            .and_then(Value::as_str)
+            .ok_or("no registry")?
+            .to_owned();
+
+        let (said, listing) = listed(exn.clone(), "/e/vcp/i", &fixture.pinned_confirmations.group)?;
+        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let outcome =
+            block_on(
+                client
+                    .multisig()
+                    .accept_registry(GROUP_NAME, ALIAS, "registry", &said, stamp(&fixture)?),
+            );
+        assert!(
+            matches!(outcome, Err(ClientError::ProposalMismatch { .. })),
+            "{outcome:?}"
+        );
+        assert_nothing_written(&transport)?;
+
+        let (said, listing) = listed(exn, "/e/vcp/i", &proposed)?;
+        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let outcome =
+            block_on(
+                client
+                    .multisig()
+                    .accept_registry(GROUP_NAME, ALIAS, "registry", &said, stamp(&fixture)?),
+            );
+        assert!(outcome.is_ok(), "{outcome:?}");
+        assert_eq!(
+            first_write(&transport)?,
+            ("POST".to_owned(), format!("/identifiers/{GROUP_NAME}/registries"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_credential_this_member_would_not_derive_is_refused_unsent() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (member, group) = (member(&fixture)?, group(&fixture)?);
+        let members = serde_json::to_vec(&fixture.members)?;
+        let exn = credential_exn("propose_the_issuance")?;
+
+        let (said, listing) = listed(exn.clone(), "/e/acdc/d", &fixture.pinned_confirmations.group)?;
+        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let outcome = block_on(client.multisig().accept_issuance(
+            GROUP_NAME,
+            ALIAS,
+            group_credential(&fixture)?,
+            &said,
+            stamp(&fixture)?,
+        ));
+        let Err(ClientError::ProposalMismatch { built, .. }) = outcome else {
+            return Err(format!("{outcome:?}").into());
+        };
+        assert_nothing_written(&transport)?;
+
+        let (said, listing) = listed(exn, "/e/acdc/d", &built)?;
+        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let outcome = block_on(client.multisig().accept_issuance(
+            GROUP_NAME,
+            ALIAS,
+            group_credential(&fixture)?,
+            &said,
+            stamp(&fixture)?,
+        ));
+        assert!(outcome.is_ok(), "{outcome:?}");
+        assert_eq!(
+            first_write(&transport)?,
+            ("POST".to_owned(), format!("/identifiers/{GROUP_NAME}/credentials"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_revocation_this_member_would_not_derive_is_refused_unsent() -> Result<(), Box<dyn Error>> {
+        let fixture = fixture()?;
+        let (member, group) = (member(&fixture)?, group(&fixture)?);
+        let members = serde_json::to_vec(&fixture.members)?;
+        let exn = revocation_exn()?;
+
+        let (said, listing) = listed(exn.clone(), "/e/rev/d", &fixture.pinned_confirmations.group)?;
+        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let outcome = block_on(client.multisig().accept_revocation(
+            GROUP_NAME,
+            ALIAS,
+            group_revocation(&fixture)?,
+            &said,
+            stamp(&fixture)?,
+        ));
+        let Err(ClientError::ProposalMismatch { built, .. }) = outcome else {
+            return Err(format!("{outcome:?}").into());
+        };
+        assert_nothing_written(&transport)?;
+
+        let (said, listing) = listed(exn, "/e/rev/d", &built)?;
+        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let revocation = group_revocation(&fixture)?;
+        let credential = revocation.credential().qb64()?;
+        let outcome =
+            block_on(
+                client
+                    .multisig()
+                    .accept_revocation(GROUP_NAME, ALIAS, revocation, &said, stamp(&fixture)?),
+            );
+        assert!(outcome.is_ok(), "{outcome:?}");
+        assert_eq!(
+            first_write(&transport)?,
+            (
+                "DELETE".to_owned(),
+                format!("/identifiers/{GROUP_NAME}/credentials/{credential}")
+            )
+        );
         Ok(())
     }
 

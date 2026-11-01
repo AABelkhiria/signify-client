@@ -376,6 +376,16 @@ impl<'client> Credentials<'client> {
     /// different issuer, [`ClientError::Manager`] when the keeper cannot be rebuilt, layered
     /// transaction failures, and whatever [`Self::get`] and [`ConnectedClient::fetch`] return.
     pub async fn issue(&self, identifier: &str, credential: Credential) -> Result<IssuedCredential, ClientError> {
+        let (artifacts, body) = self.build_issuance(identifier, credential).await?;
+        self.submit_issuance(identifier, artifacts, &body).await
+    }
+
+    /// Builds and signs an issuance and its request body.
+    pub(crate) async fn build_issuance(
+        &self,
+        identifier: &str,
+        credential: Credential,
+    ) -> Result<(IssuanceArtifacts, Sad), ClientError> {
         let record = self.client.identifiers().get(identifier).await?;
 
         // The reference throws here too, but only after the lookup; nothing derives until both of
@@ -406,7 +416,16 @@ impl<'client> Credentials<'client> {
         body.insert("sigs", text_array(artifacts.anchor.signatures.qb64()?))
             .map_err(sad_error)?;
         insert_algorithm(&mut body, keeper.as_ref(), stored_transferability(&record)?)?;
+        Ok((artifacts, body))
+    }
 
+    /// Posts a built issuance.
+    pub(crate) async fn submit_issuance(
+        &self,
+        identifier: &str,
+        artifacts: IssuanceArtifacts,
+        body: &Sad,
+    ) -> Result<IssuedCredential, ClientError> {
         let path = ResourcePath::builder()
             .segment(IDENTIFIERS_SEGMENT)
             .segment(identifier)
@@ -438,6 +457,16 @@ impl<'client> Credentials<'client> {
         identifier: &str,
         revocation: RevocationEvent,
     ) -> Result<RevokedCredential, ClientError> {
+        let (artifacts, body) = self.build_revocation(identifier, revocation).await?;
+        self.submit_revocation(identifier, artifacts, &body).await
+    }
+
+    /// Builds and signs a revocation and its request body.
+    pub(crate) async fn build_revocation(
+        &self,
+        identifier: &str,
+        revocation: RevocationEvent,
+    ) -> Result<(RevocationArtifacts, Sad), ClientError> {
         let record = self.client.identifiers().get(identifier).await?;
         if is_establishment_only(&record.state) {
             return Err(ClientError::EstablishmentOnlyIssuer {
@@ -445,7 +474,6 @@ impl<'client> Credentials<'client> {
             });
         }
 
-        let credential = revocation.credential();
         let keeper = self.client.keepers().keeper_for(&Hab::Accepted(record.clone()))?;
         let artifacts = revoke_credential(keeper.as_ref(), &record.state, revocation)?;
 
@@ -457,12 +485,21 @@ impl<'client> Credentials<'client> {
         body.insert("sigs", text_array(artifacts.anchor.signatures.qb64()?))
             .map_err(sad_error)?;
         insert_algorithm(&mut body, keeper.as_ref(), stored_transferability(&record)?)?;
+        Ok((artifacts, body))
+    }
 
+    /// Deletes a credential with a built revocation.
+    pub(crate) async fn submit_revocation(
+        &self,
+        identifier: &str,
+        artifacts: RevocationArtifacts,
+        body: &Sad,
+    ) -> Result<RevokedCredential, ClientError> {
         let path = ResourcePath::builder()
             .segment(IDENTIFIERS_SEGMENT)
             .segment(identifier)
             .segment(CREDENTIALS_SEGMENT)
-            .segment(&credential.qb64()?)
+            .segment(&artifacts.revocation.credential().qb64()?)
             .build()?;
         let request = ClientRequest::new(Method::Delete, path).body(body.to_json_bytes().map_err(sad_error)?);
         let response = self.client.fetch(request).await?;

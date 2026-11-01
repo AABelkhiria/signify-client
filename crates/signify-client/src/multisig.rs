@@ -183,11 +183,12 @@ use crate::client::ConnectedClient;
 use crate::endpoint::body::{sad_error, text_array};
 use crate::endpoint::credentials::{IssuedCredential, RevokedCredential};
 use crate::endpoint::decode_json;
+use crate::endpoint::delegations::DELEGATION_SEGMENT;
 use crate::endpoint::exchanges::{
     ClassifiedExchange, ExchangeDraft, GROUP_LABEL, MultisigProposal, MultisigRoute, REGISTRY_TOPIC,
     ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL, SentExchange,
 };
-use crate::endpoint::identifiers::Submission;
+use crate::endpoint::identifiers::{EVENTS_SEGMENT, Submission};
 use crate::endpoint::ipex::SubmittedIpexMessage;
 use crate::endpoint::registries::{CreateRegistryRequest, CreatedRegistry, RegistryBacking};
 use crate::error::ClientError;
@@ -724,7 +725,9 @@ impl<'client> Multisig<'client> {
                 built,
             });
         }
-        let submission = identifiers.submit_event(request.group_name, artifact, body).await?;
+        let submission = identifiers
+            .submit_event(request.group_name, EVENTS_SEGMENT, artifact, &body)
+            .await?;
 
         self.announce(
             submission,
@@ -828,7 +831,9 @@ impl<'client> Multisig<'client> {
                 built,
             });
         }
-        let submission = identifiers.submit_event(group_name, artifact, body).await?;
+        let submission = identifiers
+            .submit_event(group_name, EVENTS_SEGMENT, artifact, &body)
+            .await?;
 
         self.announce(
             submission,
@@ -910,7 +915,8 @@ impl<'client> Multisig<'client> {
     /// Returns [`ClientError::NotAnInteractionProposal`] when the message under `proposal` is not a
     /// group interaction, [`ClientError::NoDelegationSeals`] when it anchors nothing,
     /// [`ClientError::ProposalMismatch`] when the event this member builds is not the event it was
-    /// shown, and whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// shown (nothing is sent), and whatever
+    /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Delegations::approve`](crate::endpoint::delegations::Delegations::approve), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
     pub async fn accept_delegation_approval(
@@ -943,17 +949,21 @@ impl<'client> Multisig<'client> {
             .unwrap_or_else(|| signing.clone());
         let recipients = peers(&member, &signing)?;
 
-        let submission = self.client.delegations().approve(group_name, &seals).await?;
+        let identifiers = self.client.identifiers();
+        let (artifact, body) = identifiers.build_interaction(group_name, seals).await?;
 
-        // What was built against what was shown, before the peers are told.
+        // What was built against what was shown, before anything is sent.
         let proposed_digest = digest_of(&embed.ixn)?;
-        let built = submission.artifact().event.said().qb64()?;
+        let built = artifact.event.said().qb64()?;
         if built != proposed_digest {
             return Err(ClientError::ProposalMismatch {
                 proposed: proposed_digest,
                 built,
             });
         }
+        let submission = identifiers
+            .submit_event(group_name, DELEGATION_SEGMENT, artifact, &body)
+            .await?;
 
         self.announce(
             submission,
@@ -1034,7 +1044,8 @@ impl<'client> Multisig<'client> {
     ///
     /// Returns [`ClientError::NotARegistryProposal`] when the message under `proposal` is not a
     /// registry inception, [`ClientError::ProposalMismatch`] when this member derives a different
-    /// registry, and whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// registry (nothing is sent), and whatever
+    /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Registries::create`](crate::endpoint::registries::Registries::create), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
     pub async fn accept_registry(
@@ -1056,10 +1067,9 @@ impl<'client> Multisig<'client> {
         let members = self.members_of(&proposed, group_name).await?;
         let recipients = peers(&member, &members)?;
 
-        let created = self
-            .client
-            .registries()
-            .create(&CreateRegistryRequest {
+        let registries = self.client.registries();
+        let (artifacts, body) = registries
+            .build_registry(&CreateRegistryRequest {
                 identifier: group_name.to_owned(),
                 registry: registry.to_owned(),
                 backing: backing_of(&embed.vcp),
@@ -1068,7 +1078,7 @@ impl<'client> Multisig<'client> {
             })
             .await?;
 
-        let built = created.inception.identifier().qb64()?;
+        let built = artifacts.inception.identifier().qb64()?;
         if built != embed.vcp.registry {
             return Err(ClientError::ProposalMismatch {
                 proposed: embed.vcp.registry.clone(),
@@ -1076,6 +1086,7 @@ impl<'client> Multisig<'client> {
             });
         }
 
+        let created = registries.submit_registry(group_name, artifacts, &body).await?;
         let (submission, embeds) = registry_announcement(created)?;
         self.send_announcement(
             submission,
@@ -1147,7 +1158,8 @@ impl<'client> Multisig<'client> {
     ///
     /// Returns [`ClientError::NotAnIssuanceProposal`] when the message under `proposal` is not a
     /// credential issuance, [`ClientError::ProposalMismatch`] when this member derives a different
-    /// credential, and whatever [`Groups::requests`](crate::endpoint::groups::Groups::requests),
+    /// credential (nothing is sent), and whatever
+    /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Credentials::issue`](crate::endpoint::credentials::Credentials::issue), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
     pub async fn accept_issuance(
@@ -1169,9 +1181,10 @@ impl<'client> Multisig<'client> {
         let members = self.members_of(&proposed, group_name).await?;
         let recipients = peers(&member, &members)?;
 
-        let issued = self.client.credentials().issue(group_name, credential).await?;
+        let credentials = self.client.credentials();
+        let (artifacts, body) = credentials.build_issuance(group_name, credential).await?;
 
-        let built = issued.artifacts.credential.said().qb64()?;
+        let built = artifacts.credential.said().qb64()?;
         if built != embed.acdc.digest {
             return Err(ClientError::ProposalMismatch {
                 proposed: embed.acdc.digest.clone(),
@@ -1179,6 +1192,7 @@ impl<'client> Multisig<'client> {
             });
         }
 
+        let issued = credentials.submit_issuance(group_name, artifacts, &body).await?;
         let (submission, embeds) = issuance_announcement(issued)?;
         self.send_announcement(
             submission,
@@ -1244,7 +1258,7 @@ impl<'client> Multisig<'client> {
     ///
     /// Returns [`ClientError::NotARevocationProposal`] when the message under `proposal` is not a
     /// credential revocation, [`ClientError::ProposalMismatch`] when this member derives a
-    /// different revocation, and whatever
+    /// different revocation (nothing is sent), and whatever
     /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Credentials::revoke`](crate::endpoint::credentials::Credentials::revoke), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
@@ -1267,9 +1281,10 @@ impl<'client> Multisig<'client> {
         let members = self.members_of(&proposed, group_name).await?;
         let recipients = peers(&member, &members)?;
 
-        let revoked = self.client.credentials().revoke(group_name, revocation).await?;
+        let credentials = self.client.credentials();
+        let (artifacts, body) = credentials.build_revocation(group_name, revocation).await?;
 
-        let built = revoked.artifacts.revocation.said().qb64()?;
+        let built = artifacts.revocation.said().qb64()?;
         if built != embed.rev.digest {
             return Err(ClientError::ProposalMismatch {
                 proposed: embed.rev.digest.clone(),
@@ -1277,6 +1292,7 @@ impl<'client> Multisig<'client> {
             });
         }
 
+        let revoked = credentials.submit_revocation(group_name, artifacts, &body).await?;
         let (submission, embeds) = revocation_announcement(revoked)?;
         self.send_announcement(
             submission,

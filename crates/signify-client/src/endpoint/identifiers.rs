@@ -412,13 +412,7 @@ impl<'client> Identifiers<'client> {
         anchors: Vec<Sad>,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
         let (artifact, body) = self.build_interaction(name, anchors).await?;
-        let path = Self::sub_path(name, segment)?;
-        let request = ClientRequest::new(Method::Post, path).body(body.to_json_bytes().map_err(sad_error)?);
-        let response = self.client.fetch(request).await?;
-        Ok(Submission {
-            artifact,
-            response: response.into_body(),
-        })
+        self.submit_event(name, segment, artifact, &body).await
     }
 
     /// Builds and signs an interaction and its request body.
@@ -450,7 +444,7 @@ impl<'client> Identifiers<'client> {
         request: &RotateIdentifierRequest,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
         let (artifact, body) = self.build_rotation(name, request, None).await?;
-        self.submit_event(name, artifact, body).await
+        self.submit_event(name, EVENTS_SEGMENT, artifact, &body).await
     }
 
     /// Builds and signs a rotation without sending it.
@@ -491,7 +485,7 @@ impl<'client> Identifiers<'client> {
         name: &str,
         rotation: &PreparedRotation,
     ) -> Result<Submission<PreparedRotation>, ClientError> {
-        let response = self.post_event(name, rotation.body.clone()).await?;
+        let response = self.post_event(name, EVENTS_SEGMENT, rotation.body.clone()).await?;
         Ok(Submission::from_parts(rotation.clone(), response))
     }
 
@@ -583,16 +577,19 @@ impl<'client> Identifiers<'client> {
     pub(crate) async fn submit_event(
         &self,
         name: &str,
+        segment: &str,
         artifact: IdentifierArtifact,
-        body: Sad,
+        body: &Sad,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
-        let response = self.post_event(name, body.to_json_bytes().map_err(sad_error)?).await?;
+        let response = self
+            .post_event(name, segment, body.to_json_bytes().map_err(sad_error)?)
+            .await?;
         Ok(Submission::from_parts(artifact, response))
     }
 
-    /// Posts a request body to an identifier's event resource and returns the agent's answer.
-    async fn post_event(&self, name: &str, body: Vec<u8>) -> Result<Vec<u8>, ClientError> {
-        let path = Self::sub_path(name, EVENTS_SEGMENT)?;
+    /// Posts a request body under one of an identifier's segments and returns the agent's answer.
+    async fn post_event(&self, name: &str, segment: &str, body: Vec<u8>) -> Result<Vec<u8>, ClientError> {
+        let path = Self::sub_path(name, segment)?;
         let response = self
             .client
             .fetch(ClientRequest::new(Method::Post, path).body(body))
