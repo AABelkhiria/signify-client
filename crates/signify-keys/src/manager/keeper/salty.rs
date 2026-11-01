@@ -38,11 +38,12 @@ pub enum SaltySource {
 
 /// Holds one identifier whose keys derive deterministically from its own salt.
 ///
-/// # Key reuse
+/// # Key count
 ///
-/// The key index advances by the inception key count, as in signify-ts, so a next-key count above
-/// it repeats keys that were already exposed. Keep the next count at or below the inception count,
-/// or use a randy identifier, whose keys are independent.
+/// As in signify-ts, the key index advances by the inception key count and signing uses that
+/// count. A larger next count repeats keys that were already exposed; a smaller one signs with
+/// more keys than the event lists, which keripy cannot verify. Keep the current and next counts
+/// equal and unchanged across rotations, or use a randy identifier, whose keys are independent.
 pub struct SaltyKeeper {
     salt: Salt,
     sealed_salt: String,
@@ -507,6 +508,24 @@ mod tests {
         let second = keeper.rotate(KeeperRotation::to_keys(2))?;
 
         assert!(first.public_keys.iter().any(|key| second.public_keys.contains(key)));
+        Ok(())
+    }
+
+    #[test]
+    fn shrinking_the_key_count_signs_with_extra_keys_as_signify_ts_does() -> Result<(), Box<dyn Error>> {
+        let config = SaltyKeeperConfig {
+            current_count: 2,
+            next_count: 2,
+            ..ephemeral()
+        };
+        let mut keeper = SaltyKeeper::new(&passcode_salt()?, SaltySource::Generated, config)?;
+        keeper.incept(KeyTransferability::Transferable)?;
+
+        let rotated = keeper.rotate(KeeperRotation::to_keys(1))?;
+
+        let signatures = keeper.sign(b"payload", &SignatureForm::IndexedByPosition, SigningPurpose::Current)?;
+        assert_eq!(rotated.public_keys.len(), 1);
+        assert_eq!(signatures.len(), 2);
         Ok(())
     }
 

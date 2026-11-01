@@ -27,8 +27,9 @@ First release.
 
 ### Known issues
 
-- Rotating a salty identifier to more keys than it was incepted with reuses an exposed key, as
-  signify-ts does. Keep the next count at or below the inception count, or use a randy identifier.
+- Rotating a salty identifier to a different key count than it was incepted with repeats exposed
+  keys (more) or signs with keys the event does not list (fewer), as in signify-ts. Keep the current
+  and next counts equal and unchanged, or use a randy identifier.
 
 [signify-ts]: https://github.com/WebOfTrust/signify-ts
 [keripy]: https://github.com/WebOfTrust/keripy
