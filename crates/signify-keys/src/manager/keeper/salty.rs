@@ -37,6 +37,12 @@ pub enum SaltySource {
 }
 
 /// Holds one identifier whose keys derive deterministically from its own salt.
+///
+/// # Key reuse
+///
+/// The key index advances by the inception key count, as in signify-ts, so a next-key count above
+/// it repeats keys that were already exposed. Keep the next count at or below the inception count,
+/// or use a randy identifier, whose keys are independent.
 pub struct SaltyKeeper {
     salt: Salt,
     sealed_salt: String,
@@ -489,6 +495,18 @@ mod tests {
             SaltyKeeper::new(&passcode_salt()?, SaltySource::Passcode("short".into()), ephemeral()),
             Err(ManagerError::PasscodeTooShort { .. })
         ));
+        Ok(())
+    }
+
+    #[test]
+    fn growing_the_key_count_reuses_a_key_as_signify_ts_does() -> Result<(), Box<dyn Error>> {
+        let mut keeper = SaltyKeeper::new(&passcode_salt()?, SaltySource::Generated, ephemeral())?;
+        keeper.incept(KeyTransferability::Transferable)?;
+
+        let first = keeper.rotate(KeeperRotation::to_keys(2))?;
+        let second = keeper.rotate(KeeperRotation::to_keys(2))?;
+
+        assert!(first.public_keys.iter().any(|key| second.public_keys.contains(key)));
         Ok(())
     }
 

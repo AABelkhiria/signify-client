@@ -388,6 +388,9 @@ pub struct RotateIdentifierRequest {
     pub transferability: KeyTransferability,
     /// How many keys the rotation commits to; the reference's `ncount`/`ncodes`, whose codes
     /// collapse to a count because only Ed25519 is derived.
+    ///
+    /// A salty identifier must not exceed its inception key count, or keys are reused; see
+    /// [`SaltyKeeper`](crate::manager::keeper::SaltyKeeper).
     pub next_count: usize,
     /// Next-key threshold; the reference's `nsith`, defaulting to the state's own next threshold
     /// — which also becomes the rotation's signing threshold.
