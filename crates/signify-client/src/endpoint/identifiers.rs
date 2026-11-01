@@ -2,8 +2,9 @@
 //!
 //! A KERIA agent stores one record per managed identifier — an alias, a prefix, the key state, and
 //! whichever key-manager block holds its keys — and accepts the events the edge signs for it. This
-//! family is the nine calls that read and write those records: `list`, `get`, `update`, `create`,
-//! `interact`, `rotate`, `add_end_role`, `add_location_scheme`, and `members`.
+//! family is the calls that read and write those records: `list`, `get`, `update`, `create`,
+//! `interact`, `rotate`, `prepare_rotation`, `submit_rotation`, `add_end_role`,
+//! `add_location_scheme`, and `members`.
 //!
 //! This ports the HTTP half of the pinned `src/keri/app/aiding.ts`. The artifacts themselves are
 //! `signify_keys::identifier`'s: this module supplies the keeper, assembles the request body around
@@ -31,7 +32,7 @@ use core::marker::PhantomData;
 use keri_protocol::event::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadValue};
-use keria_types::api::{AcceptedHab, GroupMember, Hab, Operation, Role, UntypedOperation};
+use keria_types::api::{AcceptedHab, GroupMember, Hab, KeyState, Operation, Role, UntypedOperation};
 use serde::de::DeserializeOwned;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
@@ -186,6 +187,62 @@ impl<A> Submission<A> {
         R: DeserializeOwned,
     {
         decode_json(&self.response)
+    }
+}
+
+/// Body fields a key manager block may be written under.
+const KEY_MANAGER_LABELS: [&str; 4] = ["salty", "randy", "group", "extern"];
+
+/// A signed rotation that has not been sent.
+///
+/// It holds the exact request body, so a caller can store it and resend it unchanged after a crash
+/// or a lost answer. Calling [`Identifiers::rotate`] again would rotate a second time, and a randy
+/// identifier generates new keys each time it builds one, so stored bytes are its only safe retry.
+#[derive(Clone, Eq, PartialEq)]
+pub struct PreparedRotation {
+    said: String,
+    body: Vec<u8>,
+}
+
+impl PreparedRotation {
+    /// Restores a rotation from the bytes [`Self::as_body`] returned.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::InvalidPreparedRotation`] when `body` lacks a rotation event's SAID,
+    /// signatures, or a key manager block.
+    pub fn from_body(body: Vec<u8>) -> Result<Self, ClientError> {
+        let document = Sad::from_json_bytes(&body).map_err(|_| ClientError::InvalidPreparedRotation)?;
+        let Some(SadValue::Map(event)) = document.get("rot") else {
+            return Err(ClientError::InvalidPreparedRotation);
+        };
+        let signed = matches!(document.get("sigs"), Some(SadValue::Array(signatures)) if !signatures.is_empty());
+        let managed = KEY_MANAGER_LABELS.iter().any(|label| document.get(label).is_some());
+        let said = event.get_text("d").filter(|_| signed && managed);
+        let said = said.ok_or(ClientError::InvalidPreparedRotation)?.to_owned();
+        Ok(Self { said, body })
+    }
+
+    /// Returns the rotation event's SAID.
+    #[must_use]
+    pub fn said(&self) -> &str {
+        &self.said
+    }
+
+    /// Returns the request body to store.
+    #[must_use]
+    pub fn as_body(&self) -> &[u8] {
+        &self.body
+    }
+}
+
+impl core::fmt::Debug for PreparedRotation {
+    /// Names the event and leaves out the body.
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_struct("PreparedRotation")
+            .field("said", &self.said)
+            .finish_non_exhaustive()
     }
 }
 
@@ -383,9 +440,63 @@ impl<'client> Identifiers<'client> {
         name: &str,
         request: &RotateIdentifierRequest,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
+        let (artifact, body) = self.build_rotation(name, request, None).await?;
+        self.submit_event(name, artifact, body).await
+    }
+
+    /// Builds and signs a rotation without sending it.
+    ///
+    /// `prior_state` replaces the agent's current key state, to rebuild a group rotation that
+    /// landed without this member; it reproduces the event while the member keys are unchanged.
+    /// Keys still come from the stored keeper, so a salty identifier reproduces its event only
+    /// until the agent advances that keeper, and a randy identifier never does.
+    ///
+    /// # Errors
+    ///
+    /// Returns whatever [`Self::get`] returns, [`ClientError::Manager`] when the record's keeper
+    /// cannot be rebuilt, and layered identifier failures.
+    pub async fn prepare_rotation(
+        &self,
+        name: &str,
+        request: &RotateIdentifierRequest,
+        prior_state: Option<&KeyState>,
+    ) -> Result<PreparedRotation, ClientError> {
+        let (artifact, body) = self.build_rotation(name, request, prior_state).await?;
+        Ok(PreparedRotation {
+            said: artifact.event.said().qb64()?,
+            body: body.to_json_bytes().map_err(sad_error)?,
+        })
+    }
+
+    /// Sends a rotation from [`Self::prepare_rotation`].
+    ///
+    /// Resending is safe until the identifier's next establishment event; after that the agent
+    /// would apply this rotation's keeper state over a newer one. Each send returns a new
+    /// operation and may repeat group, witness, or delegation processing.
+    ///
+    /// # Errors
+    ///
+    /// Returns whatever [`ConnectedClient::fetch`] returns.
+    pub async fn submit_rotation(
+        &self,
+        name: &str,
+        rotation: &PreparedRotation,
+    ) -> Result<Submission<PreparedRotation>, ClientError> {
+        let response = self.post_event(name, rotation.body.clone()).await?;
+        Ok(Submission::from_parts(rotation.clone(), response))
+    }
+
+    /// Builds and signs a rotation and its request body.
+    pub(crate) async fn build_rotation(
+        &self,
+        name: &str,
+        request: &RotateIdentifierRequest,
+        prior_state: Option<&KeyState>,
+    ) -> Result<(IdentifierArtifact, Sad), ClientError> {
         let record = self.get(name).await?;
         let mut keeper = self.client.keepers().keeper_for(&Hab::Accepted(record.clone()))?;
-        let artifact = rotate_identifier(keeper.as_mut(), &record.state, request)?;
+        let state = prior_state.unwrap_or(&record.state);
+        let artifact = rotate_identifier(keeper.as_mut(), state, request)?;
 
         let mut body = Sad::new();
         body.insert("rot", SadValue::Map(artifact.event.sad().clone()))
@@ -400,7 +511,7 @@ impl<'client> Identifiers<'client> {
             .map_err(sad_error)?;
         insert_algorithm(&mut body, keeper.as_ref(), request.transferability)?;
 
-        self.submit_event(name, artifact, body).await
+        Ok((artifact, body))
     }
 
     /// Authorizes an endpoint provider in a role for a managed identifier.
@@ -460,19 +571,24 @@ impl<'client> Identifiers<'client> {
     }
 
     /// Posts one signed key event to an identifier's event resource.
-    async fn submit_event(
+    pub(crate) async fn submit_event(
         &self,
         name: &str,
         artifact: IdentifierArtifact,
         body: Sad,
     ) -> Result<Submission<IdentifierArtifact>, ClientError> {
+        let response = self.post_event(name, body.to_json_bytes().map_err(sad_error)?).await?;
+        Ok(Submission::from_parts(artifact, response))
+    }
+
+    /// Posts a request body to an identifier's event resource and returns the agent's answer.
+    async fn post_event(&self, name: &str, body: Vec<u8>) -> Result<Vec<u8>, ClientError> {
         let path = Self::sub_path(name, EVENTS_SEGMENT)?;
-        let request = ClientRequest::new(Method::Post, path).body(body.to_json_bytes().map_err(sad_error)?);
-        let response = self.client.fetch(request).await?;
-        Ok(Submission {
-            artifact,
-            response: response.into_body(),
-        })
+        let response = self
+            .client
+            .fetch(ClientRequest::new(Method::Post, path).body(body))
+            .await?;
+        Ok(response.into_body())
     }
 
     /// Signs one reply with the record's keeper and posts it to `segment`.

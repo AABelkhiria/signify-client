@@ -16,7 +16,7 @@ use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
-use signify_client::endpoint::identifiers::{IdentifierUpdate, LocationSchemeRequest};
+use signify_client::endpoint::identifiers::{IdentifierUpdate, LocationSchemeRequest, PreparedRotation};
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
 use signify_http::transport::Transport;
@@ -282,6 +282,107 @@ fn a_rotation_always_names_both_member_lists() -> Result<(), Box<dyn Error>> {
     assert!(fields.contains_key("rot"));
     assert_eq!(fields.get("smids"), Some(&Value::Array(Vec::new())));
     assert_eq!(fields.get("rmids"), Some(&Value::Array(Vec::new())));
+    Ok(())
+}
+
+fn rotatable_record() -> Result<String, Box<dyn Error>> {
+    Ok(record(
+        "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK",
+        "DPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9",
+        "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
+        sealed_salt()?,
+    ))
+}
+
+#[test]
+fn a_prepared_rotation_is_resent_byte_for_byte_after_a_restore() -> Result<(), Box<dyn Error>> {
+    let record = rotatable_record()?;
+    let (client, transport) = connected(&[record.as_bytes(), b"{}", b"{}"])?;
+    let identifiers = client.identifiers();
+    let prepared = block_on(identifiers.prepare_rotation("aid1", &RotateIdentifierRequest::default(), None))?;
+    assert_eq!(
+        transport.requests().len(),
+        LIFECYCLE_REQUESTS + 1,
+        "preparing sends nothing"
+    );
+
+    let restored = PreparedRotation::from_body(prepared.as_body().to_vec())?;
+    assert_eq!(restored, prepared);
+    let submission = block_on(identifiers.submit_rotation("aid1", &restored))?;
+    assert_eq!(submission.artifact().said(), prepared.said());
+    let _ = block_on(identifiers.submit_rotation("aid1", &restored))?;
+
+    let stored = String::from_utf8(prepared.as_body().to_vec())?;
+    assert_eq!(endpoint_body(&transport, 1).as_deref(), Some(stored.as_str()));
+    assert_eq!(endpoint_body(&transport, 2).as_deref(), Some(stored.as_str()));
+    Ok(())
+}
+
+#[test]
+fn a_prepared_rotation_matches_a_direct_rotation() -> Result<(), Box<dyn Error>> {
+    let record = rotatable_record()?;
+    let (client, transport) = connected(&[record.as_bytes(), record.as_bytes(), b"{}"])?;
+    let identifiers = client.identifiers();
+    let prepared = block_on(identifiers.prepare_rotation("aid1", &RotateIdentifierRequest::default(), None))?;
+    let _ = block_on(identifiers.rotate("aid1", &RotateIdentifierRequest::default()))?;
+
+    let sent = endpoint_body(&transport, 2).ok_or("the rotation was not sent")?;
+    assert_eq!(sent.as_bytes(), prepared.as_body());
+    Ok(())
+}
+
+#[test]
+fn a_prior_state_replaces_the_agents_current_one() -> Result<(), Box<dyn Error>> {
+    let record = rotatable_record()?;
+    let document: Value = serde_json::from_str(&record)?;
+    let mut state = document.get("state").cloned().ok_or("the record holds no state")?;
+    let fields = state.as_object_mut().ok_or("the state is not an object")?;
+    fields.insert("s".to_owned(), Value::from("4"));
+    fields.insert(
+        "d".to_owned(),
+        Value::from("EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc"),
+    );
+    let prior = serde_json::from_value(state)?;
+
+    let (client, _transport) = connected(&[record.as_bytes()])?;
+    let identifiers = client.identifiers();
+    let prepared = block_on(identifiers.prepare_rotation("aid1", &RotateIdentifierRequest::default(), Some(&prior)))?;
+
+    let body: Value = serde_json::from_slice(prepared.as_body())?;
+    let event = body.get("rot").ok_or("the body holds no rotation")?;
+    assert_eq!(event.get("s").and_then(Value::as_str), Some("5"));
+    assert_eq!(
+        event.get("p").and_then(Value::as_str),
+        Some("EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc")
+    );
+    Ok(())
+}
+
+#[test]
+fn stored_bytes_without_a_rotation_are_refused() {
+    for body in [
+        &b"not json"[..],
+        b"{}",
+        br#"{"rot":"text","sigs":["S"],"salty":{}}"#,
+        br#"{"rot":{"t":"rot"},"sigs":["S"],"salty":{}}"#,
+        br#"{"rot":{"d":"E"},"sigs":[],"salty":{}}"#,
+        br#"{"rot":{"d":"E"},"salty":{}}"#,
+        br#"{"rot":{"d":"E"},"sigs":["S"]}"#,
+    ] {
+        assert!(matches!(
+            PreparedRotation::from_body(body.to_vec()),
+            Err(ClientError::InvalidPreparedRotation)
+        ));
+    }
+}
+
+#[test]
+fn a_prepared_rotation_keeps_its_body_out_of_debug_output() -> Result<(), Box<dyn Error>> {
+    let rotation =
+        PreparedRotation::from_body(br#"{"rot":{"d":"ESAID"},"sigs":["S"],"salty":{"sxlt":"SEALED"}}"#.to_vec())?;
+    let rendered = format!("{rotation:?}");
+    assert!(rendered.contains("ESAID"));
+    assert!(!rendered.contains("SEALED"));
     Ok(())
 }
 

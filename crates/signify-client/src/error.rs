@@ -96,6 +96,8 @@ pub enum ClientError {
         /// The alias refused.
         name: String,
     },
+    /// Stored bytes do not hold a signed rotation.
+    InvalidPreparedRotation,
     /// The agent state response carried an index that is not an unsigned 32-bit integer.
     InvalidAgentIndex {
         /// Which index: `ridx` or `pidx`.
@@ -591,6 +593,7 @@ impl fmt::Display for ClientError {
                 write!(formatter, "the agent state carried no {missing}")
             }
             Self::InvalidAlias { name } => write!(formatter, "the alias {name:?} must not contain '/'"),
+            Self::InvalidPreparedRotation => formatter.write_str("the stored bytes hold no signed rotation"),
             Self::InvalidAgentIndex { label } => write!(formatter, "the agent state carried an invalid {label}"),
             Self::Status { status, detail } => write!(formatter, "the agent answered {status}: {detail}"),
             Self::Decode { source } => write!(formatter, "response decoding failed: {source}"),
@@ -821,6 +824,7 @@ impl Error for ClientError {
             | Self::ControllerKeyMismatch { .. }
             | Self::IncompleteAgentState { .. }
             | Self::InvalidAlias { .. }
+            | Self::InvalidPreparedRotation
             | Self::InvalidAgentIndex { .. }
             | Self::Status { .. }
             | Self::OperationPending { .. }
@@ -980,6 +984,7 @@ mod tests {
             },
             ClientError::IncompleteAgentState { missing: "agent" },
             ClientError::InvalidAlias { name: "a/b".to_owned() },
+            ClientError::InvalidPreparedRotation,
             ClientError::InvalidAgentIndex { label: "pidx" },
             ClientError::status(404, b"missing"),
             ClientError::IdentifierNotAccepted {

@@ -675,7 +675,7 @@ impl<'client> Multisig<'client> {
     ///
     /// Returns [`ClientError::NotARotationProposal`] when the message under `proposal` is not a
     /// group rotation, [`ClientError::ProposalMismatch`] when the rotation this member builds is
-    /// not the one it was shown, and whatever
+    /// not the one it was shown, in which case nothing was sent, and whatever
     /// [`Groups::requests`](crate::endpoint::groups::Groups::requests),
     /// [`Identifiers::rotate`](crate::endpoint::identifiers::Identifiers::rotate), and
     /// [`Exchanges::send`](crate::endpoint::exchanges::Exchanges::send) return.
@@ -714,15 +714,17 @@ impl<'client> Multisig<'client> {
             next_states: request.rotation_states.to_vec(),
             ..RotateIdentifierRequest::default()
         };
-        let submission = self.client.identifiers().rotate(request.group_name, &rotate).await?;
+        let identifiers = self.client.identifiers();
+        let (artifact, body) = identifiers.build_rotation(request.group_name, &rotate, None).await?;
 
-        let built = submission.artifact().event.said().qb64()?;
+        let built = artifact.event.said().qb64()?;
         if built != proposed_digest {
             return Err(ClientError::ProposalMismatch {
                 proposed: proposed_digest,
                 built,
             });
         }
+        let submission = identifiers.submit_event(request.group_name, artifact, body).await?;
 
         self.announce(
             submission,
