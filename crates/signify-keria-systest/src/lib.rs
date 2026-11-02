@@ -72,7 +72,8 @@ pub use recorder::{Observation, Recorder};
 
 #[cfg(feature = "live")]
 pub use operation::{
-    agent_oobi, await_notification, await_proposals, resolve_oobi, resolve_schema, wait_and_delete, witness_prefixes,
+    agent_oobi, await_notification, await_proposals, eventually_holds, resolve_oobi, resolve_schema, wait_and_delete,
+    witness_prefixes,
 };
 
 /// Environment variable that turns a run into a recording run.

@@ -10,6 +10,7 @@ use keria_types::api::{Notification, Role};
 use serde_json::Value;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::oobis::OobiResolution;
+use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
 use signify_http::retry::{Clock, TokioClock};
 use signify_http::transport::RequestUrl;
@@ -44,6 +45,25 @@ pub async fn wait_and_delete(client: &ConnectedClient, name: &str) -> Result<Val
         client.operations().delete(depends).await?;
     }
     Ok(response)
+}
+
+/// Whether `client` comes to hold credential `said` within `POLL_ATTEMPTS` polls.
+///
+/// An agent saves an admitted credential after the admit completes, so a read straight after
+/// finds nothing.
+///
+/// # Errors
+///
+/// Returns any failure other than the credential not being found yet.
+pub async fn eventually_holds(client: &ConnectedClient, said: &Said) -> Result<bool, Box<dyn Error>> {
+    for _ in 0..POLL_ATTEMPTS {
+        match client.credentials().get(said).await {
+            Ok(_) => return Ok(true),
+            Err(ClientError::Status { status: 404, .. }) => TokioClock.sleep(POLL_INTERVAL).await,
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(false)
 }
 
 /// Waits for a notification on `route` and returns the message it names, marking it read.

@@ -22,14 +22,14 @@ use keri_protocol::said::Said;
 use keri_protocol::threshold::SigningThreshold;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
-use signify_client::endpoint::credentials::CredentialFilter;
 use signify_keria_systest::group;
 use signify_keria_systest::singlesig::{
     admit_credential, await_ipex_step, build_credential, create_identifier, credential_state, grant_credential,
-    issue_credential, list_credentials,
+    issue_credential,
 };
 use signify_keria_systest::{
-    Environment, Recorder, agent_oobi, connect, dump_tails, record, recorder, resolve_oobi, resolve_schema,
+    Environment, Recorder, agent_oobi, connect, dump_tails, eventually_holds, record, recorder, resolve_oobi,
+    resolve_schema,
 };
 use signify_keys::acdc::ipex::IpexRoute;
 
@@ -232,7 +232,7 @@ async fn issued_by_group(
 
     let grant = await_ipex_step(holder, IpexRoute::Grant).await?;
     admit_credential(holder, "holder", &grant, "thank you").await?;
-    let holder_admitted = !list_credentials(holder, &CredentialFilter::new()).await?.is_empty();
+    let holder_admitted = eventually_holds(holder, &credential_said).await?;
 
     group::revoke_credential(&pair, GROUP, &participants, &registry, &credential_said).await?;
     let state_after_revoke = credential_state(member1, &registry, &credential_said)
@@ -267,7 +267,10 @@ async fn a_group_admits_a_credential_issued_to_it() -> Result<(), Box<dyn Error>
     resolve_schema(&issuer, &environment, &schema).await?;
     introduce(&issuer, "issuer", &member1).await?;
     introduce(&issuer, "issuer", &member2).await?;
-    introduce(&member1, GROUP, &issuer).await?;
+    // The group's OOBI without an agent, so the issuer learns every member's agent.
+    let group_url = agent_oobi(&member1, GROUP).await?;
+    let group_url = group_url.split("/agent/").next().unwrap_or(&group_url);
+    resolve_oobi(&issuer, group_url, GROUP).await?;
 
     // The issuer is an ordinary identifier; only the holder is a group.
     let registry = signify_keria_systest::singlesig::create_registry(&issuer, "issuer", "external-registry").await?;
@@ -277,9 +280,13 @@ async fn a_group_admits_a_credential_issued_to_it() -> Result<(), Box<dyn Error>
     let grant_said = grant_credential(&issuer, "issuer", &group_prefix, &credential_said, "for the group").await?;
 
     // Both participants must admit, which is the whole difference from the single-signature case.
+    // Each member's agent must hold the grant first, or it refuses the admit.
     let pair = [(&member1, "member1"), (&member2, "member2")];
+    for (client, _) in &pair {
+        await_ipex_step(client, IpexRoute::Grant).await?;
+    }
     group::admit_credential(&pair, GROUP, &participants, &issuer_prefix, &grant_said, "received").await?;
-    let group_admitted = !list_credentials(&member1, &CredentialFilter::new()).await?.is_empty();
+    let group_admitted = eventually_holds(&member1, &credential_said).await?;
 
     let captured = HeldByGroup {
         scenario: "multisig_holder",
