@@ -20,7 +20,6 @@ use keri_protocol::serialization::{Sad, SadValue};
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
-use signify_client::presentation::disclosure_of;
 use signify_keria_systest::singlesig::{
     admit_credential, agree_to_offer, apply_for_credential, await_ipex_step, build_credential, create_identifier,
     create_registry, credential_state, delete_credential, disclose_credential, get_credential, grant_credential,
@@ -140,7 +139,7 @@ async fn a_credential_is_issued_granted_presented_and_revoked() -> Result<(), Bo
         .to_owned();
 
     // The unsolicited grant: the issuer sends without having been asked, the holder admits.
-    grant_credential(&issuer, "issuer", &holder_prefix, &record_read, "here it is").await?;
+    grant_credential(&issuer, "issuer", &holder_prefix, &credential_said, "here it is").await?;
     let grant = await_ipex_step(&holder, IpexRoute::Grant).await?;
     admit_credential(&holder, "holder", &grant, "thank you").await?;
     let holder_admitted = !list_credentials(&holder, &CredentialFilter::new()).await?.is_empty();
@@ -232,14 +231,13 @@ async fn verifier_round(
     let apply = apply_for_credential(verifier, "verifier", holder_prefix, schema, Sad::new(), "may I see it").await?;
 
     let applied = await_ipex_step(holder, IpexRoute::Apply).await?;
-    let held = get_credential(holder, credential_said).await?;
     let offer = offer_credential(holder, "holder", &applied, acdc, "here").await?;
 
     let offered = await_ipex_step(verifier, IpexRoute::Offer).await?;
     let agree = agree_to_offer(verifier, "verifier", &offered, "yes please").await?;
 
     let agreed = await_ipex_step(holder, IpexRoute::Agree).await?;
-    let disclosure = disclosure_of(&held)?;
+    let disclosure = holder.presentation().disclosure(credential_said).await?;
     let disclose = disclose_credential(holder, "holder", &agreed, &disclosure, "disclosed").await?;
 
     let disclosed = await_ipex_step(verifier, IpexRoute::Grant).await?;

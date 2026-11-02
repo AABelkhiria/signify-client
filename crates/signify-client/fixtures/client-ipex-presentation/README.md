@@ -109,8 +109,8 @@ request.
 at all (`grantMultisig` and `multisig-holder.test.ts`). Passing none reaches the branch that signs
 `args.anc.raw` with the **sender's** keeper — correct only when the sender is the issuer, and
 reached in the tree where it is not. The credentials endpoint refused that branch;
-`presentation::disclosure_of` assembles the three attachments from a credential in hand, and
-re-serializes each of the three events to check its bytes still reproduce the SAID that names it.
+`presentation::disclosure_from_record` assembles the three attachments from the credential record
+as the agent sent it, and checks each of the three events hashes to the SAID that names it.
 
 ## A third, found live: the announcement names only the group
 
@@ -144,7 +144,7 @@ Every link is pinned by SAID in `pinned_confirmations.chain`, and the Rust tests
   `waitAndMarkNotification` with whether its SAID is bound, every `ipex()` call with the arguments
   it names, `Ipex.grant`'s default-attachment branches, and scans over all pinned files.
 - `held_credential` is the credential as a holder reads it back, with the three attachments it
-  arrived with — the input to `disclosure_of`.
+  arrived with — the record `disclosure_from_record` reads.
 - `reference_quirks` pins six behaviours, each with what the reference does and what this port
   does instead.
 

@@ -23,11 +23,10 @@ use keri_protocol::threshold::SigningThreshold;
 use serde::Serialize;
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
-use signify_client::presentation::disclosure_of;
 use signify_keria_systest::group;
 use signify_keria_systest::singlesig::{
-    admit_credential, await_ipex_step, build_credential, create_identifier, credential_state, get_credential,
-    grant_credential, issue_credential, list_credentials,
+    admit_credential, await_ipex_step, build_credential, create_identifier, credential_state, grant_credential,
+    issue_credential, list_credentials,
 };
 use signify_keria_systest::{
     Environment, Recorder, agent_oobi, connect, dump_tails, record, recorder, resolve_oobi, resolve_schema,
@@ -220,8 +219,7 @@ async fn issued_by_group(
         .status()
         .to_owned();
 
-    let record_read = get_credential(member1, &credential_said).await?;
-    let disclosure = disclosure_of(&record_read)?;
+    let disclosure = member1.presentation().disclosure(&credential_said).await?;
     group::grant_credential(
         &pair,
         GROUP,
@@ -276,8 +274,7 @@ async fn a_group_admits_a_credential_issued_to_it() -> Result<(), Box<dyn Error>
     let credential = build_credential(&issuer_prefix, &registry, &schema, &group_prefix, &[("LEI", LEI)])?;
     let credential_said = issue_credential(&issuer, "issuer", credential).await?;
 
-    let record_read = get_credential(&issuer, &credential_said).await?;
-    let grant_said = grant_credential(&issuer, "issuer", &group_prefix, &record_read, "for the group").await?;
+    let grant_said = grant_credential(&issuer, "issuer", &group_prefix, &credential_said, "for the group").await?;
 
     // Both participants must admit, which is the whole difference from the single-signature case.
     let pair = [(&member1, "member1"), (&member2, "member2")];

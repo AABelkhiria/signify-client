@@ -300,6 +300,11 @@ impl<'client> Credentials<'client> {
         decode_json(response.body())
     }
 
+    /// Reads one credential record as the agent wrote it, keeping its field order.
+    pub(crate) async fn record_body(&self, said: &Said) -> Result<Vec<u8>, ClientError> {
+        Ok(self.fetch_credential(said, MediaType::json()).await?.into_body())
+    }
+
     /// Reads one credential as a CESR stream: the ACDC with its attachments, as text.
     ///
     /// This is the reference's `get(said, true)`. It is a separate method rather than a flag,

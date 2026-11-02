@@ -47,7 +47,7 @@
 //!
 //! A grant embeds the credential, its issuance, and the key event anchoring that issuance — each
 //! with its own CESR attachment. A holder disclosing a credential it received holds all six pieces
-//! already, and [`disclosure_of`] assembles them.
+//! already, and [`disclosure_from_record`] assembles them.
 //!
 //! The reference assembles them three different ways in one tree. Its presentation grant passes all
 //! three attachments; its issuance grant passes only the anchor's; and `multisig-holder.test.ts`
@@ -60,9 +60,8 @@
 //!
 //! The chain is checked: each answer names the message it was built from. The route is checked:
 //! answering a grant with an [`agree`](Presentation::agree) is a typed error rather than a message
-//! nobody can read. And the credential is checked on the way out — [`disclosure_of`] re-serializes
-//! each of the three events and refuses one whose bytes do not reproduce exactly, because the SAID
-//! that names it is a digest of those bytes. The reference rebuilds the same three with
+//! nobody can read. And the credential is checked on the way out — [`disclosure_from_record`] refuses any of
+//! the three events that does not hash to its own SAID. The reference rebuilds the same three with
 //! `new Serder(record.sad)` and compares nothing.
 //!
 //! What is *not* checked is whether the credential being disclosed is the one that was asked for.
@@ -73,9 +72,10 @@
 use keri_acdc::credential::Credential as AcdcCredential;
 use keri_protocol::event::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::said::Said;
+use keri_protocol::said::{Said, SaidVerification};
 use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use keria_types::api::{Credential, ExchangeRecord, ExchangeResource, Hab, Notification};
+use serde_json::value::RawValue;
 use signify_http::request::ItemRange;
 use signify_keys::acdc::ipex::{self, Disclosure, IpexEnvelope, IpexMessage, IpexRoute};
 
@@ -228,45 +228,61 @@ impl ReceivedStep {
     }
 }
 
-/// Assembles the three events and three attachments a grant embeds from a credential in hand.
+/// Assembles the three events and three attachments a grant embeds from a credential record.
 ///
-/// This is the whole of what a holder needs to disclose a credential it received: the ACDC with the
-/// attachment it arrived with, the TEL issuance event with its own, and the key event anchoring
-/// that issuance with the issuer's signatures over it. `ancatc` is a list upstream and is joined in
-/// order, which is what the reference's `.join('')` does.
-///
-/// Each event is re-serialized and required to reproduce its own bytes exactly, because the SAID
-/// naming it is a digest of those bytes: a credential whose field order did not survive the
-/// agent's JSON is refused here rather than disclosed under a SAID that no longer describes it.
+/// `record` is the agent's body for `GET /credentials/{said}`, exactly as it arrived;
+/// [`Presentation::disclosure`] reads and passes it. A typed record cannot be used: decoding one
+/// loses the field order the SAIDs digest. `ancatc` is a list upstream and is joined in order,
+/// which is what the reference's `.join('')` does.
 ///
 /// # Errors
 ///
-/// Returns [`ClientError::Serialization`] when one of the three events cannot be written, and
-/// [`ClientError::NonCanonicalCredential`] when re-serializing does not reproduce it byte for byte.
-pub fn disclosure_of(credential: &Credential) -> Result<Disclosure, ClientError> {
-    let acdc = canonical(&credential.sad, "the credential")?;
-    let issuance = canonical(&credential.iss, "the issuance event")?;
-    let anchor = canonical(&credential.anc, "the anchoring event")?;
-
+/// Returns [`ClientError::NonCanonicalCredential`] when a part is missing, or does not hash to the
+/// SAID it claims.
+pub fn disclosure_from_record(record: &[u8]) -> Result<Disclosure, ClientError> {
+    let parts: RecordParts<'_> = serde_json::from_slice(record).map_err(|_| ClientError::NonCanonicalCredential {
+        part: "the credential record",
+    })?;
     Ok(Disclosure::new(
-        acdc,
-        credential.atc.clone().into_bytes(),
-        issuance,
-        credential.issatc.clone().into_bytes(),
-        anchor,
-        credential.ancatc.concat().into_bytes(),
+        verified_event(parts.sad, "the credential")?,
+        parts.atc.into_bytes(),
+        verified_event(parts.iss, "the issuance event")?,
+        parts.issatc.into_bytes(),
+        verified_event(parts.anc, "the anchoring event")?,
+        parts.ancatc.concat().into_bytes(),
     ))
+}
+
+/// The parts of a credential record a disclosure is built from, each event left as it arrived.
+///
+/// The rest of the record, the schema among it, is skipped rather than read.
+#[derive(serde::Deserialize)]
+struct RecordParts<'record> {
+    #[serde(borrow)]
+    sad: &'record RawValue,
+    atc: String,
+    #[serde(borrow)]
+    iss: &'record RawValue,
+    issatc: String,
+    #[serde(borrow)]
+    anc: &'record RawValue,
+    ancatc: Vec<String>,
+}
+
+/// Reads one event of a credential record and requires it to hash to its own SAID.
+fn verified_event(event: &RawValue, part: &'static str) -> Result<SerializedEvent, ClientError> {
+    let refused = || ClientError::NonCanonicalCredential { part };
+    let parsed = Sad::from_json_bytes(event.get().as_bytes()).map_err(|_| refused())?;
+    let event = SerializedEvent::parse(&parsed.to_json_bytes().map_err(|_| refused())?).map_err(|_| refused())?;
+    let said = Said::from_qb64(event.said().ok_or_else(refused)?).map_err(|_| refused())?;
+    said.verify(event.sad(), "d", SaidVerification::strict())
+        .map_err(|_| refused())?;
+    Ok(event)
 }
 
 /// Returns whether a notification's route announces this IPEX step.
 fn announces(notified: &str, route: IpexRoute) -> bool {
     notified.strip_prefix(NOTIFICATION_ROUTE_PREFIX) == Some(route.as_str())
-}
-
-/// Re-serializes one record of a credential and requires the bytes to be canonical.
-fn canonical<T: serde::Serialize>(record: &T, what: &'static str) -> Result<SerializedEvent, ClientError> {
-    let written = serde_json::to_vec(record).map_err(|_| ClientError::NonCanonicalCredential { part: what })?;
-    SerializedEvent::parse(&written).map_err(|_| ClientError::NonCanonicalCredential { part: what })
 }
 
 /// The IPEX disclosure workflow.
@@ -283,6 +299,16 @@ impl<'client> Presentation<'client> {
     #[must_use]
     pub const fn new(client: &'client ConnectedClient) -> Self {
         Self { client }
+    }
+
+    /// Reads a credential the agent holds as the disclosure a grant embeds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::Status`] for a non-success answer, whatever
+    /// [`ConnectedClient::fetch`] returns, and whatever [`disclosure_from_record`] returns.
+    pub async fn disclosure(&self, said: &Said) -> Result<Disclosure, ClientError> {
+        disclosure_from_record(&self.client.credentials().record_body(said).await?)
     }
 
     /// Asks a holder to disclose a credential — the apply that opens a conversation.
@@ -356,7 +382,7 @@ impl<'client> Presentation<'client> {
     /// accepts and carries nothing else, so nothing in `agree` says which credential was offered;
     /// keeping the offer and passing the credential it embedded is the caller's to do. What is
     /// checked is the chain — the grant answers this agree and no other — and the credential's own
-    /// bytes, which [`disclosure_of`] refuses if they are not canonical.
+    /// bytes, which [`disclosure_from_record`] refuses if they do not hash to their SAIDs.
     ///
     /// # Errors
     ///

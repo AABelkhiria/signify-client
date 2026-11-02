@@ -339,10 +339,10 @@ pub enum ClientError {
         /// The route the message actually carries.
         carried: &'static str,
     },
-    /// A credential could not be re-serialized to the bytes its SAID names.
+    /// A credential record is missing a part, or a part does not hash to the SAID it claims.
     ///
     /// The SAID of an event is a digest over its exact encoding, so an event whose field order did
-    /// not survive the agent's JSON can no longer be disclosed under the name it arrived with.
+    /// not survive can no longer be disclosed under the name it arrived with.
     NonCanonicalCredential {
         /// Which of the three parts of a disclosure failed.
         part: &'static str,
@@ -675,7 +675,7 @@ impl fmt::Display for ClientError {
                 "a notification on {notified} named a message carrying {carried}"
             ),
             Self::NonCanonicalCredential { part } => {
-                write!(formatter, "{part} does not re-serialize to the bytes its SAID names")
+                write!(formatter, "{part} is missing or does not hash to its SAID")
             }
             Self::MalformedDisclosureRequest { what } => {
                 write!(formatter, "a disclosure request must carry {what}")

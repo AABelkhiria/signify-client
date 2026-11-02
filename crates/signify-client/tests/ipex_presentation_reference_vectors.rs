@@ -6,12 +6,13 @@ mod support;
 
 use std::error::Error;
 
+use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{Credential, ExchangeResource, Notification};
 use serde::Deserialize;
 use serde_json::Value;
 use signify_client::error::ClientError;
 use signify_client::presentation::{
-    ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, disclosure_of, requested_credentials,
+    ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, disclosure_from_record, requested_credentials,
 };
 use signify_keys::acdc::ipex::IpexRoute;
 
@@ -537,11 +538,32 @@ fn the_recorded_apply_becomes_the_filter_the_reference_assembles_by_hand() -> Re
     Ok(())
 }
 
+/// The recorded credential record with its field order intact.
+fn held_record() -> Result<Vec<u8>, Box<dyn Error>> {
+    let document = Sad::from_json_bytes(FIXTURE.trim().as_bytes())?;
+    let Some(SadValue::Map(record)) = document.get("held_credential") else {
+        return Err("the fixture records no held_credential".into());
+    };
+    Ok(record.to_json_bytes()?)
+}
+
+#[test]
+fn a_credential_that_lost_its_field_order_is_refused() -> Result<(), Box<dyn Error>> {
+    let record: Value = serde_json::from_slice(&held_record()?)?;
+    let sorted = serde_json::to_vec(&record)?;
+    assert_ne!(sorted, held_record()?, "decoding did not reorder anything");
+    assert!(matches!(
+        disclosure_from_record(&sorted),
+        Err(ClientError::NonCanonicalCredential { .. })
+    ));
+    Ok(())
+}
+
 #[test]
 fn the_recorded_credential_discloses_without_re_signing_anything() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
 
-    let disclosure = disclosure_of(&fixture.held_credential)?;
+    let disclosure = disclosure_from_record(&held_record()?)?;
     assert_eq!(
         disclosure.credential().said(),
         Some(fixture.pinned_confirmations.credential.as_str()),
@@ -810,8 +832,8 @@ mod driven {
         Ok(IdentifierPrefix::from_qb64(text)?)
     }
 
-    fn disclosure(fixture: &Fixture) -> Result<Disclosure, Box<dyn Error>> {
-        Ok(disclosure_of(&fixture.held_credential)?)
+    fn disclosure() -> Result<Disclosure, Box<dyn Error>> {
+        Ok(disclosure_from_record(&held_record()?)?)
     }
 
     fn notification(id: &str, read: bool, route: &str) -> String {
@@ -887,7 +909,7 @@ mod driven {
             local_member: ALIAS,
             members: &members,
             recipient: prefix(THIRD)?,
-            disclosure: disclosure(&fixture)?,
+            disclosure: disclosure()?,
             message: "from the group".to_owned(),
             timestamp: STAMP.parse::<Timestamp>()?,
         }))?;
@@ -939,7 +961,7 @@ mod driven {
         let outcome = block_on(
             client
                 .multisig()
-                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure()?),
         );
 
         // The reference's proposal names nobody, so the agent is asked — and the answer names this
@@ -999,7 +1021,7 @@ mod driven {
         let outcome = block_on(
             client
                 .multisig()
-                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure()?),
         );
         assert!(
             matches!(&outcome, Err(ClientError::LocalMemberNotAParticipant { member }) if member == LOCAL),
@@ -1020,7 +1042,7 @@ mod driven {
         let outcome = block_on(
             client
                 .multisig()
-                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure()?),
         );
         assert!(
             matches!(&outcome, Err(ClientError::NoRecordedMembers { group }) if group == GROUP_NAME),
@@ -1041,7 +1063,7 @@ mod driven {
         let outcome = block_on(
             client
                 .multisig()
-                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure()?),
         );
 
         // This port's own proposal carries `smids`, so the members are read from it and the agent
@@ -1072,7 +1094,7 @@ mod driven {
         let outcome = block_on(
             client
                 .multisig()
-                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure(&fixture)?),
+                .accept_disclosure(GROUP_NAME, ALIAS, &said, &disclosure()?),
         );
         assert!(
             matches!(&outcome, Err(ClientError::LocalMemberNotAParticipant { member }) if member == LOCAL),

@@ -14,7 +14,7 @@ use keria_types::api::{Credential as CredentialRecord, CredentialState, Role};
 use signify_client::client::ConnectedClient;
 use signify_client::endpoint::credentials::CredentialFilter;
 use signify_client::endpoint::registries::CreateRegistryRequest;
-use signify_client::presentation::{DisclosureRequest, ReceivedStep, disclosure_of};
+use signify_client::presentation::{DisclosureRequest, ReceivedStep};
 use signify_http::request::ItemRange;
 use signify_keys::acdc::ipex::{Disclosure, IpexRoute};
 use signify_keys::acdc::revocation::RevocationEventBuilder;
@@ -187,10 +187,10 @@ pub async fn grant_credential(
     client: &ConnectedClient,
     alias: &str,
     recipient: &IdentifierPrefix,
-    credential: &CredentialRecord,
+    said: &Said,
     message: &str,
 ) -> Result<Said, Box<dyn Error>> {
-    let disclosure = disclosure_of(credential)?;
+    let disclosure = client.presentation().disclosure(said).await?;
     crate::progress(&format!("{alias}: granting to {recipient}"));
     let submitted = client
         .presentation()
