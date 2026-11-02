@@ -5,7 +5,7 @@
 //! driven through this port's helpers against a live deployment.
 //!
 //! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001 SIGNIFY_RECORD=1 \
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 \
 //!     cargo test -p signify-keria-systest --features live \
 //!     --test wave15_credential_ipex -- --ignored --test-threads=1 --nocapture
 //! ```
@@ -30,8 +30,8 @@ use signify_keria_systest::{
 };
 use signify_keys::acdc::ipex::IpexRoute;
 
-/// The Qualified vLEI Issuer schema, which the vLEI server and the Veridian credential server both
-/// serve under the same SAID — the schemas are byte-identical, so the SAID is too.
+/// The Qualified vLEI Issuer schema. A schema's SAID is a digest of the schema, so every source
+/// serves it under this one.
 const QVI_SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
 /// The LEI the upstream case issues against.

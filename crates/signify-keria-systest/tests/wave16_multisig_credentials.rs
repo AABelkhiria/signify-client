@@ -5,7 +5,7 @@
 //! step is a propose/accept round rather than one call.
 //!
 //! ```text
-//! SIGNIFY_KERIA_PRESET=local SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001 SIGNIFY_RECORD=1 \
+//! SIGNIFY_KERIA_PRESET=local SIGNIFY_RECORD=1 \
 //!     cargo test -p signify-keria-systest --features live \
 //!     --test wave16_multisig_credentials -- --ignored --test-threads=1 --nocapture
 //! ```
@@ -33,8 +33,7 @@ use signify_keria_systest::{
 };
 use signify_keys::acdc::ipex::IpexRoute;
 
-/// The Qualified vLEI Issuer schema, served under this SAID by the vLEI server and by the Veridian
-/// credential server alike.
+/// The Qualified vLEI Issuer schema, served under this SAID by any source that serves it.
 const QVI_SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 
 /// The group's local alias, as the upstream case names it.

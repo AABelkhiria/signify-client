@@ -64,19 +64,20 @@ reference's own compose file uses:
 docker run -p 7723:7723 gleif/vlei:1.0.3 vLEI-server -s /vLEI/schema -c /vLEI/credentials -o /vLEI/oobis
 ```
 
-A deployment may serve them from elsewhere. The Veridian credential server does, on port 3001, by
-static-serving its `src/schemas/` directory under `/oobi` — so
-`SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001` is enough, with no other change.
+A deployment may serve them from elsewhere: any host that static-serves the schema files under
+`/oobi` will do, named by `SIGNIFY_KERIA_SCHEMA_URL` with no other change.
 
 **Which schemas a source serves decides which scenarios can run.** The SAID of an ACDC schema is a
 digest of the schema itself, so two sources serving the same SAID serve byte-identical schemas:
 
-| scenario | schemas | vLEI server | Veridian server |
-|---|---|---|---|
-| Credential/IPEX flows | QVI, LE | yes | yes |
-| Multisig holder flow | QVI | yes | yes |
-| Multisig vLEI issuance | + ECR | yes | **no** |
-| Single-signature vLEI issuance | + ECR, ECR_AUTH, OOR, OOR_AUTH | yes | **no** |
+| scenario | schemas |
+|---|---|
+| Credential/IPEX flows | QVI, LE |
+| Multisig holder flow | QVI |
+| Multisig vLEI issuance | + ECR |
+| Single-signature vLEI issuance | + ECR, ECR_AUTH, OOR, OOR_AUTH |
+
+The vLEI server serves all of them.
 
 ## Determinism
 

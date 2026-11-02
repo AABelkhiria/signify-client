@@ -42,8 +42,8 @@
 //!
 //! The credential and IPEX scenarios additionally need a schema source — any host answering
 //! `/oobi/{said}`, named by `SIGNIFY_KERIA_SCHEMA_URL`. The preset defaults to the vLEI container
-//! the reference's compose file uses; `SIGNIFY_KERIA_SCHEMA_URL=http://localhost:3001` points at a
-//! Veridian credential server instead. Which schemas a source serves decides which scenarios can
+//! the reference's compose file uses; any other host static-serving the schemas works as well.
+//! Which schemas a source serves decides which scenarios can
 //! run, and `crates/signify-client/fixtures/keria-integration/README.md` carries that table.
 //!
 //! `--test-threads=1` is not decoration. The reference runs its own suite with
