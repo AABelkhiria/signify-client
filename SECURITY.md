@@ -58,10 +58,12 @@ argument, which is what makes its output reproducible in tests.
 
 ## Known limitations
 
-Zeroization stops at the key material. The passcode text and the salts these crates derive from
-it are ordinary owned buffers and are not erased on drop, and buffers you hand in by reference are
-yours to erase. Where zeroization does apply it is a language-level guarantee at most, and it
-doesn't help against a compromised OS, a debugger, a core dump, or pages swapped to disk.
+Zeroization covers the key material, the passcode once it is held by a `Passcode` or
+`IdentifierPasscode`, and the stretched salt input derived from it. Text you pass by reference to
+build one is yours to erase, as is any other buffer you lend; the sixteen random bytes
+`random_passcode` draws are not wiped before they are encoded. Where zeroization does apply it is a
+language-level guarantee at most, and it doesn't help against a compromised OS, a debugger, a core
+dump, or pages swapped to disk.
 
 The passcode is sent to the agent over an unsigned request in the three calls the reference also
 leaves unsigned: approving a delegation, saving an old passcode and deleting one. Transport-level
