@@ -18,9 +18,9 @@ use core::time::Duration;
 use std::sync::Arc;
 use std::time::SystemTime;
 
-use keri_cesr::crypto::signer::Signer;
-use keri_cesr::crypto::verifier::KeyTransferability;
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::signer::Signer;
+use signify_client::cesr::crypto::verifier::KeyTransferability;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, TestClock, is_transient_error};
 use signify_http::signature::authentication::{RequestSigner, ResponseVerifier};

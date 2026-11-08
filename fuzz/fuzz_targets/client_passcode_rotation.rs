@@ -13,12 +13,12 @@
 //! is planned but not applied leaves the controller untouched — which is what lets a client decline
 //! a rotation its agent rejected.
 
-use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_cesr::crypto::signer::Signer;
-use keri_cesr::crypto::verifier::KeyTransferability;
-use keria_types::api::{AcceptedHab, Hab};
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::cipher::{Decrypter, Encrypter};
+use signify_client::cesr::crypto::salt::{Salt, SecurityTier};
+use signify_client::cesr::crypto::signer::Signer;
+use signify_client::cesr::crypto::verifier::KeyTransferability;
+use signify_client::types::api::{AcceptedHab, Hab};
 use signify_keys::controller::{Controller, ControllerOptions, ReEncryptedKeyState};
 use signify_keys::manager::DerivationCost;
 

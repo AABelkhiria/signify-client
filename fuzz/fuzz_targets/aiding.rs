@@ -14,11 +14,11 @@
 //! Every derivation uses the ephemeral cost; the production profile is covered by the
 //! cross-language vectors.
 
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_cesr::crypto::verifier::KeyTransferability;
-use keri_protocol::serialization::SerializedEvent;
-use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::salt::{Salt, SecurityTier};
+use signify_client::cesr::crypto::verifier::KeyTransferability;
+use signify_client::protocol::serialization::SerializedEvent;
+use signify_client::types::api::KeyState;
 use signify_keys::identifier::{
     CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
     interact_identifier, rotate_identifier,
@@ -129,9 +129,9 @@ fuzz_target!(|data: &[u8]| {
         request.transferability = KeyTransferability::NonTransferable;
     }
     if b2 & 1 == 1 {
-        request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(u128::from(
-            *b2 >> 4,
-        )));
+        request.signing_threshold = Some(signify_client::protocol::threshold::SigningThreshold::numeric(
+            u128::from(*b2 >> 4),
+        ));
     }
     match request
         .keeper_request(u32::from(*b0))

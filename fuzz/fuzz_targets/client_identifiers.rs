@@ -16,12 +16,12 @@
 //! believed only in the state it actually claimed: an accepted record always carries key state, a
 //! pending one never does, and either re-encodes losslessly.
 
-use keria_types::api::Hab;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::{
     END_ROLES_SEGMENT, EVENTS_SEGMENT, IDENTIFIER_RANGE_UNIT, IDENTIFIERS_SEGMENT, LOCATION_SCHEMES_SEGMENT,
     MEMBERS_SEGMENT,
 };
+use signify_client::types::api::Hab;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
 

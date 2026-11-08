@@ -25,9 +25,9 @@
 //!
 //! Nothing panics, no route escapes its parameter, and no non-reply is ever counted as one.
 
-use keria_types::api::ReplyRecord;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::escrows::{ESCROWS_SEGMENT, REPLY_SEGMENT, ROUTE_PARAMETER};
+use signify_client::types::api::ReplyRecord;
 use signify_http::request::{ResourcePath, encode_query_component};
 
 fuzz_target!(|data: &[u8]| {

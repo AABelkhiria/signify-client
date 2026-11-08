@@ -18,12 +18,12 @@
 //! that decodes is something the exchange route classifiers either classify or refuse — never
 //! something either panics on.
 
-use keri_protocol::said::Said;
-use keria_types::api::MultisigExchangeResource;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::ClassifiedExchange;
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
+use signify_client::protocol::said::Said;
+use signify_client::types::api::MultisigExchangeResource;
 use signify_http::request::{ResourcePath, encode_path_component};
 
 /// Every character that would give a path component a meaning it did not have.

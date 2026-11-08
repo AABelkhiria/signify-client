@@ -17,13 +17,13 @@
 //! Nothing panics, no route admits an embed it does not name, and no value that decides an
 //! identifier is rewritten in transit.
 
-use keria_types::api::{ExchangeEmbed, MultisigExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL, MultisigRoute};
 use signify_client::multisig::{
     ANCHOR_SLOT, ISSUANCE_ROUTE, ISSUANCE_SLOT, REGISTRY_ROUTE, REGISTRY_SLOT, REVOCATION_ROUTE, REVOCATION_SLOT,
     TRANSACTION_SLOT,
 };
+use signify_client::types::api::{ExchangeEmbed, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

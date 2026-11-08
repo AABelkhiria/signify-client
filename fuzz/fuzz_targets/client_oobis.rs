@@ -17,13 +17,13 @@
 //! an alias exactly when it has one, and that an answer either decodes into the shape it claims or
 //! is refused.
 
-use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{EndRole, Oobi, Role};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::oobis::{
     END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, OobiResolutionOperation, RESOLUTIONS_SEGMENT, ROLE_PARAMETER,
 };
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::types::api::{EndRole, Oobi, Role};
 use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
 

@@ -12,12 +12,12 @@
 //! Every derivation uses the ephemeral cost; the production profile is covered by the
 //! cross-language vectors, and the composition under test does not depend on it.
 
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_cesr::crypto::verifier::KeyTransferability;
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::serialization::SerializedEvent;
-use keri_protocol::threshold::SigningThreshold;
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::salt::{Salt, SecurityTier};
+use signify_client::cesr::crypto::verifier::KeyTransferability;
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::protocol::serialization::SerializedEvent;
+use signify_client::protocol::threshold::SigningThreshold;
 use signify_keys::identifier::{Habery, HabitatRequest, IdentifierError};
 use signify_keys::manager::DerivationCost;
 

@@ -17,10 +17,10 @@
 
 use core::time::Duration;
 
-use keria_types::api::{RegistryMetadata, UntypedOperation};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::operations::OPERATIONS_SEGMENT;
 use signify_client::operation::{PollPolicy, PollableMetadata};
+use signify_client::types::api::{RegistryMetadata, UntypedOperation};
 use signify_http::request::ResourcePath;
 use signify_http::retry::{Backoff, Jitter, RetryDecision};
 use signify_http::transport::Method;

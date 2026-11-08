@@ -20,12 +20,12 @@
 //! Nothing panics, no member list loses or gains a member, and no threshold ever reads as a
 //! different number than it was written as.
 
-use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::error::ClientError;
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT, delivery_list};
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

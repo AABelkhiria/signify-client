@@ -14,10 +14,10 @@
 //! Every derivation uses the ephemeral cost; the production profile is covered by the
 //! cross-language vectors, and the validation under test does not depend on it.
 
-use keri_cesr::crypto::salt::SecurityTier;
-use keri_protocol::serialization::SerializedEvent;
-use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::salt::SecurityTier;
+use signify_client::protocol::serialization::SerializedEvent;
+use signify_client::types::api::KeyState;
 use signify_keys::controller::{Agent, Controller, ControllerError, ControllerOptions};
 use signify_keys::manager::DerivationCost;
 

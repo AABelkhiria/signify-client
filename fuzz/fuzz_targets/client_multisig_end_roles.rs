@@ -12,10 +12,10 @@
 //! stamp its reply carries, for the group it was read against; and that what was read rebuilds
 //! into a reply that reads back the same — the step a joining member takes before it signs.
 
-use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{GroupMember, ReplyRecord};
 use libfuzzer_sys::fuzz_target;
 use signify_client::multisig::{member_agents, proposed_end_role};
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::types::api::{GroupMember, ReplyRecord};
 use signify_keys::identifier::end_role_reply;
 
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";

@@ -15,13 +15,13 @@
 //! key-event record, and a query operation each either decode into exactly what they claim or are
 //! refused, and that re-encoding never loses or invents a field.
 
-use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{EchoedSequence, KeyEventRecord, KeyState, OperationOutcome, QueryOperation, Seal};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::key_events::{EVENTS_SEGMENT, PREFIX_PARAMETER};
 use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence, STATES_SEGMENT};
 use signify_client::endpoint::operations::completed;
 use signify_client::error::ClientError;
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::types::api::{EchoedSequence, KeyEventRecord, KeyState, OperationOutcome, QueryOperation, Seal};
 use signify_http::request::ResourcePath;
 
 fuzz_target!(|data: &[u8]| {

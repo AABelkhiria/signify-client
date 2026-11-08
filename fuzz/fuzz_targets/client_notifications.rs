@@ -14,9 +14,9 @@
 //! and is never reversed, that a `Content-Range` either parses or is refused, and that a page
 //! decodes into notifications that survive a round trip or is refused whole.
 
-use keria_types::api::Notification;
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::notifications::{NOTIFICATION_RANGE_UNIT, NOTIFICATIONS_SEGMENT, NotificationListing};
+use signify_client::types::api::Notification;
 use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
 

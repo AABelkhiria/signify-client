@@ -16,14 +16,14 @@
 //!
 //! **An agent's answer** decides what a caller believes about a registry that already exists.
 
-use keri_protocol::event::ConfigurationTrait;
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::registry::RegistryInceptionBuilder;
-use keri_protocol::serialization::SerializedEvent;
-use keria_types::api::{Registry, RegistryOperation};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::{CreateRegistryRequest, REGISTRIES_SEGMENT, RegistryBacking};
+use signify_client::protocol::event::ConfigurationTrait;
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::protocol::registry::RegistryInceptionBuilder;
+use signify_client::protocol::serialization::SerializedEvent;
+use signify_client::types::api::{Registry, RegistryOperation};
 use signify_http::request::ResourcePath;
 
 const ISSUER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -127,7 +127,7 @@ fuzz_target!(|data: &[u8]| {
             let traits = inception
                 .sad()
                 .get("c")
-                .and_then(keri_protocol::serialization::SadValue::as_array)
+                .and_then(signify_client::protocol::serialization::SadValue::as_array)
                 .map_or(0, <[_]>::len);
             assert_eq!(traits, usize::from(backers.is_empty()));
         }
@@ -152,7 +152,7 @@ fuzz_target!(|data: &[u8]| {
             // The nested operation and the anchor both decoded, so neither was invented: a
             // `RegistryMetadata` that lacks either does not decode at all.
             assert_eq!(metadata.depends.name, metadata.depends.name.clone());
-            assert_eq!(metadata.anchor.pre, metadata.anchor.pre.clone());
+            assert_eq!(metadata.anchor.identifier, metadata.anchor.identifier.clone());
         }
         match serde_json::to_vec(&operation) {
             Ok(encoded) => assert!(

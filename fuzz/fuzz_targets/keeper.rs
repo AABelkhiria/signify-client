@@ -10,9 +10,9 @@
 //! errors, that an ephemeral keeper is never storable, that a group signature never lands anywhere
 //! but its member's own position, and that a keeper only ever signs with keys it actually holds.
 
-use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use signify_client::cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use signify_keys::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
 use signify_keys::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, ManagedSignatures,
@@ -141,13 +141,13 @@ fuzz_target!(|data: &[u8]| {
             let Ok(encoded) = member_key.verifier().qb64_bytes() else {
                 return;
             };
-            let digest = keri_cesr::crypto::digest::Digest::derive(
-                keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
+            let digest = signify_client::cesr::crypto::digest::Digest::derive(
+                signify_client::cesr::crypto::digest::DigestAlgorithm::Blake3_256,
                 &encoded,
             );
             let Ok(digest) = digest.qb64() else { return };
 
-            let Ok(habitat) = serde_json::from_str::<keria_types::api::AcceptedHab>(&format!(
+            let Ok(habitat) = serde_json::from_str::<signify_client::types::api::AcceptedHab>(&format!(
                 r#"{{"name":"m","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
             )) else {
                 return;

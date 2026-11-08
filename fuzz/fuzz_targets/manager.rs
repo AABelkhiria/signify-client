@@ -12,9 +12,9 @@
 //! empty-stem collapse is reported rather than hidden, and that a manager never signs with a key it
 //! does not hold.
 
-use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
-use keri_cesr::crypto::verifier::KeyTransferability;
 use libfuzzer_sys::fuzz_target;
+use signify_client::cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+use signify_client::cesr::crypto::verifier::KeyTransferability;
 use signify_keys::manager::{
     DerivationPath, InceptionRequest, KeyIndices, KeyManager, MAX_KEYS_PER_SET, MAX_STEM_BYTES, ManagerError,
     RotationKey, SaltyKeyCreator, SignatureForm, Stem,

@@ -16,14 +16,14 @@
 //!
 //! Nothing panics, no seal is dropped, and no seal list is ever read as a shorter one.
 
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::said::Said;
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use libfuzzer_sys::fuzz_target;
 use serde_json::Value;
 use signify_client::endpoint::delegations::InceptionSeal;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INTERACTION_ROUTE, INTERACTION_SLOT};
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::protocol::said::Said;
+use signify_client::types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";

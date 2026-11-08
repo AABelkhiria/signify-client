@@ -15,14 +15,14 @@
 //! one indexed signature; its route is the one asked for; and only a grant produces a
 //! quadlet-aligned attachment stream, which always names all three embeds.
 
-use keri_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_protocol::event::Timestamp;
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
-use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
-use keria_types::api::KeyState;
 use libfuzzer_sys::fuzz_target;
+use signify_client::acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
+use signify_client::cesr::crypto::salt::{Salt, SecurityTier};
+use signify_client::protocol::event::Timestamp;
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::protocol::said::{DEFAULT_SAID_LABEL, Said, SaidVerification};
+use signify_client::protocol::serialization::{Sad, SadValue, SerializedEvent};
+use signify_client::types::api::KeyState;
 use signify_keys::acdc::error::{IpexError, IpexSigningError};
 use signify_keys::acdc::ipex::{
     ANCHOR_EMBED, CREDENTIAL_EMBED, ISSUANCE_EMBED, IpexEnvelope, IpexMessage, IpexRoute, MAX_MESSAGE_BYTES,

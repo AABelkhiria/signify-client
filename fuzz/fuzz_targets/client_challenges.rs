@@ -19,15 +19,15 @@
 //! unchanged, and that an answer decodes into what it claims or is refused — with a refusal
 //! (`authenticated: false`) never reading as an absence.
 
-use keri_protocol::prefix::IdentifierPrefix;
-use keri_protocol::said::Said;
-use keri_protocol::serialization::{Sad, SadValue};
-use keria_types::api::{Challenge, ChallengeOperation};
 use libfuzzer_sys::fuzz_target;
 use signify_client::endpoint::challenges::{
     CHALLENGES_SEGMENT, CHALLENGES_VERIFY_SEGMENT, ChallengeStrength, STRENGTH_PARAMETER,
 };
 use signify_client::error::ClientError;
+use signify_client::protocol::prefix::IdentifierPrefix;
+use signify_client::protocol::said::Said;
+use signify_client::protocol::serialization::{Sad, SadValue};
+use signify_client::types::api::{Challenge, ChallengeOperation};
 use signify_http::request::ResourcePath;
 
 /// Every character that would give a path component a meaning it did not have.

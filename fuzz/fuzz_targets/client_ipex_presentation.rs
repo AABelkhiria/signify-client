@@ -16,9 +16,9 @@
 //! nothing* rather than as a SAID, and that an apply's schema and every requested attribute reach
 //! the credential filter with the same values.
 
-use keria_types::api::ExchangeResource;
 use libfuzzer_sys::fuzz_target;
 use signify_client::presentation::{ATTRIBUTE_FILTER_PREFIX, ReceivedStep, SCHEMA_FILTER, requested_credentials};
+use signify_client::types::api::ExchangeResource;
 use signify_keys::acdc::ipex::IpexRoute;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
