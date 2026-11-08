@@ -133,3 +133,9 @@ two the schema does not, and is handed to a caller as a credential regardless.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access. They derive
 real keys at the production Argon2 profile, which is why they are slower than the reading families.
+
+One wire-shape note. The reference's mocks spell the anchoring sequence number of a credential
+status (`status.a.s`, and `a.s` of a state answer) as text, which is what `keria-api-schema.ts`
+declares; KERIA itself writes a number, and the record types follow KERIA. The tests convert that
+one field before a scripted agent answers with a mock, so the fixture stays exactly what the
+generator wrote.

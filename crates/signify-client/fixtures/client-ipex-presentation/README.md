@@ -157,3 +157,7 @@ fixture. `PUBLIC TEST MATERIAL`: the passcode and sealed salts are the pinned te
 as what they open to.
 
 Rust tests consume the checked-in fixture and require neither Node nor network access.
+
+One wire-shape note. `held_credential.status.a.s` is text here, as the reference's schema declares
+it; KERIA writes a number, and the record types follow KERIA. The tests convert that one field
+before reading the record, so the fixture stays exactly what the generator wrote.

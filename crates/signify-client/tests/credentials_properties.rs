@@ -90,7 +90,7 @@ fn credential_document(status: &str) -> String {
             "s": "0",
             "d": ISSUANCE,
             "ri": REGISTRY,
-            "a": { "s": "2", "d": "EIpgyKVF0z0Pcn2_HgbWhEKmJhOXFeD4SA62SrxYXOLt" },
+            "a": { "s": 2, "d": "EIpgyKVF0z0Pcn2_HgbWhEKmJhOXFeD4SA62SrxYXOLt" },
             "dt": "2023-08-23T15:16:07.553000+00:00",
             "et": status,
             "ra": {},
@@ -306,17 +306,17 @@ fn the_reference_mock_credentials_two_defects_are_each_enough_to_refuse_it() -> 
     let complete = credential_document("iss");
     assert!(serde_json::from_str::<CredentialRecord>(&complete).is_ok());
 
-    let mut numeric_seal: Value = serde_json::from_str(&complete)?;
-    if let Some(seal) = numeric_seal
+    let mut text_seal: Value = serde_json::from_str(&complete)?;
+    if let Some(seal) = text_seal
         .get_mut("status")
         .and_then(|status| status.get_mut("a"))
         .and_then(Value::as_object_mut)
     {
-        seal.insert("s".to_owned(), Value::from(2));
+        seal.insert("s".to_owned(), Value::from("2"));
     }
     assert!(
-        serde_json::from_str::<CredentialRecord>(&numeric_seal.to_string()).is_err(),
-        "a numeric seal sequence was accepted"
+        serde_json::from_str::<CredentialRecord>(&text_seal.to_string()).is_err(),
+        "a textual seal sequence was accepted"
     );
 
     let mut missing: Value = serde_json::from_str(&complete)?;

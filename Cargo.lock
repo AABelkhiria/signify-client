@@ -761,9 +761,9 @@ dependencies = [
 
 [[package]]
 name = "keri-http-auth"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b9b7c7f49024db9ead6c7cf5c5a9fce35e918b3b8d541304830b733d23c3e39"
+checksum = "759aec5f4f69b3bfc650f07fbe19fe0b839cf7fe6cb9b4ee037d9291249b5c21"
 dependencies = [
  "keri-cesr",
 ]
@@ -780,9 +780,9 @@ dependencies = [
 
 [[package]]
 name = "keria-types"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "486eed9e13573586b8c64990ba2c7d628a0aeb1dab9f3a2598efc9ef984f36b7"
+checksum = "71f7c923c6fb28bc7512232fefd3ff03d48f2725fe945585d214e177eee3e61a"
 dependencies = [
  "serde",
  "serde_json",
@@ -1561,7 +1561,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

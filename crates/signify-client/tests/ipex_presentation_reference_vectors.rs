@@ -6,6 +6,7 @@ mod support;
 
 use std::error::Error;
 
+use crate::support::as_keria_writes;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::{Credential, ExchangeResource, Notification};
 use serde::Deserialize;
@@ -36,7 +37,7 @@ struct Fixture {
     declarations: Declarations,
     identifier_record: Value,
     group_record: Value,
-    held_credential: Credential,
+    held_credential: Value,
     calls: Vec<Call>,
     pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
@@ -171,6 +172,13 @@ struct ChainLink {
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
     Ok(serde_json::from_str(FIXTURE)?)
+}
+
+/// The held credential as a record, in the form KERIA writes it.
+fn held_credential(fixture: &Fixture) -> Result<Credential, Box<dyn Error>> {
+    Ok(serde_json::from_value(as_keria_writes(
+        fixture.held_credential.clone(),
+    )?)?)
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -569,15 +577,13 @@ fn the_recorded_credential_discloses_without_re_signing_anything() -> Result<(),
         Some(fixture.pinned_confirmations.credential.as_str()),
         "the credential did not survive the round trip"
     );
-    assert_eq!(
-        disclosure.issuance().said(),
-        Some(fixture.held_credential.iss.digest.as_str())
-    );
-    assert_eq!(disclosure.anchor().said(), Some(fixture.held_credential.anc.digest()));
+    let held = held_credential(&fixture)?;
+    assert_eq!(disclosure.issuance().said(), Some(held.iss.digest()));
+    assert_eq!(disclosure.anchor().said(), Some(held.anc.digest()));
 
-    assert_ne!(fixture.held_credential.atc, "");
-    assert_ne!(fixture.held_credential.issatc, "");
-    assert_ne!(fixture.held_credential.ancatc, [] as [String; 0]);
+    assert_ne!(held.atc, "");
+    assert_ne!(held.issatc, "");
+    assert_ne!(held.ancatc, [] as [String; 0]);
     Ok(())
 }
 

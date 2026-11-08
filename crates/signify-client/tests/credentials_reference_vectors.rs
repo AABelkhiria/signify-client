@@ -7,7 +7,9 @@ mod support;
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use crate::support::{
+    ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, as_keria_writes, block_on, clock,
+};
 use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
@@ -635,7 +637,7 @@ fn a_partial_filter_still_sends_the_fields_it_was_not_given() -> Result<(), Box<
 fn a_json_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "get_json")?;
-    let answer = serde_json::to_vec(&fixture.mock_records.well_formed_credential)?;
+    let answer = serde_json::to_vec(&as_keria_writes(fixture.mock_records.well_formed_credential.clone())?)?;
 
     let (client, transport) = connected(&[&answer])?;
     let credential = block_on(client.credentials().get(&Said::from_qb64(SCHEMA)?))?;
@@ -777,7 +779,7 @@ fn a_delete_addresses_the_recorded_path_and_sends_no_body() -> Result<(), Box<dy
 fn a_state_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "state")?;
-    let answer = serde_json::to_vec(&call(&fixture, "state")?.answer)?;
+    let answer = serde_json::to_vec(&as_keria_writes(call(&fixture, "state")?.answer.clone())?)?;
 
     let (client, transport) = connected(&[&answer])?;
     let state = block_on(client.credentials().state(

@@ -623,7 +623,7 @@ fn a_creation_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Er
     assert!(operation.is_ok());
 
     let record = identifier_record(&fixture.identifier_records.ordinary)?;
-    let registry_operation = br#"{"name":"registry.EREG","metadata":{"pre":"EISS","depends":{"name":"witness.EISS.1","metadata":{"pre":"EISS","sn":1},"done":false},"anchor":{"pre":"EISS","sn":1,"d":"EANCHOR"}},"done":false}"#;
+    let registry_operation = br#"{"name":"registry.EREG","metadata":{"pre":"EISS","depends":{"name":"witness.EISS.1","metadata":{"pre":"EISS","sn":1},"done":false},"anchor":{"i":"EISS","s":"1","d":"EANCHOR"}},"done":false}"#;
     let (client, _) = connected(&[&record, registry_operation])?;
     let created = block_on(
         client
@@ -635,7 +635,7 @@ fn a_creation_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Er
     assert_eq!(operation.name, "registry.EREG");
     let metadata = operation.metadata.ok_or("the operation carried no metadata")?;
     assert_eq!(metadata.pre, "EISS");
-    assert_eq!(metadata.anchor.sn, 1);
+    assert_eq!(metadata.anchor.sequence_number, "1");
     assert_eq!(metadata.depends.name, "witness.EISS.1");
     assert!(created.operation().is_ok());
     assert_ne!(created.response_body(), b"");

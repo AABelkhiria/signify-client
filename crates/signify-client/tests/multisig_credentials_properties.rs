@@ -121,7 +121,7 @@ proptest! {
         prop_assert_eq!(read.get("LEI").and_then(Value::as_str), Some(lei.as_str()));
         prop_assert_eq!(embed.acdc.digest.as_str(), CREDENTIAL);
         prop_assert_eq!(embed.acdc.schema.as_str(), SCHEMA);
-        prop_assert_eq!(embed.iss.digest.as_str(), "EISS");
+        prop_assert_eq!(embed.iss.digest(), "EISS");
     }
 
     #[test]

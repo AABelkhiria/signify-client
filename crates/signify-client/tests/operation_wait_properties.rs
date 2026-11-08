@@ -167,7 +167,7 @@ proptest! {
         let document = json!({
             "pre": "EPRE",
             "depends": depends,
-            "anchor": {"pre": "EPRE", "sn": 0, "d": "EANCHOR"},
+            "anchor": {"i": "EPRE", "s": "0", "d": "EANCHOR"},
         });
 
         let typed: RegistryMetadata = serde_json::from_value(document.clone()).map_err(fail)?;
@@ -190,7 +190,7 @@ proptest! {
             json!({"name": name, "done": true, "error": {"code": 500, "message": "no"}}),
             json!({"name": name, "done": true, "response": {"v":"KERI10JSON000000_","t":"ixn","d":"ED","i":"EI","s":"1","p":"EP","a":[]}}),
         ] {
-            let document = json!({"pre": "EPRE", "depends": depends, "anchor": {"pre":"EPRE","sn":0,"d":"EA"}});
+            let document = json!({"pre": "EPRE", "depends": depends, "anchor": {"i":"EPRE","s":"0","d":"EA"}});
             let typed: RegistryMetadata = serde_json::from_value(document.clone()).map_err(fail)?;
             prop_assert_eq!(typed.dependency().map(|dependency| dependency.finished), Some(true));
             prop_assert_eq!(document.dependency().map(|dependency| dependency.finished), Some(true));

@@ -2,7 +2,7 @@
 
 use keri_cesr::crypto::verifier::VerificationKey;
 use keri_cesr::number::CesrNumber;
-use keria_types::api::{KeyState, Threshold};
+use keria_types::api::{KeyState, Threshold, ThresholdWeight};
 
 use crate::controller::error::ControllerError;
 use keri_protocol::event::kind::EventKind;
@@ -173,13 +173,13 @@ fn check_threshold_is_one(threshold: &Threshold, label: &'static str) -> Result<
 }
 
 /// Renders weighted clauses back into the JSON `sith` spelling the threshold parser accepts.
-fn weighted_sith(clauses: &[Vec<String>]) -> Result<String, ControllerError> {
+fn weighted_sith(clauses: &[Vec<ThresholdWeight>]) -> Result<String, ControllerError> {
     let rendered = if let [only] = clauses {
         serde_json::to_string(only)
     } else {
         serde_json::to_string(clauses)
     };
-    // Serializing vectors of strings cannot fail, but the contract stays fallible.
+    // Serializing weights cannot fail, but the contract stays fallible.
     rendered.map_err(|_| ControllerError::AgentThresholdNotOne {
         label: "sith",
         value: None,

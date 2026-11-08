@@ -1285,9 +1285,9 @@ impl<'client> Multisig<'client> {
         let (artifacts, body) = credentials.build_revocation(group_name, revocation).await?;
 
         let built = artifacts.revocation.said().qb64()?;
-        if built != embed.rev.digest {
+        if built != embed.rev.digest() {
             return Err(ClientError::ProposalMismatch {
-                proposed: embed.rev.digest.clone(),
+                proposed: embed.rev.digest().to_owned(),
                 built,
             });
         }

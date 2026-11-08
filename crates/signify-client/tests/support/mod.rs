@@ -24,6 +24,26 @@ use signify_http::transport::{Method, Request, Response, StatusCode, Transport, 
 
 pub(crate) const ADMIN: &str = "http://127.0.0.1:3901";
 
+/// Brings a credential record or status the reference's schema shaped to KERIA's wire form.
+///
+/// The schema spells the anchoring sequence number of a credential status as text; KERIA writes
+/// it as a number, and the record types follow KERIA. Mocks the reference builds from its schema
+/// are converted before an agent answers with them or a test reads them as a record.
+pub(crate) fn as_keria_writes(mut value: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error>> {
+    let path = if value.get("status").is_some() {
+        "/status/a/s"
+    } else {
+        "/a/s"
+    };
+    if let Some(serde_json::Value::String(text)) = value.pointer(path).cloned() {
+        let number: u64 = text.parse()?;
+        if let Some(slot) = value.pointer_mut(path) {
+            *slot = serde_json::Value::from(number);
+        }
+    }
+    Ok(value)
+}
+
 pub(crate) const BOOT: &str = "http://127.0.0.1:3903";
 
 /// The pinned reference's own test passcode. PUBLIC TEST MATERIAL, not a secret.

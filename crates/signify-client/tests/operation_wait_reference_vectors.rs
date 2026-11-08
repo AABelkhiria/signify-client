@@ -213,10 +213,10 @@ fn registry(dependency_done: bool, done_itself: bool) -> String {
         pending(DEPENDENCY)
     };
     let metadata =
-        format!(r#""metadata":{{"pre":"EPRE","depends":{depends},"anchor":{{"pre":"EPRE","sn":0,"d":"EANCHOR"}}}}"#);
+        format!(r#""metadata":{{"pre":"EPRE","depends":{depends},"anchor":{{"i":"EPRE","s":"0","d":"EANCHOR"}}}}"#);
     if done_itself {
         format!(
-            r#"{{"name":"{REGISTRY}",{metadata},"done":true,"response":{{"anchor":{{"pre":"EPRE","sn":0,"d":"EANCHOR"}}}}}}"#
+            r#"{{"name":"{REGISTRY}",{metadata},"done":true,"response":{{"anchor":{{"i":"EPRE","s":"0","d":"EANCHOR"}}}}}}"#
         )
     } else {
         format!(r#"{{"name":"{REGISTRY}",{metadata},"done":false}}"#)
@@ -556,7 +556,7 @@ fn a_dependency_that_finished_unsuccessfully_is_skipped_in_silence() -> Result<(
 
     let depends = failed(DEPENDENCY, 500, "witness receipts timed out");
     let parent = format!(
-        r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":{depends},"anchor":{{"pre":"EPRE","sn":0,"d":"EANCHOR"}}}},"done":false}}"#
+        r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":{depends},"anchor":{{"i":"EPRE","s":"0","d":"EANCHOR"}}}},"done":false}}"#
     );
     let answer = registry(true, true);
     let (client, transport, _) = connected(&[answer.as_bytes()])?;
@@ -662,7 +662,7 @@ fn a_metadata_block_with_no_dependency_skips_the_guard() -> Result<(), Box<dyn E
     }
 
     let body = format!(
-        r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":null,"anchor":{{"pre":"EPRE","sn":0,"d":"EA"}}}},"done":false}}"#
+        r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":null,"anchor":{{"i":"EPRE","s":"0","d":"EA"}}}},"done":false}}"#
     );
     let answer = done(REGISTRY);
     let (client, transport, _) = connected(&[answer.as_bytes()])?;

@@ -307,7 +307,7 @@ fn a_revocation_proposal_keeps_the_anchor_the_variant_hides() -> Result<(), Box<
     let ExchangeEmbed::Revocation(revocation) = &proposal.proposed.message else {
         return Err("not a revocation embed".into());
     };
-    assert_eq!(revocation.rev.digest, "EREV");
+    assert_eq!(revocation.rev.digest(), "EREV");
     assert_eq!(revocation.anc.digest(), "EANC");
     Ok(())
 }

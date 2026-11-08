@@ -635,7 +635,7 @@ mod tests {
     use keria_types::api::EchoedSequence;
 
     use super::*;
-    use keria_types::api::{Anchor, KelResponse, KeyState, OperationStatus};
+    use keria_types::api::{EventSeal, KelResponse, KeyState, OperationStatus};
     use std::error::Error;
 
     fn kel_operation(name: &str, done: bool) -> Operation<KelMetadata, KelResponse> {
@@ -658,9 +658,9 @@ mod tests {
         RegistryMetadata {
             pre: "EPRE".to_owned(),
             depends: Box::new(depends),
-            anchor: Anchor {
-                pre: "EPRE".to_owned(),
-                sn: 0,
+            anchor: EventSeal {
+                identifier: "EPRE".to_owned(),
+                sequence_number: "0".to_owned(),
                 digest: "EANCHOR".to_owned(),
             },
         }
