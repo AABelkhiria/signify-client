@@ -9,7 +9,7 @@ use std::error::Error;
 
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
-use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use serde::Deserialize;
 use signify_keys::manager::{
     CreatorKind, DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError,
@@ -86,7 +86,6 @@ struct RandyShape {
     public_key_code: String,
     transferable: bool,
     paths: Option<Vec<String>>,
-    distinct: usize,
     salt: String,
     stem: String,
     tier: String,
@@ -479,7 +478,6 @@ fn the_randy_creator_shape_matches() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shape = &fixture.randy_creator_shape;
     assert_eq!(shape.count, 3);
-    assert_eq!(shape.distinct, 3, "random keys repeated upstream");
     assert_eq!(shape.private_key_length, 44);
     assert_eq!(shape.public_key_code, "D");
     assert!(shape.transferable);
@@ -493,7 +491,17 @@ fn the_randy_creator_shape_matches() -> Result<(), Box<dyn Error>> {
 
     let keys = signify_keys::manager::RandyKeyCreator::new().create(shape.count, KeyTransferability::Transferable)?;
     assert_eq!(keys.len(), shape.count);
-    assert!(keys.into_entries().iter().all(|(_, path)| path.is_none()));
+    let mut public_keys = std::collections::BTreeSet::new();
+    for (signer, path) in keys.into_entries() {
+        assert_eq!(path, None);
+        assert!(signer.is_transferable());
+        let qb64 = signer.verifier().qb64()?;
+        let parsed = VerificationKey::from_qb64(&qb64)?;
+        assert_eq!(parsed.code().as_str(), shape.public_key_code, "{qb64}");
+        public_keys.insert(qb64);
+    }
+    // Pairwise distinct: no random key repeats.
+    assert_eq!(public_keys.len(), shape.count);
     Ok(())
 }
 

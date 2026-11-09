@@ -368,14 +368,19 @@ fn restore_follows_the_reference_state_branch() -> Result<(), Box<dyn Error>> {
     assert!(fixture.restore_cases.zero_rebuilds_inception);
     assert!(fixture.restore_cases.zero_number_rebuilds_inception);
 
-    let own = Controller::new(&fixture.provenance.passcode, SecurityTier::Low)?;
     let restored = Controller::restore(
         &fixture.provenance.passcode,
         SecurityTier::Low,
         ControllerOptions::default(),
         SerializedEvent::parse(fixture.controllers.first.raw.as_bytes())?,
     )?;
-    assert_eq!(restored.current_event().raw(), own.current_event().raw());
+    // The rebuilt inception is the reference's own, byte for byte.
+    assert_eq!(restored.current_event().raw(), fixture.controllers.first.raw.as_bytes());
+    assert_eq!(restored.prefix().qb64()?, fixture.controllers.first.pre);
+    assert_eq!(
+        restored.expose_signer().verifier().qb64()?,
+        fixture.controllers.first.signer_verfer
+    );
 
     // Another controller's sequence-one interaction is adopted unchecked, while the derived keys
     // stay the passcode's own.
@@ -631,20 +636,26 @@ fn every_rotation_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>> 
 
     for rejection in &fixture.rotation.rejections {
         assert!(!rejection.reference_error_message.is_empty(), "{}", rejection.name);
-        let outcome = match rejection.name.as_str() {
+        let refused_as_expected = match rejection.name.as_str() {
             "mismatched_salty" => {
                 let mut record = salty_record(&fixture, &encrypter)?;
                 record.state.signing_keys = wrong.clone();
-                controller
-                    .rotate_passcode(&fixture.provenance.second_passcode, std::slice::from_ref(&record))
-                    .map(|_| ())
+                let outcome =
+                    controller.rotate_passcode(&fixture.provenance.second_passcode, std::slice::from_ref(&record));
+                matches!(
+                    outcome,
+                    Err(ControllerError::InvalidSaltyIdentifier { ref prefix }) if *prefix == fixture.rotation.salty_aid.prefix
+                )
             }
             "mismatched_randy" => {
                 let mut record = randy_record(&fixture, &encrypter)?;
                 record.state.signing_keys = wrong.clone();
-                controller
-                    .rotate_passcode(&fixture.provenance.second_passcode, std::slice::from_ref(&record))
-                    .map(|_| ())
+                let outcome =
+                    controller.rotate_passcode(&fixture.provenance.second_passcode, std::slice::from_ref(&record));
+                matches!(
+                    outcome,
+                    Err(ControllerError::InvalidRandyIdentifier { ref prefix }) if *prefix == fixture.rotation.randy_aid.prefix
+                )
             }
             "group_aid" => {
                 let member = salty_record(&fixture, &encrypter)?;
@@ -657,13 +668,16 @@ fn every_rotation_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>> 
                     }}),
                     &member.state.signing_keys.clone(),
                 )?;
-                controller
-                    .rotate_passcode(&fixture.provenance.second_passcode, std::slice::from_ref(&group))
-                    .map(|_| ())
+                let outcome =
+                    controller.rotate_passcode(&fixture.provenance.second_passcode, std::slice::from_ref(&group));
+                matches!(
+                    outcome,
+                    Err(ControllerError::UnsupportedKeyManager { algorithm: "group", .. })
+                )
             }
             other => return Err(format!("unknown rejection case {other:?}").into()),
         };
-        assert!(outcome.is_err(), "{} was accepted", rejection.name);
+        assert!(refused_as_expected, "{} was not refused as expected", rejection.name);
     }
     Ok(())
 }

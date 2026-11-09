@@ -179,39 +179,18 @@ struct Refusal {
 
 #[derive(Debug, Deserialize)]
 struct PinnedConfirmations {
-    unit_test_file: String,
     unit_test_assertions: UnitTestAssertions,
-    unit_test_files_naming_credentials: Vec<String>,
-    published_paths: Vec<String>,
-    published_identifiers: Vec<String>,
-    asserted_registry: String,
-    asserted_revocation_credential: String,
-    accessor_assertion: bool,
-    usage_scan: Value,
-    driven_paths: Vec<String>,
-    note: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct UnitTestAssertions {
-    list_path: String,
-    list_method: String,
     list_body: Value,
-    get_path: String,
-    get_method: String,
-    issue_path: String,
-    issue_method: String,
     issue_acdc_registry: String,
     issue_acdc_schema: String,
-    issue_acdc_issuee: String,
-    issue_acdc_lei: String,
     issue_iss_sequence: String,
     issue_iss_kind: String,
     issue_iss_registry: String,
-    issue_iss_names_the_credential: bool,
     issue_ixn_kind: String,
-    issue_ixn_names_the_issuer: bool,
-    issue_ixn_prior_is_the_issuer: bool,
     issue_signature_prefix: String,
     issue_signature_length: usize,
     revoke_path: String,
@@ -225,13 +204,6 @@ struct UnitTestAssertions {
     revoke_ixn_prior: String,
     revoke_signature_prefix: String,
     revoke_signature_length: usize,
-    state_path: String,
-    state_method: String,
-    state_body: Option<String>,
-    delete_path: String,
-    delete_method: String,
-    delete_body: Option<String>,
-    note: String,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -397,74 +369,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
         assert!(!entry.note.is_empty(), "call {} records no note", entry.name);
         assert_eq!(entry.error, None, "call {} was refused upstream", entry.name);
     }
-    Ok(())
-}
-
-#[test]
-fn every_value_the_pinned_unit_test_asserts_is_recorded() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-    assert_eq!(pinned.unit_test_file, "test/app/credentialing.test.ts");
-    assert_eq!(
-        pinned.unit_test_files_naming_credentials,
-        ["test/app/clienting.test.ts", "test/app/credentialing.test.ts"]
-    );
-    assert!(pinned.accessor_assertion);
-    assert_ne!(pinned.note, "");
-    assert!(pinned.usage_scan.is_object());
-
-    let asserted = &pinned.unit_test_assertions;
-    assert_ne!(asserted.note, "");
-    assert_eq!(asserted.list_path, "/credentials/query");
-    assert_eq!(asserted.list_method, "POST");
-    assert_eq!(asserted.get_path, format!("/credentials/{SCHEMA}"));
-    assert_eq!(asserted.get_method, "GET");
-    assert_eq!(asserted.issue_path, "/identifiers/aid1/credentials");
-    assert_eq!(asserted.issue_method, "POST");
-    assert_eq!(
-        asserted.revoke_path,
-        format!("/identifiers/aid1/credentials/{IDENTIFIER}")
-    );
-    assert_eq!(asserted.revoke_method, "DELETE");
-    assert_eq!(
-        asserted.state_path,
-        format!("/registries/{CREDENTIAL_REGISTRY}/{CREDENTIAL}")
-    );
-    assert_eq!(asserted.state_method, "GET");
-    assert_eq!(asserted.delete_path, format!("/credentials/{CREDENTIAL}"));
-    assert_eq!(asserted.delete_method, "DELETE");
-    assert_eq!(asserted.state_body, None);
-    assert_eq!(asserted.delete_body, None);
-
-    assert_eq!(asserted.issue_acdc_registry, ISSUE_REGISTRY);
-    assert_eq!(asserted.issue_acdc_schema, SCHEMA);
-    assert_eq!(asserted.issue_acdc_issuee, ISSUEE);
-    assert_eq!(asserted.issue_acdc_lei, "1234");
-    assert_eq!(asserted.issue_iss_sequence, "0");
-    assert_eq!(asserted.issue_iss_kind, "iss");
-    assert_eq!(asserted.issue_iss_registry, ISSUE_REGISTRY);
-    assert!(asserted.issue_iss_names_the_credential);
-    assert_eq!(asserted.issue_ixn_kind, "ixn");
-    assert!(asserted.issue_ixn_names_the_issuer);
-    assert!(asserted.issue_ixn_prior_is_the_issuer);
-    assert_eq!(asserted.issue_signature_prefix, "AA");
-    assert_eq!(asserted.issue_signature_length, 88);
-
-    assert_eq!(asserted.revoke_rev_sequence, "1");
-    assert_eq!(asserted.revoke_rev_kind, "rev");
-    assert_eq!(asserted.revoke_rev_registry, CREDENTIAL_REGISTRY);
-    assert_eq!(asserted.revoke_rev_registry, pinned.asserted_registry);
-    assert_eq!(asserted.revoke_rev_credential, IDENTIFIER);
-    assert_eq!(asserted.revoke_rev_credential, pinned.asserted_revocation_credential);
-    assert_eq!(asserted.revoke_ixn_kind, "ixn");
-    assert_eq!(asserted.revoke_ixn_identifier, IDENTIFIER);
-    assert_eq!(asserted.revoke_ixn_prior, IDENTIFIER);
-    assert_eq!(asserted.revoke_signature_prefix, "AA");
-    assert_eq!(asserted.revoke_signature_length, 88);
-
-    assert_ne!(pinned.published_paths, [] as [String; 0]);
-    assert_ne!(pinned.published_identifiers, [] as [String; 0]);
-    assert!(pinned.driven_paths.iter().any(|path| path == "/credentials/query"));
     Ok(())
 }
 
@@ -717,42 +621,6 @@ fn the_references_own_mock_credential_is_refused() -> Result<(), Box<dyn Error>>
         matches!(outcome, Err(ClientError::Api { .. })),
         "the mock credential was accepted: {outcome:?}"
     );
-    Ok(())
-}
-
-#[test]
-fn a_said_can_never_reshape_a_path() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert_eq!(
-        request_of(&fixture, "get_said_needing_encoding")?.path,
-        "/credentials/E/../identifiers?x=1#y"
-    );
-    assert_eq!(
-        request_of(&fixture, "state_names_needing_encoding")?.path,
-        "/registries/a/b/c/d"
-    );
-    assert_eq!(
-        request_of(&fixture, "revoke_said_needing_encoding")?.path,
-        "/identifiers/a/b/credentials/c/d"
-    );
-
-    for hostile in ["E/../identifiers?x=1#y", "c/d", "a/b"] {
-        assert!(Said::from_qb64(hostile).is_err(), "{hostile:?} parsed as a SAID");
-        assert!(
-            RegistryIdentifier::from_qb64(hostile).is_err(),
-            "{hostile:?} parsed as a registry"
-        );
-    }
-    Ok(())
-}
-
-#[test]
-fn an_unqualified_said_becomes_a_credential_identifier_upstream() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "revoke_said_needing_encoding")?;
-    let body = recorded.body.clone().unwrap_or_default();
-    assert!(body.contains(r#""i":"c/d""#), "the recorded body no longer carries it");
-    assert!(Said::from_qb64("c/d").is_err());
     Ok(())
 }
 

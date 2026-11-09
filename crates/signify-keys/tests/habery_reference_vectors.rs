@@ -9,13 +9,13 @@ use std::error::Error;
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
-use keri_protocol::event::ConfigurationTrait;
+use keri_protocol::event::{ConfigurationTrait, EventError};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadValue};
 use keri_protocol::threshold::SigningThreshold;
 use serde::Deserialize;
 use signify_keys::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
-use signify_keys::manager::ManagerError;
+use signify_keys::manager::{DerivationCost, ManagerError};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/keri-habery/v1.json"));
@@ -408,6 +408,51 @@ fn one_registry_holds_both_transferabilities() -> Result<(), Box<dyn Error>> {
     assert_event_matches(witness, &expected.witness)
 }
 
+/// Whether a reference rejection was refused here with the variant that names the same fault.
+fn refused_as_expected(name: &str, outcome: &Result<(), IdentifierError>) -> bool {
+    match (name, outcome) {
+        ("passcode_too_short", Err(IdentifierError::Manager { source })) => matches!(
+            **source,
+            ManagerError::PasscodeTooShort {
+                required: 21,
+                actual: 20
+            }
+        ),
+        // The reference throws `Already incepted pre=…`, and the manager refuses identically.
+        ("second_salty_habitat", Err(IdentifierError::Manager { source })) => {
+            matches!(**source, ManagerError::AlreadyIncepted { .. })
+        }
+        ("no_current_keys", Err(IdentifierError::Event { source })) => {
+            matches!(
+                **source,
+                EventError::SigningThresholdExceedsKeys { required: 1, keys: 0 }
+            )
+        }
+        ("randy_without_encryption", Err(IdentifierError::Manager { source })) => {
+            matches!(**source, ManagerError::RandomKeysNeedEncryption)
+        }
+        ("toad_above_witness_count", Err(IdentifierError::Event { source })) => {
+            matches!(
+                **source,
+                EventError::InvalidWitnessThreshold {
+                    threshold: 2,
+                    witnesses: 1
+                }
+            )
+        }
+        ("duplicate_witnesses", Err(IdentifierError::Event { source })) => {
+            matches!(**source, EventError::DuplicateWitness { label: "b" })
+        }
+        ("non_transferable_with_witnesses", Err(error)) => {
+            matches!(error, IdentifierError::NonTransferableContent { label: "b" })
+        }
+        ("non_transferable_delegated", Err(IdentifierError::Event { source })) => {
+            matches!(**source, EventError::DelegatedPrefixMustBeDigestive { code: "B" })
+        }
+        _ => false,
+    }
+}
+
 #[test]
 fn every_reference_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
@@ -416,6 +461,7 @@ fn every_reference_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>>
     let fresh = || -> Result<Habery, Box<dyn Error>> {
         Ok(Habery::builder("signify")
             .salt(Salt::from_qb64(&salt_qb64, SecurityTier::Low)?)
+            .derivation_cost(DerivationCost::Ephemeral)
             .build()?)
     };
     let witness = IdentifierPrefix::from_qb64(
@@ -432,7 +478,13 @@ fn every_reference_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>>
         assert!(!rejection.note.is_empty(), "{}", rejection.name);
         let outcome: Result<(), IdentifierError> = match rejection.name.as_str() {
             "passcode_too_short" => Habery::builder("signify")
-                .build_with_passcode(&fixture.provenance.passcode[..20])
+                .build_with_passcode(
+                    fixture
+                        .provenance
+                        .passcode
+                        .get(..20)
+                        .ok_or("the passcode is too short")?,
+                )
                 .map(|_| ()),
             "second_salty_habitat" => {
                 let mut habery = fresh()?;
@@ -490,17 +542,12 @@ fn every_reference_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>>
                 .map(|_| ()),
             other => return Err(format!("unknown rejection case {other:?}").into()),
         };
-        assert!(outcome.is_err(), "{} was accepted", rejection.name);
+        assert!(
+            refused_as_expected(&rejection.name, &outcome),
+            "{}: {outcome:?}",
+            rejection.name
+        );
     }
-
-    // The one rejection whose Rust variant is worth pinning by name: the reference throws
-    // `Already incepted pre=…`, and the Rust manager refuses identically.
-    let mut habery = fresh()?;
-    habery.make_habitat("first", HabitatRequest::default())?;
-    assert!(matches!(
-        habery.make_habitat("second", HabitatRequest::default()),
-        Err(IdentifierError::Manager { source }) if matches!(*source, ManagerError::AlreadyIncepted { .. })
-    ));
     Ok(())
 }
 

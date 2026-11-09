@@ -1150,14 +1150,13 @@ mod tests {
     }
 
     #[test]
-    fn rotating_an_unknown_identifier_is_refused() {
-        let Ok(mut manager) = KeyManager::builder().build() else {
-            return;
-        };
+    fn rotating_an_unknown_identifier_is_refused() -> Result<(), Box<dyn Error>> {
+        let mut manager = KeyManager::builder().build()?;
         assert!(matches!(
             manager.rotate(RotationRequest::new("DUNKNOWN")),
-            Err(ManagerError::NotIncepted { .. })
+            Err(ManagerError::NotIncepted { prefix }) if prefix == "DUNKNOWN"
         ));
+        Ok(())
     }
 
     #[test]

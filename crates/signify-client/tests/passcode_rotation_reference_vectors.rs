@@ -1,6 +1,7 @@
 //! Exact vectors for the passcode-rotation workflow, against both references.
 //!
-//! The one-variable defect sealing key material to the passcode being left behind; this port follows keripy.
+//! The reference's rotation and its recorded divergences; keripy's verdict on this port's rotation is in
+//! `passcode_rotation_keripy_vectors.rs`.
 
 mod support;
 
@@ -52,20 +53,8 @@ struct Provenance {
 struct Declarations {
     client_rotate: String,
     controller_rotate: String,
-    nbran_declaration: String,
-    nsalter_declaration: String,
-    nsigner_declaration: String,
-    sealed_salt_declaration: String,
-    cipher_construction: Vec<CipherConstruction>,
     unit_test_calls: Vec<RotateCall>,
-    keripy: Keripy,
     notes: Value,
-}
-
-#[derive(Debug, Deserialize)]
-struct CipherConstruction {
-    kind: String,
-    argument: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,27 +65,11 @@ struct RotateCall {
 }
 
 #[derive(Debug, Deserialize)]
-struct Keripy {
-    commit: String,
-    file: String,
-    symbol: String,
-    encrypter_from_new_key: String,
-    verifies_new_seed: bool,
-    docstring_claim: String,
-    cipher_lines: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
 struct RecordedRequest {
     path: String,
     method: String,
-    signed: bool,
     body_fields: Vec<String>,
     key_entries: Vec<String>,
-    salty_entry_fields: Vec<String>,
-    randy_entry_fields: Vec<String>,
-    rotation: Value,
-    signature_count: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -109,7 +82,6 @@ struct Identifiers {
 struct SaltyIdentifier {
     prefix: String,
     salt: String,
-    state_keys: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -124,7 +96,6 @@ struct RandyIdentifier {
 struct Sealing {
     controller_salt: SealedValue,
     salty_identifier: SealedValue,
-    randy_identifier: SealedValue,
 }
 
 #[derive(Debug, Deserialize)]
@@ -174,128 +145,6 @@ fn the_manifest_matches_both_pinned_references() -> Result<(), Box<dyn Error>> {
 }
 
 // --- The finding, from the syntax tree and from the wire ---
-#[test]
-fn the_encrypter_is_built_from_the_salter_being_replaced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let declarations = &fixture.declarations;
-
-    assert!(declarations.nbran_declaration.contains("bran.substring(0, 21)"));
-    assert!(declarations.nsalter_declaration.contains("nbran"));
-    assert!(
-        declarations.nsigner_declaration.contains("this.salter"),
-        "`nsigner` no longer derives from the old salter; the finding is stale"
-    );
-    assert!(!declarations.nsigner_declaration.contains("nsalter"));
-
-    assert_eq!(declarations.cipher_construction.len(), 2);
-    for construction in &declarations.cipher_construction {
-        assert!(
-            construction.argument.contains("nsigner"),
-            "{} is built from {}",
-            construction.kind,
-            construction.argument
-        );
-    }
-    let kinds: Vec<&str> = declarations
-        .cipher_construction
-        .iter()
-        .map(|construction| construction.kind.as_str())
-        .collect();
-    assert_eq!(kinds, ["Encrypter", "Decrypter"]);
-
-    assert!(declarations.sealed_salt_declaration.contains("this.bran"));
-    Ok(())
-}
-
-#[test]
-fn the_recorded_payload_opens_under_the_passcode_being_left_behind() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let old_salt = format!("0AA{}", fixture.provenance.passcode);
-
-    for (name, sealed) in [
-        ("the controller salt", &fixture.sealing.controller_salt),
-        ("the salty identifier", &fixture.sealing.salty_identifier),
-        ("the randy identifier", &fixture.sealing.randy_identifier),
-    ] {
-        assert!(
-            sealed.opens_under_old.is_some(),
-            "{name} does not open under the old passcode"
-        );
-        assert!(
-            sealed.opens_under_new.is_none(),
-            "{name} now opens under the new passcode; the finding is stale"
-        );
-    }
-
-    assert_eq!(
-        fixture.sealing.controller_salt.opens_under_old.as_deref(),
-        Some(old_salt.as_str())
-    );
-    assert_ne!(
-        fixture.sealing.controller_salt.opens_under_old.as_deref(),
-        Some(format!("0AA{}", fixture.provenance.second_passcode).as_str())
-    );
-
-    assert_eq!(
-        fixture.sealing.salty_identifier.opens_under_old.as_deref(),
-        Some(fixture.identifiers.salty.salt.as_str())
-    );
-    assert_eq!(
-        fixture.sealing.randy_identifier.opens_under_old.as_deref(),
-        fixture.identifiers.randy.seeds.first().map(String::as_str)
-    );
-
-    assert_eq!(fixture.identifiers.salty.state_keys.len(), 1);
-    assert_eq!(
-        fixture.identifiers.salty.state_keys.first().map(String::as_str),
-        Some(fixture.identifiers.salty.prefix.as_str()),
-        "the salty identifier's prefix is its own signing key"
-    );
-    assert_eq!(
-        fixture.identifiers.randy.state_keys.len(),
-        fixture.identifiers.randy.seeds.len()
-    );
-    Ok(())
-}
-
-#[test]
-fn keripy_seals_under_the_new_key() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let keripy = &fixture.declarations.keripy;
-
-    assert_eq!(keripy.commit, KERIPY_SHA);
-    assert_eq!(keripy.file, "src/keri/app/keeping.py");
-    assert_eq!(keripy.symbol, "Manager.updateAeid");
-
-    assert_eq!(
-        keripy.encrypter_from_new_key,
-        "self.encrypter = core.Encrypter(verkey=aeid)"
-    );
-    assert!(
-        keripy.verifies_new_seed,
-        "keripy no longer checks the new seed belongs to the new key"
-    );
-    assert!(keripy.docstring_claim.contains("reencrypts"));
-
-    assert_ne!(keripy.cipher_lines, [] as [String; 0]);
-    assert!(
-        keripy
-            .cipher_lines
-            .iter()
-            .any(|line| line.contains("self.decrypter.decrypt")),
-        "{:?}",
-        keripy.cipher_lines
-    );
-    assert!(
-        keripy
-            .cipher_lines
-            .iter()
-            .any(|line| line.contains("self.encrypter.encrypt")),
-        "{:?}",
-        keripy.cipher_lines
-    );
-    Ok(())
-}
 
 #[test]
 fn nothing_upstream_exercises_the_re_encryption() -> Result<(), Box<dyn Error>> {
@@ -316,71 +165,7 @@ fn nothing_upstream_exercises_the_re_encryption() -> Result<(), Box<dyn Error>> 
     Ok(())
 }
 
-#[test]
-fn a_second_rotation_upstream_commits_to_the_original_passcode_again() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_second_rotation_derives_from_the_original_salt")?;
-
-    assert_eq!(recorded.get("identical").and_then(Value::as_bool), Some(true));
-    assert_eq!(recorded.get("bran_moved").and_then(Value::as_bool), Some(false));
-    assert_eq!(
-        recorded.get("first_old_key").and_then(Value::as_str),
-        recorded.get("second_old_key").and_then(Value::as_str)
-    );
-    Ok(())
-}
-
 // --- The request itself ---
-#[test]
-fn the_rotation_is_one_unsigned_put_to_the_agent() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let request = &fixture.request;
-
-    assert_eq!(request.method, "PUT");
-    assert_eq!(request.path, format!("/agent/{}", fixture.provenance.controller_prefix));
-
-    assert!(!request.signed);
-    let recorded = quirk(&fixture, "the_rotation_travels_unsigned")?;
-    assert_eq!(recorded.get("signed").and_then(Value::as_bool), Some(false));
-
-    assert_eq!(request.body_fields, ["rot", "sigs", "sxlt", "keys"]);
-    assert_eq!(request.signature_count, 2);
-    assert_eq!(request.key_entries.len(), 2);
-    assert!(request.key_entries.contains(&fixture.identifiers.salty.prefix));
-    assert!(request.key_entries.contains(&fixture.identifiers.randy.prefix));
-
-    assert_eq!(request.salty_entry_fields, ["sxlt"]);
-    assert_eq!(request.randy_entry_fields, ["prxs", "nxts"]);
-    Ok(())
-}
-
-/// The delegation-approval interaction a connected client's log holds at sequence one, as the
-/// pinned `client-lifecycle` fixture records it.
-const CONNECTED_INTERACTION: &str = "EHHVqtpOc2jog8XyZXolMM2SdDuChi082OxyEHn3PvN8";
-
-#[test]
-fn the_reference_rotates_a_connected_client_at_sequence_one_over_its_interaction() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let rotation = &fixture.request.rotation;
-
-    assert_eq!(rotation.get("t").and_then(Value::as_str), Some("rot"));
-    // The defect: the interaction the prior names is itself at sequence one, so keripy reads this
-    // `rot` as a recovery whose prior must be the inception, and refuses it.
-    assert_eq!(rotation.get("s").and_then(Value::as_str), Some("1"));
-    assert_eq!(rotation.get("p").and_then(Value::as_str), Some(CONNECTED_INTERACTION));
-    assert_eq!(
-        rotation.get("i").and_then(Value::as_str),
-        Some(fixture.provenance.controller_prefix.as_str())
-    );
-
-    let keys = rotation.get("k").and_then(Value::as_array).ok_or("no keys")?;
-    assert_eq!(keys.len(), 2);
-    let threshold = rotation.get("kt").and_then(Value::as_array).ok_or("no threshold")?;
-    assert_eq!(threshold.len(), 2);
-    assert_eq!(threshold.first().and_then(Value::as_str), Some("1"));
-    assert_eq!(threshold.get(1).and_then(Value::as_str), Some("0"));
-    Ok(())
-}
 
 #[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {

@@ -145,15 +145,7 @@ proptest! {
             Ok(status) => {
                 prop_assert!((100..=599).contains(&code));
                 prop_assert_eq!(status.as_u16(), code);
-                let classes = [
-                    status.is_success(),
-                    status.is_redirection(),
-                    status.is_client_error(),
-                    status.is_server_error(),
-                ];
-                // Every code outside the 1xx range belongs to exactly one class.
-                let matched = classes.into_iter().filter(|held| *held).count();
-                prop_assert_eq!(matched, usize::from(code >= 200));
+                prop_assert_eq!(classes_of(status), expected_classes(code));
             }
             Err(error) => {
                 prop_assert!(!(100..=599).contains(&code));
@@ -284,4 +276,45 @@ proptest! {
         let request = builder.build().map_err(fail)?;
         prop_assert_eq!(request.response_limit(), explicit.unwrap_or(DEFAULT_RESPONSE_BODY_LIMIT));
     }
+}
+
+/// `[success, redirection, client error, server error]`.
+fn classes_of(status: StatusCode) -> [bool; 4] {
+    [
+        status.is_success(),
+        status.is_redirection(),
+        status.is_client_error(),
+        status.is_server_error(),
+    ]
+}
+
+/// The class HTTP assigns by hundreds; a 1xx code is in none of the four.
+fn expected_classes(code: u16) -> [bool; 4] {
+    match code / 100 {
+        2 => [true, false, false, false],
+        3 => [false, true, false, false],
+        4 => [false, false, true, false],
+        5 => [false, false, false, true],
+        _ => [false; 4],
+    }
+}
+
+#[test]
+fn every_class_boundary_lands_in_its_class() -> Result<(), TransportError> {
+    let cases = [
+        (100, [false, false, false, false]),
+        (199, [false, false, false, false]),
+        (200, [true, false, false, false]),
+        (299, [true, false, false, false]),
+        (300, [false, true, false, false]),
+        (399, [false, true, false, false]),
+        (400, [false, false, true, false]),
+        (499, [false, false, true, false]),
+        (500, [false, false, false, true]),
+        (599, [false, false, false, true]),
+    ];
+    for (code, expected) in cases {
+        assert_eq!(classes_of(StatusCode::new(code)?), expected, "{code}");
+    }
+    Ok(())
 }

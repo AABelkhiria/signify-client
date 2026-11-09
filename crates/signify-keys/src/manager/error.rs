@@ -280,61 +280,134 @@ mod tests {
             .ok_or("an empty seed must not build a signer")?,
         );
         assert!(crypto.source().is_some());
-
-        for error in [
-            ManagerError::DerivationPathTooLong { maximum: 8, actual: 9 },
-            ManagerError::StemTooLong { maximum: 8, actual: 9 },
-            ManagerError::TooManyKeys {
-                maximum: 8,
-                requested: 9,
-            },
-            ManagerError::IndexOverflow { index: "rotation" },
-            ManagerError::UnsupportedAlgorithm {
-                algorithm: KeyAlgorithm::Group,
-            },
-            ManagerError::PasscodeTooShort {
-                required: 21,
-                actual: 3,
-            },
-            ManagerError::InvalidPasscode { offset: 2 },
-            ManagerError::NoCurrentKeys,
-            ManagerError::MissingSalt,
-            ManagerError::RandomKeysNeedEncryption,
-            ManagerError::SeedDoesNotMatchIdentifier,
-            ManagerError::AlreadyIncepted {
-                prefix: "EABC".to_owned(),
-            },
-            ManagerError::NotIncepted {
-                prefix: "EABC".to_owned(),
-            },
-            ManagerError::Abandoned {
-                prefix: "EABC".to_owned(),
-            },
-            ManagerError::MissingPrivateKey {
-                public_key: "DABC".to_owned(),
-            },
-            ManagerError::SaltDecryptionUnavailable,
-            ManagerError::NoSigningKeysRequested,
-            ManagerError::PlacementCountMismatch { placements: 2, keys: 1 },
-            ManagerError::UnknownExternalModule {
-                module_type: "hsm".to_owned(),
-            },
-            ManagerError::MemberNotInSigningKeys { key: "DABC".to_owned() },
-            ManagerError::MemberNotPrecommitted { key: "DABC".to_owned() },
-            ManagerError::NoSigningKeys {
-                prefix: "EABC".to_owned(),
-            },
-            ManagerError::ProfileNotStorable,
-            ManagerError::UnsupportedTier,
-            ManagerError::UnsupportedDigest { code: "H".to_owned() },
-            ManagerError::DestinationOccupied {
-                prefix: "EABC".to_owned(),
-            },
-            crypto,
-        ] {
-            assert_ne!(error.to_string(), "");
-        }
+        // The wrapper names no detail of the failure beneath it.
+        assert_eq!(crypto.to_string(), "a cryptographic operation failed");
         Ok(())
+    }
+
+    #[test]
+    fn errors_name_their_fields() {
+        let cases: [(ManagerError, &[&str]); 13] = [
+            (
+                ManagerError::DerivationPathTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+            ),
+            (
+                ManagerError::StemTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+            ),
+            (
+                ManagerError::TooManyKeys {
+                    maximum: 1031,
+                    requested: 2047,
+                },
+                &["1031", "2047"],
+            ),
+            (ManagerError::IndexOverflow { index: "rotation" }, &["rotation"]),
+            (
+                ManagerError::UnsupportedAlgorithm {
+                    algorithm: KeyAlgorithm::Group,
+                },
+                &["group"],
+            ),
+            (
+                ManagerError::PasscodeTooShort {
+                    required: 21,
+                    actual: 3,
+                },
+                &["21", "3"],
+            ),
+            (ManagerError::InvalidPasscode { offset: 17 }, &["17"]),
+            (
+                ManagerError::MissingPrivateKey {
+                    public_key: "DABC".to_owned(),
+                },
+                &["DABC"],
+            ),
+            (
+                ManagerError::PlacementCountMismatch {
+                    placements: 1031,
+                    keys: 2047,
+                },
+                &["1031", "2047"],
+            ),
+            (
+                ManagerError::UnknownExternalModule {
+                    module_type: "hsm".to_owned(),
+                },
+                &["hsm"],
+            ),
+            (
+                ManagerError::MemberNotInSigningKeys { key: "DABC".to_owned() },
+                &["DABC"],
+            ),
+            (
+                ManagerError::MemberNotPrecommitted { key: "DABC".to_owned() },
+                &["DABC"],
+            ),
+            (ManagerError::UnsupportedDigest { code: "H".to_owned() }, &["H"]),
+        ];
+        for (error, fragments) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
+        }
+    }
+
+    #[test]
+    fn prefix_errors_name_their_prefix() {
+        let variants: [fn(String) -> ManagerError; 5] = [
+            |prefix| ManagerError::AlreadyIncepted { prefix },
+            |prefix| ManagerError::NotIncepted { prefix },
+            |prefix| ManagerError::Abandoned { prefix },
+            |prefix| ManagerError::NoSigningKeys { prefix },
+            |prefix| ManagerError::DestinationOccupied { prefix },
+        ];
+        for variant in variants {
+            let rendered = variant("EABC".to_owned()).to_string();
+            assert!(rendered.contains("EABC"), "{rendered}");
+        }
+    }
+
+    #[test]
+    fn fieldless_errors_print_their_message() {
+        for (error, expected) in [
+            (ManagerError::NoCurrentKeys, "an inception named no current keys"),
+            (
+                ManagerError::MissingSalt,
+                "a salty operation has no salt to derive from",
+            ),
+            (
+                ManagerError::RandomKeysNeedEncryption,
+                "randomly generated keys need encryption to be stored under",
+            ),
+            (
+                ManagerError::SeedDoesNotMatchIdentifier,
+                "the seed does not belong to the encryption identifier",
+            ),
+            (
+                ManagerError::SaltDecryptionUnavailable,
+                "an identifier stores an encrypted salt but no seed was supplied",
+            ),
+            (ManagerError::NoSigningKeysRequested, "a signing request named no keys"),
+            (
+                ManagerError::ProfileNotStorable,
+                "a keeper derived under the temporary profile cannot be stored",
+            ),
+            (
+                ManagerError::UnsupportedTier,
+                "a derivation tier has no spelling in an identifier record",
+            ),
+        ] {
+            assert_eq!(error.to_string(), expected);
+        }
     }
 
     #[test]

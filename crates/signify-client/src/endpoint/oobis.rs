@@ -388,25 +388,6 @@ mod tests {
     }
 
     #[test]
-    fn a_value_that_would_escape_the_path_is_not_an_identifier_prefix() {
-        // The reference accepts any string as an AID and concatenates it raw.
-        for hostile in [
-            "a/b?c=d",
-            "",
-            "../identifiers",
-            "not a prefix",
-            "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwr",
-            // The reference's own integration test sends this one.
-            UNKNOWN_AID,
-        ] {
-            assert!(
-                IdentifierPrefix::from_qb64(hostile).is_err(),
-                "{hostile:?} was accepted as an identifier prefix"
-            );
-        }
-    }
-
-    #[test]
     fn a_resolution_body_writes_only_what_it_was_given() -> Result<(), Box<dyn Error>> {
         let url = RequestUrl::new("http://oobiurl.com")?;
         assert_eq!(

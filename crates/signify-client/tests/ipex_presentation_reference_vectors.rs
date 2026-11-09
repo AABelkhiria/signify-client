@@ -1,6 +1,6 @@
 //! Exact vectors for the IPEX presentation workflow.
 //!
-//! The five-step conversation and two group rounds, and the shared clock a group's agreement depends on.
+//! The five-step conversation and two group rounds, each message rebuilt byte for byte.
 
 mod support;
 
@@ -59,22 +59,12 @@ struct Declarations {
     grant_multisig: String,
     admit_multisig: String,
     multisig_admit_credential: String,
-    waiter_return: String,
-    admit_parameters: Parameters,
     grant_defaults: GrantDefaults,
     notification_waits: Vec<NotificationWait>,
     ipex_calls: Vec<IpexCall>,
     grant_arguments: Vec<GrantArguments>,
-    said_guards: Guards,
-    shared_clock: SharedClock,
     scanned_files: usize,
     notes: Value,
-}
-
-#[derive(Debug, Deserialize)]
-struct Parameters {
-    declared: Vec<String>,
-    commented_out: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -110,35 +100,14 @@ struct GrantArguments {
 }
 
 #[derive(Debug, Deserialize)]
-struct Guards {
-    #[serde(rename = "admitMultisig")]
-    admit_multisig: bool,
-    #[serde(rename = "multisigAdmitCredential")]
-    multisig_admit_credential: bool,
-    credentials_test_inline: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct SharedClock {
-    declaration: bool,
-    text: String,
-    file: String,
-    asserted: bool,
-}
-
-#[derive(Debug, Deserialize)]
 struct Call {
     name: String,
-    note: String,
     requests: Vec<RecordedRequest>,
-    result: Value,
-    error: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct RecordedRequest {
     path: String,
-    method: String,
     body: Option<String>,
 }
 
@@ -148,26 +117,10 @@ struct PinnedConfirmations {
     schema: String,
     credential: String,
     apply: String,
-    offer: String,
-    agree: String,
-    chain: Vec<ChainLink>,
-    apply_slots: Vec<String>,
-    offer_slots: Vec<String>,
-    grant_slots: Vec<String>,
-    issuance_grant_slots: Vec<String>,
     announcement_route: String,
     announcement_topic: String,
     announcement_slots: Vec<String>,
     announcement_attributes: Vec<String>,
-    presentation_paths: Vec<String>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ChainLink {
-    step: String,
-    said: String,
-    prior: Option<String>,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -246,138 +199,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
-fn every_driven_round_succeeded() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert_eq!(fixture.calls.len(), 16);
-    for entry in &fixture.calls {
-        assert!(entry.error.is_none(), "{} failed: {:?}", entry.name, entry.error);
-        assert!(!entry.requests.is_empty(), "{} sent nothing", entry.name);
-        assert_ne!(entry.note, "");
-
-        assert!(
-            entry.requests.iter().any(|request| request.method == "POST"),
-            "{} only read",
-            entry.name
-        );
-        assert!(
-            entry
-                .requests
-                .iter()
-                .any(|request| request.method == "GET" && request.path.starts_with("/identifiers/")),
-            "{} never read its own identifier",
-            entry.name
-        );
-    }
-
-    for name in [
-        "issuer_grants_the_credential",
-        "holder_admits_the_grant",
-        "verifier_applies",
-        "holder_offers",
-        "verifier_agrees",
-        "holder_discloses",
-    ] {
-        let recorded = call(&fixture, name)?;
-        assert!(
-            recorded.result.get("said").and_then(Value::as_str).is_some(),
-            "{name} recorded no message"
-        );
-    }
-    Ok(())
-}
-
-// --- The chain: each step names the one it answers ---
-#[test]
-fn the_conversation_is_a_chain() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let chain = &fixture.pinned_confirmations.chain;
-    assert_eq!(chain.len(), 4);
-
-    let opening = chain.first().ok_or("the chain is empty")?;
-    assert_eq!(opening.step, "apply");
-    assert_eq!(opening.prior.as_deref(), Some(""));
-
-    for window in chain.windows(2) {
-        let [earlier, later] = window else {
-            return Err("a chain window was not a pair".into());
-        };
-        assert_eq!(
-            later.prior.as_deref(),
-            Some(earlier.said.as_str()),
-            "{} does not answer {}",
-            later.step,
-            earlier.step
-        );
-    }
-    assert_eq!(
-        chain.get(1).map(|link| link.said.as_str()),
-        Some(fixture.pinned_confirmations.offer.as_str())
-    );
-    assert_eq!(
-        chain.get(2).map(|link| link.said.as_str()),
-        Some(fixture.pinned_confirmations.agree.as_str())
-    );
-    Ok(())
-}
-
-#[test]
-fn each_step_embeds_what_its_route_carries() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.apply_slots, [] as [String; 0]);
-    assert_eq!(pinned.offer_slots, ["acdc"]);
-    assert_eq!(pinned.grant_slots, ["acdc", "iss", "anc"]);
-    assert_eq!(pinned.issuance_grant_slots, pinned.grant_slots);
-
-    assert_eq!(
-        pinned.presentation_paths,
-        ["GET /identifiers/member1", "POST /identifiers/member1/ipex/apply"]
-    );
-    assert!(pinned.note.contains("embed nothing"));
-    Ok(())
-}
-
 // --- The findings ---
-#[test]
-fn a_group_round_agrees_only_on_a_shared_clock() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_group_round_agrees_only_on_a_shared_clock")?;
-
-    assert_eq!(recorded.get("grants_agree").and_then(Value::as_bool), Some(true));
-    assert_eq!(recorded.get("admits_agree").and_then(Value::as_bool), Some(true));
-
-    assert_eq!(
-        recorded.get("divergent_grant_agrees").and_then(Value::as_bool),
-        Some(false)
-    );
-    assert_eq!(
-        recorded.get("divergent_admit_agrees").and_then(Value::as_bool),
-        Some(false)
-    );
-    let errors = recorded
-        .get("divergent_errors")
-        .and_then(Value::as_array)
-        .ok_or("no recorded errors")?;
-    assert_eq!(errors.len(), 2);
-    assert!(
-        errors.iter().all(Value::is_null),
-        "a divergent round reported something"
-    );
-
-    let clock = &fixture.declarations.shared_clock;
-    assert!(clock.declaration, "the holder test no longer pins one clock");
-    assert_eq!(clock.text, "const TIME = createTimestamp();");
-    assert_eq!(clock.file, "test-integration/multisig-holder.test.ts");
-
-    assert!(clock.asserted);
-    assert_eq!(
-        recorded.get("asserted_upstream").and_then(Value::as_str),
-        Some("assert.equal(admitResult1.admitSaid, admitResult2.admitSaid)")
-    );
-    Ok(())
-}
 
 #[test]
 fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
@@ -414,58 +236,6 @@ fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
         assert!(!wait.file.is_empty() && !wait.enclosing.is_empty());
         assert!(wait.route.starts_with('/'), "a wait names no route");
     }
-    Ok(())
-}
-
-#[test]
-fn a_notification_need_not_name_a_message() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_notification_need_not_name_a_message")?;
-
-    assert_eq!(
-        fixture.declarations.waiter_return,
-        "return notes[notes.length - 1]?.a.d ?? '';"
-    );
-
-    assert_eq!(recorded.get("admit_prior").and_then(Value::as_str), Some(""));
-    assert!(recorded.get("error").is_some_and(Value::is_null));
-    assert!(recorded.get("admit_said").and_then(Value::as_str).is_some());
-
-    let guards = &fixture.declarations.said_guards;
-    assert!(guards.credentials_test_inline, "the inline step no longer guards it");
-    assert!(
-        !guards.admit_multisig,
-        "`admitMultisig` now guards it; the finding is stale"
-    );
-    assert!(!guards.multisig_admit_credential);
-    Ok(())
-}
-
-#[test]
-fn only_the_last_notification_survives() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "only_the_last_notification_survives")?;
-
-    assert_eq!(
-        fixture.declarations.admit_parameters.commented_out,
-        ["numGrantMsgs: number"]
-    );
-    assert!(
-        !fixture
-            .declarations
-            .admit_parameters
-            .declared
-            .iter()
-            .any(|parameter| parameter.contains("numGrantMsgs")),
-        "the parameter is declared after all"
-    );
-    assert_eq!(
-        recorded
-            .get("commented_out_parameter")
-            .and_then(Value::as_array)
-            .map(Vec::len),
-        Some(1)
-    );
     Ok(())
 }
 

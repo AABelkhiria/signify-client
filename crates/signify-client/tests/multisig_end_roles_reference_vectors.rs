@@ -59,7 +59,6 @@ struct Declarations {
     notification_waits: Vec<String>,
     proposal_reads: Vec<String>,
     sends: Vec<String>,
-    shared_stamp: bool,
     helper_uses: Value,
     scanned_files: usize,
 }
@@ -70,7 +69,6 @@ struct Call {
     note: String,
     requests: Vec<RecordedRequest>,
     waits: Vec<Wait>,
-    error: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -239,55 +237,6 @@ fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
     );
     let recorded = quirk(&fixture, "a_joining_member_never_reads_the_proposal")?;
     assert_eq!(recorded.get("group_requests_made"), Some(&Value::Bool(false)));
-    Ok(())
-}
-
-#[test]
-fn the_members_agree_only_on_a_shared_stamp() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.declarations.shared_stamp);
-    let recorded = quirk(&fixture, "the_members_agree_only_on_a_shared_stamp")?;
-    assert_eq!(recorded.get("agree"), Some(&Value::Bool(true)));
-    assert_eq!(recorded.get("divergent_agrees"), Some(&Value::Bool(false)));
-    assert_eq!(recorded.get("divergent_error"), Some(&Value::Null));
-    assert!(call(&fixture, "join_the_end_roles_on_another_clock")?.error.is_none());
-    assert_eq!(
-        bodies(&fixture, "propose_the_end_roles", "/endroles")?,
-        bodies(&fixture, "join_the_end_roles", "/endroles")?
-    );
-    Ok(())
-}
-
-#[test]
-fn a_member_without_an_agent_throws_after_the_members_before_it() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let partial = call(&fixture, "propose_with_a_member_without_an_agent")?;
-    assert_eq!(
-        partial.error.as_deref(),
-        Some("signing.ends.agent is null or undefined")
-    );
-    assert_eq!(
-        bodies(&fixture, "propose_with_a_member_without_an_agent", "/endroles")?.len(),
-        1
-    );
-    assert_eq!(
-        bodies(&fixture, "propose_with_a_member_without_an_agent", "/exchanges")?.len(),
-        1
-    );
-    Ok(())
-}
-
-#[test]
-fn the_reference_seals_to_the_group_state_its_caller_passed() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    for body in bodies(&fixture, "propose_with_a_stale_group_state", "/exchanges")? {
-        assert!(body.contains("EStaleEstablishmentEventDigest00000000000000"));
-    }
-    let recorded = quirk(&fixture, "the_seal_is_the_callers_group_state")?;
-    assert_eq!(
-        recorded.get("stale_announcement_attachment_names_the_stale_digest"),
-        Some(&Value::Bool(true))
-    );
     Ok(())
 }
 

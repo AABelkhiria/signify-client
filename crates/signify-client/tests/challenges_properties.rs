@@ -86,14 +86,6 @@ proptest! {
     }
 
     #[test]
-    fn a_strength_names_its_own_word_count(strength in strengths()) {
-        let expected = strength.bits() / 32 * 3;
-        prop_assert_eq!(strength.word_count(), expected);
-        prop_assert!((12..=24).contains(&strength.word_count()));
-        prop_assert_eq!(strength.word_count() % 3, 0);
-    }
-
-    #[test]
     fn a_generation_writes_exactly_one_parameter(strength in strengths()) {
         let path = generate_path(strength)?;
         let query = path.query().unwrap_or_default();
@@ -215,4 +207,17 @@ fn a_hostile_source_is_not_a_prefix() {
         );
     }
     assert!(IdentifierPrefix::from_qb64(SOURCE).is_ok());
+}
+
+#[test]
+fn a_strength_names_the_bip39_word_count() {
+    for (strength, words) in [
+        (ChallengeStrength::BITS_128, 12),
+        (ChallengeStrength::BITS_160, 15),
+        (ChallengeStrength::BITS_192, 18),
+        (ChallengeStrength::BITS_224, 21),
+        (ChallengeStrength::BITS_256, 24),
+    ] {
+        assert_eq!(strength.word_count(), words, "{} bits", strength.bits());
+    }
 }

@@ -21,9 +21,7 @@ use signify_client::config::ClientConfig;
 use signify_client::endpoint::delegations::{
     DELEGATION_SEGMENT, InceptionSeal, SEAL_DIGEST_LABEL, SEAL_IDENTIFIER_LABEL, SEAL_SEQUENCE_LABEL,
 };
-use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT};
 use signify_client::error::ClientError;
-use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
 use signify_keys::manager::DerivationCost;
 
@@ -69,8 +67,6 @@ struct Declarations {
     approve_calls: Vec<ApproveCall>,
     prefix_discovery: PrefixDiscovery,
     anchor_wrapping: String,
-    delegations_accessor_uses: Scan,
-    delegation_segment_uses: Scan,
     file_lines: usize,
     notes: Value,
 }
@@ -108,20 +104,6 @@ struct PrefixDiscovery {
 }
 
 #[derive(Debug, Deserialize)]
-struct Scan {
-    needle: String,
-    total: usize,
-    files: Vec<ScanHit>,
-    scanned_files: usize,
-}
-
-#[derive(Debug, Deserialize)]
-struct ScanHit {
-    file: String,
-    count: usize,
-}
-
-#[derive(Debug, Deserialize)]
 struct Call {
     name: String,
     note: String,
@@ -139,8 +121,6 @@ struct RecordedRequest {
 
 #[derive(Debug, Deserialize)]
 struct PinnedConfirmations {
-    pinned_name: String,
-    pinned_path: String,
     pinned_body: String,
     approval_path: String,
     delegator_prefix: String,
@@ -257,91 +237,6 @@ fn the_class_is_one_method_and_one_address() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
-fn the_endpoint_has_three_consumers_and_one_is_its_own_test() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let scan = &fixture.declarations.delegations_accessor_uses;
-    assert_eq!(scan.needle, "delegations()");
-    assert_eq!(scan.scanned_files, 117);
-    assert_eq!(
-        scan.files.iter().map(|hit| hit.count).sum::<usize>(),
-        scan.total,
-        "the per-file counts do not add up"
-    );
-    assert_eq!(scan.files.len(), 4);
-    assert!(scan.files.iter().any(|hit| hit.file.ends_with("clienting.ts")));
-    assert!(scan.files.iter().any(|hit| hit.file.ends_with("delegating.test.ts")));
-    assert!(scan.files.iter().any(|hit| hit.file.ends_with("delegation.test.ts")));
-    assert!(scan.files.iter().any(|hit| hit.file.ends_with("multisig-utils.ts")));
-
-    let segment = &fixture.declarations.delegation_segment_uses;
-    assert!(segment.files.iter().any(|hit| hit.file.ends_with("delegating.ts")));
-    Ok(())
-}
-
-// --- The finding: the only published body approves nothing ---
-#[test]
-fn the_pinned_test_signs_an_approval_of_nothing() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "the_pinned_test_approves_nothing")?;
-
-    assert!(
-        recorded
-            .get("wrapping")
-            .and_then(Value::as_str)
-            .is_some_and(|line| { line.contains("Array.isArray(data)") && line.contains("[data]") })
-    );
-    assert_eq!(
-        recorded.get("anchored").and_then(Value::as_array),
-        Some(&vec![Value::Null])
-    );
-    assert_eq!(
-        recorded.get("said").and_then(Value::as_str),
-        Some("EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg")
-    );
-    assert_eq!(recorded.get("signatures").and_then(Value::as_u64), Some(1));
-
-    let pinned = recorded.get("pinned_call").ok_or("no pinned call")?;
-    assert_eq!(pinned.get("arguments").and_then(Value::as_array).map(Vec::len), Some(1));
-    Ok(())
-}
-
-#[test]
-fn the_pinned_address_method_and_body_reproduce() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let confirmations = &fixture.pinned_confirmations;
-    assert_eq!(
-        confirmations.pinned_path,
-        format!("/identifiers/{}/delegation", confirmations.pinned_name)
-    );
-    assert_eq!(
-        call(&fixture, "approve_with_no_anchor")?
-            .requests
-            .last()
-            .map(|r| r.method.as_str()),
-        Some("POST")
-    );
-    let published = &confirmations.pinned_body;
-    assert!(published.contains(r#""a":[null]"#));
-    assert!(published.contains(r#""d":"EBPt7hivibUQN-dlRyE9x_Y5LgFCGJ8QoNLSJrIkBYIg""#));
-    assert!(published.contains(
-        r#""sigs":["AAC4StAw-0IiV_LujceAXB3tnkaK011rPYPBKLgz-u6jI7hwfWGTCu5LDvBUsON4CqXbZAwPgIv6JqYjIusWKv0G"]"#
-    ));
-    assert!(published.starts_with(r#"{"ixn":"#));
-    let order: Vec<usize> = ["\"ixn\":", "\"sigs\":", "\"salty\":"]
-        .iter()
-        .filter_map(|label| published.find(label))
-        .collect();
-    assert_eq!(order.len(), 3, "a top-level field is missing");
-    assert!(order.is_sorted(), "the fields are out of order");
-    let decoded: Value = serde_json::from_str(published)?;
-
-    assert_eq!(confirmations.pinned_name.len(), 44);
-    assert_ne!(confirmations.pinned_name, DELEGATOR);
-    assert_eq!(decoded.pointer("/ixn/i").and_then(Value::as_str), Some(DELEGATOR));
-    Ok(())
-}
-
 // --- The finding: the address is the whole difference ---
 #[test]
 fn an_approval_and_an_interaction_differ_only_in_their_last_segment() -> Result<(), Box<dyn Error>> {
@@ -361,16 +256,25 @@ fn an_approval_and_an_interaction_differ_only_in_their_last_segment() -> Result<
         Some("/identifiers/delegator/events")
     );
 
-    assert_eq!(DELEGATION_SEGMENT, "delegation");
-    assert_eq!(EVENTS_SEGMENT, "events");
-    for segment in [DELEGATION_SEGMENT, EVENTS_SEGMENT] {
-        let path = ResourcePath::builder()
-            .segment(IDENTIFIERS_SEGMENT)
-            .segment("delegator")
-            .segment(segment)
-            .build()?;
-        assert_eq!(path.as_str(), format!("/identifiers/delegator/{segment}"));
-    }
+    let record = identifier_record(&fixture)?;
+    let (client, transport) = connected(&[&record, b"{}", &record, b"{}"])?;
+    block_on(client.delegations().approve("delegator", &[seal()?]))?;
+    block_on(client.identifiers().interact("delegator", vec![seal()?]))?;
+
+    let requests = sent(&transport)?;
+    let writes: Vec<&SentRequest> = requests.iter().filter(|(_, method, _)| method == "POST").collect();
+    let [(approval, _, approval_body), (interaction, _, interaction_body)] = writes.as_slice() else {
+        return Err(format!("expected two writes, sent {requests:?}").into());
+    };
+    assert_eq!(
+        Some(approval.as_str()),
+        recorded.get("approval_path").and_then(Value::as_str)
+    );
+    assert_eq!(
+        Some(interaction.as_str()),
+        recorded.get("interaction_path").and_then(Value::as_str)
+    );
+    assert_eq!(approval_body, interaction_body);
     Ok(())
 }
 
@@ -388,36 +292,25 @@ fn one_alias_is_encoded_on_the_read_and_raw_on_the_write() -> Result<(), Box<dyn
         Some("/identifiers/a/b?c=d/delegation")
     );
 
-    let built = ResourcePath::builder()
-        .segment(IDENTIFIERS_SEGMENT)
-        .segment("a/b?c=d")
-        .segment(DELEGATION_SEGMENT)
-        .build()?;
-    assert_eq!(built.as_str(), "/identifiers/a%2Fb%3Fc%3Dd/delegation");
-    assert_eq!(built.path().split('/').count(), 4);
-    assert_eq!(built.query(), None);
+    let record = identifier_record(&fixture)?;
+    let (client, transport) = connected(&[&record, b"{}"])?;
+    block_on(client.delegations().approve("a/b?c=d", &[seal()?]))?;
+    let requests = sent(&transport)?;
+    let addressed: Vec<(&str, &str)> = requests
+        .iter()
+        .map(|(path, method, _)| (method.as_str(), path.as_str()))
+        .collect();
+    assert_eq!(
+        addressed,
+        [
+            ("GET", "/identifiers/a%2Fb%3Fc%3Dd"),
+            ("POST", "/identifiers/a%2Fb%3Fc%3Dd/delegation")
+        ]
+    );
     Ok(())
 }
 
 // --- The finding: an anchor may be anything ---
-#[test]
-fn an_anchor_is_never_looked_at_upstream() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "an_anchor_may_be_anything")?;
-    assert_eq!(
-        recorded.get("string_anchor").and_then(Value::as_array),
-        Some(&vec![Value::String("not a seal".to_owned())])
-    );
-    assert_eq!(
-        recorded.get("two_seals").and_then(Value::as_array).map(Vec::len),
-        Some(2)
-    );
-
-    let wrapped = body(&fixture, "approve_with_a_seal_list")?;
-    let bare = body(&fixture, "approve_a_delegate")?;
-    assert_eq!(wrapped, bare, "wrapping the seal changed the event");
-    Ok(())
-}
 
 #[test]
 fn a_delegate_need_not_read_its_prefix_out_of_an_operations_name() -> Result<(), Box<dyn Error>> {

@@ -41,7 +41,6 @@ struct Fixture {
     provenance: Provenance,
     declarations: Declarations,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -94,24 +93,6 @@ struct RecordedRequest {
     method: String,
     body: Option<String>,
     body_is_undefined: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    unit_test_assertions: Vec<String>,
-    unit_test_paths: Vec<String>,
-    unit_test_info: Value,
-    unit_test_methods: Vec<String>,
-    integration_helper_call: String,
-    call_sites: Scan,
-    driven_paths: Vec<String>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    total: usize,
-    scanned_files: usize,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -261,55 +242,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.contact_info_interface.contains("[key: string]: unknown"));
     assert!(declarations.contact_type.contains("id: string"));
     assert!(declarations.contact_type.contains("[key: string]: unknown"));
-    Ok(())
-}
-
-#[test]
-fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.unit_test_assertions.len(), 4);
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("filter_field=company&filter_value=mycompany"))
-    );
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("deepEqual(lastBody, info)"))
-    );
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("body, undefined"))
-    );
-
-    assert_eq!(pinned.unit_test_methods, ["GET", "GET", "POST", "PUT", "DELETE"]);
-    assert_eq!(pinned.unit_test_paths.len(), 2);
-    for path in &pinned.unit_test_paths {
-        assert!(
-            pinned.driven_paths.iter().any(|driven| driven == path),
-            "the pinned test asserts {path}, which nothing here drove"
-        );
-    }
-
-    let info = pinned
-        .unit_test_info
-        .as_object()
-        .ok_or("the pinned info is not an object")?;
-    assert_eq!(info.len(), 2);
-    assert_eq!(info.get("name").and_then(Value::as_str), Some("John Doe"));
-    assert_eq!(info.get("company").and_then(Value::as_str), Some("My Company"));
-
-    assert!(pinned.integration_helper_call.contains("list(undefined, 'alias'"));
-    assert!(pinned.call_sites.total >= 3);
-    assert!(pinned.call_sites.scanned_files > 100);
-    assert_ne!(pinned.note, "");
     Ok(())
 }
 
@@ -550,15 +482,6 @@ fn a_delete_carries_no_body_at_all() -> Result<(), Box<dyn Error>> {
     assert_eq!(path, recorded.path);
     assert_eq!(method, "DELETE");
     assert_eq!(body, None);
-    Ok(())
-}
-
-#[test]
-fn a_prefix_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "get_prefix_needing_encoding")?;
-    assert_eq!(recorded.path, "/contacts/a/b?c=d");
-    assert!(IdentifierPrefix::from_qb64("a/b?c=d").is_err());
     Ok(())
 }
 

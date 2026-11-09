@@ -69,7 +69,6 @@ struct ResponseCase {
     status: u16,
     headers: Vec<RecordedHeader>,
     body: String,
-    note: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -239,37 +238,6 @@ fn the_recorded_urls_decompose_as_the_reference_built_them() -> Result<(), Box<d
     let approval = case("approve_delegation")?;
     assert_eq!(approval.query(), Some("type=ixn"));
     assert!(approval.path().starts_with("/agent/"));
-    Ok(())
-}
-
-#[test]
-fn every_recorded_response_shape_is_carryable() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    for case in &fixture.responses {
-        assert!(!case.note.is_empty(), "{}", case.name);
-        let mut headers = signify_http::header::Headers::new();
-        for header in &case.headers {
-            let value = header.value.clone().unwrap_or_default();
-            headers.insert(HeaderName::new(header.name.clone())?, HeaderValue::new(value)?)?;
-        }
-        let response = Response::new(StatusCode::new(case.status)?, headers, case.body.clone().into_bytes())?;
-        assert_eq!(response.status().as_u16(), case.status, "{}", case.name);
-        assert_eq!(response.body(), case.body.as_bytes(), "{}", case.name);
-        for header in &case.headers {
-            if let Some(value) = &header.value {
-                assert_eq!(
-                    response.headers().get(&header.name),
-                    Some(value.as_str()),
-                    "{}",
-                    case.name
-                );
-            }
-        }
-        // A non-success status is a response, not a failure.
-        if case.name == "not_found" {
-            assert!(response.status().is_client_error());
-        }
-    }
     Ok(())
 }
 

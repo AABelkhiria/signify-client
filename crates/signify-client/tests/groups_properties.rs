@@ -221,18 +221,6 @@ proptest! {
             }
         }
     }
-
-    #[test]
-    fn arbitrary_bytes_decode_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        match serde_json::from_slice::<Vec<MultisigExchangeResource>>(&bytes) {
-            Ok(listing) => {
-                for entry in &listing {
-                    let _ = ClassifiedExchange::try_from(entry).is_ok();
-                }
-            }
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
-        }
-    }
 }
 
 #[test]

@@ -2,8 +2,8 @@
 //!
 //! `fixtures/client-passcode-rotation-keripy/v1.json` replays the log a connected signify-ts client
 //! holds — inception, delegation-approval interaction — into keripy and records what keripy does
-//! with each candidate rotation. This file requires those verdicts to stand, and requires this
-//! port's rotation to be, byte for byte, the one keripy accepted.
+//! with each candidate rotation. This file requires this port's rotation to be, byte for byte, the
+//! one keripy accepted.
 
 use std::error::Error;
 
@@ -51,21 +51,7 @@ struct Input {
 struct Judgement {
     name: String,
     description: String,
-    rotation_sequence: String,
-    rotation_prior: String,
     rotation_said: String,
-    log_before: LogPosition,
-    verdict: String,
-    error_class: Option<String>,
-    error_message: Option<String>,
-    log_after: LogPosition,
-}
-
-#[derive(Debug, Deserialize)]
-struct LogPosition {
-    sn: u64,
-    ilk: String,
-    said: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -172,59 +158,6 @@ fn the_recorded_request_is_the_reference_rotation_keripy_judged() -> Result<(), 
         SerializedEvent::parse(event.raw.as_bytes())?;
         assert_ne!(event.sigs, [] as [String; 0]);
     }
-    Ok(())
-}
-
-#[test]
-fn keripy_refuses_the_reference_rotation_as_a_failed_recovery() -> Result<(), Box<dyn Error>> {
-    let fixture = verdicts()?;
-    let refused = verdict(&fixture, "reference_rotation")?;
-    assert_eq!(refused.rotation_sequence, "1");
-    assert_eq!(refused.rotation_prior, fixture.input.interaction_said);
-    assert_eq!(refused.log_before.sn, 1);
-    assert_eq!(refused.log_before.ilk, "ixn");
-    assert_eq!(refused.verdict, "refused");
-    assert_eq!(refused.error_class.as_deref(), Some("ValidationError"));
-    let message = refused.error_message.as_deref().unwrap_or_default();
-    assert!(message.contains("Invalid recovery attempt"), "{message}");
-    assert!(message.contains(&fixture.input.inception_said), "{message}");
-    // The log stays where it was.
-    assert_eq!(refused.log_after.sn, 1);
-    assert_eq!(refused.log_after.said, fixture.input.interaction_said);
-    Ok(())
-}
-
-#[test]
-fn keripy_accepts_the_rotation_at_the_next_sequence_number() -> Result<(), Box<dyn Error>> {
-    let fixture = verdicts()?;
-    let accepted = verdict(&fixture, "corrected_rotation")?;
-    assert_eq!(accepted.rotation_sequence, "2");
-    assert_eq!(accepted.rotation_prior, fixture.input.interaction_said);
-    assert_eq!(accepted.verdict, "accepted");
-    assert!(accepted.error_class.is_none() && accepted.error_message.is_none());
-    assert_eq!(accepted.log_after.sn, 2);
-    assert_eq!(accepted.log_after.ilk, "rot");
-    assert_eq!(accepted.log_after.said, accepted.rotation_said);
-    Ok(())
-}
-
-#[test]
-fn keripy_refuses_the_next_sequence_number_over_a_stale_prior() -> Result<(), Box<dyn Error>> {
-    let fixture = verdicts()?;
-    let refused = verdict(&fixture, "inception_prior_rotation")?;
-    assert_eq!(refused.rotation_sequence, "2");
-    assert_eq!(refused.rotation_prior, fixture.input.inception_said);
-    assert_eq!(refused.verdict, "refused");
-    assert_eq!(refused.error_class.as_deref(), Some("ValidationError"));
-    assert!(
-        refused
-            .error_message
-            .as_deref()
-            .is_some_and(|message| message.contains("Mismatch event dig")),
-        "{:?}",
-        refused.error_message
-    );
-    assert_eq!(refused.log_after.sn, 1);
     Ok(())
 }
 

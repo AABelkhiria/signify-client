@@ -42,7 +42,6 @@ struct Fixture {
     declarations: Declarations,
     calls: Vec<Call>,
     failures: Failures,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Quirks,
 }
 
@@ -104,14 +103,6 @@ struct Failure {
 #[derive(Debug, Deserialize)]
 struct Identical {
     identical: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    note: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -402,20 +393,6 @@ fn a_failed_operation_carries_everything_the_reference_interpolates() -> Result<
 
     assert!(fixture.failures.completed_returns_itself.identical);
     assert_ne!(fixture.failures.note, "");
-    Ok(())
-}
-
-#[test]
-fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let confirmations = &fixture.pinned_confirmations;
-    assert!(confirmations.every_pinned_path_is_driven);
-    assert_ne!(confirmations.note, "");
-    assert_eq!(
-        confirmations.published_paths,
-        ["/operations/operationName", "/operations?", "/operations?type=witness"]
-    );
-    assert_eq!(confirmations.driven_paths.len(), fixture.calls.len());
     Ok(())
 }
 

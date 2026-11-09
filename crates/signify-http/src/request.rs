@@ -1543,19 +1543,54 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text_and_their_sources() {
-        let cases: Vec<(RequestError, bool)> = vec![
-            (RequestError::InvalidBaseUrl { reason: "empty" }, false),
-            (RequestError::EmptyPath, false),
-            (RequestError::TooManySegments { maximum: 1, actual: 2 }, false),
-            (RequestError::SegmentTooLong { maximum: 1, actual: 2 }, false),
-            (RequestError::PathTooLong { maximum: 1, actual: 2 }, false),
-            (RequestError::TooManyParameters { maximum: 1, actual: 2 }, false),
-            (RequestError::QueryTooLong { maximum: 1, actual: 2 }, false),
+        let cases: Vec<(RequestError, &[&str], bool)> = vec![
+            (RequestError::InvalidBaseUrl { reason: "empty" }, &["empty"], false),
+            (
+                RequestError::TooManySegments {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::SegmentTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::PathTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::TooManyParameters {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::QueryTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
             (
                 RequestError::InvalidMediaType {
                     value: "x".to_owned(),
                     reason: "no slash",
                 },
+                &["\"x\"", "no slash"],
                 false,
             ),
             (
@@ -1563,16 +1598,32 @@ mod tests {
                     value: "x y".to_owned(),
                     reason: "not a token",
                 },
+                &["\"x y\"", "not a token"],
                 false,
             ),
-            (RequestError::InvalidRange { start: 3, end: 1 }, false),
-            (RequestError::from(HeaderError::EmptyName), true),
-            (RequestError::from(TransportError::InvalidUrl { reason: "empty" }), true),
+            (
+                RequestError::InvalidRange { start: 1031, end: 47 },
+                &["1031", "47"],
+                false,
+            ),
+            (RequestError::from(HeaderError::EmptyName), &[], true),
+            (
+                RequestError::from(TransportError::InvalidUrl { reason: "unparseable" }),
+                &["unparseable"],
+                true,
+            ),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
+        for (error, fragments, has_source) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
+        assert_eq!(
+            RequestError::EmptyPath.to_string(),
+            "a resource path names no components"
+        );
     }
 
     #[test]

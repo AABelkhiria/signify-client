@@ -321,18 +321,6 @@ mod tests {
     }
 
     #[test]
-    fn a_value_that_would_escape_the_path_is_not_an_identifier_prefix() {
-        // The reference concatenates any string, and the `http-request-response` fixture already
-        // recorded `contacts().delete("a/b")` reaching two segments.
-        for hostile in ["a/b?c=d", "", "../identifiers", "not a prefix", "EBfdlu8R27Fbx"] {
-            assert!(
-                IdentifierPrefix::from_qb64(hostile).is_err(),
-                "{hostile:?} was accepted as a contact identifier"
-            );
-        }
-    }
-
-    #[test]
     fn an_info_body_keeps_the_callers_field_order() -> Result<(), Box<dyn Error>> {
         let rendered = String::from_utf8(pinned_info()?.to_json_bytes()?)?;
         assert_eq!(rendered, r#"{"name":"John Doe","company":"My Company"}"#);

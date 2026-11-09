@@ -203,32 +203,72 @@ mod tests {
 
     #[test]
     fn every_variant_displays_and_sources_correctly() {
-        let cases: Vec<(IdentifierError, bool)> = vec![
+        let cases: Vec<(IdentifierError, &[&str], bool)> = vec![
             (
                 IdentifierError::DuplicateHabitat {
                     name: "test".to_owned(),
                 },
+                &["\"test\""],
                 false,
             ),
-            (IdentifierError::NonTransferableNextKeys { requested: 2 }, false),
-            (IdentifierError::NonTransferableNextThreshold, false),
-            (IdentifierError::NonTransferableDerivation { code: "E" }, false),
-            (IdentifierError::NonTransferableContent { label: "b" }, false),
-            (IdentifierError::BasicDerivationNeedsOneKey { keys: 3 }, false),
-            (IdentifierError::ValueOutOfRange { context: "key count" }, false),
-            (IdentifierError::from(ManagerError::NoCurrentKeys), true),
-            (IdentifierError::from(EventError::SigningThresholdIsZero), true),
-            (IdentifierError::from(ThresholdError::EmptyThreshold), true),
-            (IdentifierError::from(PrefixError::UnsupportedCode { code: "Z" }), true),
             (
-                IdentifierError::from(SaidError::MissingLabelField { label: "d".to_owned() }),
+                IdentifierError::NonTransferableNextKeys { requested: 1031 },
+                &["1031"],
+                false,
+            ),
+            (
+                IdentifierError::NonTransferableDerivation { code: "E" },
+                &["not E"],
+                false,
+            ),
+            (
+                IdentifierError::NonTransferableContent { label: "b" },
+                &["\"b\""],
+                false,
+            ),
+            (
+                IdentifierError::BasicDerivationNeedsOneKey { keys: 1031 },
+                &["1031"],
+                false,
+            ),
+            (
+                IdentifierError::ValueOutOfRange { context: "key count" },
+                &["key count"],
+                false,
+            ),
+            (
+                IdentifierError::from(ManagerError::NoCurrentKeys),
+                &["an inception named no current keys"],
                 true,
             ),
-            (IdentifierError::from(CesrError::EmptyInput { context: "number" }), true),
+            (IdentifierError::from(EventError::SigningThresholdIsZero), &[], true),
+            (IdentifierError::from(ThresholdError::EmptyThreshold), &[], true),
+            (
+                IdentifierError::from(PrefixError::UnsupportedCode { code: "Z" }),
+                &[],
+                true,
+            ),
+            (
+                IdentifierError::from(SaidError::MissingLabelField { label: "d".to_owned() }),
+                &[],
+                true,
+            ),
+            (
+                IdentifierError::from(CesrError::EmptyInput { context: "number" }),
+                &[],
+                true,
+            ),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
+        for (error, fragments, has_source) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
+        assert_eq!(
+            IdentifierError::NonTransferableNextThreshold.to_string(),
+            "a non-transferable habitat's next-key threshold must be zero"
+        );
     }
 }

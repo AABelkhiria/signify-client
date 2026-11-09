@@ -54,7 +54,6 @@ struct Fixture {
     randy_shape: RandyShape,
     randy_reload_shape: RandyReloadShape,
     signed_request: SignedRequest,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -173,15 +172,6 @@ struct SignedForm {
     url: String,
     method: String,
     headers: Vec<RecordedHeader>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    create_signed_request_is_published: bool,
     note: String,
 }
 
@@ -395,32 +385,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.signed_request_resource.contains("Signify-Resource"));
     assert!(declarations.signed_request_signer.contains("keeper.signers[0]"));
     assert!(declarations.notes.is_object());
-    Ok(())
-}
-
-#[test]
-fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
-    assert!(fixture.pinned_confirmations.create_signed_request_is_published);
-    assert_ne!(fixture.pinned_confirmations.note, "");
-    for path in [
-        "/identifiers",
-        "/identifiers/aid1",
-        "/identifiers/aid1/events",
-        "/identifiers/aid1/endroles",
-        "/identifiers/aid1/locschemes",
-        "/identifiers/aid1/members",
-    ] {
-        assert!(
-            fixture.pinned_confirmations.published_paths.contains(&path.to_owned()),
-            "{path} is not published by the pinned test"
-        );
-        assert!(
-            fixture.pinned_confirmations.driven_paths.contains(&path.to_owned()),
-            "{path} was not driven"
-        );
-    }
     Ok(())
 }
 

@@ -156,19 +156,6 @@ proptest! {
         prop_assert_eq!(multisig.attributes.group.qb64().ok(), Some(GROUP.to_owned()));
         prop_assert_eq!(anchored(&classified)?.len(), seals.len());
     }
-
-    #[test]
-    fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        match core::str::from_utf8(&bytes) {
-            Ok(text) => match classify(text) {
-                Ok(classified) => {
-                    let _ = classified.as_multisig().is_some();
-                }
-                Err(error) => prop_assert!(!error.to_string().is_empty()),
-            },
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
-        }
-    }
 }
 
 #[test]

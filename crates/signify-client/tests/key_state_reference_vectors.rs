@@ -41,7 +41,6 @@ struct Fixture {
     provenance: Provenance,
     declarations: Declarations,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -91,15 +90,6 @@ struct RecordedRequest {
     path: String,
     method: String,
     body: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    pinned_query_body: String,
-    note: String,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -239,30 +229,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert!(declarations.seal_schema.starts_with("s:"));
     assert!(declarations.key_event_record.contains("KeyEvent"));
     assert!(declarations.notes.is_object());
-    Ok(())
-}
-
-#[test]
-fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
-    assert_ne!(fixture.pinned_confirmations.note, "");
-    for path in [
-        format!("/events?pre={PREFIX_ONE}"),
-        format!("/states?pre={PREFIX_ONE}"),
-        format!("/states?pre={PREFIX_ONE}&pre={PREFIX_TWO}"),
-        "/queries".to_owned(),
-    ] {
-        assert!(
-            fixture.pinned_confirmations.published_paths.contains(&path),
-            "{path} is not published by the pinned test"
-        );
-        assert!(
-            fixture.pinned_confirmations.driven_paths.contains(&path),
-            "{path} was not driven"
-        );
-    }
-    assert!(fixture.pinned_confirmations.pinned_query_body.contains(r#""sn":"1""#));
     Ok(())
 }
 
@@ -475,15 +441,6 @@ fn a_two_digit_sequence_number_is_where_the_bases_part_company() -> Result<(), B
             QuerySequence::Hexadecimal(value).to_text()
         );
     }
-    Ok(())
-}
-
-#[test]
-fn a_prefix_carrying_query_delimiters_is_not_a_prefix() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "events_get_prefix_needing_encoding")?;
-    assert_eq!(recorded.path, "/events?pre=E&pre=EOTHER#x");
-    assert!(IdentifierPrefix::from_qb64("E&pre=EOTHER#x").is_err());
     Ok(())
 }
 

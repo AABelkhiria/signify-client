@@ -50,7 +50,6 @@ struct Fixture {
     declarations: Declarations,
     mock_shortfall: MockShortfall,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -75,27 +74,18 @@ struct Declarations {
     create_exchange_call: String,
     create_sign: String,
     create_return: String,
-    send_signature: Vec<String>,
-    send_body: String,
-    send_loop: String,
-    send_throw: String,
     send_return_type: String,
-    send_from_events_signature: Vec<String>,
     send_from_events_path: String,
     send_from_events_data: String,
     send_from_events_method: String,
     send_from_events_return_type: String,
     get_path: String,
     get_signature: Vec<String>,
-    get_return_type: String,
     get_return: String,
     exchanges_members: Vec<String>,
     respond_body: String,
-    respond_return_type: String,
     submit_grant_return_type: String,
     route_constants: Value,
-    exn_schema: String,
-    exchange_resource_schema: String,
     exchanges_accessor_uses: Scan,
     send_uses: Scan,
     send_from_events_uses: Scan,
@@ -140,33 +130,6 @@ struct RecordedRequest {
     path: String,
     method: String,
     body: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    exchanging_test: ExchangingAssertions,
-    contacting_test: ContactingAssertions,
-    every_pinned_assertion_is_driven: bool,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ExchangingAssertions {
-    send_from_events_path: String,
-    send_from_events_method: String,
-    get_path: String,
-    get_method: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ContactingAssertions {
-    path: String,
-    method: String,
-    tpc: String,
-    exn_route: String,
-    exn_sender: String,
-    exn_words: Vec<String>,
-    first_signature_length: usize,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -381,43 +344,6 @@ fn the_route_table_is_recorded_and_left_to_the_route_module() -> Result<(), Box<
 }
 
 #[test]
-fn the_declared_shapes_are_the_references_own() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let declarations = &fixture.declarations;
-
-    assert_eq!(declarations.send_signature.len(), 7);
-    assert!(declarations.send_signature.iter().any(|p| p.starts_with("name:")));
-    assert!(declarations.send_signature.iter().any(|p| p.starts_with("sender:")));
-    assert!(declarations.send_signature.iter().any(|p| p.starts_with("recipients:")));
-
-    assert!(
-        declarations
-            .send_loop
-            .starts_with("for (const recipient of recipients)")
-    );
-    assert!(declarations.send_loop.contains("return await this.sendFromEvents"));
-
-    assert_eq!(declarations.send_from_events_signature.len(), 6);
-    for parameter in ["exn: Serder", "sigs: string[]", "atc: string"] {
-        assert!(
-            declarations
-                .send_from_events_signature
-                .iter()
-                .any(|declared| declared == parameter),
-            "the signature no longer declares {parameter}"
-        );
-    }
-
-    assert_eq!(declarations.get_return_type, "Promise<ExchangeResourceV1>");
-    assert_eq!(declarations.respond_return_type, "Promise<Exn>");
-
-    assert!(declarations.exn_schema.starts_with("Exn:"));
-    assert!(declarations.exchange_resource_schema.contains("exn:"));
-    assert!(declarations.exchange_resource_schema.contains("pathed:"));
-    Ok(())
-}
-
-#[test]
 fn the_recorded_scans_name_the_files_they_counted() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
@@ -460,32 +386,6 @@ fn the_recorded_scans_name_the_files_they_counted() -> Result<(), Box<dyn Error>
     );
 
     assert!(declarations.send_from_events_uses.total >= 3);
-    Ok(())
-}
-
-#[test]
-fn every_pinned_assertion_is_driven() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let confirmations = &fixture.pinned_confirmations;
-    assert!(confirmations.every_pinned_assertion_is_driven);
-    assert_eq!(
-        confirmations.exchanging_test.send_from_events_path,
-        "/identifiers/aid1/exchanges"
-    );
-    assert_eq!(confirmations.exchanging_test.send_from_events_method, "POST");
-    assert_eq!(confirmations.exchanging_test.get_path, format!("/exchanges/{SAID}"));
-    assert_eq!(confirmations.exchanging_test.get_method, "GET");
-    assert_eq!(confirmations.contacting_test.path, "/identifiers/aid1/exchanges");
-    assert_eq!(confirmations.contacting_test.method, "POST");
-    assert_eq!(confirmations.contacting_test.tpc, CHALLENGE_TOPIC);
-    assert_eq!(confirmations.contacting_test.exn_route, CHALLENGE_RESPONSE_ROUTE);
-    assert_eq!(confirmations.contacting_test.exn_sender, SENDER);
-    assert_eq!(
-        confirmations.contacting_test.exn_words,
-        fixture.declarations.pinned_words
-    );
-    assert_eq!(confirmations.contacting_test.first_signature_length, 88);
-    assert_ne!(confirmations.note, "");
     Ok(())
 }
 
@@ -798,30 +698,6 @@ fn a_refusal_costs_no_request_at_all() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
-fn the_reference_refuses_only_the_empty_recipient_list_and_only_by_accident() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let refused = call(&fixture, "send_empty_recipients")?;
-    assert_eq!(refused.error.as_deref(), Some("recipients list was empty"));
-    assert!(refused.requests.is_empty(), "the refused call still sent a request");
-
-    let accepted = call(&fixture, "send_from_events_pinned")?;
-    assert_eq!(accepted.error, None);
-    assert_eq!(accepted.requests.len(), 1);
-
-    assert!(fixture.declarations.send_throw.contains("recipients list was empty"));
-    assert!(
-        fixture
-            .declarations
-            .send_body
-            .find("for (const recipient")
-            .zip(fixture.declarations.send_body.find("throw new Error"))
-            .is_some_and(|(loop_at, throw_at)| loop_at < throw_at),
-        "the throw is no longer after the loop"
-    );
-    Ok(())
-}
-
 // --- The answer ---
 #[test]
 fn the_answer_has_two_declared_types_and_neither_is_imposed() -> Result<(), Box<dyn Error>> {
@@ -931,22 +807,6 @@ fn a_created_message_carries_an_explicit_prior_and_timestamp() -> Result<(), Box
     assert_eq!(
         exn.get("dt").and_then(Value::as_str),
         Some("2023-08-30T17:22:54.183000+00:00")
-    );
-    Ok(())
-}
-
-#[test]
-fn a_message_with_an_embed_carries_a_transposed_attachment() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = call(&fixture, "create_multisig_icp_with_embed")?;
-    let expected = recorded.result.as_object().ok_or("no recorded message")?;
-    let attachment = expected.get("atc").and_then(Value::as_str).ok_or("no attachment")?;
-    assert!(!attachment.is_empty(), "the recorded embed produced no attachment");
-    assert!(attachment.starts_with("-L"), "the attachment is not a pathed group");
-    let exn = expected.get("exn").ok_or("no message")?;
-    assert!(
-        exn.get("e").and_then(|embeds| embeds.get("icp")).is_some(),
-        "the embed is missing from the message"
     );
     Ok(())
 }

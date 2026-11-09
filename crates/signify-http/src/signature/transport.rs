@@ -673,42 +673,56 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text_and_their_sources() {
-        let cases: Vec<(ResponseAuthenticationError, bool)> = vec![
-            (ResponseAuthenticationError::MissingResource, false),
+        let cases: Vec<(ResponseAuthenticationError, &[&str], bool)> = vec![
+            (
+                ResponseAuthenticationError::MissingResource,
+                &["\"Signify-Resource\""],
+                false,
+            ),
             (
                 ResponseAuthenticationError::UnexpectedResource {
                     expected: "E1".to_owned(),
                     actual: "E2".to_owned(),
                 },
+                &["\"E1\"", "\"E2\""],
                 false,
             ),
             (
                 ResponseAuthenticationError::Signature {
                     source: Box::new(AuthenticationError::MissingSignature),
                 },
+                &[],
                 true,
             ),
             (
                 ResponseAuthenticationError::Stale {
-                    created: 1,
-                    now: 2,
-                    allowed: Duration::from_secs(1),
+                    created: 1_031,
+                    now: 2_047,
+                    allowed: Duration::from_secs(61),
                 },
+                &["1031", "2047", "61s"],
                 false,
             ),
             (
                 ResponseAuthenticationError::FromTheFuture {
-                    created: 2,
-                    now: 1,
-                    allowed: Duration::from_secs(1),
+                    created: 2_047,
+                    now: 1_031,
+                    allowed: Duration::from_secs(61),
                 },
+                &["1031", "2047", "61s"],
                 false,
             ),
-            (ResponseAuthenticationError::UnusableClock, false),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
+        for (error, fragments, has_source) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
+        assert_eq!(
+            ResponseAuthenticationError::UnusableClock.to_string(),
+            "the clock reads before the Unix epoch"
+        );
     }
 }

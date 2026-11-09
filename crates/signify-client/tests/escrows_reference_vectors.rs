@@ -76,16 +76,10 @@ struct Declarations {
     list_reply_signature: Vec<String>,
     escrows_members: Vec<String>,
     escrows_exports: Vec<String>,
-    rpy_alias: String,
-    rpy_schema: String,
-    rpy_v1_schema: String,
-    rpy_v2_schema: String,
-    rpy_alias_consumers: Scan,
     escrows_accessor_uses: Scan,
     list_reply_uses: Scan,
     pinned_route_uses: Scan,
     reply_route_uses: ReplyRouteUses,
-    exchanging_imports_rpy: String,
     notes: Value,
 }
 
@@ -100,13 +94,11 @@ struct Scan {
     needle: String,
     total: usize,
     files: Vec<ScanHit>,
-    scanned_files: usize,
 }
 
 #[derive(Debug, Deserialize)]
 struct ScanHit {
     file: String,
-    count: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -261,42 +253,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
     assert_eq!(declarations.escrows_members, ["client", "<constructor>", "listReply"]);
 
     assert_eq!(declarations.escrows_exports, ["Escrows", "Rpy"]);
-    Ok(())
-}
-
-#[test]
-fn the_response_type_is_the_shared_reply_record() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let declarations = &fixture.declarations;
-
-    assert_eq!(
-        declarations.rpy_alias,
-        "export type Rpy = components['schemas']['Rpy'];"
-    );
-    assert_eq!(
-        declarations.rpy_schema,
-        "Rpy: | components['schemas']['RPY_V_1'] | components['schemas']['RPY_V_2'];"
-    );
-    assert_eq!(
-        declarations.rpy_v1_schema,
-        "RPY_V_1: { v: string; t: string; d: string; dt: string; r: string; a: unknown; };"
-    );
-    assert_eq!(
-        declarations.rpy_v2_schema,
-        "RPY_V_2: { v: string; t: string; d: string; i: string; dt: string; r: string; a: unknown; };"
-    );
-    assert!(declarations.rpy_v1_schema.contains("t: string"));
-
-    assert_eq!(declarations.rpy_alias_consumers.total, 1);
-    assert!(
-        declarations
-            .rpy_alias_consumers
-            .files
-            .iter()
-            .any(|hit| hit.file.ends_with("app/exchanging.ts") && hit.count == 1)
-    );
-    assert!(declarations.exchanging_imports_rpy.contains("escrowing"));
-    assert_eq!(declarations.rpy_alias_consumers.scanned_files, 117);
     Ok(())
 }
 

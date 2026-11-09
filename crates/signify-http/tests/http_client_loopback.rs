@@ -341,11 +341,14 @@ async fn a_server_that_hangs_up_is_a_typed_failure() -> Result<(), Box<dyn Error
     let server = Loopback::start(Behaviour::Hangup).await?;
     let request = Request::builder(Method::Get, RequestUrl::new(server.url("/rude"))?).build()?;
 
+    let url = server.url("/rude");
     let outcome = transport(Duration::from_secs(5))?.execute(request).await;
-    assert!(outcome.is_err(), "a truncated exchange must not look like success");
-    if let Err(error) = outcome {
-        assert_ne!(error.to_string(), "");
-    }
+    let Err(TransportError::Connect { message }) = outcome else {
+        return Err(format!("a truncated exchange must be a connect failure: {outcome:?}").into());
+    };
+    // The excerpt is bounded and does not echo the request back.
+    assert!(!message.is_empty() && message.len() <= 256, "{message}");
+    assert!(!message.contains(&url), "{message}");
     Ok(())
 }
 
@@ -375,8 +378,11 @@ async fn an_invalid_status_line_is_refused() -> Result<(), Box<dyn Error>> {
     let request = Request::builder(Method::Get, RequestUrl::new(server.url("/odd"))?).build()?;
 
     let outcome = transport(Duration::from_secs(5))?.execute(request).await;
-    // Either the HTTP parser or this crate's status range refuses it; both are typed failures.
-    assert!(outcome.is_err(), "a 999 status must not be accepted");
+    // The HTTP parser admits three digits; this crate's status range refuses it.
+    assert!(
+        matches!(outcome, Err(TransportError::InvalidStatus { status: 999 })),
+        "{outcome:?}"
+    );
     Ok(())
 }
 

@@ -128,7 +128,6 @@ struct RandyShape {
     sealed_key_code: String,
     sealed_key_count: usize,
     sealed_next_count: usize,
-    params_keys: Vec<String>,
     current_only_index: u32,
     current_only_ondex: Option<u32>,
     rotation_promotes_next_keys: bool,
@@ -464,8 +463,6 @@ fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         state.encrypted_signing_keys.first().map(|key| key[..1].to_owned()),
         Some(shape.sealed_key_code.clone())
     );
-    // The reference's record also carries a transferability; the KERIA schema has no field for it.
-    assert_eq!(shape.params_keys, ["nxts", "prxs", "transferable"]);
 
     // A current-only placement survives the randy path too.
     let signatures = keeper.sign(

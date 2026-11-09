@@ -12,8 +12,8 @@ use proptest::prelude::*;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{
     Backoff, Clock, FixedJitter, Jitter, JitterSource, MAX_ATTEMPTS, MAX_DELAY_BOUND_SECONDS, MAX_DELAY_SECONDS,
-    MAX_RETRY_AFTER_BYTES, OsJitter, RetryAfter, RetryAfterError, RetryAfterPolicy, RetryDecision, RetryPolicy,
-    RetryPolicyError, RetryScope, RetryingTransport, StopReason, TestClock,
+    MAX_RETRY_AFTER_BYTES, RetryAfter, RetryAfterError, RetryAfterPolicy, RetryDecision, RetryPolicy, RetryPolicyError,
+    RetryScope, RetryingTransport, StopReason, TestClock,
 };
 use signify_http::transport::{Method, Request, RequestUrl, Response, ScriptedTransport, StatusCode, Transport};
 
@@ -212,6 +212,7 @@ proptest! {
     fn a_test_clock_accounts_for_every_wait(waits in proptest::collection::vec(0_u64..100_000, 0..32)) {
         let clock = TestClock::new();
         let start = clock.now();
+        let start_wall = clock.wall_clock();
         for wait in &waits {
             block_on(clock.sleep(Duration::from_micros(*wait)));
         }
@@ -220,7 +221,8 @@ proptest! {
         prop_assert_eq!(clock.now().duration_since(start), Duration::from_micros(total));
         prop_assert_eq!(clock.recorded_sleeps().len(), waits.len());
         // The wall clock moves with it, so a date-form `Retry-After` is deterministic too.
-        prop_assert!(clock.wall_clock() >= SystemTime::UNIX_EPOCH);
+        let wall_elapsed = clock.wall_clock().duration_since(start_wall).map_err(fail)?;
+        prop_assert_eq!(wall_elapsed, Duration::from_micros(total));
     }
 
     /// A delay-seconds value round trips, and anything outside the grammar is refused.
@@ -349,8 +351,13 @@ proptest! {
     }
 
     /// A malformed or absent `Retry-After` costs the server its timing and nothing else.
+    ///
+    /// The values hold no digit and are shorter than an HTTP date, so none can parse.
     #[test]
-    fn a_broken_guidance_header_falls_back_to_the_schedule(value in "[ -~]{0,24}") {
+    fn a_broken_guidance_header_falls_back_to_the_schedule(
+        value in "[A-Za-z ,:;=-]{0,24}",
+        base_ms in 10_u64..5_000,
+    ) {
         let mut headers = Headers::new();
         if let (Ok(name), Ok(header_value)) = (HeaderName::new("Retry-After"), HeaderValue::new(&value)) {
             let _ = headers.insert(name, header_value);
@@ -368,7 +375,7 @@ proptest! {
         .with_policy(
             RetryPolicy::builder()
                 .max_attempts(3)
-                .base_delay(Duration::from_millis(50))
+                .base_delay(Duration::from_millis(base_ms))
                 .jitter(Jitter::None)
                 .without_deadline()
                 .retry_after(RetryAfterPolicy::Honor { maximum: Duration::from_secs(30) })
@@ -381,14 +388,9 @@ proptest! {
         let answer = block_on(transport.execute(request)).map_err(fail)?;
         prop_assert_eq!(answer.status().as_u16(), 200);
 
-        // Exactly one wait, and it is either the parsed guidance or the computed 50 ms.
-        let waits = clock.recorded_sleeps();
-        prop_assert_eq!(waits.len(), 1);
-        let waited = waits.first().copied().unwrap_or_default();
-        let expected = RetryAfter::parse(value.trim()).map_or(Duration::from_millis(50), |guidance| {
-            guidance.delay_from(clock.wall_clock()).min(Duration::from_secs(30))
-        });
-        prop_assert_eq!(waited, expected);
+        // Exactly one wait: the first step of the schedule, `base * 2^0`, inside the default
+        // `[10 ms, 10 s]` bounds.
+        prop_assert_eq!(clock.recorded_sleeps(), vec![Duration::from_millis(base_ms)]);
     }
 
     /// A jitter source always yields something usable, and a fixed one is fixed.
@@ -397,7 +399,5 @@ proptest! {
         let fixed = FixedJitter::new(value);
         prop_assert_eq!(fixed.next_u32(), value);
         prop_assert_eq!(fixed.next_u32(), value);
-        // The OS source has no range to violate, but it must always answer.
-        let _ = OsJitter.next_u32();
     }
 }

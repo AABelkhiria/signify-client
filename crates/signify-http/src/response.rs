@@ -732,14 +732,15 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text_and_their_sources() -> Result<(), Box<dyn Error>> {
-        let cases: Vec<(ResponseError, bool)> = vec![
+        let cases: Vec<(ResponseError, &[&str], bool)> = vec![
             (
                 ResponseError::Status {
                     method: Method::Put,
                     path: "/agent/EPRE".to_owned(),
-                    status: StatusCode::new(500)?,
+                    status: StatusCode::new(503)?,
                     detail: "boom".to_owned(),
                 },
+                &["PUT", "/agent/EPRE", "503", "boom"],
                 false,
             ),
             (
@@ -747,6 +748,7 @@ mod tests {
                     value: "application".to_owned(),
                     source: Box::new(RequestError::EmptyPath),
                 },
+                &["\"application\""],
                 true,
             ),
             (
@@ -754,19 +756,24 @@ mod tests {
                     expected: "application/json".to_owned(),
                     actual: "text/html".to_owned(),
                 },
+                &["\"application/json\"", "\"text/html\""],
                 false,
             ),
-            (ResponseError::NotUtf8 { offset: 3 }, false),
+            (ResponseError::NotUtf8 { offset: 1031 }, &["1031"], false),
             (
                 ResponseError::InvalidContentRange {
                     value: "aids".to_owned(),
                     reason: "no slash",
                 },
+                &["\"aids\"", "no slash"],
                 false,
             ),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
+        for (error, fragments, has_source) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
         Ok(())

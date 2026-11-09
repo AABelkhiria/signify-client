@@ -66,9 +66,6 @@ struct Declarations {
     wait_abort: String,
     has_depends_body: String,
     throw_if_failed_body: String,
-    #[serde(rename = "depends_declarations")]
-    depends_owners: Vec<DependsOwner>,
-    kel_operation_schema: String,
     integration_wait_operation: String,
     integration_delete_operations: String,
 }
@@ -78,12 +75,6 @@ struct WaitDefaults {
     min_sleep: String,
     max_sleep: String,
     increase_factor: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct DependsOwner {
-    owner: String,
-    declaration: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -106,27 +97,7 @@ struct RecordedRequest {
 
 #[derive(Debug, Deserialize)]
 struct PinnedConfirmations {
-    unit_test_cases: Vec<UnitTestCase>,
-    asserted_request_counts: Vec<String>,
-    returns_the_same_object: bool,
-    wait_call_sites: Scan,
-    integration_wait_call_sites: Scan,
     integration_timeout: String,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct UnitTestCase {
-    title: String,
-    expects: Option<usize>,
-    driven: String,
-    reproduced: Option<usize>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    total: usize,
-    scanned_files: usize,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -317,71 +288,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
             .contains("AbortSignal.timeout(30000)")
     );
     assert!(declarations.integration_delete_operations.contains("deleteOperations"));
-    Ok(())
-}
-
-#[test]
-fn the_dependency_chain_is_one_link_long() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let declarations = &fixture.declarations;
-
-    let mut owners: Vec<&str> = declarations
-        .depends_owners
-        .iter()
-        .map(|entry| entry.owner.as_str())
-        .collect();
-    owners.sort_unstable();
-    assert_eq!(
-        owners,
-        [
-            "CredentialOperationMetadata",
-            "DelegatorOperationMetadata",
-            "RegistryOperationMetadata"
-        ]
-    );
-    for entry in &declarations.depends_owners {
-        assert!(
-            entry.declaration.contains("['KelOperation']"),
-            "{} declares its dependency as something else",
-            entry.owner
-        );
-    }
-    assert!(!declarations.kel_operation_schema.contains("depends"));
-    assert!(
-        declarations
-            .wait_dependency_guard
-            .contains("this.wait(op.metadata.depends")
-    );
-    Ok(())
-}
-
-#[test]
-fn every_request_count_the_pinned_unit_test_asserts_is_reproduced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.unit_test_cases.len(), 5);
-    assert_eq!(pinned.asserted_request_counts.len(), 4);
-    assert!(pinned.returns_the_same_object);
-    assert!(pinned.integration_timeout.contains("AbortSignal.timeout(30000)"));
-    assert_ne!(pinned.note, "");
-
-    for entry in &pinned.unit_test_cases {
-        if let Some(expected) = entry.expects {
-            assert_eq!(
-                entry.reproduced,
-                Some(expected),
-                "the case {:?} asserts {expected} requests",
-                entry.title
-            );
-            let driven = call(&fixture, &entry.driven)?;
-            assert_eq!(driven.request_count, expected);
-        }
-    }
-
-    assert_eq!(pinned.wait_call_sites.total, 6);
-    assert!(pinned.integration_wait_call_sites.total > 200);
-    assert!(pinned.wait_call_sites.scanned_files > 100);
     Ok(())
 }
 

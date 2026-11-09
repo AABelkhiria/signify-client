@@ -917,20 +917,38 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text() {
-        for error in [
-            RetryPolicyError::NoAttempts,
-            RetryPolicyError::TooManyAttempts {
-                maximum: MAX_ATTEMPTS,
-                requested: 9_999,
-            },
-            RetryPolicyError::ZeroDelay { which: "base" },
-            RetryPolicyError::DelayTooLong {
-                which: "max",
-                requested: Duration::from_secs(9_999),
-            },
-            RetryPolicyError::ZeroDeadline,
+        let cases: [(RetryPolicyError, &[&str]); 3] = [
+            (
+                RetryPolicyError::TooManyAttempts {
+                    maximum: 1_031,
+                    requested: 9_999,
+                },
+                &["1031", "9999"],
+            ),
+            (RetryPolicyError::ZeroDelay { which: "base" }, &["base"]),
+            (
+                RetryPolicyError::DelayTooLong {
+                    which: "max",
+                    requested: Duration::from_secs(9_999),
+                },
+                &["max", "9999s"],
+            ),
+        ];
+        for (error, fragments) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
+            assert!(error.source().is_none());
+        }
+        for (error, expected) in [
+            (
+                RetryPolicyError::NoAttempts,
+                "a retry policy must allow at least one attempt",
+            ),
+            (RetryPolicyError::ZeroDeadline, "a retry deadline may not be zero"),
         ] {
-            assert_ne!(error.to_string(), "");
+            assert_eq!(error.to_string(), expected);
             assert!(error.source().is_none());
         }
     }

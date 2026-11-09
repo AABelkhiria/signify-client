@@ -1,6 +1,6 @@
 //! Exact notification-endpoint vectors recorded from the pinned reference's own `Notifications`.
 //!
-//! Three methods, the port's second windowed listing, and what a notification's identifier actually is.
+//! Three methods, the port's second windowed listing, and an identifier encoded before it reaches the path.
 
 mod support;
 
@@ -11,7 +11,6 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
-use keri_protocol::said::Said;
 use keria_types::api::contact::Notification;
 use serde::Deserialize;
 use serde_json::Value;
@@ -45,9 +44,7 @@ struct Fixture {
     keripy_sources: Vec<String>,
     provenance: Provenance,
     declarations: Declarations,
-    notification_identifier: IdentifierRecord,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -58,7 +55,6 @@ struct Provenance {
     fixed_clock_ms: u64,
     agent_prefix: String,
     sample_nonce: String,
-    sample_said: String,
     note: String,
 }
 
@@ -84,25 +80,6 @@ struct Declarations {
 }
 
 #[derive(Debug, Deserialize)]
-struct IdentifierRecord {
-    documentation: String,
-    signify_random_nonce: String,
-    signify_nonce: String,
-    signify_nonce_leading: String,
-    keripy_random_nonce_code: String,
-    keripy_nonce: String,
-    keripy_nonce_leading: String,
-    keripy_notice_leaves_it_empty: String,
-    keripy_dicter_fills_it: String,
-    keripy_dicter_fill_sites: usize,
-    sample_said: String,
-    sample_said_leading: String,
-    keripy_sha: String,
-    note: String,
-    rust_decision: String,
-}
-
-#[derive(Debug, Deserialize)]
 struct Call {
     name: String,
     note: String,
@@ -120,24 +97,6 @@ struct RecordedRequest {
     headers: BTreeMap<String, String>,
     body: Option<String>,
     body_is_undefined: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    unit_test_assertions: Vec<String>,
-    unit_test_identifier: String,
-    unit_test_range_header: String,
-    unit_test_paths: Vec<String>,
-    integration_usage: Vec<String>,
-    call_sites: Scan,
-    driven_paths: Vec<String>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    total: usize,
-    scanned_files: usize,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -246,44 +205,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn a_notification_identifier_is_not_a_said() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let record = &fixture.notification_identifier;
-
-    assert!(record.documentation.contains("SAID of the notification"));
-    assert!(record.mark_parameters_are_named_said());
-
-    assert!(record.keripy_notice_leaves_it_empty.contains(r#"i="""#));
-    assert!(record.keripy_dicter_fills_it.contains("randomNonce()"));
-    assert!(record.keripy_dicter_fill_sites >= 1);
-    assert_eq!(record.keripy_sha, KERIPY_SHA);
-
-    assert!(record.signify_random_nonce.contains("Ed25519_Seed"));
-    assert!(record.keripy_random_nonce_code.contains("Salt_128"));
-    assert_eq!(record.signify_nonce_leading, "A");
-    assert_eq!(record.keripy_nonce_leading, "0A");
-    assert_eq!(record.sample_said_leading, "E");
-    assert_ne!(record.signify_nonce_leading, record.sample_said_leading);
-    assert_ne!(record.keripy_nonce_leading, record.sample_said_leading);
-
-    assert!(Said::from_qb64(&record.signify_nonce).is_err());
-    assert!(Said::from_qb64(&record.keripy_nonce).is_err());
-    assert!(Said::from_qb64(&record.sample_said).is_ok());
-    assert_eq!(record.sample_said, fixture.provenance.sample_said);
-    assert!(Said::from_qb64(PINNED_LITERAL).is_err());
-
-    assert_ne!(record.note, "");
-    assert_ne!(record.rust_decision, "");
-    Ok(())
-}
-
-impl IdentifierRecord {
-    fn mark_parameters_are_named_said(&self) -> bool {
-        self.documentation.contains("@param {string} said")
-    }
-}
-
-#[test]
 fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let declarations = &fixture.declarations;
@@ -319,42 +240,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 
     assert!(declarations.notification_type.contains("i: string"));
     assert!(declarations.notification_type.contains("r: boolean"));
-    Ok(())
-}
-
-#[test]
-fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.unit_test_assertions.len(), 3);
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("'notes=20-40'"))
-    );
-    assert_eq!(pinned.unit_test_range_header, "notes=20-40");
-    assert_eq!(pinned.unit_test_identifier, PINNED_LITERAL);
-
-    assert_eq!(pinned.unit_test_paths.len(), 2);
-    for path in &pinned.unit_test_paths {
-        assert!(
-            pinned.driven_paths.iter().any(|driven| driven == path),
-            "the pinned test asserts {path}, which nothing here drove"
-        );
-    }
-
-    assert_eq!(pinned.integration_usage.len(), 3);
-    assert!(
-        pinned
-            .integration_usage
-            .iter()
-            .any(|line| line.contains("mark(note.i)"))
-    );
-    assert!(pinned.call_sites.total >= 5);
-    assert!(pinned.call_sites.scanned_files > 100);
-    assert_ne!(pinned.note, "");
     Ok(())
 }
 

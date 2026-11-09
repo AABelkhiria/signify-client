@@ -6,6 +6,7 @@
 
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::event::EventError;
 use keri_protocol::event::kind::EventKind;
 use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use keri_protocol::threshold::SigningThreshold;
@@ -229,11 +230,19 @@ proptest! {
         prop_assume!(threshold > current as u128);
         let mut request = salty_request(PASSCODE, current, 1);
         request.signing_threshold = Some(SigningThreshold::numeric(threshold));
-        let refused = matches!(request.keeper_request(0), Err(IdentifierError::Event { .. }));
-        prop_assert!(refused);
-        let outcome = keeper_for(&salty_request(PASSCODE, current, 1))
-            .and_then(|mut keeper| incept_identifier(keeper.as_mut(), &request).map_err(fail));
-        prop_assert!(outcome.is_err());
+        let exceeds = |outcome: &Result<_, IdentifierError>| {
+            matches!(
+                outcome,
+                Err(IdentifierError::Event { source }) if matches!(
+                    **source,
+                    EventError::SigningThresholdExceedsKeys { required, keys }
+                        if required == threshold && keys == current
+                )
+            )
+        };
+        prop_assert!(exceeds(&request.keeper_request(0).map(|_| ())));
+        let mut keeper = keeper_for(&salty_request(PASSCODE, current, 1))?;
+        prop_assert!(exceeds(&incept_identifier(keeper.as_mut(), &request).map(|_| ())));
     }
 
     /// The non-transferable conflicts are refused for every non-zero contradiction.

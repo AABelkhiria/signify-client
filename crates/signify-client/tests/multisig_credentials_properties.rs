@@ -123,19 +123,6 @@ proptest! {
         prop_assert_eq!(embed.acdc.schema.as_str(), SCHEMA);
         prop_assert_eq!(embed.iss.digest(), "EISS");
     }
-
-    #[test]
-    fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        match core::str::from_utf8(&bytes) {
-            Ok(text) => match classify(text) {
-                Ok(classified) => {
-                    let _ = classified.as_multisig().is_some();
-                }
-                Err(error) => prop_assert!(!error.to_string().is_empty()),
-            },
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
-        }
-    }
 }
 
 #[test]

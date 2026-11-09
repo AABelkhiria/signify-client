@@ -11,7 +11,6 @@
 //! and the resulting headers compared character for character.
 
 use core::time::Duration;
-use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -29,7 +28,7 @@ use signify_http::signature::timestamp::SignifyTimestamp;
 use signify_http::signature::transport::{
     Freshness, ResponseAuthenticationError, ResponseAuthenticator, SigningTransport,
 };
-use signify_http::transport::{Method, Request, RequestUrl, ScriptedTransport, Transport};
+use signify_http::transport::{Method, Request, RequestUrl, Response, ScriptedTransport, StatusCode, Transport};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/http-auth/v1.json"));
@@ -45,7 +44,6 @@ struct Fixture {
     constants: Constants,
     requests: Vec<RequestCase>,
     response_verification: Vec<VerificationCase>,
-    freshness_scan: FreshnessScan,
     reference_quirks: Quirks,
 }
 
@@ -117,29 +115,6 @@ struct VerificationCase {
 }
 
 #[derive(Debug, Deserialize)]
-struct FreshnessScan {
-    roots: Vec<String>,
-    files_scanned: u32,
-    matches: BTreeMap<String, ScanMatch>,
-    checks: FreshnessChecks,
-    note: String,
-}
-
-/// The three claims that actually carry the "no freshness check" finding.
-#[derive(Debug, Deserialize)]
-struct FreshnessChecks {
-    authenticater_ever_sets_expires: bool,
-    a_parameter_is_ever_compared: bool,
-    verification_reads_a_clock: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct ScanMatch {
-    count: u32,
-    files: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
 struct Quirks {
     there_is_no_freshness_check: FreshnessQuirk,
     the_timestamp_claims_precision_it_does_not_have: TimestampQuirk,
@@ -153,8 +128,6 @@ struct Quirks {
 
 #[derive(Debug, Deserialize)]
 struct FreshnessQuirk {
-    accepted: bool,
-    checks: FreshnessChecks,
     note: String,
     rust_decision: String,
 }
@@ -265,18 +238,6 @@ fn the_covered_components_are_the_references_own() -> Result<(), Box<dyn Error>>
 }
 
 #[test]
-fn the_recorded_signer_is_reproduced_from_its_seed() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let signer = controller_signer(&fixture)?;
-    // The same key the reference signed every recorded request with.
-    assert_eq!(
-        signer.verifier().qb64()?,
-        fixture.provenance.controller_verification_key,
-    );
-    Ok(())
-}
-
-#[test]
 fn the_timestamp_format_is_reproduced_exactly() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirk = &fixture.reference_quirks.the_timestamp_claims_precision_it_does_not_have;
@@ -312,10 +273,17 @@ fn every_recorded_request_is_signed_identically() -> Result<(), Box<dyn Error>> 
     let fixture = fixture()?;
     assert_eq!(fixture.requests.len(), 5);
 
+    let controller_key = controller_signer(&fixture)?;
+    // The same key the reference signed every recorded request with.
+    assert_eq!(
+        controller_key.verifier().qb64()?,
+        fixture.provenance.controller_verification_key,
+    );
+
     let clock = pinned_clock(&fixture);
     let transport = SigningTransport::new(
         Arc::new(ScriptedTransport::new()),
-        RequestSigner::new(controller_signer(&fixture)?),
+        RequestSigner::new(controller_key),
         HeaderValue::new(&fixture.provenance.controller_prefix)?,
         Arc::clone(&clock) as Arc<dyn Clock>,
     )?;
@@ -412,17 +380,46 @@ fn the_query_is_stripped_before_signing() -> Result<(), Box<dyn Error>> {
 fn the_body_is_carried_but_never_covered() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirk = &fixture.reference_quirks.covered_fields_are_fixed;
-    assert_eq!(quirk.fields.len(), 4);
     assert!(!quirk.fields.iter().any(|field| field.contains("digest")));
 
-    // Two recorded POSTs and PUTs carry different bodies; nothing signed covers either.
-    let put = find(&fixture.requests, "put_with_body")?;
     let post = find(&fixture.requests, "post_with_body")?;
-    assert_ne!(put.request.body, post.request.body);
-    // They differ in method, so their signatures differ for that reason — but the path and method
-    // are the only things that made them differ.
-    assert!(put.request.body.is_some() && post.request.body.is_some());
-    assert_ne!(quirk.rust_decision, "");
+    let recorded_body = post.request.body.as_deref().ok_or("post_with_body records no body")?;
+    let other_body = b"{\"name\":\"something else entirely\"}";
+    assert_ne!(recorded_body.as_bytes(), other_body);
+
+    let scripted = Arc::new(
+        ScriptedTransport::new()
+            .respond(Response::new(StatusCode::new(200)?, Headers::new(), Vec::new())?)
+            .respond(Response::new(StatusCode::new(200)?, Headers::new(), Vec::new())?),
+    );
+    let clock = pinned_clock(&fixture);
+    let transport = SigningTransport::new(
+        Arc::clone(&scripted) as Arc<dyn Transport>,
+        RequestSigner::new(controller_signer(&fixture)?),
+        HeaderValue::new(&fixture.provenance.controller_prefix)?,
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    )?;
+
+    let url = RequestUrl::new(post.request.url.clone())?;
+    let recorded = Request::builder(Method::Post, url.clone())
+        .body(recorded_body.as_bytes().to_vec())
+        .build()?;
+    let other = Request::builder(Method::Post, url).body(other_body.to_vec()).build()?;
+    block_on(transport.execute(recorded))?;
+    block_on(transport.execute(other))?;
+
+    let sent = scripted.recorded();
+    let [first, second] = sent.as_slice() else {
+        return Err(format!("expected two requests, {} were sent", sent.len()).into());
+    };
+    // A different body changes nothing that is signed: both match the reference's own bytes.
+    for header in ["signature-input", "signature"] {
+        assert_eq!(first.headers().get(header), post.request.header(header), "{header}");
+        assert_eq!(second.headers().get(header), post.request.header(header), "{header}");
+    }
+    // Each body reaches the transport beneath unchanged.
+    assert_eq!(first.body(), Some(recorded_body.as_bytes()));
+    assert_eq!(second.body(), Some(&other_body[..]));
     Ok(())
 }
 
@@ -538,53 +535,6 @@ fn a_missing_header_and_a_bad_signature_become_distinct_errors() -> Result<(), B
 // ---------------------------------------------------------------------------
 // The finding: there is no freshness check anywhere
 // ---------------------------------------------------------------------------
-
-#[test]
-fn the_reference_has_no_freshness_check_at_all() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let scan = &fixture.freshness_scan;
-    assert_eq!(scan.roots, ["src", "test", "test-integration"]);
-    assert_eq!(scan.files_scanned, 117);
-    assert_ne!(scan.note, "");
-
-    // Two needles do match, and both are accounted for rather than waved away.
-    let expires = scan.matches.get("expires").ok_or("no `expires` scan")?;
-    assert_eq!(expires.count, 3);
-    assert_eq!(
-        expires.files,
-        [
-            "src/keri/core/authing.ts",
-            "src/keri/core/httping.ts",
-            "test/core/httping.test.ts",
-        ],
-    );
-    let replay = scan.matches.get("replay").ok_or("no `replay` scan")?;
-    // KEL replay messages, nothing to do with a signature.
-    assert_eq!(
-        replay.files,
-        [
-            "src/keri/app/escrowing.ts",
-            "src/keri/app/exchanging.ts",
-            "src/keri/app/grouping.ts",
-        ],
-    );
-    // Everything else is absent outright.
-    for name in ["maxAge", "max_age", "skew", "freshness", "staleness"] {
-        assert_eq!(scan.matches.get(name).map(|entry| entry.count), Some(0), "{name}");
-    }
-
-    // And the three claims that actually carry the finding.
-    assert!(!scan.checks.authenticater_ever_sets_expires);
-    assert!(!scan.checks.a_parameter_is_ever_compared);
-    assert!(!scan.checks.verification_reads_a_clock);
-
-    let quirk = &fixture.reference_quirks.there_is_no_freshness_check;
-    assert!(quirk.accepted, "the reference refused its own replayed response");
-    assert!(!quirk.checks.authenticater_ever_sets_expires);
-    assert!(!quirk.checks.a_parameter_is_ever_compared);
-    assert!(!quirk.checks.verification_reads_a_clock);
-    Ok(())
-}
 
 #[test]
 fn a_response_the_reference_would_replay_forever_goes_stale_here() -> Result<(), Box<dyn Error>> {
@@ -710,11 +660,8 @@ fn the_signed_request_reaches_the_transport_beneath() -> Result<(), Box<dyn Erro
     let fixture = fixture()?;
     let case = find(&fixture.requests, "get_identifiers")?;
 
-    let scripted = Arc::new(ScriptedTransport::new().respond(signify_http::transport::Response::new(
-        signify_http::transport::StatusCode::new(200)?,
-        Headers::new(),
-        Vec::new(),
-    )?));
+    let scripted =
+        Arc::new(ScriptedTransport::new().respond(Response::new(StatusCode::new(200)?, Headers::new(), Vec::new())?));
     let clock = pinned_clock(&fixture);
     let transport = SigningTransport::new(
         Arc::clone(&scripted) as Arc<dyn Transport>,

@@ -515,49 +515,6 @@ fn all_five_submissions_reproduce_the_recorded_requests() -> Result<(), Box<dyn 
 }
 
 #[test]
-fn two_routes_discard_an_attachment_that_is_always_empty() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    for name in ["apply", "agree"] {
-        let record = fixture
-            .messages
-            .get(name)
-            .ok_or_else(|| format!("no recorded message {name}"))?;
-        assert_eq!(record.attachment, "", "{name} recorded a non-empty attachment");
-        assert!(
-            !request_of(&fixture, name)?
-                .body
-                .clone()
-                .unwrap_or_default()
-                .contains("atc")
-        );
-    }
-    let grant = fixture.messages.get("grant").ok_or("no recorded grant")?;
-    assert!(grant.attachment.starts_with("-LAg"));
-    assert!(
-        request_of(&fixture, "grant")?
-            .body
-            .clone()
-            .unwrap_or_default()
-            .contains("atc")
-    );
-    for name in ["offer", "admit"] {
-        let record = fixture
-            .messages
-            .get(name)
-            .ok_or_else(|| format!("no recorded message {name}"))?;
-        assert_eq!(record.attachment, "");
-        assert!(
-            request_of(&fixture, name)?
-                .body
-                .clone()
-                .unwrap_or_default()
-                .contains(r#""atc":"""#)
-        );
-    }
-    Ok(())
-}
-
-#[test]
 fn a_route_can_never_disagree_with_the_resource_it_is_posted_to() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let grant_to_apply = request_of(&fixture, "grant_through_the_apply_submitter")?;

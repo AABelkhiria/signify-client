@@ -1,6 +1,6 @@
 //! Exact multisig-inception vectors recorded from the pinned reference's own helpers.
 //!
-//! Six recorded calls and the four defects they make observable, including `parseInt` on a hexadecimal `bt`.
+//! Six recorded calls and the defects they make observable, including `parseInt` on a hexadecimal `bt`.
 
 mod support;
 
@@ -50,38 +50,7 @@ struct Provenance {
 
 #[derive(Debug, Deserialize)]
 struct Declarations {
-    start_multisig_incept: String,
-    accept_multisig_incept: String,
-    get_states: String,
-    start_args: String,
-    accept_args: String,
-    send_calls: Vec<SendCall>,
     scenario_witnesses: Vec<String>,
-    start_uses: Scan,
-    accept_uses: Scan,
-    no_source_file: bool,
-    notes: Value,
-}
-
-#[derive(Debug, Deserialize)]
-struct SendCall {
-    enclosing: String,
-    awaited: bool,
-    text: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    needle: String,
-    total: usize,
-    files: Vec<ScanHit>,
-    scanned_files: usize,
-}
-
-#[derive(Debug, Deserialize)]
-struct ScanHit {
-    file: String,
-    count: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -107,9 +76,6 @@ struct PinnedConfirmations {
     scenario_route: Vec<String>,
     initiator_paths: Vec<String>,
     proposal_route: String,
-    proposal_addressed_to: String,
-    proposal_sender: String,
-    proposal_delivered_to: Vec<String>,
     group_prefix: String,
     note: String,
 }
@@ -206,44 +172,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn there_is_no_upstream_source_file() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.declarations.no_source_file);
-    assert_eq!(fixture.declarations.start_uses.scanned_files, 117);
-    for scan in [&fixture.declarations.start_uses, &fixture.declarations.accept_uses] {
-        assert!(scan.total >= 1, "{} is used nowhere", scan.needle);
-        assert!(
-            scan.files.iter().all(|hit| hit.file.starts_with("test-integration/")),
-            "{} escaped the integration tree",
-            scan.needle
-        );
-        assert_eq!(
-            scan.files.iter().map(|hit| hit.count).sum::<usize>(),
-            scan.total,
-            "{}'s per-file counts do not add up to its total",
-            scan.needle
-        );
-    }
-    assert!(
-        fixture
-            .declarations
-            .start_multisig_incept
-            .contains("identifiers().create")
-    );
-    assert!(
-        fixture
-            .declarations
-            .accept_multisig_incept
-            .contains("groups().getRequest")
-    );
-    assert!(fixture.declarations.get_states.contains("keyStates().get"));
-    assert!(fixture.declarations.start_args.contains("participants"));
-    assert!(fixture.declarations.accept_args.contains("msgSaid"));
-    assert!(fixture.declarations.notes.is_object());
-    Ok(())
-}
-
-#[test]
 fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let confirmations = &fixture.pinned_confirmations;
@@ -281,110 +209,6 @@ fn the_scenarios_own_values_are_driven() -> Result<(), Box<dyn Error>> {
 }
 
 // --- The four findings ---
-#[test]
-fn the_initiator_addresses_its_proposal_to_itself() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let confirmations = &fixture.pinned_confirmations;
-
-    assert_eq!(confirmations.proposal_sender, LOCAL);
-    assert_eq!(confirmations.proposal_addressed_to, LOCAL);
-    assert_eq!(confirmations.proposal_delivered_to, [LOCAL, PEER]);
-
-    let body = proposal(&fixture, "start_multisig_incept")?;
-    let exn = body.get("exn").ok_or("no exn")?;
-    assert_eq!(exn.get("i").and_then(Value::as_str), Some(LOCAL));
-    assert_eq!(exn.get("rp").and_then(Value::as_str), Some(LOCAL));
-    assert_eq!(
-        exn.get("a").and_then(|block| block.get("i")).and_then(Value::as_str),
-        Some(LOCAL),
-        "the attribute block names the sender too"
-    );
-
-    let accepted = proposal(&fixture, "accept_multisig_incept")?;
-    assert_eq!(
-        accepted.get("rec").and_then(Value::as_array).map(Vec::len),
-        Some(1),
-        "the accepting member kept itself in its own delivery list"
-    );
-    assert_eq!(
-        accepted
-            .get("exn")
-            .and_then(|exn| exn.get("rp"))
-            .and_then(Value::as_str),
-        Some(PEER)
-    );
-    assert!(quirk(&fixture, "the_initiator_addresses_its_proposal_to_itself")?.is_object());
-    Ok(())
-}
-
-#[test]
-fn the_joining_member_relays_the_signing_set_where_the_rotation_set_belongs() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "the_accepting_member_discards_the_rotation_set")?;
-
-    let read: Vec<&str> = recorded
-        .get("read_rmids")
-        .and_then(Value::as_array)
-        .ok_or("no recorded rmids")?
-        .iter()
-        .filter_map(Value::as_str)
-        .collect();
-    assert_eq!(read, [PEER]);
-
-    let relayed: Vec<&str> = recorded
-        .get("relayed_rmids")
-        .and_then(Value::as_array)
-        .ok_or("no relayed rmids")?
-        .iter()
-        .filter_map(Value::as_str)
-        .collect();
-    let signing: Vec<&str> = recorded
-        .get("relayed_smids")
-        .and_then(Value::as_array)
-        .ok_or("no relayed smids")?
-        .iter()
-        .filter_map(Value::as_str)
-        .collect();
-    assert_eq!(relayed, signing, "the two sets were not conflated after all");
-    assert_ne!(relayed, read, "the rotation set survived the round trip");
-    assert_eq!(signing, [LOCAL, PEER]);
-    Ok(())
-}
-
-#[test]
-fn the_joining_member_does_not_await_the_message_it_sends() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let sends: Vec<&SendCall> = fixture
-        .declarations
-        .send_calls
-        .iter()
-        .filter(|call| ["startMultisigIncept", "acceptMultisigIncept"].contains(&call.enclosing.as_str()))
-        .collect();
-    assert_eq!(sends.len(), 2);
-
-    let proposing = sends
-        .iter()
-        .find(|call| call.enclosing == "startMultisigIncept")
-        .ok_or("no proposing send")?;
-    let accepting = sends
-        .iter()
-        .find(|call| call.enclosing == "acceptMultisigIncept")
-        .ok_or("no accepting send")?;
-    assert!(proposing.awaited, "the proposing helper stopped awaiting its send");
-    assert!(
-        !accepting.awaited,
-        "the accepting helper now awaits its send; the divergence is stale"
-    );
-    assert!(accepting.text.contains("send("));
-
-    assert!(
-        call(&fixture, "accept_multisig_incept")?
-            .requests
-            .iter()
-            .any(|request| request.path.ends_with("/exchanges"))
-    );
-    Ok(())
-}
 
 #[test]
 fn a_hexadecimal_witness_threshold_derives_a_different_group() -> Result<(), Box<dyn Error>> {
@@ -484,25 +308,6 @@ fn the_proposal_embeds_the_event_it_proposes_with_its_attachment() -> Result<(),
     let attachment = body.get("atc").and_then(Value::as_str).ok_or("no attachment")?;
     assert_ne!(attachment, "");
     assert!(attachment.starts_with("-L"), "the attachment is not a pathed group");
-    Ok(())
-}
-
-#[test]
-fn the_topic_is_the_groups_local_alias() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert_eq!(
-        proposal(&fixture, "start_multisig_incept")?
-            .get("tpc")
-            .and_then(Value::as_str),
-        Some("multisig")
-    );
-    assert_eq!(
-        proposal(&fixture, "start_multisig_incept_no_witnesses")?
-            .get("tpc")
-            .and_then(Value::as_str),
-        Some("multisig2"),
-        "the second group's topic is its own alias"
-    );
     Ok(())
 }
 

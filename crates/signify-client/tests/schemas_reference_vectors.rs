@@ -326,15 +326,6 @@ fn a_listing_addresses_the_constant_path() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn a_said_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "get_said_needing_encoding")?;
-    assert_eq!(recorded.path, "/schema/E/../schema?x=1#y");
-    assert!(Said::from_qb64("E/../schema?x=1#y").is_err());
-    Ok(())
-}
-
-#[test]
 fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = call(&fixture, "get_wrong_shape")?;

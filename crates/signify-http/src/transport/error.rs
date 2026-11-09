@@ -182,32 +182,55 @@ mod tests {
 
     #[test]
     fn every_variant_displays_and_sources_correctly() {
-        let cases: Vec<(TransportError, bool)> = vec![
-            (TransportError::InvalidUrl { reason: "empty" }, false),
-            (TransportError::RequestBodyTooLarge { maximum: 1, actual: 2 }, false),
-            (TransportError::ResponseBodyTooLarge { limit: 1, actual: 2 }, false),
+        let cases: Vec<(TransportError, &[&str], bool)> = vec![
+            (TransportError::InvalidUrl { reason: "empty" }, &["empty"], false),
             (
-                TransportError::ResponseLimitTooLarge {
-                    maximum: 1,
-                    requested: 2,
+                TransportError::RequestBodyTooLarge {
+                    maximum: 1031,
+                    actual: 2047,
                 },
+                &["1031", "2047"],
                 false,
             ),
-            (TransportError::InvalidStatus { status: 42 }, false),
-            (TransportError::Timeout { milliseconds: 100 }, false),
-            (TransportError::connect("refused"), false),
-            (TransportError::invalid_response("truncated"), false),
-            (TransportError::ScriptExhausted { answered: 2 }, false),
+            (
+                TransportError::ResponseBodyTooLarge {
+                    limit: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                TransportError::ResponseLimitTooLarge {
+                    maximum: 1031,
+                    requested: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (TransportError::InvalidStatus { status: 42 }, &["42"], false),
+            (TransportError::Timeout { milliseconds: 1031 }, &["1031"], false),
+            (TransportError::connect("refused"), &["refused"], false),
+            (TransportError::invalid_response("truncated"), &["truncated"], false),
+            (TransportError::ScriptExhausted { answered: 1031 }, &["1031"], false),
             (
                 TransportError::from(HeaderError::DuplicateHeader {
                     name: "range".to_owned(),
                 }),
+                &["range"],
                 true,
             ),
-            (TransportError::signing("no covered header"), false),
+            (
+                TransportError::signing("no covered header"),
+                &["no covered header"],
+                false,
+            ),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
+        for (error, fragments, has_source) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert_eq!(error.source().is_some(), has_source, "{error}");
         }
     }

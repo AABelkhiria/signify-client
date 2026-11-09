@@ -448,18 +448,25 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text() {
-        for error in [
-            RetryAfterError::Empty,
-            RetryAfterError::TooLong { length: 999 },
-            RetryAfterError::DelayOutOfRange { value: "-1".to_owned() },
-            RetryAfterError::InvalidDate {
-                value: "nope".to_owned(),
-                reason: "not a date",
-            },
-        ] {
-            assert_ne!(error.to_string(), "");
+        let cases: [(RetryAfterError, &[&str]); 3] = [
+            (RetryAfterError::TooLong { length: 999 }, &["999"]),
+            (RetryAfterError::DelayOutOfRange { value: "-1".to_owned() }, &["\"-1\""]),
+            (
+                RetryAfterError::InvalidDate {
+                    value: "nope".to_owned(),
+                    reason: "not a date",
+                },
+                &["\"nope\"", "not a date"],
+            ),
+        ];
+        for (error, fragments) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert!(error.source().is_none());
         }
+        assert_eq!(RetryAfterError::Empty.to_string(), "a Retry-After value is empty");
         // Rejected text is bounded even when the input is not.
         let long = "x".repeat(MAX_RETRY_AFTER_BYTES);
         if let Err(error) = RetryAfter::parse(&long) {

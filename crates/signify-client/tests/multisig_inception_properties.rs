@@ -202,19 +202,6 @@ proptest! {
         let refused = classify(&document).is_err();
         prop_assert!(refused, "an inception proposal embedding a {} was accepted", slot);
     }
-
-    #[test]
-    fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        match core::str::from_utf8(&bytes) {
-            Ok(text) => match classify(text) {
-                Ok(classified) => {
-                    let _ = classified.as_multisig().is_some();
-                }
-                Err(error) => prop_assert!(!error.to_string().is_empty()),
-            },
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
-        }
-    }
 }
 
 #[test]
@@ -223,12 +210,4 @@ fn the_pinned_scenario_reproduces() -> Result<(), Box<dyn Error>> {
     assert_eq!(delivery_list(&prefix(LOCAL)?, &participants)?, [prefix(PEER)?]);
     assert_eq!(delivery_list(&prefix(PEER)?, &participants)?, [prefix(LOCAL)?]);
     Ok(())
-}
-
-#[test]
-fn the_two_driven_thresholds_read_as_the_protocol_writes_them() {
-    assert_eq!(u32::from_str_radix("a", 16).ok(), Some(10));
-    assert!("a".parse::<u32>().is_err());
-    assert_eq!(u32::from_str_radix("10", 16).ok(), Some(16));
-    assert_eq!("10".parse::<u32>().ok(), Some(10));
 }

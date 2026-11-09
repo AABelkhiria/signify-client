@@ -371,8 +371,22 @@ proptest! {
         let hex = format!("{sn:x}");
         let agent = agent_state(&hex, "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose")?;
         prop_assert_eq!(agent.sequence_number(), u128::from(sn));
-        prop_assert_eq!(agent.state().sequence_number.as_str(), hex.as_str());
-        let anchor_qb64 = agent.anchor().qb64().ok();
-        prop_assert_eq!(anchor_qb64.as_deref(), agent.state().delegator());
+        // Every parsed coordinate is the one `agent_state` wrote.
+        prop_assert_eq!(
+            agent.prefix().qb64()?,
+            "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        );
+        prop_assert_eq!(
+            agent.said().qb64()?,
+            "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY"
+        );
+        prop_assert_eq!(
+            agent.anchor().qb64()?,
+            "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
+        );
+        prop_assert_eq!(
+            agent.verifier().qb64()?,
+            "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"
+        );
     }
 }

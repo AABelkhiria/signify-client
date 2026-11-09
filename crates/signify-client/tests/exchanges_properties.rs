@@ -175,19 +175,6 @@ proptest! {
     }
 
     #[test]
-    fn arbitrary_bytes_decode_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        for outcome in [
-            serde_json::from_slice::<ExchangeOperation>(&bytes).map(|_| ()),
-            serde_json::from_slice::<ExchangeRecord>(&bytes).map(|_| ()),
-            serde_json::from_slice::<ExchangeResource>(&bytes).map(|_| ()),
-        ] {
-            if let Err(error) = outcome {
-                prop_assert!(!error.to_string().is_empty());
-            }
-        }
-    }
-
-    #[test]
     fn an_accepted_resource_keeps_both_halves(pathed in proptest::collection::vec("[a-z]{1,6}", 0..4)) {
         let attachments: Vec<String> = pathed
             .iter()

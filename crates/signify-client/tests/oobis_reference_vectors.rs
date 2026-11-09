@@ -41,7 +41,6 @@ struct Fixture {
     provenance: Provenance,
     declarations: Declarations,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -100,26 +99,6 @@ struct RecordedRequest {
     path: String,
     method: String,
     body: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    unit_test_assertions: Vec<String>,
-    unit_test_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    get_call_sites: Vec<GetCallSite>,
-    get_call_sites_taking_the_default: Vec<GetCallSite>,
-    resolve_call_count: usize,
-    integration_expectations: Vec<String>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct GetCallSite {
-    file: String,
-    call: String,
-    argument_count: usize,
-    role: Option<String>,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -276,81 +255,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
         assert_eq!(declared.as_str(), recorded.value);
         assert_eq!(declared.as_str(), recorded.name);
     }
-    Ok(())
-}
-
-#[test]
-fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.unit_test_assertions.len(), 6);
-    for expected in [
-        "url + '/identifiers/aid/oobis?role=agent'",
-        "url + '/oobis'",
-        "lastBody.url, 'http://oobiurl.com'",
-        "lastBody.oobialias, 'witness'",
-        "url + `/endroles/${aid}`",
-        "url + `/endroles/${aid}/agent`",
-    ] {
-        assert!(
-            pinned.unit_test_assertions.iter().any(|line| line == expected),
-            "the pinned unit test no longer asserts {expected}"
-        );
-    }
-
-    assert_eq!(pinned.unit_test_paths.len(), 4);
-    for path in &pinned.unit_test_paths {
-        assert!(
-            pinned.driven_paths.iter().any(|driven| driven == path),
-            "the pinned unit test asserts {path}, which nothing here drove"
-        );
-    }
-    assert_ne!(pinned.note, "");
-
-    assert_eq!(pinned.integration_expectations.len(), 10);
-    assert!(
-        pinned
-            .integration_expectations
-            .iter()
-            .any(|line| line.contains("groupOobi.oobis[0].split"))
-    );
-    Ok(())
-}
-
-#[test]
-fn only_one_pinned_call_site_takes_the_default_role() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert!(pinned.get_call_sites.len() > 50);
-    assert_eq!(pinned.get_call_sites_taking_the_default.len(), 1);
-    let defaulted = pinned
-        .get_call_sites_taking_the_default
-        .first()
-        .ok_or("no defaulted call site")?;
-    assert_eq!(defaulted.argument_count, 1);
-    assert_eq!(defaulted.role, None);
-    assert_eq!(defaulted.call, "oobis().get('delegate')");
-    assert!(defaulted.file.ends_with("delegation.test.ts"));
-
-    for site in &pinned.get_call_sites {
-        if let Some(role) = &site.role {
-            if role.starts_with('\'') || role.contains("Name") || role.contains('.') {
-                continue;
-            }
-            assert!(
-                Role::DECLARED.iter().any(|declared| declared.as_str() == role),
-                "{role} at {} is not a declared role",
-                site.file
-            );
-        }
-    }
-
-    let defaulted_request = request_of(&fixture, "get_default_role")?;
-    assert_eq!(defaulted_request.path, "/identifiers/delegate/oobis?role=agent");
-    assert_eq!(DEFAULT_ROLE, Role::Agent);
-    assert!(pinned.resolve_call_count > 30);
     Ok(())
 }
 

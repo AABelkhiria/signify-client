@@ -216,14 +216,15 @@ mod tests {
 
     #[test]
     fn every_variant_displays_and_sources_correctly() {
-        let cases: Vec<(ControllerError, bool)> = vec![
-            (ControllerError::AgentKeyCount { count: 2 }, false),
-            (ControllerError::AgentNextDigestCount { count: 0 }, false),
+        let cases: Vec<(ControllerError, &[&str], bool)> = vec![
+            (ControllerError::AgentKeyCount { count: 1031 }, &["1031"], false),
+            (ControllerError::AgentNextDigestCount { count: 1031 }, &["1031"], false),
             (
                 ControllerError::AgentThresholdNotOne {
                     label: "kt",
-                    value: Some(2),
+                    value: Some(1031),
                 },
+                &["kt", "1031"],
                 false,
             ),
             (
@@ -231,39 +232,73 @@ mod tests {
                     label: "nt",
                     value: None,
                 },
+                &["nt", "weighted"],
                 false,
             ),
-            (ControllerError::AgentNotDelegated { kind: "icp".to_owned() }, false),
-            (ControllerError::MissingDelegatorAnchor, false),
-            (ControllerError::RestoredEventIncomplete { label: "i" }, false),
-            (ControllerError::SequenceNumberOverflow, false),
+            (
+                ControllerError::AgentNotDelegated { kind: "icp".to_owned() },
+                &["\"icp\""],
+                false,
+            ),
+            (
+                ControllerError::RestoredEventIncomplete { label: "di" },
+                &["\"di\""],
+                false,
+            ),
             (
                 ControllerError::InvalidSaltyIdentifier {
                     prefix: "EPRE".to_owned(),
                 },
+                &["salty", "EPRE"],
                 false,
             ),
             (
                 ControllerError::InvalidRandyIdentifier {
                     prefix: "EPRE".to_owned(),
                 },
+                &["randy", "EPRE"],
                 false,
             ),
-            (ControllerError::UnchangedPasscode, false),
-            (ControllerError::StaleRotationPlan, false),
             (
                 ControllerError::UnsupportedKeyManager {
                     prefix: "EPRE".to_owned(),
                     algorithm: "group",
                 },
+                &["EPRE", "group"],
                 false,
             ),
-            (ControllerError::from(ManagerError::NoCurrentKeys), true),
-            (ControllerError::from(EventError::SigningThresholdIsZero), true),
+            (
+                ControllerError::from(ManagerError::NoCurrentKeys),
+                &["an inception named no current keys"],
+                true,
+            ),
+            (ControllerError::from(EventError::SigningThresholdIsZero), &[], true),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
+        for (error, fragments, has_source) in cases {
+            let rendered = error.to_string();
+            for fragment in fragments {
+                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
+            }
             assert_eq!(error.source().is_some(), has_source, "{error}");
+        }
+
+        for (error, expected) in [
+            (ControllerError::MissingDelegatorAnchor, "no anchor to controller AID"),
+            (
+                ControllerError::SequenceNumberOverflow,
+                "the sequence number cannot advance further",
+            ),
+            (
+                ControllerError::UnchangedPasscode,
+                "the new passcode is the same as the current passcode",
+            ),
+            (
+                ControllerError::StaleRotationPlan,
+                "the planned rotation does not follow this controller's current event",
+            ),
+        ] {
+            assert_eq!(error.to_string(), expected);
+            assert!(error.source().is_none());
         }
     }
 }

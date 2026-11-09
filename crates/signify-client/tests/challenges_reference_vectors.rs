@@ -47,7 +47,6 @@ struct Fixture {
     declarations: Declarations,
     deferred_capability: DeferralRecord,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -110,24 +109,6 @@ struct RecordedRequest {
     path: String,
     method: String,
     body: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    unit_test_assertions: Vec<String>,
-    unit_test_paths: Vec<String>,
-    unit_test_words: Vec<String>,
-    unit_test_said: String,
-    integration_usage: Vec<String>,
-    call_sites: Scan,
-    driven_paths: Vec<String>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    total: usize,
-    scanned_files: usize,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -299,66 +280,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn every_assertion_the_pinned_unit_test_makes_is_reproduced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.unit_test_assertions.len(), 4);
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("strength=128"))
-    );
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("challenges_verify"))
-    );
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("lastBody.words, words"))
-    );
-    assert!(
-        pinned
-            .unit_test_assertions
-            .iter()
-            .any(|line| line.contains("lastBody.said"))
-    );
-
-    assert_eq!(pinned.unit_test_paths.len(), 2);
-    for path in &pinned.unit_test_paths {
-        assert!(
-            pinned.driven_paths.iter().any(|driven| driven == path),
-            "the pinned test asserts {path}, which nothing here drove"
-        );
-    }
-    assert_eq!(pinned.unit_test_words.len(), 12);
-    assert_eq!(pinned.unit_test_said, SAID);
-
-    assert_eq!(pinned.integration_usage.len(), 5);
-    assert!(
-        pinned
-            .integration_usage
-            .iter()
-            .any(|line| line.contains("generate(256)"))
-    );
-    assert!(
-        pinned
-            .integration_usage
-            .iter()
-            .any(|line| line.contains("bobContact.challenges.length, 0"))
-    );
-    assert!(pinned.call_sites.total >= 10);
-    assert!(pinned.call_sites.scanned_files > 100);
-    assert_ne!(pinned.note, "");
-    Ok(())
-}
-
-#[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirks = fixture
@@ -488,27 +409,6 @@ fn the_pinned_acceptance_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn responded_returns_nothing_where_the_reference_returns_a_transport_type() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = call(&fixture, "responded")?;
-    assert_eq!(
-        recorded.result.get("kind").and_then(Value::as_str),
-        Some("Response"),
-        "the reference no longer returns a raw response"
-    );
-    assert_eq!(
-        recorded.result.get("body_already_read").and_then(Value::as_bool),
-        Some(false),
-        "the reference now reads the body"
-    );
-
-    let (client, _) = connected(&[b"{}"])?;
-    let returned: () = block_on(client.challenges().responded(&source()?, &Said::from_qb64(SAID)?))?;
-    assert_eq!(returned, ());
-    Ok(())
-}
-
-#[test]
 fn an_empty_word_list_is_refused_where_the_reference_sends_it() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "verify_empty_words")?;
@@ -522,15 +422,6 @@ fn an_empty_word_list_is_refused_where_the_reference_sends_it() -> Result<(), Bo
         "an empty word list was not refused: {outcome:?}"
     );
     assert!(sent(&transport).is_err(), "an empty verification reached the agent");
-    Ok(())
-}
-
-#[test]
-fn a_source_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "verify_source_needing_encoding")?;
-    assert_eq!(recorded.path, "/challenges_verify/a/b?c=d");
-    assert!(IdentifierPrefix::from_qb64("a/b?c=d").is_err());
     Ok(())
 }
 

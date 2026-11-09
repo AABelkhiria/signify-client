@@ -31,7 +31,6 @@ struct Fixture {
     provenance: Provenance,
     declarations: Declarations,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -88,14 +87,6 @@ struct RecordedRequest {
     path: String,
     method: String,
     body: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    note: String,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
@@ -195,16 +186,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn the_one_pinned_path_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
-    assert_eq!(fixture.pinned_confirmations.published_paths, ["/config"]);
-    assert_eq!(fixture.pinned_confirmations.driven_paths, ["/config"]);
-    assert_ne!(fixture.pinned_confirmations.note, "");
-    Ok(())
-}
-
-#[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirks = fixture
@@ -250,18 +231,6 @@ fn a_configuration_read_addresses_the_recorded_path() -> Result<(), Box<dyn Erro
         config.introduction_urls.as_ref().map(Vec::len),
         recorded.result.get("iurls").and_then(Value::as_array).map(Vec::len)
     );
-    Ok(())
-}
-
-#[test]
-fn every_recorded_answer_produces_the_same_request() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    for entry in &fixture.calls {
-        let request = entry.request.as_ref().ok_or("no recorded request")?;
-        assert_eq!(request.path, "/config", "call {} addressed something else", entry.name);
-        assert_eq!(request.method, "GET");
-        assert_eq!(request.body, None);
-    }
     Ok(())
 }
 

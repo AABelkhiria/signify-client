@@ -299,18 +299,27 @@ fn the_two_upstream_formulas_are_one_formula() -> Result<(), Box<dyn Error>> {
     assert_eq!(helper.defaults.get("maxSleep"), Some(&1_000));
     assert_eq!(helper.defaults.get("timeout"), Some(&10_000));
 
+    let default = |name: &str| {
+        helper
+            .defaults
+            .get(name)
+            .copied()
+            .map(Duration::from_millis)
+            .ok_or_else(|| format!("the helper records no {name}"))
+    };
     let policy = RetryPolicy::builder()
-        .base_delay(Duration::from_millis(50))
-        .min_delay(Duration::from_millis(10))
-        .max_delay(Duration::from_secs(1))
-        .deadline(Duration::from_secs(10))
+        .base_delay(default("increaseFactor")?)
+        .min_delay(default("minSleep")?)
+        .max_delay(default("maxSleep")?)
+        .deadline(default("timeout")?)
         .jitter(Jitter::None)
         .max_attempts(64)
         .build()?;
     let delays: Vec<u64> = (0..8)
         .map(|attempt| u64::try_from(policy.delay_for(attempt).as_millis()).unwrap_or(u64::MAX))
         .collect();
-    // The helper's lower ceiling flattens four steps earlier than production's.
+    // The helper's formula evaluated by hand on its defaults: the lower ceiling flattens four
+    // steps earlier than production's.
     assert_eq!(delays, [50, 100, 200, 400, 800, 1000, 1000, 1000]);
     Ok(())
 }
