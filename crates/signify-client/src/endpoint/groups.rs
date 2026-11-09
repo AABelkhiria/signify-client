@@ -343,17 +343,6 @@ mod tests {
     }
 
     #[test]
-    fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
-        // The reference interpolates the alias raw; the fixture records `a/b?c=d` reaching the wire
-        // as two segments and a query.
-        let path = Groups::identifier_path("a/b?c=d", REQUEST_SEGMENT)?;
-        assert_eq!(path.as_str(), "/identifiers/a%2Fb%3Fc%3Dd/multisig/request");
-        assert_eq!(path.path().split('/').count(), 5);
-        assert_eq!(path.query(), None);
-        Ok(())
-    }
-
-    #[test]
     fn the_pinned_read_value_is_not_a_said() {
         // Forty-six characters where a qualified digest is forty-four.
         assert_eq!(PINNED_SAID.len(), 46);

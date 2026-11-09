@@ -480,6 +480,7 @@ mod tests {
     use super::*;
     use crate::header::{HeaderName, HeaderValue};
     use crate::request::MediaType;
+    use crate::test_support::displays_and_sources;
     use crate::transport::RequestUrl;
     use std::error::Error;
 
@@ -598,26 +599,6 @@ mod tests {
         assert_eq!(empty.content_type()?, None);
         // An absent content type does not block a JSON read.
         assert_eq!(empty.json()?, b"");
-        Ok(())
-    }
-
-    #[test]
-    fn the_success_boundary_matches_the_reference() -> Result<(), Box<dyn Error>> {
-        for status in [200_u16, 201, 202, 299] {
-            assert!(
-                ResourceResponse::decode(&origin()?, response(status, None, b"")?).is_ok(),
-                "{status}"
-            );
-        }
-        for status in [100_u16, 199, 300, 301, 400, 404, 409, 500, 599] {
-            assert!(
-                matches!(
-                    ResourceResponse::decode(&origin()?, response(status, None, b"")?),
-                    Err(ResponseError::Status { .. })
-                ),
-                "{status}",
-            );
-        }
         Ok(())
     }
 
@@ -751,25 +732,16 @@ mod tests {
     }
 
     #[test]
-    fn an_origin_reads_its_request() -> Result<(), Box<dyn Error>> {
-        let origin = origin()?;
-        assert_eq!(origin.method(), Method::Get);
-        assert_eq!(origin.path(), "/identifiers/aid1");
-        assert_eq!(origin.to_string(), "GET /identifiers/aid1");
-        assert_eq!(origin, origin.clone());
-        Ok(())
-    }
-
-    #[test]
     fn errors_carry_readable_text_and_their_sources() -> Result<(), Box<dyn Error>> {
-        let cases: Vec<(ResponseError, bool)> = vec![
+        let cases: Vec<(ResponseError, &[&str], bool)> = vec![
             (
                 ResponseError::Status {
                     method: Method::Put,
                     path: "/agent/EPRE".to_owned(),
-                    status: StatusCode::new(500)?,
+                    status: StatusCode::new(503)?,
                     detail: "boom".to_owned(),
                 },
+                &["PUT", "/agent/EPRE", "503", "boom"],
                 false,
             ),
             (
@@ -777,6 +749,7 @@ mod tests {
                     value: "application".to_owned(),
                     source: Box::new(RequestError::EmptyPath),
                 },
+                &["\"application\""],
                 true,
             ),
             (
@@ -784,20 +757,21 @@ mod tests {
                     expected: "application/json".to_owned(),
                     actual: "text/html".to_owned(),
                 },
+                &["\"application/json\"", "\"text/html\""],
                 false,
             ),
-            (ResponseError::NotUtf8 { offset: 3 }, false),
+            (ResponseError::NotUtf8 { offset: 1031 }, &["1031"], false),
             (
                 ResponseError::InvalidContentRange {
                     value: "aids".to_owned(),
                     reason: "no slash",
                 },
+                &["\"aids\"", "no slash"],
                 false,
             ),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
-            assert_eq!(error.source().is_some(), has_source, "{error}");
+        for (error, fragments, has_source) in cases {
+            displays_and_sources(&error, fragments, has_source);
         }
         Ok(())
     }

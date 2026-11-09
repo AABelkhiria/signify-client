@@ -404,90 +404,15 @@ mod tests {
     use std::error::Error;
 
     use crate::manager::ManagerError;
+    use crate::test_support::{agent, ephemeral_controller};
     use keri_protocol::event::kind::EventKind;
 
     /// The passcode the pinned `controller.test.ts` uses.
     const PASSCODE: &str = "0123456789abcdefghijk";
 
-    fn ephemeral(passcode: &str) -> Result<Controller, Box<dyn Error>> {
-        Ok(Controller::with_options(
-            passcode,
-            SecurityTier::Low,
-            ControllerOptions {
-                derivation_cost: DerivationCost::Ephemeral,
-                ..ControllerOptions::default()
-            },
-        )?)
-    }
-
-    fn mock_agent(sequence_number_hex: &str) -> Result<crate::controller::Agent, Box<dyn Error>> {
-        let state: keria_types::api::KeyState = serde_json::from_value(serde_json::json!({
-            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "s": sequence_number_hex,
-            "p": "",
-            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "f": "0",
-            "dt": "2023-12-01T10:05:25.062609+00:00",
-            "et": "dip",
-            "kt": "1",
-            "k": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
-            "nt": "1",
-            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-            "bt": "0",
-            "b": [],
-            "c": [],
-            "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
-            "di": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
-        }))?;
-        Ok(crate::controller::Agent::from_key_state(state)?)
-    }
-
-    #[test]
-    fn the_pinned_controller_prefixes_are_reproduced() -> Result<(), Box<dyn Error>> {
-        // The two pinned `controller.test.ts` cases, at the production Argon2 cost the reference
-        // hardcodes.
-        let controller = Controller::new(PASSCODE, SecurityTier::Low)?;
-        assert_eq!(
-            controller.prefix().qb64()?,
-            "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
-        );
-        let controller = Controller::new("abcdefghijk0123456789", SecurityTier::Low)?;
-        assert_eq!(
-            controller.prefix().qb64()?,
-            "EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn the_inception_matches_the_reference_shape() -> Result<(), Box<dyn Error>> {
-        let controller = ephemeral(PASSCODE)?;
-        let sad = controller.current_event().sad();
-        assert_eq!(sad.get_text("t"), Some(EventKind::Inception.as_str()));
-        assert_eq!(sad.get_text("s"), Some("0"));
-        assert_eq!(sad.get_text("kt"), Some("1"));
-        assert_eq!(sad.get_text("nt"), Some("1"));
-        assert_eq!(sad.get_text("bt"), Some("0"));
-        assert_eq!(controller.current_keys().len(), 1);
-        assert_eq!(controller.next_digests().len(), 1);
-        assert!(controller.prefix().is_digestive());
-        assert_eq!(controller.current_said().qb64()?, controller.prefix().qb64()?);
-        assert_eq!(controller.current_sequence_number(), 0);
-        assert_eq!(controller.tier(), SecurityTier::Low);
-        assert_eq!(controller.rotation_index(), 0);
-        // The event's key is the controller's key, and its digest commits to the next signer.
-        assert_eq!(
-            sad.get("k"),
-            Some(&SadValue::Array(vec![SadValue::text(
-                controller.current_keys().first().map_or("", String::as_str)
-            )]))
-        );
-        Ok(())
-    }
-
     #[test]
     fn a_rotation_index_moves_the_whole_key_chain() -> Result<(), Box<dyn Error>> {
-        let base = ephemeral(PASSCODE)?;
+        let base = ephemeral_controller(PASSCODE)?;
         let advanced = Controller::with_options(
             PASSCODE,
             SecurityTier::Low,
@@ -507,30 +432,11 @@ mod tests {
     }
 
     #[test]
-    fn restore_rebuilds_the_inception_at_sequence_zero() -> Result<(), Box<dyn Error>> {
-        let controller = ephemeral(PASSCODE)?;
-        let inception_raw = controller.current_event().raw().to_vec();
-
-        // The reference's rule: an establishment event at sequence zero is not adopted.
-        let restored = Controller::restore(
-            PASSCODE,
-            SecurityTier::Low,
-            ControllerOptions {
-                derivation_cost: DerivationCost::Ephemeral,
-                ..ControllerOptions::default()
-            },
-            SerializedEvent::parse(&inception_raw)?,
-        )?;
-        assert_eq!(restored.current_event().raw(), inception_raw.as_slice());
-        Ok(())
-    }
-
-    #[test]
     fn restore_adopts_a_later_establishment_event_unchecked() -> Result<(), Box<dyn Error>> {
         // Any event past sequence zero is adopted as found — even one that belongs to different
         // keys, because the reference performs no ownership check.
-        let mut other = ephemeral("abcdefghijk0123456789")?;
-        other.approve_delegation(&mock_agent("0")?)?;
+        let mut other = ephemeral_controller("abcdefghijk0123456789")?;
+        other.approve_delegation(&agent("0")?)?;
         let foreign = SerializedEvent::parse(other.current_event().raw())?;
         let foreign_raw = foreign.raw().to_vec();
 
@@ -574,9 +480,9 @@ mod tests {
 
     #[test]
     fn approving_a_delegation_anchors_the_agent_and_advances_the_log() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral(PASSCODE)?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let inception_said = controller.current_said();
-        let agent = mock_agent("a")?;
+        let agent = agent("a")?;
 
         let signature = controller.approve_delegation(&agent)?;
         let sad = controller.current_event().sad();
@@ -614,7 +520,7 @@ mod tests {
 
     #[test]
     fn the_signed_event_verifies_against_the_controller_key() -> Result<(), Box<dyn Error>> {
-        let controller = ephemeral(PASSCODE)?;
+        let controller = ephemeral_controller(PASSCODE)?;
         let (event, signature) = controller.signed_event()?;
         assert_eq!(event.raw(), controller.current_event().raw());
         assert_eq!(signature.index(), 0);
@@ -644,7 +550,7 @@ mod tests {
 
     #[test]
     fn a_controller_never_prints_its_secrets() -> Result<(), Box<dyn Error>> {
-        let controller = ephemeral(PASSCODE)?;
+        let controller = ephemeral_controller(PASSCODE)?;
         let rendered = format!("{controller:?}");
         assert!(!rendered.contains(PASSCODE));
         assert!(!rendered.contains("0AA0123456789abcdefghijk"));

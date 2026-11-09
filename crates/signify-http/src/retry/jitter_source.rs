@@ -76,11 +76,9 @@ impl JitterSource for FixedJitter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::assert_send_sync;
     use std::collections::HashSet;
     use std::sync::Arc;
-
-    /// Compile-time proof that a value can cross threads.
-    fn assert_send_sync<T: Send + Sync>(_: &T) {}
 
     #[test]
     fn a_fixed_source_is_fixed() {
@@ -108,7 +106,7 @@ mod tests {
             let _ = source.next_u32();
             assert_ne!(format!("{source:?}"), "");
         }
-        assert_send_sync(&sources);
+        assert_send_sync::<[Arc<dyn JitterSource>; 2]>();
         assert_eq!(sources.get(1).map(|source| source.next_u32()), Some(7));
     }
 }

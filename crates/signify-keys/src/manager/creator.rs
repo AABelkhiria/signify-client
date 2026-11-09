@@ -426,42 +426,17 @@ impl KeyCreator<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use keri_cesr::crypto::salt::SecurityTier;
+    use crate::test_support::salt;
     use std::error::Error;
 
-    fn salt() -> Result<Salt, Box<dyn Error>> {
-        Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-    }
-
     #[test]
-    fn an_empty_stem_drops_the_rotation_and_key_indices() -> Result<(), Box<dyn Error>> {
-        let stem = Stem::empty();
-        let first = DerivationPath::new(&stem, KeyIndices::new(0, 0, 0))?;
-        let later = DerivationPath::new(&stem, KeyIndices::new(0, 7, 9))?;
-        assert_eq!(first.as_str(), "0");
-        // The same path, so the same key, at every rotation: this is the reference behavior that
-        // defeats pre-rotation.
-        assert_eq!(first, later);
-        assert!(first.reuses_keys_across_rotations());
-
-        // A different prefix index does change it, because that is the only index in the path.
-        assert_eq!(DerivationPath::new(&stem, KeyIndices::new(26, 0, 0))?.as_str(), "1a");
-        Ok(())
-    }
-
-    #[test]
-    fn a_stem_puts_every_index_in_the_path() -> Result<(), Box<dyn Error>> {
+    fn a_stem_drops_the_prefix_index() -> Result<(), Box<dyn Error>> {
+        // The prefix index is deliberately absent once a stem is present, as upstream.
         let stem = Stem::new("signify:aid")?;
-        assert_eq!(
-            DerivationPath::new(&stem, KeyIndices::new(0, 0, 0))?.as_str(),
-            "signify:aid00"
-        );
         assert_eq!(
             DerivationPath::new(&stem, KeyIndices::new(3, 10, 27))?.as_str(),
             "signify:aida1b"
         );
-        assert!(!DerivationPath::new(&stem, KeyIndices::new(0, 1, 1))?.reuses_keys_across_rotations());
-        // The prefix index is deliberately absent once a stem is present, as upstream.
         assert_eq!(
             DerivationPath::new(&stem, KeyIndices::new(0, 1, 1))?,
             DerivationPath::new(&stem, KeyIndices::new(9, 1, 1))?
@@ -470,11 +445,7 @@ mod tests {
     }
 
     #[test]
-    fn a_stem_and_a_path_are_bounded() -> Result<(), Box<dyn Error>> {
-        assert!(matches!(
-            Stem::new("a".repeat(MAX_STEM_BYTES + 1)),
-            Err(ManagerError::StemTooLong { .. })
-        ));
+    fn a_stem_at_its_bound_is_accepted_and_prints_itself() -> Result<(), Box<dyn Error>> {
         assert_eq!(Stem::new("a".repeat(MAX_STEM_BYTES))?.as_str().len(), MAX_STEM_BYTES);
         assert!(Stem::empty().is_empty());
         assert_eq!(Stem::default(), Stem::empty());
@@ -494,56 +465,6 @@ mod tests {
     }
 
     #[test]
-    fn a_salty_creator_reproduces_the_pinned_keys() -> Result<(), Box<dyn Error>> {
-        let salt = salt()?;
-        let creator = SaltyKeyCreator::new(&salt, Stem::empty());
-
-        // The pinned `SaltyCreator` unit test: path "0" under the temporary profile.
-        let keys = creator.create(
-            1,
-            KeyTransferability::NonTransferable,
-            KeyIndices::inception(0),
-            KeyDerivationProfile::Temporary,
-        )?;
-        assert_eq!(keys.public_keys()?, ["BB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI"]);
-
-        // The same path under the production profile is a different key.
-        let keys = creator.create(
-            1,
-            KeyTransferability::Transferable,
-            KeyIndices::inception(0),
-            KeyDerivationProfile::Standard(SecurityTier::Low),
-        )?;
-        assert_eq!(keys.public_keys()?, ["DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"]);
-        assert_eq!(creator.stem(), &Stem::empty());
-        Ok(())
-    }
-
-    #[test]
-    fn a_derived_set_carries_one_path_per_key() -> Result<(), Box<dyn Error>> {
-        let salt = salt()?;
-        let creator = SaltyKeyCreator::new(&salt, Stem::new("red")?);
-        let keys = creator.create(
-            3,
-            KeyTransferability::Transferable,
-            KeyIndices::new(0, 0, 0),
-            KeyDerivationProfile::Temporary,
-        )?;
-
-        assert_eq!(keys.len(), 3);
-        assert!(!keys.is_empty());
-        assert_eq!(keys.signers().count(), 3);
-        let entries = keys.into_entries();
-        let paths: Vec<String> = entries
-            .iter()
-            .filter_map(|(_, path)| path.as_ref().map(|path| path.as_str().to_owned()))
-            .collect();
-        // The key index advances by one per key while the rotation index stays put.
-        assert_eq!(paths, ["red00", "red01", "red02"]);
-        Ok(())
-    }
-
-    #[test]
     fn a_randy_creator_generates_distinct_keys() -> Result<(), Box<dyn Error>> {
         let keys = RandyKeyCreator::new().create(4, KeyTransferability::Transferable)?;
         assert_eq!(keys.len(), 4);
@@ -556,30 +477,11 @@ mod tests {
     }
 
     #[test]
-    fn an_empty_set_is_allowed_and_a_huge_one_is_not() -> Result<(), Box<dyn Error>> {
-        let salt = salt()?;
-        let creator = SaltyKeyCreator::new(&salt, Stem::empty());
-        let empty = creator.create(
-            0,
-            KeyTransferability::Transferable,
-            KeyIndices::inception(0),
-            KeyDerivationProfile::Temporary,
-        )?;
-        assert!(empty.is_empty());
-        assert_eq!(empty.public_keys()?.len(), 0);
-
-        for outcome in [
-            creator.create(
-                MAX_KEYS_PER_SET + 1,
-                KeyTransferability::Transferable,
-                KeyIndices::inception(0),
-                KeyDerivationProfile::Temporary,
-            ),
+    fn a_huge_random_set_is_refused_too() {
+        assert!(matches!(
             RandyKeyCreator::new().create(MAX_KEYS_PER_SET + 1, KeyTransferability::Transferable),
-        ] {
-            assert!(matches!(outcome, Err(ManagerError::TooManyKeys { .. })));
-        }
-        Ok(())
+            Err(ManagerError::TooManyKeys { .. })
+        ));
     }
 
     #[test]

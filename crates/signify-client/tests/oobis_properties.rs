@@ -2,8 +2,11 @@
 //!
 //! Four raw-interpolated values that can never reshape an address, and an OOBI preserved byte for byte.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::prefixes;
 use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::{EndRole, Oobi, Role};
 use proptest::prelude::*;
@@ -16,12 +19,6 @@ use signify_http::request::ResourcePath;
 use signify_http::transport::RequestUrl;
 
 const GROUP_AID: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
-
-fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
-    "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
-        IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
-    })
-}
 
 fn hostile_text() -> impl Strategy<Value = String> {
     prop_oneof![

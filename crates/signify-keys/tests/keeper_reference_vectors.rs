@@ -5,12 +5,14 @@
 //! client holds. Random keys cannot be pinned and are checked by shape; sealed values are recorded
 //! by what they open to, because a sealed box draws a fresh ephemeral key every call.
 
+mod support;
+
 use std::error::Error;
 
-use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
+use crate::support::{key_digest, member_habitat, transferability};
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::SignaturePlacement;
-use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
+use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
 use signify_keys::manager::keeper::salty::{SaltyKeeperConfig, SaltySource};
 use signify_keys::manager::{
@@ -128,7 +130,6 @@ struct RandyShape {
     sealed_key_code: String,
     sealed_key_count: usize,
     sealed_next_count: usize,
-    params_keys: Vec<String>,
     current_only_index: u32,
     current_only_ondex: Option<u32>,
     rotation_promotes_next_keys: bool,
@@ -237,14 +238,6 @@ fn walk_keeper(fixture: &Fixture, config: SaltyKeeperConfig) -> Result<SaltyKeep
         SaltySource::Passcode(fixture.provenance.passcode.clone().into()),
         config,
     )?)
-}
-
-fn transferability(transferable: bool) -> KeyTransferability {
-    if transferable {
-        KeyTransferability::Transferable
-    } else {
-        KeyTransferability::NonTransferable
-    }
 }
 
 #[test]
@@ -464,8 +457,6 @@ fn the_randy_keeper_matches_the_recorded_shape() -> Result<(), Box<dyn Error>> {
         state.encrypted_signing_keys.first().map(|key| key[..1].to_owned()),
         Some(shape.sealed_key_code.clone())
     );
-    // The reference's record also carries a transferability; the KERIA schema has no field for it.
-    assert_eq!(shape.params_keys, ["nxts", "prxs", "transferable"]);
 
     // A current-only placement survives the randy path too.
     let signatures = keeper.sign(
@@ -514,11 +505,8 @@ fn the_group_keeper_places_signatures_where_the_reference_places_them() -> Resul
     let digests: Vec<String> = keys
         .iter()
         .take(3)
-        .map(|key| {
-            let verifier = VerificationKey::from_qb64(key)?;
-            Ok(Digest::derive(DigestAlgorithm::Blake3_256, &verifier.qb64_bytes()?).qb64()?)
-        })
-        .collect::<Result<_, Box<dyn Error>>>()?;
+        .map(|key| key_digest(key))
+        .collect::<Result<_, _>>()?;
     assert_eq!(digests, fixture.group.fixture.prior_next_digests);
 
     for case in &fixture.group.cases {
@@ -528,7 +516,7 @@ fn the_group_keeper_places_signatures_where_the_reference_places_them() -> Resul
             .ok_or("the fixture has too few digests")?;
         let group = GroupKeeper::new(
             member_keeper(&fixture)?,
-            member_habitat(key, digest)?,
+            member_habitat("member", key, digest)?,
             keys.iter().take(3).cloned().collect(),
             digests.clone(),
         );
@@ -571,7 +559,7 @@ fn the_group_keeper_places_signatures_where_the_reference_places_them() -> Resul
     let digest = digests.first().ok_or("the fixture has too few digests")?;
     let group = GroupKeeper::new(
         member_keeper(&fixture)?,
-        member_habitat(key, digest)?,
+        member_habitat("member", key, digest)?,
         keys.iter().take(3).cloned().collect(),
         digests.clone(),
     );
@@ -600,14 +588,6 @@ fn member_keeper(fixture: &Fixture) -> Result<Box<dyn IdentifierKeeper>, Box<dyn
     )?;
     keeper.incept(KeyTransferability::Transferable)?;
     Ok(Box::new(keeper))
-}
-
-/// A member identifier record naming one signing key and one committed-to digest.
-fn member_habitat(key: &str, next_digest: &str) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
-    let document = format!(
-        r#"{{"name":"member","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
-    );
-    Ok(serde_json::from_str(&document)?)
 }
 
 #[test]

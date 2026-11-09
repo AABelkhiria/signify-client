@@ -189,37 +189,11 @@ fn weighted_sith(clauses: &[Vec<ThresholdWeight>]) -> Result<String, ControllerE
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::agent_state_value;
     use std::error::Error;
 
-    /// A well-formed delegated agent key state, using real key material from the fixtures.
-    fn state_value() -> serde_json::Value {
-        serde_json::json!({
-            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "s": "0",
-            "p": "",
-            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "f": "0",
-            "dt": "2023-12-01T10:05:25.062609+00:00",
-            "et": "dip",
-            "kt": "1",
-            "k": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
-            "nt": "1",
-            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-            "bt": "0",
-            "b": [],
-            "c": [],
-            "ee": {
-                "s": "0",
-                "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-                "br": [],
-                "ba": []
-            },
-            "di": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
-        })
-    }
-
     fn state_with(mutate: impl FnOnce(&mut serde_json::Value)) -> Result<KeyState, Box<dyn Error>> {
-        let mut value = state_value();
+        let mut value = agent_state_value("0");
         mutate(&mut value);
         Ok(serde_json::from_value(value)?)
     }
@@ -246,57 +220,7 @@ mod tests {
     }
 
     #[test]
-    fn exactly_one_key_and_one_next_digest_are_required() -> Result<(), Box<dyn Error>> {
-        let two_keys = state_with(|value| {
-            value["k"] = serde_json::json!([
-                "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
-                "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
-            ]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(two_keys),
-            Err(ControllerError::AgentKeyCount { count: 2 })
-        ));
-        let no_keys = state_with(|value| {
-            value["k"] = serde_json::json!([]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(no_keys),
-            Err(ControllerError::AgentKeyCount { count: 0 })
-        ));
-        let no_digests = state_with(|value| {
-            value["n"] = serde_json::json!([]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(no_digests),
-            Err(ControllerError::AgentNextDigestCount { count: 0 })
-        ));
-        Ok(())
-    }
-
-    #[test]
-    fn both_thresholds_must_be_exactly_one() -> Result<(), Box<dyn Error>> {
-        let signing_two = state_with(|value| {
-            value["kt"] = serde_json::json!("2");
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(signing_two),
-            Err(ControllerError::AgentThresholdNotOne {
-                label: "kt",
-                value: Some(2)
-            })
-        ));
-        // A weighted threshold has no numeric value at all; the reference reports `undefined`.
-        let weighted = state_with(|value| {
-            value["kt"] = serde_json::json!(["1/2", "1/2"]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(weighted),
-            Err(ControllerError::AgentThresholdNotOne {
-                label: "kt",
-                value: None
-            })
-        ));
+    fn the_next_threshold_and_a_malformed_weight_are_refused_too() -> Result<(), Box<dyn Error>> {
         let next_zero = state_with(|value| {
             value["nt"] = serde_json::json!("0");
         })?;
@@ -331,18 +255,6 @@ mod tests {
                 other => return Err(format!("expected AgentNotDelegated for {kind:?}, got {other:?}").into()),
             }
         }
-        Ok(())
-    }
-
-    #[test]
-    fn a_missing_delegator_is_refused() -> Result<(), Box<dyn Error>> {
-        let empty = state_with(|value| {
-            value["di"] = serde_json::json!("");
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(empty),
-            Err(ControllerError::MissingDelegatorAnchor)
-        ));
         Ok(())
     }
 

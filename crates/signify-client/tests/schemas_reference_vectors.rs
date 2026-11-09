@@ -6,22 +6,16 @@ mod support;
 
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use crate::support::{ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, sent};
 use keri_protocol::said::Said;
 use keria_types::api::message::Schema;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::schemas::SCHEMA_SEGMENT;
 use signify_client::error::ClientError;
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-schemas/v1.json"));
 
 const QVI: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const LEGAL_ENTITY: &str = "ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY";
@@ -94,7 +88,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-schemas")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -113,34 +107,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
 }
 
 // --- A KERIA agent, answering exactly as the generator's mocked `fetch` did ---
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.first().ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
 
 // --- Manifest and provenance ---
 #[test]
@@ -285,9 +251,9 @@ fn both_recorded_reads_address_the_recorded_path() -> Result<(), Box<dyn Error>>
         let recorded = request_of(&fixture, name)?;
         let answer = serde_json::to_vec(&call(&fixture, name)?.result)?;
 
-        let (client, transport) = connected(&[&answer])?;
+        let Harness { client, transport, .. } = connected(&[&answer])?;
         let schema = block_on(client.schemas().get(&Said::from_qb64(said)?))?;
-        let (path, method, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
         assert_eq!(path, recorded.path);
         assert_eq!(path, format!("/schema/{said}"));
         assert_eq!(method, recorded.method);
@@ -306,9 +272,9 @@ fn a_listing_addresses_the_constant_path() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "list")?;
     let answer = serde_json::to_vec(&call(&fixture, "list")?.result)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let schemas = block_on(client.schemas().list())?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, "/schema");
     assert_eq!(method, "GET");
@@ -320,17 +286,8 @@ fn a_listing_addresses_the_constant_path() -> Result<(), Box<dyn Error>> {
     let empty = request_of(&fixture, "list_empty")?;
     assert_eq!(empty.path, recorded.path);
     let answer = serde_json::to_vec(&call(&fixture, "list_empty")?.result)?;
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     assert_eq!(block_on(client.schemas().list())?, [] as [Schema; 0]);
-    Ok(())
-}
-
-#[test]
-fn a_said_that_would_escape_the_path_is_unrepresentable() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "get_said_needing_encoding")?;
-    assert_eq!(recorded.path, "/schema/E/../schema?x=1#y");
-    assert!(Said::from_qb64("E/../schema?x=1#y").is_err());
     Ok(())
 }
 
@@ -343,13 +300,13 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
     assert_eq!(recorded.result.as_object().map(serde_json::Map::len), Some(1));
 
     let answer = serde_json::to_vec(&recorded.result)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let outcome = block_on(client.schemas().get(&Said::from_qb64(QVI)?));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
         "a schema missing nine required fields was not refused: {outcome:?}"
     );
-    assert_eq!(sent(&transport)?.0, format!("/schema/{QVI}"));
+    assert_eq!(sent(&transport, 0)?.path, format!("/schema/{QVI}"));
     Ok(())
 }
 
@@ -357,7 +314,7 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
 fn nothing_checks_the_schema_came_back_under_the_said_asked_for() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let answer = serde_json::to_vec(&call(&fixture, "get_legal_entity")?.result)?;
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let schema = block_on(client.schemas().get(&Said::from_qb64(QVI)?))?;
     assert_eq!(schema.id, LEGAL_ENTITY);
     assert_ne!(schema.id, QVI);

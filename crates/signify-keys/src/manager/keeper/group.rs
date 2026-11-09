@@ -218,13 +218,14 @@ impl IdentifierKeeper for GroupKeeper {
 mod tests {
     use super::*;
     use crate::manager::keeper::salty::{SaltyKeeper, SaltyKeeperConfig, SaltySource};
+    use crate::test_support::{key_digest, member_state, member_state_json, salt};
     use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
     use std::error::Error;
 
     /// Builds the member set the pinned `keeping.test.ts` builds: four keys derived at
     /// `member-{index}` with the temporary profile, and digests over the first three.
     fn group_fixture() -> Result<(Vec<String>, Vec<String>), Box<dyn Error>> {
-        let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?;
+        let salt = salt()?;
         let mut keys = Vec::new();
         for index in 0..4 {
             let signer = salt.derive_signer_with_profile(
@@ -237,24 +238,22 @@ mod tests {
         let digests = keys
             .iter()
             .take(3)
-            .map(|key| {
-                let verifier = VerificationKey::from_qb64(key)?;
-                Ok(Digest::derive(DigestAlgorithm::Blake3_256, &verifier.qb64_bytes()?).qb64()?)
-            })
-            .collect::<Result<Vec<String>, Box<dyn Error>>>()?;
+            .map(|key| key_digest(key))
+            .collect::<Result<Vec<String>, _>>()?;
         Ok((keys, digests))
     }
 
     /// A member habitat whose key state names one signing key.
     fn member_habitat(key: &str, next_digest: &str) -> Result<AcceptedHab, Box<dyn Error>> {
+        let state = member_state_json("EMEM", key, next_digest);
         let document = format!(
-            r#"{{"name":"member","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
+            r#"{{"name":"member","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{state}}}"#
         );
         Ok(serde_json::from_str(&document)?)
     }
 
     fn member_keeper() -> Result<Box<dyn IdentifierKeeper>, Box<dyn Error>> {
-        let salt = Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?;
+        let salt = salt()?;
         let sealing_key =
             salt.derive_signer_with_profile("", KeyTransferability::Transferable, KeyDerivationProfile::Temporary)?;
         let encrypter = keri_cesr::crypto::cipher::Encrypter::from_verification_key(sealing_key.verifier())?;
@@ -272,83 +271,6 @@ mod tests {
         )?;
         keeper.incept(KeyTransferability::Transferable)?;
         Ok(Box::new(keeper))
-    }
-
-    #[test]
-    fn a_rotation_signature_exposes_the_prior_next_position() -> Result<(), Box<dyn Error>> {
-        // The pinned test's first case: the member holds the key at position two.
-        let (keys, digests) = group_fixture()?;
-        let key = keys.get(2).ok_or("the fixture has too few keys")?;
-        let digest = digests.get(2).ok_or("the fixture has too few digests")?;
-        let group = GroupKeeper::new(
-            member_keeper()?,
-            member_habitat(key, digest)?,
-            keys.iter().take(3).cloned().collect(),
-            digests.clone(),
-        );
-
-        assert_eq!(group.algorithm(), KeyAlgorithm::Group);
-        let signatures = group.sign(
-            b"not a keri event",
-            &SignatureForm::IndexedByPosition,
-            SigningPurpose::Rotation,
-        )?;
-        let ManagedSignatures::Indexed(indexed) = &signatures else {
-            return Err("a group signature was not indexed".into());
-        };
-        let signature = indexed.first().ok_or("no signature was produced")?;
-        // The reference asserts the member keeper is called with index 2 and prior index 2.
-        assert_eq!(signature.index(), 2);
-        assert_eq!(signature.other_index(), Some(2));
-        Ok(())
-    }
-
-    #[test]
-    fn a_current_signature_exposes_no_prior_position() -> Result<(), Box<dyn Error>> {
-        // The pinned test's second case: the member holds the key at position zero.
-        let (keys, digests) = group_fixture()?;
-        let key = keys.first().ok_or("the fixture has too few keys")?;
-        let digest = digests.first().ok_or("the fixture has too few digests")?;
-        let group = GroupKeeper::new(
-            member_keeper()?,
-            member_habitat(key, digest)?,
-            keys.iter().take(3).cloned().collect(),
-            digests.clone(),
-        );
-
-        let signatures = group.sign(
-            b"not a keri event",
-            &SignatureForm::IndexedByPosition,
-            SigningPurpose::Current,
-        )?;
-        let ManagedSignatures::Indexed(indexed) = &signatures else {
-            return Err("a group signature was not indexed".into());
-        };
-        let signature = indexed.first().ok_or("no signature was produced")?;
-        // The reference asserts index 0 and an explicitly absent prior index.
-        assert_eq!(signature.index(), 0);
-        assert_eq!(signature.other_index(), None);
-        Ok(())
-    }
-
-    #[test]
-    fn a_member_outside_the_signing_keys_cannot_sign() -> Result<(), Box<dyn Error>> {
-        let (keys, digests) = group_fixture()?;
-        // The fourth key is deliberately not among the group's three signing keys.
-        let key = keys.get(3).ok_or("the fixture has too few keys")?;
-        let digest = digests.first().ok_or("the fixture has too few digests")?;
-        let group = GroupKeeper::new(
-            member_keeper()?,
-            member_habitat(key, digest)?,
-            keys.iter().take(3).cloned().collect(),
-            digests.clone(),
-        );
-
-        assert!(matches!(
-            group.sign(b"payload", &SignatureForm::IndexedByPosition, SigningPurpose::Current),
-            Err(ManagerError::MemberNotInSigningKeys { .. })
-        ));
-        Ok(())
     }
 
     #[test]
@@ -419,8 +341,8 @@ mod tests {
         let states: Vec<keria_types::api::KeyState> = keys
             .iter()
             .take(3)
-            .map(|key| key_state(key, digest))
-            .collect::<Result<_, Box<dyn Error>>>()?;
+            .map(|key| member_state("EMEM", key, digest))
+            .collect::<Result<_, _>>()?;
         let rotated = group.rotate(KeeperRotation {
             next_key_count: 3,
             transferability: KeyTransferability::Transferable,
@@ -443,13 +365,6 @@ mod tests {
             Some(0)
         );
         Ok(())
-    }
-
-    fn key_state(key: &str, next_digest: &str) -> Result<keria_types::api::KeyState, Box<dyn Error>> {
-        let document = format!(
-            r#"{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}"#
-        );
-        Ok(serde_json::from_str(&document)?)
     }
 
     #[test]

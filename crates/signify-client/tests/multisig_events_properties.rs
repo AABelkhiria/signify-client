@@ -2,21 +2,46 @@
 //!
 //! What one member announces is what another reads, including a witness threshold's JSON type.
 
+mod support;
+
 use std::error::Error;
 
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource, RotationRecord};
+use crate::support::classify;
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use proptest::prelude::*;
 use signify_client::endpoint::exchanges::{
-    ClassifiedExchange, GROUP_LABEL, MultisigRoute, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
+    ClassifiedExchange, ExchangeRoute, GROUP_LABEL, MultisigRoute, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
 };
+use signify_client::error::ClientError;
 use signify_client::multisig::{
     INCEPTION_ROUTE, INCEPTION_SLOT, INTERACTION_ROUTE, INTERACTION_SLOT, ROTATION_ROUTE, ROTATION_SLOT,
 };
+use signify_keys::acdc::ipex::IpexRoute;
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";
 const DIGEST: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
+
+/// The route table, spelled out rather than read from the type under test.
+const ROUTE_TABLE: [(&str, ExchangeRoute); 13] = [
+    ("/multisig/icp", ExchangeRoute::Multisig(MultisigRoute::Inception)),
+    ("/multisig/rot", ExchangeRoute::Multisig(MultisigRoute::Rotation)),
+    ("/multisig/ixn", ExchangeRoute::Multisig(MultisigRoute::Interaction)),
+    ("/multisig/rpy", ExchangeRoute::Multisig(MultisigRoute::Reply)),
+    (
+        "/multisig/vcp",
+        ExchangeRoute::Multisig(MultisigRoute::RegistryInception),
+    ),
+    ("/multisig/iss", ExchangeRoute::Multisig(MultisigRoute::Issuance)),
+    ("/multisig/exn", ExchangeRoute::Multisig(MultisigRoute::Exchange)),
+    ("/multisig/rev", ExchangeRoute::Multisig(MultisigRoute::Revocation)),
+    ("/ipex/grant", ExchangeRoute::Ipex(IpexRoute::Grant)),
+    ("/ipex/offer", ExchangeRoute::Ipex(IpexRoute::Offer)),
+    ("/ipex/apply", ExchangeRoute::Ipex(IpexRoute::Apply)),
+    ("/ipex/agree", ExchangeRoute::Ipex(IpexRoute::Agree)),
+    ("/ipex/admit", ExchangeRoute::Ipex(IpexRoute::Admit)),
+];
 
 const ROUNDS: [(&str, &str); 3] = [
     (INCEPTION_ROUTE, INCEPTION_SLOT),
@@ -44,10 +69,11 @@ fn listing(route: &str, slot: &str, witness_threshold: &str) -> String {
     format!(r#"[{{"exn":{exn},"paths":{{}},"groupName":"multisig","memberName":"member1","sender":"{LOCAL}"}}]"#)
 }
 
-fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
-    let decoded: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
-    let entry = decoded.first().ok_or("empty listing")?;
-    Ok(ClassifiedExchange::try_from(entry)?)
+fn classify_typed(document: &str) -> Result<Result<ClassifiedExchange, ClientError>, TestCaseError> {
+    let decoded: Vec<MultisigExchangeResource> =
+        serde_json::from_str(document).map_err(|error| TestCaseError::fail(error.to_string()))?;
+    let entry = decoded.first().ok_or_else(|| TestCaseError::fail("empty listing"))?;
+    Ok(ClassifiedExchange::try_from(entry))
 }
 
 fn threshold_of(classified: &ClassifiedExchange) -> Result<String, TestCaseError> {
@@ -98,16 +124,27 @@ proptest! {
     }
 
     #[test]
-    fn a_threshold_that_is_not_a_whole_number_is_refused(
-        written in prop::sample::select(vec!["true", "null", "[]", "{}", "-1", "1.5", "\"\"", "\" 2\""]),
+    fn a_threshold_that_is_neither_text_nor_a_whole_number_is_refused(
+        written in prop_oneof![
+            prop::sample::select(vec!["true", "null", "[]", "{}", "-1", "1.5", "1e3", "\"\"", "\" 2\""])
+                .prop_map(str::to_owned),
+            (0_u32..=4096).prop_map(|number| number.to_string()),
+            "[0-9a-f]{1,4}".prop_map(|text| format!("\"{text}\"")),
+        ],
     ) {
-        let document = listing(ROTATION_ROUTE, ROTATION_SLOT, written);
-        match classify(&document) {
-            Ok(classified) => {
-                prop_assert!(written.starts_with('"'), "{} was accepted as a threshold", written);
-                let _ = threshold_of(&classified)?;
+        let parsed: serde_json::Value = serde_json::from_str(&written)
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let expected = match &parsed {
+            serde_json::Value::Number(number) => number.as_u64().map(|whole| whole.to_string()),
+            serde_json::Value::String(text) => Some(text.clone()),
+            _ => None,
+        };
+        match (classify_typed(&listing(ROTATION_ROUTE, ROTATION_SLOT, &written))?, expected) {
+            (Ok(classified), Some(expected)) => prop_assert_eq!(threshold_of(&classified)?, expected),
+            (Err(ClientError::Api { .. }), None) => {}
+            (outcome, expected) => {
+                return Err(TestCaseError::fail(format!("{written} read as {outcome:?}, expected {expected:?}")));
             }
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
         }
     }
 
@@ -136,15 +173,42 @@ proptest! {
     }
 
     #[test]
-    fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        match core::str::from_utf8(&bytes) {
-            Ok(text) => match classify(text) {
-                Ok(classified) => {
-                    let _ = classified.as_multisig().is_some();
-                }
-                Err(error) => prop_assert!(!error.to_string().is_empty()),
-            },
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
+    fn a_listing_classifies_as_the_route_it_carries(
+        route in prop_oneof![
+            prop::sample::select(ROUTE_TABLE.map(|(text, _)| text).to_vec()).prop_map(str::to_owned),
+            "/[a-z]{1,8}/[a-z]{1,8}",
+        ],
+        slot in prop::sample::select(vec!["icp", "rot", "ixn", "rpy", "vcp", "acdc", "rev", "exn"]),
+        grouped in any::<bool>(),
+    ) {
+        let mut document = listing(&route, slot, r#""2""#);
+        if !grouped {
+            document = document.replace(&format!(r#""{GROUP_LABEL}":"{GROUP}","#), "");
+        }
+        let input: serde_json::Value = serde_json::from_str(&document)
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let carried = input
+            .pointer("/0/exn/r")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| TestCaseError::fail("the listing carries no route"))?;
+        let named = ROUTE_TABLE.iter().find(|(text, _)| *text == carried).map(|(_, route)| *route);
+
+        match (classify_typed(&document)?, named) {
+            (Ok(classified), Some(expected)) => prop_assert_eq!(classified.route(), Some(expected)),
+            (Ok(ClassifiedExchange::Other { route: other }), None) => prop_assert_eq!(other.as_str(), carried),
+            (
+                Err(
+                    ClientError::ExchangeEmbedMismatch { .. }
+                    | ClientError::MissingGroupAttribute { .. }
+                    | ClientError::Api { .. },
+                ),
+                Some(_),
+            ) => {
+                // A table route with the embed it names and the group label always classifies.
+                let own = ROUNDS.iter().any(|(named, expected)| *named == carried && *expected == slot);
+                prop_assert!(!(own && grouped), "{} with its own {} embed was refused", carried, slot);
+            }
+            (outcome, _) => return Err(TestCaseError::fail(format!("{carried} with {slot} read as {outcome:?}"))),
         }
     }
 }
@@ -158,17 +222,6 @@ fn a_rotation_announced_as_an_interaction_is_refused() -> Result<(), Box<dyn Err
         accepted.as_multisig().map(|proposal| proposal.route),
         Some(MultisigRoute::Rotation)
     );
-    Ok(())
-}
-
-#[test]
-fn the_two_witness_threshold_types_decode_to_one_value() -> Result<(), Box<dyn Error>> {
-    let numeric = r#"{"v":"KERI10JSON000_","t":"rot","d":"EROT","i":"EGRP","s":"1","p":"EICP","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":3,"br":[],"ba":[],"a":[]}"#;
-    let text = numeric.replace(r#""bt":3"#, r#""bt":"3""#);
-    let from_number: RotationRecord = serde_json::from_str(numeric)?;
-    let from_text: RotationRecord = serde_json::from_str(&text)?;
-    assert_eq!(from_number.witness_threshold, from_text.witness_threshold);
-    assert_eq!(from_number.witness_threshold, "3");
     Ok(())
 }
 

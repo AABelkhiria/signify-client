@@ -13,14 +13,26 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 
+use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
+use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_protocol::prefix::IdentifierPrefix;
+use keria_types::api::MultisigExchangeResource;
+use proptest::strategy::Strategy;
+use proptest::test_runner::TestCaseError;
+use serde::de::DeserializeOwned;
+use serde_json::Value;
+use signify_client::client::{ConnectedClient, SignifyClient};
+use signify_client::config::ClientConfig;
+use signify_client::endpoint::exchanges::ClassifiedExchange;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{Clock, TestClock};
 use signify_http::signature::authentication::RequestSigner;
 use signify_http::signature::input::{RequestTarget, default_components};
 use signify_http::signature::timestamp::SignifyTimestamp;
 use signify_http::transport::{Method, Request, Response, StatusCode, Transport, TransportError, TransportFuture};
+use signify_keys::manager::DerivationCost;
 
 pub(crate) const ADMIN: &str = "http://127.0.0.1:3901";
 
@@ -286,4 +298,217 @@ pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
             return value;
         }
     }
+}
+
+/// Reads and decodes `fixtures/<dir>/v1.json`.
+pub(crate) fn fixture<T: DeserializeOwned>(dir: &str) -> Result<T, Box<dyn Error>> {
+    let path = format!("{}/fixtures/{dir}/v1.json", env!("CARGO_MANIFEST_DIR"));
+    Ok(serde_json::from_str(&std::fs::read_to_string(path)?)?)
+}
+
+/// A connected client, the scripted agent answering it, and the client's clock.
+pub(crate) struct Harness {
+    pub(crate) client: ConnectedClient,
+    pub(crate) transport: Arc<AgentTransport>,
+    pub(crate) clock: Arc<TestClock>,
+}
+
+/// How [`connected_with`] connects beyond its scripted answers.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct Connection<'a> {
+    pub(crate) passcode: &'a str,
+    pub(crate) content_range: Option<&'a str>,
+    pub(crate) repeat_last: bool,
+}
+
+impl Default for Connection<'_> {
+    fn default() -> Self {
+        Self {
+            passcode: PASSCODE,
+            content_range: None,
+            repeat_last: false,
+        }
+    }
+}
+
+/// Connects a client whose agent answers `bodies` in order after the connection's own two.
+pub(crate) fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
+    connected_with(bodies, Connection::default())
+}
+
+/// Connects as [`connected`] does, under `connection`'s passcode, content range and repetition.
+pub(crate) fn connected_with(bodies: &[&[u8]], connection: Connection<'_>) -> Result<Harness, Box<dyn Error>> {
+    let configuration = || {
+        ClientConfig::new(ADMIN, connection.passcode)
+            .and_then(|config| config.with_boot_url(BOOT))
+            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
+    };
+    let probe = SignifyClient::new(
+        configuration()?,
+        AgentTransport::new(&[]) as Arc<dyn Transport>,
+        clock(),
+    )?;
+    let prefix = probe.controller().prefix().qb64()?;
+    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
+
+    let state = agent_state(&prefix, &inception);
+    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
+    answers.extend_from_slice(bodies);
+    let transport = AgentTransport::new(&answers);
+    if let Some(range) = connection.content_range {
+        transport.with_content_range(range);
+    }
+    if connection.repeat_last {
+        transport.repeating_last();
+    }
+
+    let clock = Arc::new(TestClock::with_wall_clock(
+        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
+    ));
+    let client = SignifyClient::new(
+        configuration()?,
+        Arc::clone(&transport) as Arc<dyn Transport>,
+        Arc::clone(&clock) as Arc<dyn Clock>,
+    )?;
+    Ok(Harness {
+        client: block_on(client.connect())?,
+        transport,
+        clock,
+    })
+}
+
+/// An endpoint request as the agent received it.
+#[derive(Clone, Debug)]
+pub(crate) struct SentRequest {
+    pub(crate) method: String,
+    pub(crate) path: String,
+    pub(crate) body: Option<String>,
+    recorded: Recorded,
+}
+
+impl SentRequest {
+    /// The request's `name` header, if it carried one.
+    #[must_use]
+    pub(crate) fn header(&self, name: &str) -> Option<String> {
+        self.recorded.header(name).map(ToOwned::to_owned)
+    }
+}
+
+impl From<Recorded> for SentRequest {
+    fn from(recorded: Recorded) -> Self {
+        Self {
+            method: recorded.method().to_owned(),
+            path: recorded.resource(),
+            body: recorded.body_text(),
+            recorded,
+        }
+    }
+}
+
+/// The endpoint request at `index`, counting after the connection's own.
+pub(crate) fn sent(transport: &AgentTransport, index: usize) -> Result<SentRequest, Box<dyn Error>> {
+    sent_all(transport)?
+        .into_iter()
+        .nth(index)
+        .ok_or_else(|| "no endpoint request was sent".into())
+}
+
+/// Every endpoint request, after the connection's own.
+pub(crate) fn sent_all(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
+    Ok(transport
+        .endpoint_requests()?
+        .into_iter()
+        .map(SentRequest::from)
+        .collect())
+}
+
+/// The sealing and opening keys for salts under `passcode`.
+pub(crate) fn sealing_keys(passcode: &str) -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
+    let salt = Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?;
+    let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
+    Ok((
+        Encrypter::from_verification_key(signer.verifier())?,
+        Decrypter::from_signer(&signer),
+    ))
+}
+
+/// A recorded document as KERIA stores it: each `sxlt_opens_to` salt sealed under `passcode`'s key.
+pub(crate) fn reseal(record: &Value, passcode: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+    let mut document = record.clone();
+    let (encrypter, _) = sealing_keys(passcode)?;
+    reseal_in_place(&mut document, &encrypter)?;
+    Ok(serde_json::to_vec(&document)?)
+}
+
+/// Replaces every `sxlt_opens_to` in `document` with that salt sealed under `encrypter`.
+pub(crate) fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Box<dyn Error>> {
+    match document {
+        Value::Object(fields) => {
+            if let Some(Value::String(opens_to)) = fields.get("sxlt_opens_to").cloned() {
+                let sealed = encrypter
+                    .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
+                    .qb64()?;
+                fields.remove("sxlt_opens_to");
+                fields.insert("sxlt".to_owned(), Value::String(sealed));
+            }
+            for value in fields.values_mut() {
+                reseal_in_place(value, encrypter)?;
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                reseal_in_place(item, encrypter)?;
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+/// A sent body with each sealed salt masked, and the salts it opened to under `passcode`'s key.
+pub(crate) fn mask_sealed(body: &str, passcode: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
+    let (_, decrypter) = sealing_keys(passcode)?;
+    let mut masked = String::with_capacity(body.len());
+    let mut opened = Vec::new();
+    let mut rest = body;
+    while let Some(start) = rest.find(r#""sxlt":""#) {
+        let (head, tail) = rest.split_at(start.saturating_add(r#""sxlt":""#.len()));
+        masked.push_str(head);
+        let end = tail.find('"').ok_or("an unterminated sealed salt")?;
+        let (sealed, remainder) = tail.split_at(end);
+        opened.push(
+            decrypter
+                .decrypt_salt(&Ciphertext::from_qb64(sealed)?, SecurityTier::Low)?
+                .expose_qb64()?
+                .to_string(),
+        );
+        masked.push_str("<SXLT>");
+        rest = remainder;
+    }
+    masked.push_str(rest);
+    Ok((masked, opened))
+}
+
+/// Parses a qb64 identifier prefix.
+pub(crate) fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
+    Ok(IdentifierPrefix::from_qb64(text)?)
+}
+
+/// Arbitrary well-formed `E`-coded identifier prefixes.
+pub(crate) fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
+    "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
+        IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
+    })
+}
+
+/// Classifies the first entry of an agent's multisig exchange listing.
+pub(crate) fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
+    let decoded: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
+    let entry = decoded.first().ok_or("empty listing")?;
+    Ok(ClassifiedExchange::try_from(entry)?)
+}
+
+/// Turns an error into a failed proptest case.
+pub(crate) fn fail(error: impl core::fmt::Display) -> TestCaseError {
+    TestCaseError::fail(error.to_string())
 }

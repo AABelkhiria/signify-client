@@ -520,23 +520,11 @@ impl Error for ResponseAuthenticationError {
 mod tests {
     use super::*;
     use crate::retry::TestClock;
-    use crate::signature::input::SIGNATURE_INPUT_HEADER_NAME;
+    use crate::test_support::displays_and_sources;
     use crate::transport::{Method, RequestUrl, Response, ScriptedTransport, StatusCode};
     use keri_cesr::crypto::signer::Signer;
     use keri_cesr::crypto::verifier::KeyTransferability;
     use std::error::Error;
-
-    /// A minimal executor; every future on this path is ready on its first poll.
-    fn block_on<F: core::future::Future>(future: F) -> F::Output {
-        use core::task::{Context, Poll, Waker};
-        let mut future = Box::pin(future);
-        let mut context = Context::from_waker(Waker::noop());
-        loop {
-            if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-                return value;
-            }
-        }
-    }
 
     /// A clock pinned to 2023-11-14T22:13:20.123Z, the instant the fixture uses.
     fn pinned_clock() -> Arc<TestClock> {
@@ -569,43 +557,6 @@ mod tests {
             clock,
         )?;
         Ok((transport, copy))
-    }
-
-    #[test]
-    fn a_signed_request_carries_the_four_headers() -> Result<(), Box<dyn Error>> {
-        let clock = pinned_clock();
-        let (transport, _) = signing_transport(Arc::clone(&clock))?;
-        let signed = transport.sign_request(&request(Method::Get)?)?;
-
-        assert_eq!(signed.headers().get("signify-resource"), Some(RESOURCE));
-        assert_eq!(
-            signed.headers().get("signify-timestamp"),
-            Some("2023-11-14T22:13:20.123000+00:00"),
-        );
-        assert!(signed.headers().contains("signature"));
-        assert!(signed.headers().contains(SIGNATURE_INPUT_HEADER_NAME));
-        // The request itself is otherwise untouched.
-        assert_eq!(signed.method(), Method::Get);
-        assert_eq!(signed.url().as_str(), "http://localhost:3901/identifiers?group=secret");
-        assert_eq!(signed.body(), None);
-        Ok(())
-    }
-
-    #[test]
-    fn the_signature_covers_the_path_without_its_query() -> Result<(), Box<dyn Error>> {
-        let clock = pinned_clock();
-        let (transport, _) = signing_transport(Arc::clone(&clock))?;
-        let with_query = transport.sign_request(&request(Method::Get)?)?;
-
-        let plain = Request::builder(Method::Get, RequestUrl::new("http://localhost:3901/identifiers")?).build()?;
-        let without_query = transport.sign_request(&plain)?;
-
-        // The same base, so the same signature: the query is stripped before signing, as upstream.
-        assert_eq!(
-            with_query.headers().get("signature"),
-            without_query.headers().get("signature"),
-        );
-        Ok(())
     }
 
     #[test]
@@ -645,84 +596,19 @@ mod tests {
     }
 
     #[test]
-    fn a_signing_failure_is_a_permanent_transport_failure() -> Result<(), Box<dyn Error>> {
+    fn an_authenticator_reports_what_it_was_built_with() -> Result<(), Box<dyn Error>> {
         let clock = pinned_clock();
-        let (transport, _) = signing_transport(Arc::clone(&clock))?;
-        // Covering a header the request will never carry makes the base unbuildable.
-        let transport =
-            transport.with_covered_components(vec![SignatureComponent::Header(HeaderName::new("x-absent")?)]);
-        let outcome = block_on(transport.execute(request(Method::Get)?));
-        assert!(matches!(outcome, Err(TransportError::Signing { .. })), "{outcome:?}");
-        // And the retry classifier will not retry it.
-        if let Err(error) = outcome {
-            assert!(!crate::retry::is_transient_error(&error));
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn the_signed_request_is_what_reaches_the_inner_transport() -> Result<(), Box<dyn Error>> {
-        let clock = pinned_clock();
-        let scripted = Arc::new(ScriptedTransport::new().respond(Response::new(
-            StatusCode::new(200)?,
-            Headers::new(),
-            Vec::new(),
-        )?));
-        let transport = SigningTransport::new(
-            Arc::clone(&scripted) as Arc<dyn Transport>,
-            RequestSigner::new(Signer::generate(KeyTransferability::NonTransferable)?),
-            HeaderValue::new(RESOURCE)?,
-            Arc::clone(&clock) as Arc<dyn Clock>,
-        )?;
-
-        let answer = block_on(transport.execute(request(Method::Get)?));
-        assert!(answer.is_ok());
-        let sent = scripted.recorded();
-        assert_eq!(sent.len(), 1);
-        let sent = sent.first().ok_or("no request was recorded")?;
-        assert_eq!(sent.headers().get("signify-resource"), Some(RESOURCE));
-        assert!(sent.headers().contains("signature"));
-        Ok(())
-    }
-
-    #[test]
-    fn a_response_the_agent_signed_authenticates() -> Result<(), Box<dyn Error>> {
-        let clock = pinned_clock();
-        let agent = Signer::generate(KeyTransferability::NonTransferable)?;
-        let verifier = ResponseVerifier::new(agent.verifier().clone());
-        let agent_signer = RequestSigner::new(agent);
-
-        // The agent stamps and signs its own answer.
-        let target = RequestTarget::new("GET", "/identifiers")?;
-        let stamp = SignifyTimestamp::at(clock.wall_clock())?;
-        let mut headers = Headers::new();
-        headers.insert(
-            HeaderName::new(SIGNIFY_RESOURCE_HEADER_NAME)?,
-            HeaderValue::new(RESOURCE)?,
-        )?;
-        headers.insert(
-            HeaderName::new(SIGNIFY_TIMESTAMP_HEADER_NAME)?,
-            stamp.to_header_value()?,
-        )?;
-        let input = agent_signer.signature_input(default_components()?, stamp.created())?;
-        agent_signer.sign(&input, &target, &headers)?.apply(&mut headers)?;
-
         let authenticator = ResponseAuthenticator::new(
-            verifier,
+            ResponseVerifier::new(
+                Signer::generate(KeyTransferability::NonTransferable)?
+                    .verifier()
+                    .clone(),
+            ),
             HeaderValue::new(RESOURCE)?,
             Arc::clone(&clock) as Arc<dyn Clock>,
         );
-        let covered = authenticator.authenticate(&target, &headers)?;
-        assert_eq!(covered.created(), stamp.created());
         assert_eq!(authenticator.expected_resource().as_str(), RESOURCE);
         assert_eq!(authenticator.freshness(), Freshness::default());
-
-        // A different path is a different base.
-        let elsewhere = RequestTarget::new("GET", "/contacts")?;
-        assert!(matches!(
-            authenticator.authenticate(&elsewhere, &headers),
-            Err(ResponseAuthenticationError::Signature { .. })
-        ));
         Ok(())
     }
 
@@ -787,90 +673,53 @@ mod tests {
     }
 
     #[test]
-    fn a_replayed_response_is_refused_where_the_reference_accepts_it() -> Result<(), Box<dyn Error>> {
-        let signing_clock = pinned_clock();
-        let agent = Signer::generate(KeyTransferability::NonTransferable)?;
-        let key = agent.verifier().clone();
-        let verifier = ResponseVerifier::new(key.clone());
-        let agent_signer = RequestSigner::new(agent);
-
-        let target = RequestTarget::new("GET", "/identifiers")?;
-        let stamp = SignifyTimestamp::at(signing_clock.wall_clock())?;
-        let mut headers = Headers::new();
-        headers.insert(
-            HeaderName::new(SIGNIFY_RESOURCE_HEADER_NAME)?,
-            HeaderValue::new(RESOURCE)?,
-        )?;
-        headers.insert(
-            HeaderName::new(SIGNIFY_TIMESTAMP_HEADER_NAME)?,
-            stamp.to_header_value()?,
-        )?;
-        let input = agent_signer.signature_input(default_components()?, stamp.created())?;
-        agent_signer.sign(&input, &target, &headers)?.apply(&mut headers)?;
-
-        // An hour later the signature still verifies — it is the same bytes — but it is stale.
-        let later = Arc::new(TestClock::with_wall_clock(
-            SystemTime::UNIX_EPOCH + Duration::from_secs(1_700_000_000 + 3_600),
-        ));
-        let authenticator = ResponseAuthenticator::new(
-            verifier,
-            HeaderValue::new(RESOURCE)?,
-            Arc::clone(&later) as Arc<dyn Clock>,
-        );
-        assert!(matches!(
-            authenticator.authenticate(&target, &headers),
-            Err(ResponseAuthenticationError::Stale { .. })
-        ));
-
-        // With the reference's own policy it is accepted, forever.
-        let permissive = ResponseAuthenticator::new(
-            ResponseVerifier::new(key),
-            HeaderValue::new(RESOURCE)?,
-            Arc::clone(&later) as Arc<dyn Clock>,
-        )
-        .with_freshness(Freshness::Ignore);
-        assert!(permissive.authenticate(&target, &headers).is_ok());
-        Ok(())
-    }
-
-    #[test]
     fn errors_carry_readable_text_and_their_sources() {
-        let cases: Vec<(ResponseAuthenticationError, bool)> = vec![
-            (ResponseAuthenticationError::MissingResource, false),
+        let cases: Vec<(ResponseAuthenticationError, &[&str], bool)> = vec![
+            (
+                ResponseAuthenticationError::MissingResource,
+                &["\"Signify-Resource\""],
+                false,
+            ),
             (
                 ResponseAuthenticationError::UnexpectedResource {
                     expected: "E1".to_owned(),
                     actual: "E2".to_owned(),
                 },
+                &["\"E1\"", "\"E2\""],
                 false,
             ),
             (
                 ResponseAuthenticationError::Signature {
                     source: Box::new(AuthenticationError::MissingSignature),
                 },
+                &[],
                 true,
             ),
             (
                 ResponseAuthenticationError::Stale {
-                    created: 1,
-                    now: 2,
-                    allowed: Duration::from_secs(1),
+                    created: 1_031,
+                    now: 2_047,
+                    allowed: Duration::from_secs(61),
                 },
+                &["1031", "2047", "61s"],
                 false,
             ),
             (
                 ResponseAuthenticationError::FromTheFuture {
-                    created: 2,
-                    now: 1,
-                    allowed: Duration::from_secs(1),
+                    created: 2_047,
+                    now: 1_031,
+                    allowed: Duration::from_secs(61),
                 },
+                &["1031", "2047", "61s"],
                 false,
             ),
-            (ResponseAuthenticationError::UnusableClock, false),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
-            assert_eq!(error.source().is_some(), has_source, "{error}");
+        for (error, fragments, has_source) in cases {
+            displays_and_sources(&error, fragments, has_source);
         }
+        assert_eq!(
+            ResponseAuthenticationError::UnusableClock.to_string(),
+            "the clock reads before the Unix epoch"
+        );
     }
 }

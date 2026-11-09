@@ -2,8 +2,11 @@
 //!
 //! Five untrusted values, none of which can reshape a request, and a filter that is always whole or absent.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::{fail, prefixes};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Contact;
@@ -15,16 +18,6 @@ use signify_client::endpoint::contacts::{
 use signify_http::request::ResourcePath;
 
 const CONTACT: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
-    "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
-        IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
-    })
-}
 
 fn hostile_text() -> impl Strategy<Value = String> {
     prop_oneof![

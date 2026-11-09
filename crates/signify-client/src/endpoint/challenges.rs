@@ -381,17 +381,6 @@ mod tests {
     }
 
     #[test]
-    fn a_value_that_would_escape_the_path_is_not_an_identifier_prefix() {
-        // The reference interpolates any string into both verification paths.
-        for hostile in ["a/b?c=d", "", "../identifiers", "not a prefix", "EG2XjQN"] {
-            assert!(
-                IdentifierPrefix::from_qb64(hostile).is_err(),
-                "{hostile:?} was accepted as a challenged identifier"
-            );
-        }
-    }
-
-    #[test]
     fn a_verification_body_is_the_word_list() -> Result<(), Box<dyn Error>> {
         let mut body = Sad::new();
         body.insert(

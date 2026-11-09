@@ -5,11 +5,11 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
-use keri_cesr::crypto::cipher::{Ciphertext, Decrypter};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
+use crate::support::{
+    ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, mask_sealed, reseal, sent,
+};
+use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::event::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
@@ -17,23 +17,17 @@ use keri_protocol::serialization::Sad;
 use keria_types::api::{AcceptedHab, Hab, Role};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::identifiers::{
     END_ROLES_SEGMENT, EVENTS_SEGMENT, IDENTIFIER_RANGE_UNIT, IdentifierUpdate, LOCATION_SCHEMES_SEGMENT,
     LocationSchemeRequest, MEMBERS_SEGMENT,
 };
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
-use signify_http::transport::{Method, Request, Transport};
+use signify_http::transport::{Method, Request};
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-identifiers/v1.json"
-));
 
 const MULTISIG_PASSCODE: &str = "0123456789lmnopqrstuv";
 const DELEGATOR: &str = "EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C";
@@ -54,7 +48,6 @@ struct Fixture {
     randy_shape: RandyShape,
     randy_reload_shape: RandyReloadShape,
     signed_request: SignedRequest,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -176,17 +169,8 @@ struct SignedForm {
     note: String,
 }
 
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    create_signed_request_is_published: bool,
-    note: String,
-}
-
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-identifiers")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -204,64 +188,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let config = ClientConfig::new(ADMIN, PASSCODE)?
-        .with_boot_url(BOOT)?
-        .with_derivation_cost(DerivationCost::Ephemeral);
-    let probe = SignifyClient::new(
-        ClientConfig::new(ADMIN, PASSCODE)?
-            .with_boot_url(BOOT)?
-            .with_derivation_cost(DerivationCost::Ephemeral),
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let mut answers: Vec<&[u8]> = Vec::new();
-    let state = agent_state(&prefix, &inception);
-    answers.push(state.as_bytes());
-    answers.push(b"{}");
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(config, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    let connected = block_on(client.connect())?;
-    Ok((connected, transport))
-}
-
-fn sent(transport: &AgentTransport, index: usize) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
-
-fn mask_sealed(body: &str, passcode: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
-    let decrypter = Decrypter::from_signer(
-        &Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?
-            .derive_signer("", KeyTransferability::NonTransferable)?,
-    );
-    let mut masked = String::with_capacity(body.len());
-    let mut opened = Vec::new();
-    let mut rest = body;
-    while let Some(start) = rest.find(r#""sxlt":""#) {
-        let (head, tail) = rest.split_at(start.saturating_add(r#""sxlt":""#.len()));
-        masked.push_str(head);
-        let end = tail.find('"').ok_or("an unterminated sealed salt")?;
-        let (sealed, remainder) = tail.split_at(end);
-        opened.push(
-            decrypter
-                .decrypt_salt(&Ciphertext::from_qb64(sealed)?, SecurityTier::Low)?
-                .expose_qb64()?
-                .to_string(),
-        );
-        masked.push_str("<SXLT>");
-        rest = remainder;
-    }
-    masked.push_str(rest);
-    Ok((masked, opened))
-}
-
 fn assert_body(sent: Option<&str>, recorded: &RecordedRequest, passcode: &str) -> Result<(), Box<dyn Error>> {
     let expected = recorded.body.as_deref().ok_or("the recorded request carried no body")?;
     let actual = sent.ok_or("the sent request carried no body")?;
@@ -273,43 +199,6 @@ fn assert_body(sent: Option<&str>, recorded: &RecordedRequest, passcode: &str) -
 
 fn record_document(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
     reseal(&fixture.signed_request.identifier, PASSCODE)
-}
-
-fn reseal(record: &Value, passcode: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-    use keri_cesr::crypto::cipher::Encrypter;
-    let mut document = record.clone();
-    let signer = Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?
-        .derive_signer("", KeyTransferability::NonTransferable)?;
-    let encrypter = Encrypter::from_verification_key(signer.verifier())?;
-    reseal_in_place(&mut document, &encrypter)?;
-    Ok(serde_json::to_vec(&document)?)
-}
-
-fn reseal_in_place(
-    document: &mut Value,
-    encrypter: &keri_cesr::crypto::cipher::Encrypter,
-) -> Result<(), Box<dyn Error>> {
-    match document {
-        Value::Object(fields) => {
-            if let Some(Value::String(opens_to)) = fields.get("sxlt_opens_to").cloned() {
-                let sealed = encrypter
-                    .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-                    .qb64()?;
-                fields.remove("sxlt_opens_to");
-                fields.insert("sxlt".to_owned(), Value::String(sealed));
-            }
-            for value in fields.values_mut() {
-                reseal_in_place(value, encrypter)?;
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                reseal_in_place(item, encrypter)?;
-            }
-        }
-        _ => {}
-    }
-    Ok(())
 }
 
 // --- Manifest and provenance ---
@@ -399,32 +288,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
-    assert!(fixture.pinned_confirmations.create_signed_request_is_published);
-    assert_ne!(fixture.pinned_confirmations.note, "");
-    for path in [
-        "/identifiers",
-        "/identifiers/aid1",
-        "/identifiers/aid1/events",
-        "/identifiers/aid1/endroles",
-        "/identifiers/aid1/locschemes",
-        "/identifiers/aid1/members",
-    ] {
-        assert!(
-            fixture.pinned_confirmations.published_paths.contains(&path.to_owned()),
-            "{path} is not published by the pinned test"
-        );
-        assert!(
-            fixture.pinned_confirmations.driven_paths.contains(&path.to_owned()),
-            "{path} was not driven"
-        );
-    }
-    Ok(())
-}
-
-#[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirks = fixture
@@ -457,9 +320,9 @@ fn a_listing_sends_the_recorded_range_and_reads_the_window_back() -> Result<(), 
         ("list_explicit_range", ItemRange::new(2, 5)?),
     ] {
         let recorded = request_of(&fixture, name)?;
-        let (client, transport) = connected(&[b"[]"])?;
+        let Harness { client, transport, .. } = connected(&[b"[]"])?;
         let _ = block_on(client.identifiers().list(window));
-        let (path, method, body) = sent(&transport, 0)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
         assert_eq!(path, recorded.path);
         assert_eq!(method, recorded.method);
         assert_eq!(body, None, "a listing sends no body, as upstream");
@@ -486,12 +349,12 @@ fn an_absent_content_range_is_told_apart_from_an_empty_one() -> Result<(), Box<d
         Some(2)
     );
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let listing = block_on(client.identifiers().list(ItemRange::DEFAULT))?;
     assert!(listing.window.is_none(), "an unreported window is not a zero one");
     assert_eq!(listing.identifiers, [] as [Hab; 0]);
     assert_eq!(
-        sent(&transport, 0)?.0,
+        sent(&transport, 0)?.path,
         recorded.request.as_ref().map_or("", |r| &r.path)
     );
     Ok(())
@@ -503,20 +366,20 @@ fn a_get_addresses_the_recorded_path_and_encodes_its_name() -> Result<(), Box<dy
     let document = record_document(&fixture)?;
 
     let plain = request_of(&fixture, "get")?;
-    let (client, transport) = connected(&[&document])?;
+    let Harness { client, transport, .. } = connected(&[&document])?;
     let record = block_on(client.identifiers().get("aid1"))?;
-    assert_eq!(sent(&transport, 0)?.0, plain.path);
+    assert_eq!(sent(&transport, 0)?.path, plain.path);
     assert_eq!(
         Some(record.common.prefix.as_str()),
         call(&fixture, "get")?.result.get("prefix").and_then(Value::as_str)
     );
 
     let encoded = request_of(&fixture, "get_name_needing_encoding")?;
-    let (client, transport) = connected(&[&document])?;
+    let Harness { client, transport, .. } = connected(&[&document])?;
     let _ = block_on(client.identifiers().get("a name with ñ!"));
     // KERIA verifies the `!` escaped, which the reference does not send.
     assert_eq!(encoded.path, "/identifiers/a%20name%20with%20%C3%B1!");
-    assert_eq!(sent(&transport, 0)?.0, encoded.path.replace('!', "%21"));
+    assert_eq!(sent(&transport, 0)?.path, encoded.path.replace('!', "%21"));
     Ok(())
 }
 
@@ -533,15 +396,15 @@ fn a_pending_group_is_refused_by_get_and_returned_by_get_any() -> Result<(), Box
     }
     let body = serde_json::to_vec(&document)?;
 
-    let (client, transport) = connected(&[&body])?;
+    let Harness { client, transport, .. } = connected(&[&body])?;
     let outcome = block_on(client.identifiers().get("group1"));
     assert!(matches!(
         outcome,
         Err(ClientError::IdentifierNotAccepted { ref name }) if name == "group1"
     ));
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/group1");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/group1");
 
-    let (client, _) = connected(&[&body])?;
+    let Harness { client, .. } = connected(&[&body])?;
     let pending = block_on(client.identifiers().get_any("group1"))?;
     assert!(pending.key_state().is_none());
     assert_eq!(pending.common().name, "group1");
@@ -552,9 +415,9 @@ fn a_pending_group_is_refused_by_get_and_returned_by_get_any() -> Result<(), Box
 fn an_update_sends_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "update")?;
-    let (client, transport) = connected(&[&record_document(&fixture)?])?;
+    let Harness { client, transport, .. } = connected(&[&record_document(&fixture)?])?;
     let _ = block_on(client.identifiers().update("aid1", &IdentifierUpdate::rename("aid2")));
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_eq!(body.as_deref(), Some(r#"{"name":"aid2"}"#));
@@ -566,9 +429,9 @@ fn an_update_sends_the_recorded_body() -> Result<(), Box<dyn Error>> {
 fn a_member_listing_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "members")?;
-    let (client, transport) = connected(&[br#"{"signing":[],"rotation":[]}"#])?;
+    let Harness { client, transport, .. } = connected(&[br#"{"signing":[],"rotation":[]}"#])?;
     let members = block_on(client.identifiers().members("aid1"))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_eq!(body, None);
@@ -591,7 +454,7 @@ fn salty_request(passcode: &str, keys: usize) -> CreateIdentifierRequest {
 fn a_pending_creation_is_send() -> Result<(), Box<dyn Error>> {
     fn assert_send<T: Send>(_: &T) {}
 
-    let (client, _transport) = connected(&[])?;
+    let Harness { client, .. } = connected(&[])?;
     let request = salty_request(PASSCODE, 1);
     assert_send(&client.identifiers().create("aid1", &request));
     Ok(())
@@ -599,7 +462,7 @@ fn a_pending_creation_is_send() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn an_alias_holding_a_separator_is_refused_before_anything_is_sent() -> Result<(), Box<dyn Error>> {
-    let (client, transport) = connected(&[])?;
+    let Harness { client, transport, .. } = connected(&[])?;
     let refused = block_on(client.identifiers().create("a/b", &salty_request(PASSCODE, 1)));
 
     assert!(matches!(refused, Err(ClientError::InvalidAlias { name }) if name == "a/b"));
@@ -620,10 +483,10 @@ fn an_alias_holding_a_separator_is_refused_before_anything_is_sent() -> Result<(
 fn a_default_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "create_salty")?;
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let submission = block_on(client.identifiers().create("aid1", &salty_request(PASSCODE, 1)))?;
 
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -644,9 +507,9 @@ fn a_non_transferable_creation_reproduces_the_recorded_body() -> Result<(), Box<
         *next_count = 0;
     }
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("aid1", &request))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
 
@@ -676,9 +539,9 @@ fn a_multisig_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
     request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(2));
     request.next_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(2));
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("aid2", &request))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -700,9 +563,9 @@ fn a_witnessed_creation_writes_the_proxy_the_others_omit() -> Result<(), Box<dyn
     request.witness_threshold = 2;
     request.proxy = Some("EPROXY".to_owned());
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("aid3", &request))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -728,9 +591,9 @@ fn a_delegated_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Err
     anchor.insert("d", DELEGATOR.to_owned())?;
     request.anchor = Some(anchor);
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("aid4", &request))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -760,9 +623,9 @@ fn a_group_creation_writes_both_member_lists_and_the_member_record() -> Result<(
     request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
     request.next_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let _ = block_on(client.identifiers().create("group1", &request))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -787,7 +650,7 @@ fn an_interaction_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "interact")?;
     let document = record_document(&fixture)?;
 
-    let (client, transport) = connected(&[&document, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&document, b"{}"])?;
     let prefix = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
     let mut seal = Sad::new();
     seal.insert("i", prefix.to_owned())?;
@@ -797,8 +660,8 @@ fn an_interaction_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(call(&fixture, "interact")?.requests, 2);
     assert_eq!(transport.requests().len(), 2 + call(&fixture, "interact")?.requests);
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
-    let (path, method, body) = sent(&transport, 1)?;
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/aid1");
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -811,9 +674,9 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
     let recorded = request_of(&fixture, "interact_name_needing_encoding")?;
     assert_eq!(recorded.path, "/identifiers/a/b/events");
 
-    let (client, transport) = connected(&[&record_document(&fixture)?, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record_document(&fixture)?, b"{}"])?;
     let _ = block_on(client.identifiers().interact("a/b", Vec::new()));
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/a%2Fb");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/a%2Fb");
     Ok(())
 }
 
@@ -821,10 +684,10 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
 fn a_rotation_always_writes_both_member_lists() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "rotate")?;
-    let (client, transport) = connected(&[&record_document(&fixture)?, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record_document(&fixture)?, b"{}"])?;
     let _ = block_on(client.identifiers().rotate("aid1", &RotateIdentifierRequest::default()))?;
 
-    let (path, method, body) = sent(&transport, 1)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -848,13 +711,13 @@ fn an_end_role_reply_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>
         ("add_end_role_without_endpoint", None),
     ] {
         let recorded = request_of(&fixture, name)?;
-        let (client, transport) = connected(&[&document, b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[&document, b"{}"])?;
         let _ = block_on(
             client
                 .identifiers()
                 .add_end_role("aid1", &Role::Agent, endpoint.as_ref(), stamp.clone()),
         )?;
-        let (path, method, body) = sent(&transport, 1)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
         assert_eq!(path, recorded.path);
         assert_eq!(method, recorded.method);
         assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -888,9 +751,9 @@ fn a_location_scheme_reply_reproduces_the_recorded_body() -> Result<(), Box<dyn 
         ("add_location_scheme_defaults", &defaulted),
     ] {
         let recorded = request_of(&fixture, name)?;
-        let (client, transport) = connected(&[&document, b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[&document, b"{}"])?;
         let _ = block_on(client.identifiers().add_location_scheme("aid1", request))?;
-        let (path, method, body) = sent(&transport, 1)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
         assert_eq!(path, recorded.path);
         assert_eq!(method, recorded.method);
         assert_body(body.as_deref(), recorded, PASSCODE)?;
@@ -912,15 +775,15 @@ fn the_prefix_index_advances_with_every_creation() -> Result<(), Box<dyn Error>>
     assert_eq!(quirk.get("after_second"), Some(&Value::from(2)));
     assert_eq!(call(&fixture, "create_salty")?.pidx_after, 1);
 
-    let (client, transport) = connected(&[b"{}", b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}", b"{}"])?;
     assert_eq!(client.prefix_index(), 0);
     let _ = block_on(client.identifiers().create("aid1", &salty_request(PASSCODE, 1)))?;
     assert_eq!(client.prefix_index(), 1);
     let _ = block_on(client.identifiers().create("aid2", &salty_request(PASSCODE, 1)))?;
     assert_eq!(client.prefix_index(), 2);
 
-    let first = sent(&transport, 0)?.2.unwrap_or_default();
-    let second = sent(&transport, 1)?.2.unwrap_or_default();
+    let first = sent(&transport, 0)?.body.unwrap_or_default();
+    let second = sent(&transport, 1)?.body.unwrap_or_default();
     assert!(first.contains(r#""pidx":0"#));
     assert!(second.contains(r#""pidx":1"#));
     Ok(())
@@ -933,14 +796,14 @@ fn a_randy_creation_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     assert_eq!(fixture.randy_shape.method, "POST");
     assert_eq!(fixture.randy_shape.randy_fields, ["nxts", "prxs", "transferable"]);
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let request = CreateIdentifierRequest::new(CreateAlgorithm::Randy {
         current_count: 1,
         next_count: 1,
         cost: DerivationCost::Ephemeral,
     });
     let submission = block_on(client.identifiers().create("aid1", &request))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, fixture.randy_shape.path);
     assert_eq!(method, fixture.randy_shape.method);
 
@@ -984,7 +847,7 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
     let signed = &fixture.signed_request;
     assert_eq!(signed.agent_prefix, AGENT);
 
-    let (client, transport) = connected(&[&record_document(&fixture)?])?;
+    let Harness { client, transport, .. } = connected(&[&record_document(&fixture)?])?;
     assert_ne!(signed.controller_prefix, "");
 
     let url = signify_http::transport::RequestUrl::new(&signed.post.url)?;
@@ -993,8 +856,8 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
         .build()?;
     let external = block_on(client.sign_external_request("aid1", request))?;
 
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
-    assert_eq!(signed.lookup_path, format!("{ADMIN}{}", sent(&transport, 0)?.0));
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/aid1");
+    assert_eq!(signed.lookup_path, format!("{ADMIN}{}", sent(&transport, 0)?.path));
     assert_eq!(external.url().as_str(), signed.post.url);
     assert_eq!(external.method().as_str(), signed.post.method);
 
@@ -1028,7 +891,7 @@ fn an_external_request_is_signed_with_the_identifiers_own_key() -> Result<(), Bo
 fn an_external_request_without_a_body_matches_the_recorded_get() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let signed = &fixture.signed_request;
-    let (client, _) = connected(&[&record_document(&fixture)?])?;
+    let Harness { client, .. } = connected(&[&record_document(&fixture)?])?;
 
     let url = signify_http::transport::RequestUrl::new(&signed.get.url)?;
     let request = Request::builder(Method::Get, url).build()?;

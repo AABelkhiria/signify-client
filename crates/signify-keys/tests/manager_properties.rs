@@ -5,25 +5,18 @@
 //! machine under test do not depend on the profile, and the cross-language vectors cover the
 //! production one.
 
-use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+mod support;
+
+use crate::support::{CRYPT_SEED, fail, salt, transferability};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
 use signify_keys::manager::{
     DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, MAX_KEYS_PER_SET, MAX_STEM_BYTES,
     ManagedSignatures, ManagerError, RetiredKeyPolicy, RotationKey, RotationRequest, SaltyKeyCreator, SignatureForm,
-    Stem,
+    Stem, salt_from_passcode,
 };
-
-/// The encryption seed the pinned unit test uses.
-const CRYPT_SEED: [u8; 32] = [
-    104, 44, 35, 124, 138, 112, 34, 18, 196, 51, 116, 50, 166, 225, 24, 25, 240, 102, 50, 44, 121, 196, 194, 49, 64,
-    245, 64, 21, 46, 162, 26, 207,
-];
-
-fn salt() -> Result<Salt, ManagerError> {
-    Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-}
 
 fn seed() -> Result<Signer, ManagerError> {
     Ok(Signer::from_seed(&CRYPT_SEED, KeyTransferability::NonTransferable)?)
@@ -55,11 +48,7 @@ proptest! {
         let salt = salt()?;
         let creator = SaltyKeyCreator::new(&salt, Stem::new(stem)?);
         let indices = KeyIndices::new(prefix, rotation, key);
-        let transferability = if transferable {
-            KeyTransferability::Transferable
-        } else {
-            KeyTransferability::NonTransferable
-        };
+        let transferability = transferability(transferable);
 
         let first = creator.create(count, transferability, indices, KeyDerivationProfile::Temporary)?;
         let second = creator.create(count, transferability, indices, KeyDerivationProfile::Temporary)?;
@@ -136,11 +125,7 @@ proptest! {
             current_keys: current,
             next_keys: next,
             stem: Stem::new(stem)?,
-            transferability: if transferable {
-                KeyTransferability::Transferable
-            } else {
-                KeyTransferability::NonTransferable
-            },
+            transferability: transferability(transferable),
             ..temporary()
         })?;
 
@@ -221,7 +206,7 @@ proptest! {
             .iter()
             .map(keri_cesr::crypto::verifier::VerificationKey::qb64)
             .collect::<Result<_, _>>()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
 
         for form in [SignatureForm::IndexedByPosition, SignatureForm::Unindexed] {
             let signatures = manager.sign(&payload, &public_keys, &form)?;
@@ -292,6 +277,7 @@ proptest! {
         prop_assert_eq!(before, after);
         prop_assert_eq!(restored.prefix_index(), manager.prefix_index());
         prop_assert_eq!(restored.algorithm(), manager.algorithm());
+        prop_assert_eq!(restored.encryption_identifier(), manager.encryption_identifier());
     }
 
     /// Retiring a key set erases exactly the private keys it retires, and only when asked.
@@ -374,22 +360,31 @@ proptest! {
     }
 
     /// A passcode is accepted exactly when it is long enough and inside the alphabet.
+    ///
+    /// Validation is the salt step alone, which derives nothing; the derivation that follows is
+    /// pinned by fixed cases.
     #[test]
     fn a_passcode_is_accepted_only_when_usable(passcode in "[0-9a-zA-Z_*-]{0,30}") {
-        let long_enough = passcode.chars().count() >= 21;
-        let in_alphabet = passcode
-            .chars()
-            .take(21)
-            .all(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_'));
+        let length = passcode.chars().count();
+        let first_invalid = passcode.chars().take(21).position(|character| character == '*');
 
-        let outcome = KeyManager::from_passcode(&passcode, None);
-        prop_assert_eq!(outcome.is_ok(), long_enough && in_alphabet, "{}", passcode);
-        if let Err(error) = outcome {
-            let typed = matches!(
-                error,
-                ManagerError::PasscodeTooShort { .. } | ManagerError::InvalidPasscode { .. }
-            );
-            prop_assert!(typed, "a passcode was refused for an unrelated reason");
+        match (salt_from_passcode(&passcode, SecurityTier::Low), first_invalid) {
+            (Err(ManagerError::PasscodeTooShort { required, actual }), _) if length < 21 => {
+                prop_assert_eq!((required, actual), (21, length));
+            }
+            (Err(ManagerError::InvalidPasscode { offset }), Some(expected)) if length >= 21 => {
+                prop_assert_eq!(offset, expected, "{}", passcode);
+            }
+            (Ok(salt), None) if length >= 21 => {
+                // Deterministic, and blind to everything after the twenty-first character.
+                let again = salt_from_passcode(&passcode, SecurityTier::Low)?;
+                let prefix: String = passcode.chars().take(21).collect();
+                let truncated = salt_from_passcode(&prefix, SecurityTier::Low)?;
+                let qb64 = salt.expose_qb64()?;
+                prop_assert_eq!(&qb64, &again.expose_qb64()?);
+                prop_assert_eq!(&qb64, &truncated.expose_qb64()?);
+            }
+            (outcome, _) => return Err(TestCaseError::fail(format!("{passcode:?}: {outcome:?}"))),
         }
     }
 }

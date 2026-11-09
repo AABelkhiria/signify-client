@@ -2,6 +2,10 @@
 //!
 //! A step answers exactly the step it was given, and what an apply asks for survives being read.
 
+mod support;
+
+use crate::support::{Harness, block_on, connected};
+use keri_protocol::event::Timestamp;
 use keria_types::api::ExchangeResource;
 use proptest::prelude::*;
 use signify_client::error::ClientError;
@@ -13,6 +17,7 @@ const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SAID: &str = "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg";
 const PRIOR: &str = "EM_FKO3crm8s4dpQ0aBl8pO2tz0B35hAWmuPBy0mns9v";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
+const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 const CREDENTIAL: &str = "EGdeVjXib7lVynr1NAddi1YTO2BCU5oi_I5DT69n9zJd";
 
 fn embeds(route: IpexRoute) -> String {
@@ -67,30 +72,6 @@ proptest! {
             let entry = format!(r#""{ATTRIBUTE_FILTER_PREFIX}{name}":"{value}""#);
             prop_assert!(written.contains(&entry), "{name} did not survive: {written}");
         }
-    }
-
-    #[test]
-    fn a_step_answers_only_its_own_kind(chosen in 0usize..5, wrong in 0usize..5) {
-        let routes = IpexRoute::ALL;
-        let (Some(carried), Some(asked)) = (routes.get(chosen), routes.get(wrong)) else {
-            return Err(TestCaseError::fail("the route table shrank"));
-        };
-        let attributes = if *carried == IpexRoute::Apply {
-            format!(r#"{{"m":"","s":"{SCHEMA}","a":{{}}}}"#)
-        } else {
-            r#"{"m":""}"#.to_owned()
-        };
-        let received = step(*carried, "", &attributes)?;
-        prop_assert_eq!(received.route(), *carried);
-
-        let asked_for = requested_credentials(&received);
-        if *carried == IpexRoute::Apply {
-            prop_assert!(asked_for.is_ok());
-        } else {
-            let refused = matches!(asked_for, Err(ClientError::WrongDisclosureStep { .. }));
-            prop_assert!(refused, "a {} was read as a request", carried.as_str());
-        }
-        let _ = asked;
     }
 
     #[test]
@@ -181,5 +162,64 @@ proptest! {
             Err(ClientError::MalformedDisclosureRequest { .. })
         );
         prop_assert!(refused, "an apply with no schema produced a filter");
+    }
+}
+
+/// Each answering call, the route it answers, and that route's wire text.
+const ANSWERING: [(IpexRoute, &str); 3] = [
+    (IpexRoute::Apply, "/ipex/apply"),
+    (IpexRoute::Offer, "/ipex/offer"),
+    (IpexRoute::Grant, "/ipex/grant"),
+];
+
+/// Every step and its wire text.
+const STEPS: [(IpexRoute, &str); 5] = [
+    (IpexRoute::Apply, "/ipex/apply"),
+    (IpexRoute::Offer, "/ipex/offer"),
+    (IpexRoute::Agree, "/ipex/agree"),
+    (IpexRoute::Grant, "/ipex/grant"),
+    (IpexRoute::Admit, "/ipex/admit"),
+];
+
+proptest! {
+    #![proptest_config(ProptestConfig { cases: 32, ..ProptestConfig::default() })]
+
+    #[test]
+    fn a_step_answers_only_its_own_kind(chosen in 0usize..5, asked in 0usize..3) {
+        let (Some(&(carried, carried_text)), Some(&(answers, answers_text))) = (STEPS.get(chosen), ANSWERING.get(asked)) else {
+            return Err(TestCaseError::fail("the route table shrank"));
+        };
+        let attributes = if carried == IpexRoute::Apply {
+            format!(r#"{{"m":"","s":"{SCHEMA}","a":{{}}}}"#)
+        } else {
+            r#"{"m":""}"#.to_owned()
+        };
+        let received = step(carried, "", &attributes)?;
+
+        if carried == answers {
+            // Only the apply's answer is local; the other two go on to sign through the agent.
+            if answers == IpexRoute::Apply {
+                let filter = requested_credentials(&received).map_err(|error| TestCaseError::fail(error.to_string()))?;
+                prop_assert_eq!(filter.filter.get_text(SCHEMA_FILTER), Some(SCHEMA));
+            }
+            return Ok(());
+        }
+
+        let Harness { client, transport, .. } = connected(&[]).map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let stamp = STAMP.parse::<Timestamp>().map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let outcome = match answers {
+            IpexRoute::Apply => requested_credentials(&received).map(drop),
+            IpexRoute::Offer => block_on(client.presentation().agree("aid1", &received, "", &stamp)).map(drop),
+            _ => block_on(client.presentation().admit("aid1", &received, "", &stamp)).map(drop),
+        };
+        match outcome {
+            Err(ClientError::WrongDisclosureStep { expected, found }) => {
+                prop_assert_eq!(expected, answers_text);
+                prop_assert_eq!(found, carried_text);
+            }
+            other => return Err(TestCaseError::fail(format!("a {carried_text} answered as a {answers_text}: {other:?}"))),
+        }
+        let sent = transport.endpoint_requests().map_err(|error| TestCaseError::fail(error.to_string()))?;
+        prop_assert!(sent.is_empty(), "a refused step reached the agent");
     }
 }

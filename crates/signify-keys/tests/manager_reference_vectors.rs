@@ -5,15 +5,18 @@
 //! carries. Where the reference's ciphertext is recorded the fixture stores what it *opens to*
 //! rather than the bytes, because a sealed box draws a fresh ephemeral key each call.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::{CRYPT_SEED, transferability};
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
-use keri_cesr::crypto::verifier::KeyTransferability;
+use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use serde::Deserialize;
 use signify_keys::manager::{
-    DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError, RotationKey,
-    RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
+    CreatorKind, DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError,
+    RotationKey, RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
 };
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
@@ -86,7 +89,6 @@ struct RandyShape {
     public_key_code: String,
     transferable: bool,
     paths: Option<Vec<String>>,
-    distinct: usize,
     salt: String,
     stem: String,
     tier: String,
@@ -358,26 +360,12 @@ fn profile(temp: bool, tier_name: &str) -> KeyDerivationProfile {
     }
 }
 
-fn transferability(transferable: bool) -> KeyTransferability {
-    if transferable {
-        KeyTransferability::Transferable
-    } else {
-        KeyTransferability::NonTransferable
-    }
-}
-
 fn salt(fixture: &Fixture) -> Result<Salt, Box<dyn Error>> {
     Ok(Salt::from_raw(
         fixture.provenance.salt_raw.as_bytes(),
         SecurityTier::Low,
     )?)
 }
-
-/// The encryption seed the pinned test calls `cryptseed0`.
-const CRYPT_SEED: [u8; 32] = [
-    104, 44, 35, 124, 138, 112, 34, 18, 196, 51, 116, 50, 166, 225, 24, 25, 240, 102, 50, 44, 121, 196, 194, 49, 64,
-    245, 64, 21, 46, 162, 26, 207,
-];
 
 fn crypt_seed() -> Result<Signer, Box<dyn Error>> {
     Ok(Signer::from_seed(&CRYPT_SEED, KeyTransferability::NonTransferable)?)
@@ -479,7 +467,6 @@ fn the_randy_creator_shape_matches() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let shape = &fixture.randy_creator_shape;
     assert_eq!(shape.count, 3);
-    assert_eq!(shape.distinct, 3, "random keys repeated upstream");
     assert_eq!(shape.private_key_length, 44);
     assert_eq!(shape.public_key_code, "D");
     assert!(shape.transferable);
@@ -493,7 +480,17 @@ fn the_randy_creator_shape_matches() -> Result<(), Box<dyn Error>> {
 
     let keys = signify_keys::manager::RandyKeyCreator::new().create(shape.count, KeyTransferability::Transferable)?;
     assert_eq!(keys.len(), shape.count);
-    assert!(keys.into_entries().iter().all(|(_, path)| path.is_none()));
+    let mut public_keys = std::collections::BTreeSet::new();
+    for (signer, path) in keys.into_entries() {
+        assert_eq!(path, None);
+        assert!(signer.is_transferable());
+        let qb64 = signer.verifier().qb64()?;
+        let parsed = VerificationKey::from_qb64(&qb64)?;
+        assert_eq!(parsed.code().as_str(), shape.public_key_code, "{qb64}");
+        public_keys.insert(qb64);
+    }
+    // Pairwise distinct: no random key repeats.
+    assert_eq!(public_keys.len(), shape.count);
     Ok(())
 }
 
@@ -515,8 +512,8 @@ fn the_creator_factory_supports_the_same_two_algorithms() -> Result<(), Box<dyn 
     assert_eq!(KeyAlgorithm::default(), KeyAlgorithm::Salty);
 
     // Two have a creator here, and the two the reference throws for do not.
-    assert!(KeyAlgorithm::Salty.creator_kind().is_ok());
-    assert!(KeyAlgorithm::Randy.creator_kind().is_ok());
+    assert!(matches!(KeyAlgorithm::Salty.creator_kind(), Ok(CreatorKind::Salty)));
+    assert!(matches!(KeyAlgorithm::Randy.creator_kind(), Ok(CreatorKind::Randy)));
     for algorithm in [KeyAlgorithm::Group, KeyAlgorithm::Extern] {
         assert!(matches!(
             algorithm.creator_kind(),

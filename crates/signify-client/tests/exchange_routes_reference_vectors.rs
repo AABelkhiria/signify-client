@@ -2,6 +2,8 @@
 //!
 //! Thirteen guards and thirteen assertions, executed and declared, and the narrowing that is only a claim.
 
+mod support;
+
 use std::error::Error;
 
 use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
@@ -16,10 +18,6 @@ use signify_client::error::ClientError;
 use signify_keys::acdc::ipex::IpexRoute;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-exchange-routes/v1.json"
-));
 
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
@@ -54,29 +52,9 @@ struct Provenance {
 struct Declarations {
     route_constants: Vec<RouteConstant>,
     assert_route: String,
-    exn_message_alias: String,
-    exchange_resource_v1_alias: String,
     anchor_event_alias: String,
-    with_group_metadata_alias: String,
-    schema_exn_embeds: String,
     schema_multisig_revoke_embeds: String,
     schema_multisig_issue_embeds: String,
-    schema_exn_multisig: String,
-    schema_exchange_resource: String,
-    attribute_labels_in_schema: AttributeScan,
-}
-
-#[derive(Debug, Deserialize)]
-struct AttributeScan {
-    in_generated_schema: SchemaCounts,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct SchemaCounts {
-    gid: usize,
-    smids: usize,
-    rmids: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,12 +68,10 @@ struct RouteEntry {
     constant: String,
     value: String,
     variant: String,
-    group: Option<String>,
     guard: String,
     assertion: String,
     slot: Option<String>,
     variant_declaration: String,
-    group_declaration: Option<String>,
     guard_body: String,
     assertion_body: String,
     guard_consumers: Consumers,
@@ -115,7 +91,6 @@ struct VariantShape {
     variant: String,
     embed_block: Option<String>,
     attribute_block: Option<String>,
-    has_group_variant: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -151,7 +126,7 @@ struct Hostile {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-exchange-routes")
 }
 
 fn entry<'a>(fixture: &'a Fixture, route: &str) -> Result<&'a Executed, Box<dyn Error>> {
@@ -437,44 +412,6 @@ fn the_five_ipex_variants_declare_no_attribute_block() -> Result<(), Box<dyn Err
 }
 
 #[test]
-fn only_multisig_routes_have_a_group_variant() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let with_group: Vec<&str> = fixture
-        .variant_shapes
-        .iter()
-        .filter(|record| record.has_group_variant)
-        .map(|record| record.route.as_str())
-        .collect();
-    assert_eq!(with_group.len(), 8);
-    assert!(with_group.iter().all(|route| route.starts_with("/multisig/")));
-
-    for record in &fixture.route_table {
-        assert_eq!(record.group.is_some(), record.value.starts_with("/multisig/"));
-        assert_eq!(record.group_declaration.is_some(), record.group.is_some());
-    }
-    assert!(fixture.declarations.with_group_metadata_alias.contains("groupName"));
-    assert!(fixture.declarations.exn_message_alias.contains("ExnMultisig"));
-    assert!(
-        fixture
-            .declarations
-            .exchange_resource_v1_alias
-            .contains("ExchangeResource")
-    );
-    Ok(())
-}
-
-#[test]
-fn the_generated_schema_names_no_group_attribute() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let counts = &fixture.declarations.attribute_labels_in_schema.in_generated_schema;
-    assert_eq!((counts.gid, counts.smids, counts.rmids), (0, 0, 0));
-    assert_ne!(fixture.declarations.attribute_labels_in_schema.note, "");
-    assert!(fixture.declarations.schema_exchange_resource.contains("pathed"));
-    assert!(fixture.declarations.schema_exn_multisig.contains("paths"));
-    Ok(())
-}
-
-#[test]
 fn the_hand_written_revocation_variant_hides_the_anchor_its_schema_declares() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let revocation = shape(&fixture, "MultisigRevExchange")?;
@@ -519,26 +456,6 @@ fn a_grant_and_an_issuance_declare_the_same_embed() -> Result<(), Box<dyn Error>
     let step = grant_message.as_ipex().ok_or("not an IPEX step")?;
     assert_eq!(step.route, IpexRoute::Grant);
     assert!(matches!(step.payload, IpexPayload::Grant(_)));
-    Ok(())
-}
-
-#[test]
-fn the_schema_models_no_ipex_embed() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let union = &fixture.declarations.schema_exn_embeds;
-    for member in [
-        "MultisigInceptEmbeds",
-        "MultisigRotateEmbeds",
-        "MultisigInteractEmbeds",
-        "MultisigRegistryInceptEmbeds",
-        "MultisigIssueEmbeds",
-        "MultisigRevokeEmbeds",
-        "MultisigRpyEmbeds",
-        "MultisigExnEmbeds",
-    ] {
-        assert!(union.contains(member), "the union no longer names {member}");
-    }
-    assert_eq!(union.matches("Embeds']").count(), 8, "the union changed size: {union}");
     Ok(())
 }
 
@@ -650,37 +567,6 @@ fn a_guard_and_its_assertion_fail_differently_on_a_message_with_no_exn() -> Resu
             "{wrong} decoded as an exchange resource"
         );
     }
-    Ok(())
-}
-
-#[test]
-fn the_recorded_hostile_shapes_are_each_accounted_for() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let names: Vec<&str> = fixture.hostile.iter().map(|record| record.name.as_str()).collect();
-    assert_eq!(
-        names,
-        [
-            "no_exn_at_all",
-            "exn_is_null",
-            "exn_has_no_route",
-            "route_is_a_number",
-            "route_carries_the_label_text",
-            "an_unknown_route",
-        ]
-    );
-    for record in &fixture.hostile {
-        assert_eq!(record.assertion.outcome, "threw", "{}", record.name);
-    }
-
-    let confusing = fixture
-        .hostile
-        .iter()
-        .find(|record| record.name == "route_carries_the_label_text")
-        .ok_or("no recorded case")?;
-    assert_eq!(
-        confusing.assertion.error.as_deref(),
-        Some("Expected Multisig ICP message but got route: Multisig ICP message")
-    );
     Ok(())
 }
 

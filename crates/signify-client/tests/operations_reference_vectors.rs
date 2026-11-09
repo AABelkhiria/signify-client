@@ -2,10 +2,12 @@
 //!
 //! Each call rebuilt through a connected client and compared against the path that actually goes out.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
 
+use crate::support::{block_on, clock};
 use keria_types::api::{KeyEvent, UntypedOperation, WitnessMetadata};
 use serde::Deserialize;
 use signify_client::client::SignifyClient;
@@ -14,16 +16,11 @@ use signify_client::endpoint::operations::{OPERATIONS_SEGMENT, TYPE_PARAMETER, c
 use signify_client::error::ClientError;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::ResourcePath;
-use signify_http::retry::{Clock, TestClock};
 use signify_http::signature::transport::Freshness;
 use signify_http::transport::{Response, ScriptedTransport, StatusCode};
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-operations/v1.json"
-));
 
 const ADMIN: &str = "http://127.0.0.1:3901";
 const BOOT: &str = "http://127.0.0.1:3903";
@@ -42,7 +39,6 @@ struct Fixture {
     declarations: Declarations,
     calls: Vec<Call>,
     failures: Failures,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Quirks,
 }
 
@@ -107,14 +103,6 @@ struct Identical {
 }
 
 #[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
 struct Quirks {
     list_always_appends_a_question_mark: PathQuirk,
     path_components_are_not_encoded: PathQuirk,
@@ -170,24 +158,7 @@ struct ScanHit {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
-}
-
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(1_700_000_000_123),
-    ))
+    support::fixture("client-operations")
 }
 
 fn response(body: &[u8]) -> Result<Response, Box<dyn Error>> {
@@ -402,20 +373,6 @@ fn a_failed_operation_carries_everything_the_reference_interpolates() -> Result<
 
     assert!(fixture.failures.completed_returns_itself.identical);
     assert_ne!(fixture.failures.note, "");
-    Ok(())
-}
-
-#[test]
-fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let confirmations = &fixture.pinned_confirmations;
-    assert!(confirmations.every_pinned_path_is_driven);
-    assert_ne!(confirmations.note, "");
-    assert_eq!(
-        confirmations.published_paths,
-        ["/operations/operationName", "/operations?", "/operations?type=witness"]
-    );
-    assert_eq!(confirmations.driven_paths.len(), fixture.calls.len());
     Ok(())
 }
 

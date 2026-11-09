@@ -1,21 +1,27 @@
 //! Exact group-endpoint vectors recorded from the pinned reference's own `Groups`.
 //!
-//! Three addresses reproduced, and each of the pinned case's arguments proven unrepresentable.
+//! Three addresses reproduced through a connected client, and a hostile alias encoded before it reaches the wire.
+
+mod support;
 
 use std::error::Error;
 
+use crate::support::{Harness, PASSCODE, SentRequest, block_on, connected, reseal, sent_all};
+use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keria_types::api::{GroupOperation, MultisigExchangeResource};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::endpoint::exchanges::{ClassifiedExchange, MULTISIG_TOPIC, MultisigRoute};
-use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
-use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
-use signify_http::request::ResourcePath;
+use signify_client::endpoint::exchanges::{ClassifiedExchange, ExchangeDraft, MULTISIG_TOPIC, MultisigRoute};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-groups/v1.json"));
 
+const EXCHANGES_FIXTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/fixtures/client-exchanges/v1.json"
+));
+
+const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 const REAL_SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -32,7 +38,6 @@ struct Fixture {
     declarations: Declarations,
     pinned_arguments: PinnedArguments,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -64,45 +69,12 @@ struct Declarations {
     groups_members: Vec<String>,
     schema_exn_multisig: String,
     schema_group_operation_metadata: String,
-    get_request_consumers: Consumers,
-    send_request_consumers: Consumers,
-    groups_accessor_uses: Scan,
     notes: Value,
 }
 
 #[derive(Debug, Deserialize)]
-struct Consumers {
-    total: usize,
-    consumer_files: Vec<ScanHit>,
-    consumer_total: usize,
-    scanned_files: usize,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    needle: String,
-    total: usize,
-    scanned_files: usize,
-}
-
-#[derive(Debug, Deserialize)]
-struct ScanHit {
-    file: String,
-    count: usize,
-}
-
-#[derive(Debug, Deserialize)]
 struct PinnedArguments {
-    said: String,
-    said_length: usize,
-    qualified_digest_length: usize,
-    said_is_a_digest: bool,
-    rotation: String,
-    signatures: Vec<String>,
-    signing_members: Vec<String>,
-    rotation_members: Vec<String>,
     send_request_signatures: Vec<String>,
-    note: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -122,22 +94,8 @@ struct RecordedRequest {
     body: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    send_request_path: String,
-    send_request_method: String,
-    get_request_path: String,
-    get_request_method: String,
-    join_path: String,
-    join_method: String,
-    published_paths: Vec<String>,
-    every_pinned_assertion_is_driven: bool,
-    every_published_path_is_driven: bool,
-    note: String,
-}
-
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-groups")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -155,21 +113,13 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-fn read_path(said: &Said) -> Result<ResourcePath, Box<dyn Error>> {
-    Ok(ResourcePath::builder()
-        .segment(MULTISIG_SEGMENT)
-        .segment(REQUEST_SEGMENT)
-        .segment(&said.qb64()?)
-        .build()?)
-}
-
-fn write_path(alias: &str, action: &str) -> Result<ResourcePath, Box<dyn Error>> {
-    Ok(ResourcePath::builder()
-        .segment(IDENTIFIERS_SEGMENT)
-        .segment(alias)
-        .segment(MULTISIG_SEGMENT)
-        .segment(action)
-        .build()?)
+/// The exchanges fixture's `aid1`, its salt sealed under the test passcode's key.
+fn identifier_record() -> Result<Vec<u8>, Box<dyn Error>> {
+    let exchanges: Value = serde_json::from_str(EXCHANGES_FIXTURE)?;
+    let record = exchanges
+        .pointer("/mock_shortfall/identifier_record")
+        .ok_or("the exchanges fixture carries no identifier record")?;
+    reseal(record, PASSCODE)
 }
 
 // --- Manifest and provenance ---
@@ -262,112 +212,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn two_of_the_three_methods_have_no_consumer() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let declarations = &fixture.declarations;
-
-    assert_eq!(declarations.get_request_consumers.scanned_files, 117);
-    assert!(
-        declarations.get_request_consumers.consumer_total >= 20,
-        "getRequest is used {} times",
-        declarations.get_request_consumers.consumer_total
-    );
-    assert!(
-        declarations
-            .get_request_consumers
-            .consumer_files
-            .iter()
-            .all(|hit| hit.file.starts_with("test-integration/") && hit.count > 0)
-    );
-
-    assert_eq!(declarations.send_request_consumers.consumer_total, 0);
-    assert!(declarations.send_request_consumers.consumer_files.is_empty());
-    assert!(declarations.send_request_consumers.total >= 2);
-
-    assert_eq!(declarations.groups_accessor_uses.needle, ".groups()");
-    assert!(declarations.groups_accessor_uses.total >= 1);
-    assert_eq!(declarations.groups_accessor_uses.scanned_files, 117);
-    Ok(())
-}
-
-#[test]
-fn every_pinned_assertion_is_driven() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let confirmations = &fixture.pinned_confirmations;
-    assert!(confirmations.every_pinned_assertion_is_driven);
-    assert!(confirmations.every_published_path_is_driven);
-    assert_eq!(confirmations.published_paths.len(), 3);
-    assert_eq!(confirmations.send_request_path, "/identifiers/aid1/multisig/request");
-    assert_eq!(confirmations.send_request_method, "POST");
-    assert_eq!(confirmations.join_path, "/identifiers/aid1/multisig/join");
-    assert_eq!(confirmations.join_method, "POST");
-    assert_eq!(confirmations.get_request_method, "GET");
-    assert!(confirmations.get_request_path.starts_with("/multisig/request/"));
-    assert_ne!(confirmations.note, "");
-
-    assert_eq!(
-        write_path("aid1", REQUEST_SEGMENT)?.as_str(),
-        confirmations.send_request_path
-    );
-    assert_eq!(write_path("aid1", JOIN_SEGMENT)?.as_str(), confirmations.join_path);
-    Ok(())
-}
-
-// --- The pinned case's arguments, each proven unrepresentable ---
-#[test]
-fn the_pinned_read_value_is_not_a_qualified_digest() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_arguments;
-    assert_eq!(pinned.said_length, 46);
-    assert_eq!(pinned.qualified_digest_length, 44);
-    assert!(!pinned.said_is_a_digest);
-
-    let recorded = request_of(&fixture, "get_request_pinned")?;
-    assert_eq!(recorded.path, format!("/multisig/request/{}", pinned.said));
-    assert_eq!(recorded.method, "GET");
-
-    assert!(pinned.said.parse::<Said>().is_err());
-    let real = request_of(&fixture, "get_request_real_said")?;
-    assert_eq!(read_path(&REAL_SAID.parse::<Said>()?)?.as_str(), real.path);
-    assert_eq!(real.path, format!("/multisig/request/{REAL_SAID}"));
-    Ok(())
-}
-
-#[test]
-fn the_pinned_join_arguments_are_each_unrepresentable() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_arguments;
-    assert_ne!(pinned.note, "");
-
-    assert_eq!(pinned.rotation, "{ sad: {} }");
-    let recorded = request_of(&fixture, "join_pinned")?;
-    let body: Value = serde_json::from_str(recorded.body.as_deref().ok_or("no body")?)?;
-    assert_eq!(body.get("rot"), Some(&Value::Object(serde_json::Map::new())));
-
-    assert_eq!(pinned.signatures, ["sig"]);
-    assert_eq!(
-        body.get("sigs").and_then(Value::as_array).map(Vec::len),
-        Some(1),
-        "the recorded call sent one signature"
-    );
-
-    assert_eq!(pinned.signing_members, ["1", "2", "3"]);
-    assert_eq!(pinned.rotation_members, ["a", "b", "c"]);
-    for member in pinned.signing_members.iter().chain(&pinned.rotation_members) {
-        assert!(
-            keri_protocol::prefix::IdentifierPrefix::from_qb64(member).is_err(),
-            "{member:?} was accepted as a member prefix"
-        );
-    }
-    assert_eq!(body.get("gid").and_then(Value::as_str), Some(pinned.said.as_str()));
-    assert!(
-        keri_protocol::prefix::IdentifierPrefix::from_qb64(&pinned.said).is_err(),
-        "the pinned group identifier was accepted"
-    );
-    Ok(())
-}
-
-#[test]
 fn the_pinned_proposal_carries_no_signature() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.pinned_arguments.send_request_signatures, [] as [String; 0]);
@@ -388,33 +232,39 @@ fn the_pinned_proposal_carries_no_signature() -> Result<(), Box<dyn Error>> {
 #[test]
 fn the_real_read_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    let recorded = request_of(&fixture, "get_request_real_said")?;
-    let path = read_path(&REAL_SAID.parse::<Said>()?)?;
-    assert_eq!(path.as_str(), recorded.path);
-    assert_eq!(recorded.method, "GET");
-    assert_eq!(recorded.body, None);
-    assert_eq!(path.query(), None);
+    let recorded = call(&fixture, "get_request_real_said")?;
+    let request = recorded.request.as_ref().ok_or("the real read recorded no request")?;
+    let answer = serde_json::to_vec(&recorded.answer)?;
+
+    let Harness { client, transport, .. } = connected(&[&answer])?;
+    let listing = block_on(client.groups().requests(&REAL_SAID.parse::<Said>()?))?;
+    assert_eq!(listing.len(), 1);
+    assert_eq!(
+        sent_all(&transport)?
+            .into_iter()
+            .map(|sent| (sent.path, sent.method, sent.body))
+            .collect::<Vec<_>>(),
+        [(request.path.clone(), request.method.clone(), request.body.clone())]
+    );
     Ok(())
 }
 
 #[test]
-fn none_of_the_three_dynamic_values_reaches_the_wire_unencoded() -> Result<(), Box<dyn Error>> {
+fn an_alias_never_reaches_the_wire_unencoded() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-
     let alias = request_of(&fixture, "send_request_escaping_alias")?;
     assert_eq!(alias.path, "/identifiers/a/b?c=d/multisig/request");
-    assert_eq!(
-        write_path("a/b?c=d", REQUEST_SEGMENT)?.as_str(),
-        "/identifiers/a%2Fb%3Fc%3Dd/multisig/request"
-    );
 
-    let escaping = request_of(&fixture, "get_request_escaping_said")?;
-    assert_eq!(escaping.path, "/multisig/request/../identifiers/aid1?x=1");
-    assert!("../identifiers/aid1?x=1".parse::<Said>().is_err());
+    let record = identifier_record()?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
+    let draft = ExchangeDraft::new("/multisig/icp", MEMBER.parse::<IdentifierPrefix>()?, STAMP.parse()?);
+    let message = block_on(client.exchanges().create_message("aid1", &draft))?;
+    block_on(client.groups().send_request("a/b?c=d", &message))?;
 
-    let empty = request_of(&fixture, "get_request_empty_said")?;
-    assert_eq!(empty.path, "/multisig/request/");
-    assert!("".parse::<Said>().is_err());
+    let requests = sent_all(&transport)?;
+    let SentRequest { path, method, .. } = requests.last().ok_or("no proposal was sent")?;
+    assert_eq!(method, "POST");
+    assert_eq!(path, "/identifiers/a%2Fb%3Fc%3Dd/multisig/request");
     Ok(())
 }
 

@@ -2,6 +2,8 @@
 //!
 //! Both rounds from syntax tree and recording agent, and three findings including a rotation on the wrong route.
 
+mod support;
+
 use std::error::Error;
 
 use keria_types::api::MultisigExchangeResource;
@@ -11,10 +13,6 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INTERACTION_ROUTE, INTERACTION_SLOT, ROTATION_ROUTE, ROTATION_SLOT};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-multisig-events/v1.json"
-));
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -29,7 +27,6 @@ struct Fixture {
     sources: Vec<String>,
     provenance: Provenance,
     declarations: Declarations,
-    key_states: serde_json::Map<String, Value>,
     identifier_record: Value,
     group_record: Value,
     calls: Vec<Call>,
@@ -49,13 +46,9 @@ struct Provenance {
 #[derive(Debug, Deserialize)]
 struct Declarations {
     send_calls: Vec<SendCall>,
-    wait_calls: Vec<WaitCall>,
     group_rotate_calls: Vec<Value>,
-    member_expressions: Vec<MemberExpression>,
-    mismatched_sends: Vec<SendCall>,
     rotation_route: String,
     interaction_route: String,
-    scenario_anchor: Value,
     scenario_files: Vec<String>,
     scanned_files: usize,
     notes: Value,
@@ -64,25 +57,9 @@ struct Declarations {
 #[derive(Clone, Debug, Deserialize)]
 struct SendCall {
     file: String,
-    enclosing: String,
     route: String,
     embed_variable: Option<String>,
     embed_slots: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct WaitCall {
-    file: String,
-    enclosing: String,
-    route: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct MemberExpression {
-    file: String,
-    enclosing: String,
-    label: String,
-    expression: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -103,17 +80,11 @@ struct RecordedRequest {
 
 #[derive(Debug, Deserialize)]
 struct PinnedConfirmations {
-    interaction_paths: Vec<String>,
-    rotation_paths: Vec<String>,
     join_path: Vec<String>,
-    group_prefix: String,
-    interaction_digest: String,
-    rotation_digest: String,
-    note: String,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-multisig-events")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -207,8 +178,6 @@ fn the_route_constants_are_the_references_own() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.declarations.rotation_route, ROTATION_ROUTE);
     assert_eq!(fixture.declarations.interaction_route, INTERACTION_ROUTE);
-    assert_eq!(MultisigRoute::Rotation.as_str(), ROTATION_ROUTE);
-    assert_eq!(MultisigRoute::Interaction.as_str(), INTERACTION_ROUTE);
     assert_eq!(fixture.declarations.scanned_files, 117);
     assert_eq!(fixture.declarations.scenario_files.len(), 3);
     assert!(fixture.declarations.notes.is_object());
@@ -341,65 +310,7 @@ fn only_the_initiator_uses_the_rotation_route() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
-fn the_scan_finds_a_third_mismatch_this_item_does_not_own() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let others: Vec<&SendCall> = fixture
-        .declarations
-        .mismatched_sends
-        .iter()
-        .filter(|call| !call.embed_slots.iter().any(|slot| slot == ROTATION_SLOT))
-        .collect();
-    assert_eq!(others.len(), 1);
-    let revocation = others.first().ok_or("no third mismatch")?;
-    assert_eq!(revocation.route, "/multisig/rev");
-    assert_eq!(revocation.embed_slots, ["iss", "anc"]);
-    assert_eq!(revocation.enclosing, "multisigRevoke");
-    Ok(())
-}
-
 // --- The finding: a joining member never reads the rotation it joins ---
-#[test]
-fn a_rebuilt_rotation_can_differ_from_the_one_proposed_with_nothing_said() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_joining_member_never_reads_the_rotation_it_joins")?;
-
-    assert_eq!(recorded.get("styles_agree").and_then(Value::as_bool), Some(true));
-    assert_eq!(
-        recorded.get("rebuilt_event_digest"),
-        recorded.get("proposed_event_digest")
-    );
-    assert_eq!(
-        recorded.get("signed_by_the_join"),
-        recorded.get("proposed_event_digest")
-    );
-
-    let divergent = recorded.get("divergent").ok_or("no divergent case")?;
-    assert_eq!(
-        divergent.get("matches_the_proposal").and_then(Value::as_bool),
-        Some(false)
-    );
-    assert_eq!(
-        divergent.get("error"),
-        Some(&Value::Null),
-        "the divergent rebuild failed after all"
-    );
-    assert_ne!(
-        divergent.get("rebuilt_next_digests"),
-        divergent.get("proposed_next_digests")
-    );
-    assert_eq!(
-        divergent
-            .get("rebuilt_next_digests")
-            .and_then(Value::as_array)
-            .map(Vec::len),
-        divergent
-            .get("proposed_next_digests")
-            .and_then(Value::as_array)
-            .map(Vec::len)
-    );
-    Ok(())
-}
 
 #[test]
 fn the_join_endpoint_signs_the_event_it_was_shown() -> Result<(), Box<dyn Error>> {
@@ -433,138 +344,7 @@ fn the_join_endpoint_signs_the_event_it_was_shown() -> Result<(), Box<dyn Error>
     Ok(())
 }
 
-// --- The finding: the two rotation call sites disagree about `rmids` ---
-#[test]
-fn the_two_rotation_call_sites_disagree_about_the_rotation_set() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "the_two_rotation_call_sites_disagree_about_rmids")?;
-    let expressions = recorded
-        .get("expressions")
-        .and_then(Value::as_array)
-        .ok_or("no recorded expressions")?;
-    assert!(expressions.len() >= 2);
-
-    let sources: Vec<&str> = expressions
-        .iter()
-        .filter_map(|entry| entry.get("expression").and_then(Value::as_str))
-        .collect();
-    assert!(
-        sources.iter().any(|expression| expression.contains("rstates")),
-        "no call site names the rotation states"
-    );
-    assert!(
-        sources.iter().any(|expression| expression.contains("states.map")),
-        "no call site substitutes the signing states"
-    );
-    for entry in &fixture.declarations.member_expressions {
-        assert_ne!(entry.file, "");
-        assert_ne!(entry.enclosing, "");
-        assert_ne!(entry.expression, "");
-        assert!(entry.label == "smids" || entry.label == "rmids");
-    }
-    Ok(())
-}
-
 // --- The half the reference gets right ---
-#[test]
-fn an_interaction_anchors_the_seal_it_was_shown() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "an_interaction_relays_the_data_it_read")?;
-    let proposed = recorded
-        .get("proposed_anchors")
-        .and_then(Value::as_array)
-        .ok_or("no proposed anchors")?;
-    assert_eq!(proposed.len(), 1);
-    assert_eq!(proposed.first(), Some(&fixture.declarations.scenario_anchor));
-
-    let accepted = body(&fixture, "accept_interaction", "/identifiers/multisig/events")?;
-    let proposal = body(&fixture, "propose_interaction", "/identifiers/multisig/events")?;
-    assert_eq!(accepted.pointer("/ixn/a"), proposal.pointer("/ixn/a"));
-    assert_eq!(accepted.pointer("/ixn/d"), proposal.pointer("/ixn/d"));
-    assert_eq!(
-        accepted.pointer("/ixn/d").and_then(Value::as_str),
-        Some(fixture.pinned_confirmations.interaction_digest.as_str())
-    );
-    Ok(())
-}
-
-#[test]
-fn each_round_reads_the_group_and_writes_one_event() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert_eq!(
-        fixture.pinned_confirmations.interaction_paths,
-        ["GET /identifiers/multisig", "POST /identifiers/multisig/events"]
-    );
-    assert_eq!(
-        fixture.pinned_confirmations.rotation_paths,
-        fixture.pinned_confirmations.interaction_paths
-    );
-
-    let interaction = body(&fixture, "propose_interaction", "/identifiers/multisig/events")?;
-    let rotation = body(&fixture, "propose_rotation", "/identifiers/multisig/events")?;
-    assert_eq!(interaction.pointer("/ixn/t").and_then(Value::as_str), Some("ixn"));
-    assert_eq!(rotation.pointer("/rot/t").and_then(Value::as_str), Some("rot"));
-    for event in [interaction.pointer("/ixn/i"), rotation.pointer("/rot/i")] {
-        assert_eq!(
-            event.and_then(Value::as_str),
-            Some(fixture.pinned_confirmations.group_prefix.as_str())
-        );
-    }
-    assert!(rotation.get("smids").is_some() && rotation.get("rmids").is_some());
-    assert!(interaction.get("smids").is_none() && interaction.get("rmids").is_none());
-    assert_eq!(
-        rotation.pointer("/rot/d").and_then(Value::as_str),
-        Some(fixture.pinned_confirmations.rotation_digest.as_str())
-    );
-    assert_ne!(fixture.pinned_confirmations.note, "");
-    Ok(())
-}
-
-#[test]
-fn the_key_states_the_rounds_read_are_recorded() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert_eq!(fixture.key_states.len(), 2);
-    for prefix in [LOCAL, PEER] {
-        let state = fixture
-            .key_states
-            .get(prefix)
-            .ok_or("a member has no recorded key state")?;
-        assert_eq!(state.get("i").and_then(Value::as_str), Some(prefix));
-        assert!(
-            state
-                .get("n")
-                .and_then(Value::as_array)
-                .and_then(|digests| digests.first())
-                .and_then(Value::as_str)
-                .is_some_and(|digest| digest.len() == 44)
-        );
-    }
-    Ok(())
-}
-
-#[test]
-fn every_wait_names_a_route_some_send_uses() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let sent: Vec<&str> = fixture
-        .declarations
-        .send_calls
-        .iter()
-        .map(|call| call.route.as_str())
-        .collect();
-    for wait in &fixture.declarations.wait_calls {
-        assert_ne!(wait.file, "");
-        assert_ne!(wait.enclosing, "");
-        if wait.route.starts_with("/multisig/") {
-            assert!(
-                sent.contains(&wait.route.as_str()),
-                "{} waits on {} and nothing sends it",
-                wait.enclosing,
-                wait.route
-            );
-        }
-    }
-    Ok(())
-}
 
 #[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {

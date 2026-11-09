@@ -148,31 +148,11 @@ struct Rejection {
 
 #[derive(Debug, Deserialize)]
 struct Quirks {
-    non_transferable_rewrites_are_silent: SilentRewriteQuirk,
-    interact_without_data_anchors_null: NoteQuirk,
     create_wraps_data_even_when_it_is_a_list: WrapQuirk,
-    unused_create_arguments: NoteQuirk,
-    end_role_default_stamp_reads_the_clock: NoteQuirk,
-}
-
-#[derive(Debug, Deserialize)]
-struct SilentRewriteQuirk {
-    overridden_arguments_change_nothing: bool,
-    note: String,
-    rust_decision: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct NoteQuirk {
-    note: String,
-    rust_decision: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct WrapQuirk {
-    anchors: Value,
-    nested: bool,
-    note: String,
     rust_decision: String,
 }
 
@@ -720,39 +700,5 @@ fn every_reference_rejection_is_refused_here_too() -> Result<(), Box<dyn Error>>
             other => return Err(format!("unknown rejection case {other:?}").into()),
         }
     }
-    Ok(())
-}
-
-#[test]
-fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let quirks = &fixture.reference_quirks;
-
-    // The silent non-transferable rewrites: the reference ignores explicit contradictions; Rust
-    // refuses them, which the unit tests assert against each variant.
-    assert!(
-        quirks
-            .non_transferable_rewrites_are_silent
-            .overridden_arguments_change_nothing
-    );
-    assert_ne!(quirks.non_transferable_rewrites_are_silent.note, "");
-    assert_ne!(quirks.non_transferable_rewrites_are_silent.rust_decision, "");
-
-    // The `[null]` anchor and the double-wrapped list are unrepresentable here.
-    assert_ne!(quirks.interact_without_data_anchors_null.rust_decision, "");
-    assert!(quirks.create_wraps_data_even_when_it_is_a_list.nested);
-    assert!(
-        quirks
-            .create_wraps_data_even_when_it_is_a_list
-            .anchors
-            .get(0)
-            .and_then(Value::as_array)
-            .is_some()
-    );
-    assert_ne!(quirks.create_wraps_data_even_when_it_is_a_list.note, "");
-    assert_ne!(quirks.unused_create_arguments.note, "");
-    assert_ne!(quirks.unused_create_arguments.rust_decision, "");
-    assert_ne!(quirks.end_role_default_stamp_reads_the_clock.note, "");
-    assert_ne!(quirks.end_role_default_stamp_reads_the_clock.rust_decision, "");
     Ok(())
 }

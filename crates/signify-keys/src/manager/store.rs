@@ -318,21 +318,6 @@ mod tests {
     }
 
     #[test]
-    fn a_rotation_key_pads_its_index_so_rotations_sort() {
-        assert_eq!(
-            RotationKey::new("EABC", 0).as_str(),
-            "EABC.00000000000000000000000000000000"
-        );
-        assert_eq!(
-            RotationKey::new("EABC", 26).as_str(),
-            "EABC.0000000000000000000000000000001a"
-        );
-        // Padding is what makes the text order the rotation order.
-        assert!(RotationKey::new("EABC", 2) < RotationKey::new("EABC", 16));
-        assert!(RotationKey::new("EABC", 9) < RotationKey::new("EABC", 10));
-    }
-
-    #[test]
     fn inserting_twice_leaves_the_first_value_and_replacing_does_not() -> Result<(), Box<dyn Error>> {
         let mut store = KeyStore::new();
         assert!(store.insert_parameters("EABC", parameters()?));

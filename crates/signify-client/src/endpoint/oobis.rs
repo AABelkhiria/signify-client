@@ -343,17 +343,6 @@ mod tests {
     }
 
     #[test]
-    fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
-        // Upstream `get('a/b?c=d', 'agent')` addresses `/identifiers/a/b?c=d/oobis?role=agent`:
-        // one argument becoming two segments, a query, and a different signed path.
-        let path = oobi_path("a/b?c=d", &Role::Agent)?;
-        assert_eq!(path.as_str(), "/identifiers/a%2Fb%3Fc%3Dd/oobis?role=agent");
-        assert_eq!(path.path(), "/identifiers/a%2Fb%3Fc%3Dd/oobis");
-        assert_eq!(path.path().split('/').count(), 4);
-        Ok(())
-    }
-
-    #[test]
     fn a_role_can_never_introduce_a_second_query_parameter() -> Result<(), Box<dyn Error>> {
         // Upstream `get('aid', 'agent&extra=1')` sends `?role=agent&extra=1`, because the query is
         // built by interpolation rather than with `URLSearchParams`.
@@ -396,25 +385,6 @@ mod tests {
         assert_eq!(path.as_str(), format!("/endroles/{GROUP_AID}/..%2Fidentifiers"));
         assert_eq!(path.path().split('/').count(), 4);
         Ok(())
-    }
-
-    #[test]
-    fn a_value_that_would_escape_the_path_is_not_an_identifier_prefix() {
-        // The reference accepts any string as an AID and concatenates it raw.
-        for hostile in [
-            "a/b?c=d",
-            "",
-            "../identifiers",
-            "not a prefix",
-            "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwr",
-            // The reference's own integration test sends this one.
-            UNKNOWN_AID,
-        ] {
-            assert!(
-                IdentifierPrefix::from_qb64(hostile).is_err(),
-                "{hostile:?} was accepted as an identifier prefix"
-            );
-        }
     }
 
     #[test]

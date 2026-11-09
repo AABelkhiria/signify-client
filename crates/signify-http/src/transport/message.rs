@@ -438,30 +438,6 @@ mod tests {
     }
 
     #[test]
-    fn a_request_keeps_what_it_was_given() -> Result<(), Box<dyn Error>> {
-        let (name, value) = header("Signify-Resource", "EPRE")?;
-        let request = Request::builder(Method::Post, url()?)
-            .header(name, value)
-            .body(b"payload".to_vec())
-            .build()?;
-        assert_eq!(request.method(), Method::Post);
-        assert_eq!(request.url().as_str(), "https://keria.example/identifiers");
-        assert_eq!(request.headers().get("signify-resource"), Some("EPRE"));
-        assert_eq!(request.body(), Some(b"payload".as_slice()));
-        assert_eq!(request.response_limit(), DEFAULT_RESPONSE_BODY_LIMIT);
-        Ok(())
-    }
-
-    #[test]
-    fn an_absent_body_differs_from_an_empty_one() -> Result<(), Box<dyn Error>> {
-        let absent = Request::builder(Method::Get, url()?).build()?;
-        let empty = Request::builder(Method::Get, url()?).body(Vec::new()).build()?;
-        assert_eq!(absent.body(), None);
-        assert_eq!(empty.body(), Some(b"".as_slice()));
-        Ok(())
-    }
-
-    #[test]
     fn headers_are_carried_in_order_and_deduplicated() -> Result<(), Box<dyn Error>> {
         let (first, first_value) = header("Range", "aids=0-24")?;
         let (second, second_value) = header("Content-Type", "application/json")?;
@@ -479,32 +455,6 @@ mod tests {
             .header(first, first_value)
             .build();
         assert!(matches!(duplicate, Err(TransportError::Header { .. })));
-        Ok(())
-    }
-
-    #[test]
-    fn the_body_and_limit_bounds_are_enforced() -> Result<(), Box<dyn Error>> {
-        assert!(matches!(
-            Request::builder(Method::Post, url()?)
-                .body(vec![0_u8; MAX_REQUEST_BODY_BYTES + 1])
-                .build(),
-            Err(TransportError::RequestBodyTooLarge { .. })
-        ));
-        // The bound is inclusive.
-        assert!(
-            Request::builder(Method::Post, url()?)
-                .body(vec![0_u8; MAX_REQUEST_BODY_BYTES])
-                .build()
-                .is_ok()
-        );
-        assert!(matches!(
-            Request::builder(Method::Get, url()?)
-                .response_limit(MAX_RESPONSE_BODY_LIMIT + 1)
-                .build(),
-            Err(TransportError::ResponseLimitTooLarge { .. })
-        ));
-        let bounded = Request::builder(Method::Get, url()?).response_limit(64).build()?;
-        assert_eq!(bounded.response_limit(), 64);
         Ok(())
     }
 

@@ -4,8 +4,10 @@
 //! key, which a property test would multiply by its case count; nothing under test depends on the
 //! profile, and the cross-language vectors cover the production one exactly — signatures included.
 
+mod support;
+
+use crate::support::{ISSUER, PASSCODE, STAMP, fail, incepted_state, issuer_state, keeper_for, salty_request};
 use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
 use keri_protocol::event::kind::EventKind;
 use keri_protocol::prefix::IdentifierPrefix;
@@ -19,38 +21,15 @@ use signify_keys::acdc::ipex::{
     MAX_MESSAGE_BYTES, MESSAGE_LABEL, SCHEMA_LABEL, admit, agree, apply, grant, offer,
 };
 use signify_keys::acdc::issuance::{IssuanceEvent, issue_credential};
-use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures};
+use signify_keys::identifier::incept_identifier;
+use signify_keys::manager::{IdentifierKeeper, ManagedSignatures};
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";
-const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";
 const REGISTRY: &str = "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const DIGEST: &str = "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW";
-const STAMP: &str = "2023-08-23T15:16:07.553000+00:00";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-/// A salty keeper at the ephemeral cost.
-fn keeper() -> Result<Box<dyn IdentifierKeeper>, Box<dyn std::error::Error>> {
-    let factory = KeeperFactory::new(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?);
-    Ok(factory.create(request().keeper_request(0)?)?)
-}
-
-fn request() -> CreateIdentifierRequest {
-    CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some("0123456789abcdefghijk".into()),
-        tier: SecurityTier::Low,
-        current_count: 1,
-        next_count: 1,
-        cost: DerivationCost::Ephemeral,
-    })
-}
-
 fn envelope(message: &str) -> Result<IpexEnvelope, Box<dyn std::error::Error>> {
     Ok(IpexEnvelope::new(
         IdentifierPrefix::from_qb64(SENDER)?,
@@ -75,24 +54,7 @@ fn credential(value: &str) -> Result<Credential, Box<dyn std::error::Error>> {
 
 /// A disclosure whose three attachments are all derived from a real signed issuance.
 fn disclosure(keeper: &dyn IdentifierKeeper, credential: Credential) -> Result<Disclosure, Box<dyn std::error::Error>> {
-    let state: KeyState = serde_json::from_value(serde_json::json!({
-        "i": ISSUER,
-        "s": "0",
-        "p": "",
-        "d": DIGEST,
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": "1",
-        "k": ["DAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"],
-        "nt": "1",
-        "n": [DIGEST],
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": DIGEST, "br": [], "ba": []},
-        "di": "",
-    }))?;
+    let state: KeyState = issuer_state(0, &[])?;
     let artifacts = issue_credential(keeper, &state, credential)?;
     Ok(artifacts.disclosure()?)
 }
@@ -143,7 +105,7 @@ proptest! {
     /// opens with the recipient and carries the message text.
     #[test]
     fn every_route_produces_a_well_formed_message(text in "[ -~]{0,64}") {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope(&text).map_err(fail)?;
         let schema = Said::from_qb64(SCHEMA).map_err(fail)?;
         let prior = Said::from_qb64(DIGEST).map_err(fail)?;
@@ -169,7 +131,7 @@ proptest! {
     /// five different identifiers.
     #[test]
     fn the_route_changes_the_identifier(text in "[ -~]{0,32}") {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope(&text).map_err(fail)?;
         let prior = Said::from_qb64(DIGEST).map_err(fail)?;
 
@@ -188,7 +150,7 @@ proptest! {
     /// and the absent one writes an empty field rather than omitting it.
     #[test]
     fn a_prior_identifier_is_committed_to(text in "[ -~]{0,32}") {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope(&text).map_err(fail)?;
         let credential = credential("1").map_err(fail)?;
         let prior = Said::from_qb64(DIGEST).map_err(fail)?;
@@ -212,7 +174,7 @@ proptest! {
         labels in prop::collection::vec("[A-Za-z_][A-Za-z0-9_]{0,8}", 0..4),
         text in "[ -~]{0,32}",
     ) {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope(&text).map_err(fail)?;
         let schema = Said::from_qb64(SCHEMA).map_err(fail)?;
 
@@ -246,7 +208,7 @@ proptest! {
     /// order the embeds appear.
     #[test]
     fn only_a_grant_carries_attachments(text in "[ -~]{0,32}") {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope(&text).map_err(fail)?;
         let credential = credential("1").map_err(fail)?;
         let disclosure = disclosure(keeper.as_ref(), credential.clone()).map_err(fail)?;
@@ -279,7 +241,7 @@ proptest! {
     /// them — which is what lets a recipient trust what it received.
     #[test]
     fn a_grant_embeds_all_three_artifacts_verbatim(value in "[ -~]{0,16}") {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope("").map_err(fail)?;
         let credential = credential(&value).map_err(fail)?;
         let issuance = IssuanceEvent::for_credential(&credential).map_err(fail)?;
@@ -339,7 +301,7 @@ proptest! {
     /// let it readdress the message.
     #[test]
     fn attributes_may_not_readdress_the_message(value in "[ -~]{1,32}") {
-        let keeper = keeper().map_err(fail)?;
+        let keeper = keeper_for(&salty_request(PASSCODE, 1, 1)).map_err(fail)?;
         let envelope = envelope("").map_err(fail)?;
         let mut attributes = Sad::new();
         attributes.insert("i", SadValue::text(value)).map_err(fail)?;
@@ -358,27 +320,10 @@ proptest! {
 /// anchor's is the issuer's own signature over it.
 #[test]
 fn a_disclosure_chains_to_a_signed_key_event() -> Result<(), Box<dyn std::error::Error>> {
-    let mut keeper = keeper()?;
-    let inception = incept_identifier(keeper.as_mut(), &request())?;
+    let mut keeper = keeper_for(&salty_request(PASSCODE, 1, 1))?;
+    let inception = incept_identifier(keeper.as_mut(), &salty_request(PASSCODE, 1, 1))?;
     let event: serde_json::Value = serde_json::from_slice(inception.event.raw())?;
-    let state: KeyState = serde_json::from_value(serde_json::json!({
-        "i": event.get("i"),
-        "s": "0",
-        "p": "",
-        "d": event.get("d"),
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": event.get("kt"),
-        "k": event.get("k"),
-        "nt": event.get("nt"),
-        "n": event.get("n"),
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": event.get("d"), "br": [], "ba": []},
-        "di": "",
-    }))?;
+    let state: KeyState = serde_json::from_value(incepted_state(&event, STAMP))?;
 
     let credential = credential("5493001KJTIIGC8Y1R17")?;
     let artifacts = issue_credential(keeper.as_ref(), &state, credential)?;
@@ -411,25 +356,8 @@ fn a_disclosure_chains_to_a_signed_key_event() -> Result<(), Box<dyn std::error:
 /// built from it would disclose a credential the recipient cannot verify.
 #[test]
 fn an_unsigned_anchor_is_refused() -> Result<(), Box<dyn std::error::Error>> {
-    let keeper = keeper()?;
-    let state: KeyState = serde_json::from_value(serde_json::json!({
-        "i": ISSUER,
-        "s": "0",
-        "p": "",
-        "d": DIGEST,
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": "1",
-        "k": ["DAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"],
-        "nt": "1",
-        "n": [DIGEST],
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": DIGEST, "br": [], "ba": []},
-        "di": "",
-    }))?;
+    let keeper = keeper_for(&salty_request(PASSCODE, 1, 1))?;
+    let state: KeyState = issuer_state(0, &[])?;
     let mut artifacts = issue_credential(keeper.as_ref(), &state, credential("1")?)?;
 
     // A real issuance signs; emptying the signatures is the state this refusal exists for.

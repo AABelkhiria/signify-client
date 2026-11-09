@@ -4,47 +4,32 @@
 //! shift, a floor above its ceiling, a delay of zero, a date one character away from valid, and a
 //! deadline that expires exactly on a wait.
 
+mod support;
+
 use core::time::Duration;
 use std::sync::Arc;
 use std::time::{Instant, SystemTime};
 
+use crate::support::{block_on, fail, method_of};
 use proptest::prelude::*;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{
     Backoff, Clock, FixedJitter, Jitter, JitterSource, MAX_ATTEMPTS, MAX_DELAY_BOUND_SECONDS, MAX_DELAY_SECONDS,
-    MAX_RETRY_AFTER_BYTES, OsJitter, RetryAfter, RetryAfterError, RetryAfterPolicy, RetryDecision, RetryPolicy,
-    RetryPolicyError, RetryScope, RetryingTransport, StopReason, TestClock,
+    MAX_RETRY_AFTER_BYTES, RetryAfter, RetryAfterError, RetryAfterPolicy, RetryDecision, RetryPolicy, RetryPolicyError,
+    RetryScope, RetryingTransport, StopReason, TestClock,
 };
 use signify_http::transport::{Method, Request, RequestUrl, Response, ScriptedTransport, StatusCode, Transport};
 
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn method_of(index: usize) -> Method {
-    *Method::ALL.get(index % Method::ALL.len()).unwrap_or(&Method::Get)
-}
-
-/// A minimal executor; every future in this crate's test path is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
 proptest! {
-    /// A delay always lands inside the bounds the policy names, however far the schedule runs.
+    /// A delay always lands inside the policy's bounds, and the schedule never decreases and
+    /// flattens once the ceiling binds.
     #[test]
-    fn a_delay_is_always_within_its_bounds(
+    fn a_schedule_is_bounded_monotonic_and_flattens(
         base_ms in 1_u64..5_000,
         min_ms in 1_u64..5_000,
-        max_ms in 1_u64..5_000,
+        max_ms in 1_u64..20_000,
         attempt in any::<u32>(),
+        steps in 1_u32..40,
     ) {
         let policy = RetryPolicy::builder()
             .base_delay(Duration::from_millis(base_ms))
@@ -54,37 +39,25 @@ proptest! {
             .build()
             .map_err(fail)?;
 
-        let delay = policy.delay_for(attempt);
-        // The reference applies the floor *outside* the ceiling, so a floor above the ceiling wins.
-        prop_assert!(delay >= Duration::from_millis(min_ms), "{delay:?}");
-        if min_ms <= max_ms {
-            prop_assert!(delay <= Duration::from_millis(max_ms), "{delay:?}");
-        } else {
-            prop_assert_eq!(delay, Duration::from_millis(min_ms));
-        }
-        // Nothing overflows, whatever the attempt number.
-        prop_assert!(delay <= Duration::from_millis(min_ms.max(max_ms)));
-    }
+        let within_bounds = |delay: Duration| -> Result<(), TestCaseError> {
+            // The reference applies the floor *outside* the ceiling, so a floor above the ceiling wins.
+            prop_assert!(delay >= Duration::from_millis(min_ms), "{delay:?}");
+            if min_ms <= max_ms {
+                prop_assert!(delay <= Duration::from_millis(max_ms), "{delay:?}");
+            } else {
+                prop_assert_eq!(delay, Duration::from_millis(min_ms));
+            }
+            // Nothing overflows, whatever the attempt number.
+            prop_assert!(delay <= Duration::from_millis(min_ms.max(max_ms)));
+            Ok(())
+        };
 
-    /// The schedule never decreases, and flattens once the ceiling binds.
-    #[test]
-    fn a_schedule_is_monotonic_and_flattens(
-        base_ms in 1_u64..1_000,
-        max_ms in 1_u64..20_000,
-        steps in 1_u32..40,
-    ) {
-        let policy = RetryPolicy::builder()
-            .base_delay(Duration::from_millis(base_ms))
-            .min_delay(Duration::from_millis(1))
-            .max_delay(Duration::from_millis(max_ms))
-            .jitter(Jitter::None)
-            .build()
-            .map_err(fail)?;
-
+        within_bounds(policy.delay_for(attempt))?;
         let mut previous = Duration::ZERO;
-        for attempt in 0..steps {
-            let delay = policy.delay_for(attempt);
-            prop_assert!(delay >= previous, "attempt {attempt}: {delay:?} < {previous:?}");
+        for step in 0..steps {
+            let delay = policy.delay_for(step);
+            within_bounds(delay)?;
+            prop_assert!(delay >= previous, "attempt {step}: {delay:?} < {previous:?}");
             previous = delay;
         }
         // Far enough out, it has stopped growing entirely.
@@ -212,6 +185,7 @@ proptest! {
     fn a_test_clock_accounts_for_every_wait(waits in proptest::collection::vec(0_u64..100_000, 0..32)) {
         let clock = TestClock::new();
         let start = clock.now();
+        let start_wall = clock.wall_clock();
         for wait in &waits {
             block_on(clock.sleep(Duration::from_micros(*wait)));
         }
@@ -220,7 +194,8 @@ proptest! {
         prop_assert_eq!(clock.now().duration_since(start), Duration::from_micros(total));
         prop_assert_eq!(clock.recorded_sleeps().len(), waits.len());
         // The wall clock moves with it, so a date-form `Retry-After` is deterministic too.
-        prop_assert!(clock.wall_clock() >= SystemTime::UNIX_EPOCH);
+        let wall_elapsed = clock.wall_clock().duration_since(start_wall).map_err(fail)?;
+        prop_assert_eq!(wall_elapsed, Duration::from_micros(total));
     }
 
     /// A delay-seconds value round trips, and anything outside the grammar is refused.
@@ -349,8 +324,13 @@ proptest! {
     }
 
     /// A malformed or absent `Retry-After` costs the server its timing and nothing else.
+    ///
+    /// The values hold no digit and are shorter than an HTTP date, so none can parse.
     #[test]
-    fn a_broken_guidance_header_falls_back_to_the_schedule(value in "[ -~]{0,24}") {
+    fn a_broken_guidance_header_falls_back_to_the_schedule(
+        value in "[A-Za-z ,:;=-]{0,24}",
+        base_ms in 10_u64..5_000,
+    ) {
         let mut headers = Headers::new();
         if let (Ok(name), Ok(header_value)) = (HeaderName::new("Retry-After"), HeaderValue::new(&value)) {
             let _ = headers.insert(name, header_value);
@@ -368,7 +348,7 @@ proptest! {
         .with_policy(
             RetryPolicy::builder()
                 .max_attempts(3)
-                .base_delay(Duration::from_millis(50))
+                .base_delay(Duration::from_millis(base_ms))
                 .jitter(Jitter::None)
                 .without_deadline()
                 .retry_after(RetryAfterPolicy::Honor { maximum: Duration::from_secs(30) })
@@ -381,14 +361,9 @@ proptest! {
         let answer = block_on(transport.execute(request)).map_err(fail)?;
         prop_assert_eq!(answer.status().as_u16(), 200);
 
-        // Exactly one wait, and it is either the parsed guidance or the computed 50 ms.
-        let waits = clock.recorded_sleeps();
-        prop_assert_eq!(waits.len(), 1);
-        let waited = waits.first().copied().unwrap_or_default();
-        let expected = RetryAfter::parse(value.trim()).map_or(Duration::from_millis(50), |guidance| {
-            guidance.delay_from(clock.wall_clock()).min(Duration::from_secs(30))
-        });
-        prop_assert_eq!(waited, expected);
+        // Exactly one wait: the first step of the schedule, `base * 2^0`, inside the default
+        // `[10 ms, 10 s]` bounds.
+        prop_assert_eq!(clock.recorded_sleeps(), vec![Duration::from_millis(base_ms)]);
     }
 
     /// A jitter source always yields something usable, and a fixed one is fixed.
@@ -397,7 +372,5 @@ proptest! {
         let fixed = FixedJitter::new(value);
         prop_assert_eq!(fixed.next_u32(), value);
         prop_assert_eq!(fixed.next_u32(), value);
-        // The OS source has no range to violate, but it must always answer.
-        let _ = OsJitter.next_u32();
     }
 }

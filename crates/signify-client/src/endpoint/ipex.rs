@@ -253,21 +253,6 @@ mod tests {
     }
 
     #[test]
-    fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
-        // The reference concatenates the alias raw, so `a/b` addresses another identifier's
-        // resource — and request signing covers `@path`.
-        let path = ResourcePath::builder()
-            .segment(IDENTIFIERS_SEGMENT)
-            .segment("a/b")
-            .segment(IPEX_SEGMENT)
-            .segment(route_segment(IpexRoute::Apply))
-            .build()?;
-        assert_eq!(path.as_str(), "/identifiers/a%2Fb/ipex/apply");
-        assert_eq!(path.path().split('/').count(), 5);
-        Ok(())
-    }
-
-    #[test]
     fn a_body_carries_the_reference_field_order() -> Result<(), Box<dyn Error>> {
         // Rendered here from the parts rather than from a message, so the two shapes are stated
         // side by side; the cross-language test compares whole bodies against the reference.

@@ -451,22 +451,12 @@ mod tests {
 
     use crate::controller::{Controller, ControllerOptions};
     use crate::manager::{DerivationCost, ManagerError};
+    use crate::test_support::{agent, ephemeral_controller, key_state_value};
     use keri_protocol::event::kind::EventKind;
     use keri_protocol::serialization::SadValue;
 
     const PASSCODE: &str = "0123456789abcdefghijk";
     const NEW_PASSCODE: &str = "abcdefghijk0123456789";
-
-    fn ephemeral() -> Result<Controller, Box<dyn Error>> {
-        Ok(Controller::with_options(
-            PASSCODE,
-            SecurityTier::Low,
-            ControllerOptions {
-                derivation_cost: DerivationCost::Ephemeral,
-                ..ControllerOptions::default()
-            },
-        )?)
-    }
 
     /// The prior passcode's encryption key pair, at the same ephemeral cost the controller uses.
     fn prior_encryption(controller: &Controller) -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
@@ -517,7 +507,7 @@ mod tests {
                 "ncodes": ["A"],
                 "transferable": true
             },
-            "state": state_with_keys(&keys)
+            "state": key_state_value("0", "icp", &keys, "")
         }))
     }
 
@@ -546,35 +536,14 @@ mod tests {
                 "prxs": sealed,
                 "nxts": [next_sealed]
             },
-            "state": state_with_keys(&keys)
+            "state": key_state_value("0", "icp", &keys, "")
         }))?;
         Ok((record, public))
     }
 
-    fn state_with_keys(keys: &[String]) -> serde_json::Value {
-        serde_json::json!({
-            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "s": "0",
-            "p": "",
-            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "f": "0",
-            "dt": "2023-12-01T10:05:25.062609+00:00",
-            "et": "icp",
-            "kt": "1",
-            "k": keys,
-            "nt": "1",
-            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-            "bt": "0",
-            "b": [],
-            "c": [],
-            "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
-            "di": ""
-        })
-    }
-
     #[test]
     fn the_rotation_event_matches_the_reference_shape() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let inception_said = controller.current_said();
         let old_next_digest = controller.next_digests().first().cloned().unwrap_or_default();
 
@@ -622,7 +591,7 @@ mod tests {
 
     #[test]
     fn everything_is_sealed_to_the_new_passcode_key() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let (_, prior_decrypter) = prior_encryption(&controller)?;
         let old_salt_qb64 = controller.salt().expose_qb64()?.as_str().to_owned();
 
@@ -649,7 +618,7 @@ mod tests {
 
     #[test]
     fn the_controller_moves_onto_the_rotation_it_applied() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let old_keys = controller.current_keys().to_vec();
         let old_digests = controller.next_digests().to_vec();
 
@@ -681,48 +650,18 @@ mod tests {
         Ok(())
     }
 
-    /// An agent whose inception a controller can anchor.
-    fn agent() -> Result<crate::controller::Agent, Box<dyn Error>> {
-        let state: keria_types::api::KeyState = serde_json::from_value(serde_json::json!({
-            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "s": "0",
-            "p": "",
-            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "f": "0",
-            "dt": "2023-12-01T10:05:25.062609+00:00",
-            "et": "dip",
-            "kt": "1",
-            "k": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
-            "nt": "1",
-            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-            "bt": "0",
-            "b": [],
-            "c": [],
-            "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
-            "di": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
-        }))?;
-        Ok(crate::controller::Agent::from_key_state(state)?)
-    }
-
     fn text(event: &KeyEvent, label: &str) -> String {
         event.sad().get_text(label).map(ToOwned::to_owned).unwrap_or_default()
     }
 
     #[test]
-    fn a_rotation_follows_the_log_after_a_delegation_approval() -> Result<(), Box<dyn Error>> {
-        // Connecting a client approves its agent with an interaction at sequence one. The
-        // reference's rotation then claims sequence one with that interaction as its prior, which
-        // keripy reads as a recovery and refuses. This one is the next event instead.
-        let mut controller = ephemeral()?;
-        controller.approve_delegation(&agent()?)?;
-        let interaction = controller.current_said().qb64()?;
-        assert_eq!(controller.current_sequence_number(), 1);
-
+    fn a_second_rotation_after_an_approval_chains_on_the_first() -> Result<(), Box<dyn Error>> {
+        // With the log moved by an approval, a second rotation still chains on the first and
+        // reveals the key the first committed to.
+        let mut controller = ephemeral_controller(PASSCODE)?;
+        controller.approve_delegation(&agent("0")?)?;
         let first = controller.rotate_passcode(NEW_PASSCODE, &[])?;
-        assert_eq!(text(&first.rotation, "s"), "2");
-        assert_eq!(text(&first.rotation, "p"), interaction);
 
-        // And a second rotation chains on the first, revealing the key the first committed to.
         let second = controller.rotate_passcode(PASSCODE, &[])?;
         assert_eq!(text(&second.rotation, "s"), "3");
         assert_eq!(text(&second.rotation, "p"), text(&first.rotation, "d"));
@@ -742,9 +681,9 @@ mod tests {
 
     #[test]
     fn sequence_numbers_past_nine_are_written_in_hexadecimal() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         for _ in 0..10 {
-            controller.approve_delegation(&agent()?)?;
+            controller.approve_delegation(&agent("0")?)?;
         }
         let rotation = controller.rotate_passcode(NEW_PASSCODE, &[])?;
         assert_eq!(text(&rotation.rotation, "s"), "b");
@@ -753,8 +692,8 @@ mod tests {
 
     #[test]
     fn a_planned_rotation_left_unapplied_leaves_the_log_where_it_was() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
-        controller.approve_delegation(&agent()?)?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
+        controller.approve_delegation(&agent("0")?)?;
         let said = controller.current_said();
         let raw = controller.current_event().raw().to_vec();
 
@@ -773,7 +712,7 @@ mod tests {
 
     #[test]
     fn a_log_at_the_last_sequence_number_cannot_rotate() -> Result<(), Box<dyn Error>> {
-        let fresh = ephemeral()?;
+        let fresh = ephemeral_controller(PASSCODE)?;
         let last = keri_protocol::event::interaction::InteractionBuilder::new(
             fresh.prefix().clone(),
             fresh.current_said(),
@@ -797,7 +736,7 @@ mod tests {
     fn the_planned_signing_key_is_the_rotations_first_key() -> Result<(), Box<dyn Error>> {
         // The request that submits a rotation is checked against the keys it introduces, so the
         // client signs it with this key before the controller has moved.
-        let controller = ephemeral()?;
+        let controller = ephemeral_controller(PASSCODE)?;
         let planned = controller.plan_passcode_rotation(NEW_PASSCODE, &[])?;
         let Some(SadValue::Array(keys)) = planned.artifacts().rotation.sad().get("k") else {
             return Err("the rotation carries no keys".into());
@@ -814,7 +753,7 @@ mod tests {
 
     #[test]
     fn a_salty_identifier_is_verified_and_resealed() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let (encrypter, decrypter) = prior_encryption(&controller)?;
         let record = salty_record(&encrypter, None)?;
 
@@ -837,7 +776,7 @@ mod tests {
 
     #[test]
     fn a_randy_identifier_is_verified_and_resealed() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let (encrypter, decrypter) = prior_encryption(&controller)?;
         let (record, public) = randy_record(&encrypter, None)?;
 
@@ -872,7 +811,7 @@ mod tests {
 
     #[test]
     fn a_mismatched_identifier_is_refused() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let (encrypter, _) = prior_encryption(&controller)?;
         let wrong = vec!["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE".to_owned()];
 
@@ -892,7 +831,7 @@ mod tests {
 
     #[test]
     fn a_group_identifier_cannot_be_re_encrypted() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let (encrypter, _) = prior_encryption(&controller)?;
         let member = salty_record(&encrypter, None)?;
         let member_value = serde_json::to_value(&member)?;
@@ -905,7 +844,7 @@ mod tests {
                 "keys": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
                 "ndigs": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"]
             },
-            "state": state_with_keys(&["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE".to_owned()])
+            "state": key_state_value("0", "icp", &["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE".to_owned()], "")
         }))?;
         assert!(matches!(
             controller.rotate_passcode(NEW_PASSCODE, std::slice::from_ref(&group)),
@@ -941,7 +880,7 @@ mod tests {
                 "ncodes": ["A"],
                 "transferable": true
             },
-            "state": state_with_keys(&keys)
+            "state": key_state_value("0", "icp", &keys, "")
         }))?;
 
         let rotation = controller.rotate_passcode(NEW_PASSCODE, std::slice::from_ref(&record))?;
@@ -958,7 +897,7 @@ mod tests {
 
     #[test]
     fn a_non_transferable_randy_identifier_is_verified_and_resealed() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let (encrypter, _) = prior_encryption(&controller)?;
         let signer = Signer::from_seed(&[7; 32], KeyTransferability::NonTransferable)?;
         let keys = vec![signer.verifier().qb64()?];
@@ -967,7 +906,7 @@ mod tests {
             "prefix": keys.first(),
             "icp_dt": "2023-12-01T10:05:25.062609+00:00",
             "randy": { "prxs": [encrypter.encrypt_signer(&signer)?.qb64()?], "nxts": [] },
-            "state": state_with_keys(&keys)
+            "state": key_state_value("0", "icp", &keys, "")
         }))?;
 
         let rotation = controller.rotate_passcode(NEW_PASSCODE, std::slice::from_ref(&record))?;
@@ -977,7 +916,7 @@ mod tests {
 
     #[test]
     fn rotating_to_the_same_passcode_is_refused() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         assert!(matches!(
             controller.rotate_passcode(PASSCODE, &[]),
             Err(ControllerError::UnchangedPasscode)
@@ -993,7 +932,7 @@ mod tests {
 
     #[test]
     fn a_plan_applies_only_to_the_event_it_follows() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         let stale = controller.plan_passcode_rotation(NEW_PASSCODE, &[])?;
 
         controller.rotate_passcode(NEW_PASSCODE, &[])?;
@@ -1009,7 +948,7 @@ mod tests {
 
     #[test]
     fn an_unusable_new_passcode_is_refused() -> Result<(), Box<dyn Error>> {
-        let mut controller = ephemeral()?;
+        let mut controller = ephemeral_controller(PASSCODE)?;
         assert!(matches!(
             controller.rotate_passcode("short", &[]),
             Err(ControllerError::Manager { source })

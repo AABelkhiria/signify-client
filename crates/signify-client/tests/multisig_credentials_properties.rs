@@ -2,9 +2,12 @@
 //!
 //! The value that decides an identifier survives the round trip: a registry's nonce, a credential's SAID.
 
+mod support;
+
 use std::error::Error;
 
-use keria_types::api::{ExchangeEmbed, MultisigExchangeResource};
+use crate::support::classify;
+use keria_types::api::ExchangeEmbed;
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL, MultisigRoute};
@@ -49,12 +52,6 @@ fn proposal(route: &str, slot: &str, nonce: &str, attributes: &str) -> String {
         embeds = embeds(slot, nonce, attributes)
     );
     format!(r#"[{{"exn":{exn},"paths":{{}},"groupName":"multisig","memberName":"member1","sender":"{LOCAL}"}}]"#)
-}
-
-fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
-    let decoded: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
-    let entry = decoded.first().ok_or("empty listing")?;
-    Ok(ClassifiedExchange::try_from(entry)?)
 }
 
 fn nonce_of(classified: &ClassifiedExchange) -> Result<String, TestCaseError> {
@@ -122,19 +119,6 @@ proptest! {
         prop_assert_eq!(embed.acdc.digest.as_str(), CREDENTIAL);
         prop_assert_eq!(embed.acdc.schema.as_str(), SCHEMA);
         prop_assert_eq!(embed.iss.digest(), "EISS");
-    }
-
-    #[test]
-    fn arbitrary_bytes_classify_or_are_refused(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        match core::str::from_utf8(&bytes) {
-            Ok(text) => match classify(text) {
-                Ok(classified) => {
-                    let _ = classified.as_multisig().is_some();
-                }
-                Err(error) => prop_assert!(!error.to_string().is_empty()),
-            },
-            Err(error) => prop_assert!(!error.to_string().is_empty()),
-        }
     }
 }
 

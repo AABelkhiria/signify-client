@@ -8,10 +8,13 @@
 
 #![cfg(feature = "http-client")]
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::support::Seen;
 use serde::Deserialize;
 use signify_http::header::{HeaderName, HeaderValue};
 use signify_http::transport::{HttpTransport, Method, Request, RequestUrl, Transport};
@@ -45,23 +48,6 @@ struct RecordedRequest {
 struct RecordedHeader {
     name: String,
     value: Option<String>,
-}
-
-/// One request as the loopback server saw it.
-#[derive(Clone, Debug, Default)]
-struct Seen {
-    request_line: String,
-    headers: Vec<(String, String)>,
-    body: Vec<u8>,
-}
-
-impl Seen {
-    fn header(&self, name: &str) -> Option<&str> {
-        self.headers
-            .iter()
-            .find(|(existing, _)| existing.eq_ignore_ascii_case(name))
-            .map(|(_, value)| value.as_str())
-    }
 }
 
 /// Serves one `204 No Content` per connection and records what arrived.

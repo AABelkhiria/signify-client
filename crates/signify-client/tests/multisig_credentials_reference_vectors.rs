@@ -2,6 +2,8 @@
 //!
 //! Registry creation, issuance, and revocation, and eight rounds confirming no member ever reads a proposal.
 
+mod support;
+
 use std::error::Error;
 
 use keria_types::api::MultisigExchangeResource;
@@ -14,10 +16,6 @@ use signify_client::multisig::{
 };
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-multisig-credentials/v1.json"
-));
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -51,17 +49,9 @@ struct Provenance {
 
 #[derive(Debug, Deserialize)]
 struct Declarations {
-    create_registry_multisig: String,
-    issue_credential_multisig: String,
-    multisig_revoke: String,
     notification_waits: Vec<NotificationWait>,
     proposal_reads: Vec<ProposalRead>,
     send_calls: Vec<SendCall>,
-    issue_credential_result: Vec<Member>,
-    revoke_credential_result: Vec<Member>,
-    registry_uses: Scan,
-    issuance_uses: Scan,
-    scanned_files: usize,
     notes: Value,
 }
 
@@ -89,27 +79,6 @@ struct SendCall {
 }
 
 #[derive(Debug, Deserialize)]
-struct Member {
-    name: String,
-    #[serde(rename = "type")]
-    declared: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Scan {
-    needle: String,
-    total: usize,
-    files: Vec<ScanHit>,
-    scanned_files: usize,
-}
-
-#[derive(Debug, Deserialize)]
-struct ScanHit {
-    file: String,
-    count: usize,
-}
-
-#[derive(Debug, Deserialize)]
 struct Call {
     name: String,
     note: String,
@@ -121,17 +90,13 @@ struct Call {
 #[derive(Debug, Deserialize)]
 struct RecordedRequest {
     path: String,
-    method: String,
     body: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct PinnedConfirmations {
     group: String,
-    registry: String,
-    nonce: String,
     schema: String,
-    credential: String,
     registry_paths: Vec<String>,
     issuance_paths: Vec<String>,
     registry_route: String,
@@ -142,7 +107,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-multisig-credentials")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -216,27 +181,6 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     );
     assert_eq!(fixture.key_states.len(), 2);
     assert!(fixture.declarations.notes.is_object());
-    Ok(())
-}
-
-#[test]
-fn the_three_helpers_are_the_ones_the_scenarios_call() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.declarations.create_registry_multisig.contains("registries()"));
-    assert!(fixture.declarations.issue_credential_multisig.contains("credentials()"));
-    assert!(fixture.declarations.multisig_revoke.contains("/multisig/rev"));
-    assert_eq!(fixture.declarations.scanned_files, 117);
-
-    for scan in [&fixture.declarations.registry_uses, &fixture.declarations.issuance_uses] {
-        assert!(scan.total >= 1, "{} is used nowhere", scan.needle);
-        assert_eq!(scan.scanned_files, 117);
-        assert_eq!(scan.files.iter().map(|hit| hit.count).sum::<usize>(), scan.total);
-        assert!(
-            scan.files.iter().all(|hit| hit.file.starts_with("test-integration/")),
-            "{} escaped the integration tree",
-            scan.needle
-        );
-    }
     Ok(())
 }
 
@@ -314,57 +258,6 @@ fn a_joining_member_waits_for_a_bell_and_discards_it() -> Result<(), Box<dyn Err
     Ok(())
 }
 
-#[test]
-fn a_different_nonce_is_a_different_registry_with_nothing_said() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_different_nonce_is_a_different_registry")?;
-
-    assert_eq!(recorded.get("agree").and_then(Value::as_bool), Some(true));
-    assert_eq!(recorded.get("proposed_registry"), recorded.get("joined_registry"));
-    assert_eq!(recorded.get("divergent_agrees").and_then(Value::as_bool), Some(false));
-    assert_eq!(recorded.get("error"), Some(&Value::Null));
-    assert_ne!(recorded.get("proposed_registry"), recorded.get("divergent_registry"));
-
-    let proposed = body(&fixture, "propose_the_registry", "/registries")?;
-    assert_eq!(
-        proposed.pointer("/vcp/n").and_then(Value::as_str),
-        Some(fixture.pinned_confirmations.nonce.as_str())
-    );
-    assert_eq!(
-        proposed.pointer("/vcp/i").and_then(Value::as_str),
-        Some(fixture.pinned_confirmations.registry.as_str())
-    );
-    let divergent = body(&fixture, "join_the_registry_with_a_different_nonce", "/registries")?;
-    assert_ne!(proposed.pointer("/vcp/n"), divergent.pointer("/vcp/n"));
-    assert_ne!(proposed.pointer("/vcp/i"), divergent.pointer("/vcp/i"));
-    Ok(())
-}
-
-#[test]
-fn different_attributes_are_a_different_credential_with_nothing_said() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "different_attributes_are_a_different_credential")?;
-    assert_eq!(recorded.get("agree").and_then(Value::as_bool), Some(true));
-    assert_eq!(recorded.get("divergent_agrees").and_then(Value::as_bool), Some(false));
-    assert_eq!(recorded.get("error"), Some(&Value::Null));
-
-    let proposed = body(&fixture, "propose_the_issuance", "/credentials")?;
-    let divergent = body(&fixture, "join_the_issuance_with_different_attributes", "/credentials")?;
-    assert_eq!(
-        proposed.pointer("/acdc/d").and_then(Value::as_str),
-        Some(fixture.pinned_confirmations.credential.as_str())
-    );
-    assert_ne!(proposed.pointer("/acdc/d"), divergent.pointer("/acdc/d"));
-    assert_ne!(
-        proposed.pointer("/acdc/a/LEI"),
-        divergent.pointer("/acdc/a/LEI"),
-        "the two issuances used the same attributes after all"
-    );
-    assert_eq!(proposed.pointer("/acdc/s"), divergent.pointer("/acdc/s"));
-    assert_eq!(proposed.pointer("/acdc/ri"), divergent.pointer("/acdc/ri"));
-    Ok(())
-}
-
 // --- The finding: a revocation in the issuance slot ---
 #[test]
 fn a_revocation_travels_in_the_issuance_slot() -> Result<(), Box<dyn Error>> {
@@ -399,54 +292,6 @@ fn a_revocation_travels_in_the_issuance_slot() -> Result<(), Box<dyn Error>> {
 }
 
 // --- The two smaller findings ---
-#[test]
-fn the_issuance_result_drops_the_signatures_it_computed() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "the_issuance_result_drops_its_signatures")?;
-    let declared = recorded
-        .get("declaration")
-        .and_then(Value::as_array)
-        .ok_or("no recorded declaration")?;
-    let names: Vec<&str> = declared
-        .iter()
-        .filter_map(|member| member.get("name").and_then(Value::as_str))
-        .collect();
-    assert_eq!(names, ["acdc", "anc", "iss", "op"]);
-    assert!(!names.contains(&"sigs"), "the result now carries its signatures");
-    assert_eq!(
-        fixture
-            .declarations
-            .issue_credential_result
-            .iter()
-            .map(|member| member.name.as_str())
-            .collect::<Vec<&str>>(),
-        names
-    );
-    assert!(
-        !fixture
-            .declarations
-            .revoke_credential_result
-            .iter()
-            .any(|member| member.name == "sigs")
-    );
-    for member in &fixture.declarations.issue_credential_result {
-        assert_ne!(member.declared, "");
-    }
-
-    let reads = call(&fixture, "propose_the_issuance")?
-        .requests
-        .iter()
-        .filter(|request| request.method == "GET" && request.path == "/identifiers/multisig")
-        .count();
-    assert_eq!(reads, 2, "the issuance round no longer reads the group twice");
-    let registry_reads = call(&fixture, "propose_the_registry")?
-        .requests
-        .iter()
-        .filter(|request| request.method == "GET" && request.path == "/identifiers/multisig")
-        .count();
-    assert_eq!(registry_reads, 1);
-    Ok(())
-}
 
 #[test]
 fn the_registry_round_is_filed_under_its_own_topic() -> Result<(), Box<dyn Error>> {

@@ -8,11 +8,14 @@
 //! this purpose — the default is jittered, because the reference's fixed schedule is a defect this
 //! crate does not inherit.
 
+mod support;
+
 use core::time::Duration;
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::block_on;
 use serde::Deserialize;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{
@@ -299,18 +302,27 @@ fn the_two_upstream_formulas_are_one_formula() -> Result<(), Box<dyn Error>> {
     assert_eq!(helper.defaults.get("maxSleep"), Some(&1_000));
     assert_eq!(helper.defaults.get("timeout"), Some(&10_000));
 
+    let default = |name: &str| {
+        helper
+            .defaults
+            .get(name)
+            .copied()
+            .map(Duration::from_millis)
+            .ok_or_else(|| format!("the helper records no {name}"))
+    };
     let policy = RetryPolicy::builder()
-        .base_delay(Duration::from_millis(50))
-        .min_delay(Duration::from_millis(10))
-        .max_delay(Duration::from_secs(1))
-        .deadline(Duration::from_secs(10))
+        .base_delay(default("increaseFactor")?)
+        .min_delay(default("minSleep")?)
+        .max_delay(default("maxSleep")?)
+        .deadline(default("timeout")?)
         .jitter(Jitter::None)
         .max_attempts(64)
         .build()?;
     let delays: Vec<u64> = (0..8)
         .map(|attempt| u64::try_from(policy.delay_for(attempt).as_millis()).unwrap_or(u64::MAX))
         .collect();
-    // The helper's lower ceiling flattens four steps earlier than production's.
+    // The helper's formula evaluated by hand on its defaults: the lower ceiling flattens four
+    // steps earlier than production's.
     assert_eq!(delays, [50, 100, 200, 400, 800, 1000, 1000, 1000]);
     Ok(())
 }
@@ -545,18 +557,5 @@ impl RetryObserver for GiveUpRecorder {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .push(event.clone());
-    }
-}
-
-/// A minimal executor; every future reachable from a scripted transport and a test clock is ready
-/// on its first poll, so no runtime is needed and no wall-clock time passes.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
     }
 }

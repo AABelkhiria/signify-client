@@ -1130,6 +1130,7 @@ impl From<TransportError> for RequestError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::displays_and_sources;
     use std::error::Error;
 
     fn base() -> Result<BaseUrl, Box<dyn Error>> {
@@ -1543,19 +1544,54 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text_and_their_sources() {
-        let cases: Vec<(RequestError, bool)> = vec![
-            (RequestError::InvalidBaseUrl { reason: "empty" }, false),
-            (RequestError::EmptyPath, false),
-            (RequestError::TooManySegments { maximum: 1, actual: 2 }, false),
-            (RequestError::SegmentTooLong { maximum: 1, actual: 2 }, false),
-            (RequestError::PathTooLong { maximum: 1, actual: 2 }, false),
-            (RequestError::TooManyParameters { maximum: 1, actual: 2 }, false),
-            (RequestError::QueryTooLong { maximum: 1, actual: 2 }, false),
+        let cases: Vec<(RequestError, &[&str], bool)> = vec![
+            (RequestError::InvalidBaseUrl { reason: "empty" }, &["empty"], false),
+            (
+                RequestError::TooManySegments {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::SegmentTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::PathTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::TooManyParameters {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
+            (
+                RequestError::QueryTooLong {
+                    maximum: 1031,
+                    actual: 2047,
+                },
+                &["1031", "2047"],
+                false,
+            ),
             (
                 RequestError::InvalidMediaType {
                     value: "x".to_owned(),
                     reason: "no slash",
                 },
+                &["\"x\"", "no slash"],
                 false,
             ),
             (
@@ -1563,16 +1599,28 @@ mod tests {
                     value: "x y".to_owned(),
                     reason: "not a token",
                 },
+                &["\"x y\"", "not a token"],
                 false,
             ),
-            (RequestError::InvalidRange { start: 3, end: 1 }, false),
-            (RequestError::from(HeaderError::EmptyName), true),
-            (RequestError::from(TransportError::InvalidUrl { reason: "empty" }), true),
+            (
+                RequestError::InvalidRange { start: 1031, end: 47 },
+                &["1031", "47"],
+                false,
+            ),
+            (RequestError::from(HeaderError::EmptyName), &[], true),
+            (
+                RequestError::from(TransportError::InvalidUrl { reason: "unparseable" }),
+                &["unparseable"],
+                true,
+            ),
         ];
-        for (error, has_source) in cases {
-            assert_ne!(error.to_string(), "");
-            assert_eq!(error.source().is_some(), has_source, "{error}");
+        for (error, fragments, has_source) in cases {
+            displays_and_sources(&error, fragments, has_source);
         }
+        assert_eq!(
+            RequestError::EmptyPath.to_string(),
+            "a resource path names no components"
+        );
     }
 
     #[test]

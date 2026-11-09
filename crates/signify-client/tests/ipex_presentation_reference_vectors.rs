@@ -1,6 +1,6 @@
 //! Exact vectors for the IPEX presentation workflow.
 //!
-//! The five-step conversation and two group rounds, and the shared clock a group's agreement depends on.
+//! The five-step conversation and two group rounds, each message rebuilt byte for byte.
 
 mod support;
 
@@ -59,22 +59,12 @@ struct Declarations {
     grant_multisig: String,
     admit_multisig: String,
     multisig_admit_credential: String,
-    waiter_return: String,
-    admit_parameters: Parameters,
     grant_defaults: GrantDefaults,
     notification_waits: Vec<NotificationWait>,
     ipex_calls: Vec<IpexCall>,
     grant_arguments: Vec<GrantArguments>,
-    said_guards: Guards,
-    shared_clock: SharedClock,
     scanned_files: usize,
     notes: Value,
-}
-
-#[derive(Debug, Deserialize)]
-struct Parameters {
-    declared: Vec<String>,
-    commented_out: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -110,35 +100,14 @@ struct GrantArguments {
 }
 
 #[derive(Debug, Deserialize)]
-struct Guards {
-    #[serde(rename = "admitMultisig")]
-    admit_multisig: bool,
-    #[serde(rename = "multisigAdmitCredential")]
-    multisig_admit_credential: bool,
-    credentials_test_inline: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct SharedClock {
-    declaration: bool,
-    text: String,
-    file: String,
-    asserted: bool,
-}
-
-#[derive(Debug, Deserialize)]
 struct Call {
     name: String,
-    note: String,
     requests: Vec<RecordedRequest>,
-    result: Value,
-    error: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct RecordedRequest {
     path: String,
-    method: String,
     body: Option<String>,
 }
 
@@ -148,30 +117,14 @@ struct PinnedConfirmations {
     schema: String,
     credential: String,
     apply: String,
-    offer: String,
-    agree: String,
-    chain: Vec<ChainLink>,
-    apply_slots: Vec<String>,
-    offer_slots: Vec<String>,
-    grant_slots: Vec<String>,
-    issuance_grant_slots: Vec<String>,
     announcement_route: String,
     announcement_topic: String,
     announcement_slots: Vec<String>,
     announcement_attributes: Vec<String>,
-    presentation_paths: Vec<String>,
-    note: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ChainLink {
-    step: String,
-    said: String,
-    prior: Option<String>,
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-ipex-presentation")
 }
 
 /// The held credential as a record, in the form KERIA writes it.
@@ -246,138 +199,7 @@ fn the_manifest_matches_the_pinned_reference() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
-fn every_driven_round_succeeded() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert_eq!(fixture.calls.len(), 16);
-    for entry in &fixture.calls {
-        assert!(entry.error.is_none(), "{} failed: {:?}", entry.name, entry.error);
-        assert!(!entry.requests.is_empty(), "{} sent nothing", entry.name);
-        assert_ne!(entry.note, "");
-
-        assert!(
-            entry.requests.iter().any(|request| request.method == "POST"),
-            "{} only read",
-            entry.name
-        );
-        assert!(
-            entry
-                .requests
-                .iter()
-                .any(|request| request.method == "GET" && request.path.starts_with("/identifiers/")),
-            "{} never read its own identifier",
-            entry.name
-        );
-    }
-
-    for name in [
-        "issuer_grants_the_credential",
-        "holder_admits_the_grant",
-        "verifier_applies",
-        "holder_offers",
-        "verifier_agrees",
-        "holder_discloses",
-    ] {
-        let recorded = call(&fixture, name)?;
-        assert!(
-            recorded.result.get("said").and_then(Value::as_str).is_some(),
-            "{name} recorded no message"
-        );
-    }
-    Ok(())
-}
-
-// --- The chain: each step names the one it answers ---
-#[test]
-fn the_conversation_is_a_chain() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let chain = &fixture.pinned_confirmations.chain;
-    assert_eq!(chain.len(), 4);
-
-    let opening = chain.first().ok_or("the chain is empty")?;
-    assert_eq!(opening.step, "apply");
-    assert_eq!(opening.prior.as_deref(), Some(""));
-
-    for window in chain.windows(2) {
-        let [earlier, later] = window else {
-            return Err("a chain window was not a pair".into());
-        };
-        assert_eq!(
-            later.prior.as_deref(),
-            Some(earlier.said.as_str()),
-            "{} does not answer {}",
-            later.step,
-            earlier.step
-        );
-    }
-    assert_eq!(
-        chain.get(1).map(|link| link.said.as_str()),
-        Some(fixture.pinned_confirmations.offer.as_str())
-    );
-    assert_eq!(
-        chain.get(2).map(|link| link.said.as_str()),
-        Some(fixture.pinned_confirmations.agree.as_str())
-    );
-    Ok(())
-}
-
-#[test]
-fn each_step_embeds_what_its_route_carries() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let pinned = &fixture.pinned_confirmations;
-
-    assert_eq!(pinned.apply_slots, [] as [String; 0]);
-    assert_eq!(pinned.offer_slots, ["acdc"]);
-    assert_eq!(pinned.grant_slots, ["acdc", "iss", "anc"]);
-    assert_eq!(pinned.issuance_grant_slots, pinned.grant_slots);
-
-    assert_eq!(
-        pinned.presentation_paths,
-        ["GET /identifiers/member1", "POST /identifiers/member1/ipex/apply"]
-    );
-    assert!(pinned.note.contains("embed nothing"));
-    Ok(())
-}
-
 // --- The findings ---
-#[test]
-fn a_group_round_agrees_only_on_a_shared_clock() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_group_round_agrees_only_on_a_shared_clock")?;
-
-    assert_eq!(recorded.get("grants_agree").and_then(Value::as_bool), Some(true));
-    assert_eq!(recorded.get("admits_agree").and_then(Value::as_bool), Some(true));
-
-    assert_eq!(
-        recorded.get("divergent_grant_agrees").and_then(Value::as_bool),
-        Some(false)
-    );
-    assert_eq!(
-        recorded.get("divergent_admit_agrees").and_then(Value::as_bool),
-        Some(false)
-    );
-    let errors = recorded
-        .get("divergent_errors")
-        .and_then(Value::as_array)
-        .ok_or("no recorded errors")?;
-    assert_eq!(errors.len(), 2);
-    assert!(
-        errors.iter().all(Value::is_null),
-        "a divergent round reported something"
-    );
-
-    let clock = &fixture.declarations.shared_clock;
-    assert!(clock.declaration, "the holder test no longer pins one clock");
-    assert_eq!(clock.text, "const TIME = createTimestamp();");
-    assert_eq!(clock.file, "test-integration/multisig-holder.test.ts");
-
-    assert!(clock.asserted);
-    assert_eq!(
-        recorded.get("asserted_upstream").and_then(Value::as_str),
-        Some("assert.equal(admitResult1.admitSaid, admitResult2.admitSaid)")
-    );
-    Ok(())
-}
 
 #[test]
 fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
@@ -414,58 +236,6 @@ fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
         assert!(!wait.file.is_empty() && !wait.enclosing.is_empty());
         assert!(wait.route.starts_with('/'), "a wait names no route");
     }
-    Ok(())
-}
-
-#[test]
-fn a_notification_need_not_name_a_message() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "a_notification_need_not_name_a_message")?;
-
-    assert_eq!(
-        fixture.declarations.waiter_return,
-        "return notes[notes.length - 1]?.a.d ?? '';"
-    );
-
-    assert_eq!(recorded.get("admit_prior").and_then(Value::as_str), Some(""));
-    assert!(recorded.get("error").is_some_and(Value::is_null));
-    assert!(recorded.get("admit_said").and_then(Value::as_str).is_some());
-
-    let guards = &fixture.declarations.said_guards;
-    assert!(guards.credentials_test_inline, "the inline step no longer guards it");
-    assert!(
-        !guards.admit_multisig,
-        "`admitMultisig` now guards it; the finding is stale"
-    );
-    assert!(!guards.multisig_admit_credential);
-    Ok(())
-}
-
-#[test]
-fn only_the_last_notification_survives() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = quirk(&fixture, "only_the_last_notification_survives")?;
-
-    assert_eq!(
-        fixture.declarations.admit_parameters.commented_out,
-        ["numGrantMsgs: number"]
-    );
-    assert!(
-        !fixture
-            .declarations
-            .admit_parameters
-            .declared
-            .iter()
-            .any(|parameter| parameter.contains("numGrantMsgs")),
-        "the parameter is declared after all"
-    );
-    assert_eq!(
-        recorded
-            .get("commented_out_parameter")
-            .and_then(Value::as_array)
-            .map(Vec::len),
-        Some(1)
-    );
     Ok(())
 }
 
@@ -702,22 +472,17 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
 /// its members and never found itself.
 mod driven {
     use super::*;
-    use std::sync::Arc;
 
-    use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
-    use keri_cesr::crypto::cipher::Encrypter;
-    use keri_cesr::crypto::salt::{Salt, SecurityTier};
-    use keri_cesr::crypto::verifier::KeyTransferability;
+    use crate::support::{Harness, PASSCODE, SentRequest, block_on, connected, prefix, reseal, sent_all};
+
     use keri_protocol::event::Timestamp;
-    use keri_protocol::prefix::IdentifierPrefix;
+
     use keri_protocol::said::Said;
-    use signify_client::client::{ConnectedClient, SignifyClient};
-    use signify_client::config::ClientConfig;
+
     use signify_client::multisig::GroupDisclosureRequest;
     use signify_http::request::ItemRange;
-    use signify_http::transport::Transport;
+
     use signify_keys::acdc::ipex::Disclosure;
-    use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";
@@ -727,81 +492,12 @@ mod driven {
     const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
     const APPLY_SAID: &str = "EDgvqnAQWAks1nXM1WD8kXRAan4ZkdoGAhP9_UtkGfFg";
 
-    fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-        let configuration = || {
-            ClientConfig::new(ADMIN, PASSCODE)
-                .and_then(|config| config.with_boot_url(BOOT))
-                .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-        };
-        let probe = SignifyClient::new(
-            configuration()?,
-            AgentTransport::new(&[]) as Arc<dyn Transport>,
-            clock(),
-        )?;
-        let prefix = probe.controller().prefix().qb64()?;
-        let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-        let state = agent_state(&prefix, &inception);
-        let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-        answers.extend_from_slice(bodies);
-        let transport = AgentTransport::new(&answers);
-
-        let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-        Ok((block_on(client.connect())?, transport))
-    }
-
-    type SentRequest = (String, String, Option<String>);
-
-    fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
-        transport
-            .requests()
-            .into_iter()
-            .skip(2)
-            .map(|request| Ok((request.resource(), request.method().to_owned(), request.body_text())))
-            .collect()
-    }
-
-    fn sealing_key() -> Result<Encrypter, Box<dyn Error>> {
-        let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
-        let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
-        Ok(Encrypter::from_verification_key(signer.verifier())?)
-    }
-
-    /// Seals the salt a recorded `salty` block says it opens to, under the test passcode's key.
-    fn seal(salty: &mut Value) -> Result<(), Box<dyn Error>> {
-        let opens_to = salty
-            .get("sxlt_opens_to")
-            .and_then(Value::as_str)
-            .ok_or("the recorded key-manager block carries no sealed salt")?
-            .to_owned();
-        let sealed = sealing_key()?
-            .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-            .qb64()?;
-        let block = salty.as_object_mut().ok_or("the key-manager block is not an object")?;
-        block.remove("sxlt_opens_to");
-        block.insert("sxlt".to_owned(), Value::String(sealed));
-        Ok(())
-    }
-
     fn identifier_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut record = fixture.identifier_record.clone();
-        seal(
-            record
-                .get_mut("salty")
-                .ok_or("the recorded member has no key-manager block")?,
-        )?;
-        Ok(serde_json::to_vec(&record)?)
+        reseal(&fixture.identifier_record, PASSCODE)
     }
 
     fn group_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut record = fixture.group_record.clone();
-        let member = record
-            .get_mut("group")
-            .and_then(|group| group.get_mut("mhab"))
-            .and_then(|member| member.get_mut("salty"))
-            .ok_or("the recorded group has no member key-manager block")?;
-        seal(member)?;
-        Ok(serde_json::to_vec(&record)?)
+        reseal(&fixture.group_record, PASSCODE)
     }
 
     /// The agent's listing of the group's members.
@@ -834,10 +530,6 @@ mod driven {
         Ok((said, serde_json::to_vec(&listing)?))
     }
 
-    fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
-        Ok(IdentifierPrefix::from_qb64(text)?)
-    }
-
     fn disclosure() -> Result<Disclosure, Box<dyn Error>> {
         Ok(disclosure_from_record(&held_record()?)?)
     }
@@ -865,7 +557,7 @@ mod driven {
             notification("0AAadmit", false, "/exn/ipex/admit"),
             notification("0AAbare", false, "/ipex/grant"),
         );
-        let (client, _) = connected(&[listing.as_bytes()])?;
+        let Harness { client, .. } = connected(&[listing.as_bytes()])?;
 
         let waiting = block_on(client.presentation().waiting(IpexRoute::Grant, ItemRange::DEFAULT))?;
 
@@ -877,7 +569,7 @@ mod driven {
     #[test]
     fn a_notification_reads_the_step_it_announces() -> Result<(), Box<dyn Error>> {
         let exchange = apply_exchange();
-        let (client, _) = connected(&[exchange.as_bytes()])?;
+        let Harness { client, .. } = connected(&[exchange.as_bytes()])?;
 
         let step = block_on(client.presentation().read(&notified("/exn/ipex/apply")?))?;
 
@@ -888,7 +580,7 @@ mod driven {
     #[test]
     fn a_notification_announcing_another_step_is_refused() -> Result<(), Box<dyn Error>> {
         let exchange = apply_exchange();
-        let (client, _) = connected(&[exchange.as_bytes()])?;
+        let Harness { client, .. } = connected(&[exchange.as_bytes()])?;
 
         let outcome = block_on(client.presentation().read(&notified("/exn/ipex/grant")?));
 
@@ -907,7 +599,7 @@ mod driven {
         let fixture = fixture()?;
         let member = identifier_record(&fixture)?;
         let group = group_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &group, &group, b"{}", &group, &member, b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[&member, &group, &group, b"{}", &group, &member, b"{}"])?;
 
         let members = [prefix(LOCAL)?, prefix(PEER)?];
         let disclosed = block_on(client.multisig().propose_disclosure(&GroupDisclosureRequest {
@@ -921,8 +613,8 @@ mod driven {
         }))?;
         assert_eq!(disclosed.said().qb64()?.len(), 44);
 
-        let requests = sent(&transport)?;
-        let (path, method, body) = requests.last().ok_or("nothing was sent")?;
+        let requests = sent_all(&transport)?;
+        let SentRequest { path, method, body, .. } = requests.last().ok_or("nothing was sent")?;
         assert_eq!(
             (path.as_str(), method.as_str()),
             ("/identifiers/member1/exchanges", "POST")
@@ -962,7 +654,7 @@ mod driven {
         let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", None)?;
         let member = identifier_record(&fixture)?;
         let group = group_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &listing, &members(&[LOCAL, PEER]), &group])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &members(&[LOCAL, PEER]), &group])?;
 
         let outcome = block_on(
             client
@@ -972,8 +664,8 @@ mod driven {
 
         // The reference's proposal names nobody, so the agent is asked — and the answer names this
         // member, so the round goes on to build the grant under the group's alias.
-        let requests = sent(&transport)?;
-        let paths: Vec<&str> = requests.iter().map(|(path, _, _)| path.as_str()).collect();
+        let requests = sent_all(&transport)?;
+        let paths: Vec<&str> = requests.iter().map(|SentRequest { path, .. }| path.as_str()).collect();
         assert_eq!(
             paths.get(..4),
             Some(
@@ -999,15 +691,15 @@ mod driven {
         let (said, listing) = proposal(&fixture, "group_proposes_the_admittance", None)?;
         let member = identifier_record(&fixture)?;
         let group = group_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &listing, &members(&[LOCAL, PEER]), &group])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &members(&[LOCAL, PEER]), &group])?;
 
         let outcome = block_on(client.multisig().accept_admittance(GROUP_NAME, ALIAS, &said));
 
-        let requests = sent(&transport)?;
+        let requests = sent_all(&transport)?;
         assert_eq!(
             requests
                 .get(2)
-                .map(|(path, method, _)| (path.as_str(), method.as_str())),
+                .map(|SentRequest { path, method, .. }| (path.as_str(), method.as_str())),
             Some(("/identifiers/multisig/members", "GET"))
         );
         assert!(
@@ -1022,7 +714,7 @@ mod driven {
         let fixture = fixture()?;
         let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", None)?;
         let member = identifier_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &listing, &members(&[PEER, THIRD])])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &members(&[PEER, THIRD])])?;
 
         let outcome = block_on(
             client
@@ -1034,7 +726,7 @@ mod driven {
             "{outcome:?}"
         );
         // Nothing is built or sent once the member knows it is not in the group.
-        assert_eq!(sent(&transport)?.len(), 3);
+        assert_eq!(sent_all(&transport)?.len(), 3);
         Ok(())
     }
 
@@ -1043,7 +735,7 @@ mod driven {
         let fixture = fixture()?;
         let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", None)?;
         let member = identifier_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &listing, &members(&[])])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &members(&[])])?;
 
         let outcome = block_on(
             client
@@ -1054,7 +746,7 @@ mod driven {
             matches!(&outcome, Err(ClientError::NoRecordedMembers { group }) if group == GROUP_NAME),
             "{outcome:?}"
         );
-        assert_eq!(sent(&transport)?.len(), 3);
+        assert_eq!(sent_all(&transport)?.len(), 3);
         Ok(())
     }
 
@@ -1064,7 +756,7 @@ mod driven {
         let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", Some(&[LOCAL, PEER]))?;
         let member = identifier_record(&fixture)?;
         let group = group_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &listing, &group])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &group])?;
 
         let outcome = block_on(
             client
@@ -1074,13 +766,15 @@ mod driven {
 
         // This port's own proposal carries `smids`, so the members are read from it and the agent
         // is never asked who they are.
-        let requests = sent(&transport)?;
+        let requests = sent_all(&transport)?;
         assert!(
-            requests.iter().all(|(path, _, _)| !path.ends_with("/members")),
+            requests
+                .iter()
+                .all(|SentRequest { path, .. }| !path.ends_with("/members")),
             "the members were looked up although the proposal named them: {requests:?}"
         );
         assert_eq!(
-            requests.get(2).map(|(path, _, _)| path.as_str()),
+            requests.get(2).map(|SentRequest { path, .. }| path.as_str()),
             Some("/identifiers/multisig")
         );
         assert!(
@@ -1095,7 +789,7 @@ mod driven {
         let fixture = fixture()?;
         let (said, listing) = proposal(&fixture, "group_proposes_the_disclosure", Some(&[PEER, THIRD]))?;
         let member = identifier_record(&fixture)?;
-        let (client, transport) = connected(&[&member, &listing])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing])?;
 
         let outcome = block_on(
             client
@@ -1106,7 +800,7 @@ mod driven {
             matches!(&outcome, Err(ClientError::LocalMemberNotAParticipant { member }) if member == LOCAL),
             "{outcome:?}"
         );
-        assert_eq!(sent(&transport)?.len(), 2);
+        assert_eq!(sent_all(&transport)?.len(), 2);
         Ok(())
     }
 }

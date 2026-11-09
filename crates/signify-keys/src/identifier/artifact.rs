@@ -738,10 +738,9 @@ mod tests {
     use super::*;
     use std::error::Error;
 
-    use keri_cesr::crypto::salt::Salt;
-
     use crate::manager::KeeperFactory;
     use crate::manager::keeper::GroupKeeper;
+    use crate::test_support::salt;
     use keri_protocol::event::kind::EventKind;
     use keri_protocol::serialization::SadValue;
 
@@ -759,7 +758,7 @@ mod tests {
     }
 
     fn keeper_for(request: &CreateIdentifierRequest) -> Result<Box<dyn IdentifierKeeper>, Box<dyn Error>> {
-        let factory = KeeperFactory::new(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?);
+        let factory = KeeperFactory::new(salt()?);
         Ok(factory.create(request.keeper_request(0)?)?)
     }
 
@@ -815,26 +814,6 @@ mod tests {
     }
 
     #[test]
-    fn a_default_creation_matches_the_reference_shape() -> Result<(), Box<dyn Error>> {
-        let request = salty_request();
-        let mut keeper = keeper_for(&request)?;
-        let artifact = incept_identifier(keeper.as_mut(), &request)?;
-
-        assert_eq!(artifact.event.kind(), EventKind::Inception);
-        assert_eq!(text_field(&artifact, "kt").as_deref(), Some("1"));
-        assert_eq!(text_field(&artifact, "nt").as_deref(), Some("1"));
-        assert_eq!(text_field(&artifact, "bt").as_deref(), Some("0"));
-        assert_eq!(list_len(&artifact, "k"), 1);
-        assert_eq!(list_len(&artifact, "n"), 1);
-        assert_eq!(list_len(&artifact, "b"), 0);
-        assert_eq!(list_len(&artifact, "c"), 0);
-        assert_eq!(list_len(&artifact, "a"), 0);
-        assert!(artifact.event.identifier().is_digestive());
-        assert_eq!(indexed(&artifact.signatures)?, [(0, Some(0))]);
-        Ok(())
-    }
-
-    #[test]
     fn a_multisig_creation_carries_its_thresholds() -> Result<(), Box<dyn Error>> {
         let mut request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
             passcode: Some(PASSCODE.into()),
@@ -878,33 +857,23 @@ mod tests {
 
     #[test]
     fn non_transferable_conflicts_are_refused() -> Result<(), Box<dyn Error>> {
-        let base = |next_count| CreateIdentifierRequest {
+        let base = || CreateIdentifierRequest {
             transferability: KeyTransferability::NonTransferable,
             ..CreateIdentifierRequest::new(CreateAlgorithm::Salty {
                 passcode: Some(PASSCODE.into()),
                 tier: SecurityTier::Low,
                 current_count: 1,
-                next_count,
+                next_count: 0,
                 cost: DerivationCost::Ephemeral,
             })
         };
-        assert!(matches!(
-            base(1).keeper_request(0),
-            Err(IdentifierError::NonTransferableNextKeys { requested: 1 })
-        ));
-        let mut with_threshold = base(0);
-        with_threshold.next_threshold = Some(SigningThreshold::numeric(1));
-        assert!(matches!(
-            with_threshold.keeper_request(0),
-            Err(IdentifierError::NonTransferableNextThreshold)
-        ));
-        let mut with_derivation = base(0);
+        let mut with_derivation = base();
         with_derivation.derivation = Some(PrefixDerivation::Blake3_256);
         assert!(matches!(
             with_derivation.keeper_request(0),
             Err(IdentifierError::NonTransferableDerivation { .. })
         ));
-        let mut with_witness = base(0);
+        let mut with_witness = base();
         with_witness.witnesses = vec![IdentifierPrefix::from_qb64(
             "BB4GWvru73jWZKpNgMQp8ayDRin0NG0Ymn_RXQP_v-PQ",
         )?];
@@ -1034,65 +1003,6 @@ mod tests {
     }
 
     #[test]
-    fn an_interaction_advances_the_hexadecimal_sequence() -> Result<(), Box<dyn Error>> {
-        let request = salty_request();
-        let mut keeper = keeper_for(&request)?;
-        let artifact = incept_identifier(keeper.as_mut(), &request)?;
-        let state = state_after(&artifact, |value| {
-            value["s"] = serde_json::json!("a");
-        })?;
-
-        let mut anchor = Sad::new();
-        anchor.insert("i", SadValue::text("EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"))?;
-        anchor.insert("s", SadValue::integer(0)?)?;
-        let interaction = interact_identifier(keeper.as_ref(), &state, vec![anchor.clone()])?;
-        assert_eq!(interaction.event.kind(), EventKind::Interaction);
-        assert_eq!(interaction.event.sad().get_text("s"), Some("b"));
-        assert_eq!(
-            interaction.event.sad().get_text("p"),
-            artifact.event.sad().get_text("d")
-        );
-        assert_eq!(
-            interaction.event.sad().get("a"),
-            Some(&SadValue::Array(vec![SadValue::Map(anchor)]))
-        );
-        assert_eq!(indexed(&interaction.signatures)?, [(0, Some(0))]);
-        Ok(())
-    }
-
-    #[test]
-    fn a_rotation_reads_the_state_it_is_given() -> Result<(), Box<dyn Error>> {
-        let request = salty_request();
-        let mut keeper = keeper_for(&request)?;
-        let artifact = incept_identifier(keeper.as_mut(), &request)?;
-        let committed = artifact.event.sad().get("n").cloned();
-        let state = state_after(&artifact, |_| ())?;
-
-        let rotation = rotate_identifier(keeper.as_mut(), &state, &RotateIdentifierRequest::default())?;
-        assert_eq!(rotation.event.kind(), EventKind::Rotation);
-        assert_eq!(rotation.event.sad().get_text("s"), Some("1"));
-        assert_eq!(rotation.event.sad().get_text("p"), artifact.event.sad().get_text("d"));
-        // The prior next threshold becomes the signing threshold.
-        assert_eq!(rotation.event.sad().get_text("kt"), Some("1"));
-        // The rotated-to keys are exactly the committed digests' keys.
-        let Some(SadValue::Array(keys)) = rotation.event.sad().get("k") else {
-            return Err("the rotation carries no keys".into());
-        };
-        let digests: Vec<SadValue> = keys
-            .iter()
-            .filter_map(|key| match key {
-                SadValue::Text(key) => Digest::derive(DigestAlgorithm::Blake3_256, key.as_bytes())
-                    .qb64()
-                    .ok()
-                    .map(SadValue::Text),
-                _ => None,
-            })
-            .collect();
-        assert_eq!(committed, Some(SadValue::Array(digests)));
-        Ok(())
-    }
-
-    #[test]
     fn a_rotation_signs_with_the_inception_count() -> Result<(), Box<dyn Error>> {
         // Property-test regression, permanent: a salty keeper's current count never moves from its
         // inception count — the `keri-keeping` fixture's pinned quirk — so a rotation to two keys
@@ -1118,19 +1028,6 @@ mod tests {
         )?;
         assert_eq!(list_len(&rotation, "k"), 2);
         assert_eq!(rotation.signatures.len(), 1);
-        Ok(())
-    }
-
-    #[test]
-    fn a_delegated_state_rotates_with_a_delegated_event() -> Result<(), Box<dyn Error>> {
-        let request = salty_request();
-        let mut keeper = keeper_for(&request)?;
-        let artifact = incept_identifier(keeper.as_mut(), &request)?;
-        let state = state_after(&artifact, |value| {
-            value["di"] = serde_json::json!("EAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C");
-        })?;
-        let rotation = rotate_identifier(keeper.as_mut(), &state, &RotateIdentifierRequest::default())?;
-        assert_eq!(rotation.event.kind(), EventKind::DelegatedRotation);
         Ok(())
     }
 

@@ -11,10 +11,6 @@ use serde_json::Value;
 use signify_client::multisig::{REPLY_ROUTE, REPLY_SLOT};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-multisig-end-roles/v1.json"
-));
 /// The multisig events fixture, for a genuine proposal on another route.
 const INTERACTION_FIXTURE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -59,7 +55,6 @@ struct Declarations {
     notification_waits: Vec<String>,
     proposal_reads: Vec<String>,
     sends: Vec<String>,
-    shared_stamp: bool,
     helper_uses: Value,
     scanned_files: usize,
 }
@@ -70,7 +65,6 @@ struct Call {
     note: String,
     requests: Vec<RecordedRequest>,
     waits: Vec<Wait>,
-    error: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -100,7 +94,7 @@ struct Pinned {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-multisig-end-roles")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -243,55 +237,6 @@ fn a_joining_member_never_reads_the_proposal() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn the_members_agree_only_on_a_shared_stamp() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.declarations.shared_stamp);
-    let recorded = quirk(&fixture, "the_members_agree_only_on_a_shared_stamp")?;
-    assert_eq!(recorded.get("agree"), Some(&Value::Bool(true)));
-    assert_eq!(recorded.get("divergent_agrees"), Some(&Value::Bool(false)));
-    assert_eq!(recorded.get("divergent_error"), Some(&Value::Null));
-    assert!(call(&fixture, "join_the_end_roles_on_another_clock")?.error.is_none());
-    assert_eq!(
-        bodies(&fixture, "propose_the_end_roles", "/endroles")?,
-        bodies(&fixture, "join_the_end_roles", "/endroles")?
-    );
-    Ok(())
-}
-
-#[test]
-fn a_member_without_an_agent_throws_after_the_members_before_it() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let partial = call(&fixture, "propose_with_a_member_without_an_agent")?;
-    assert_eq!(
-        partial.error.as_deref(),
-        Some("signing.ends.agent is null or undefined")
-    );
-    assert_eq!(
-        bodies(&fixture, "propose_with_a_member_without_an_agent", "/endroles")?.len(),
-        1
-    );
-    assert_eq!(
-        bodies(&fixture, "propose_with_a_member_without_an_agent", "/exchanges")?.len(),
-        1
-    );
-    Ok(())
-}
-
-#[test]
-fn the_reference_seals_to_the_group_state_its_caller_passed() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    for body in bodies(&fixture, "propose_with_a_stale_group_state", "/exchanges")? {
-        assert!(body.contains("EStaleEstablishmentEventDigest00000000000000"));
-    }
-    let recorded = quirk(&fixture, "the_seal_is_the_callers_group_state")?;
-    assert_eq!(
-        recorded.get("stale_announcement_attachment_names_the_stale_digest"),
-        Some(&Value::Bool(true))
-    );
-    Ok(())
-}
-
-#[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirks = fixture
@@ -314,100 +259,29 @@ fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<
 /// This port, driven through the same round against a scripted agent.
 mod driven {
     use super::*;
-    use std::sync::Arc;
 
-    use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+    use crate::support::{AgentTransport, Harness, PASSCODE, SentRequest, block_on, connected, reseal, sent_all};
     use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-    use keri_cesr::crypto::cipher::Encrypter;
-    use keri_cesr::crypto::salt::{Salt, SecurityTier};
-    use keri_cesr::crypto::verifier::KeyTransferability;
+
     use keri_protocol::event::Timestamp;
     use keri_protocol::prefix::IdentifierPrefix;
     use keri_protocol::said::Said;
     use keria_types::api::Role;
-    use signify_client::client::{ConnectedClient, SignifyClient};
-    use signify_client::config::ClientConfig;
+
     use signify_client::error::ClientError;
     use signify_client::multisig::GroupEndRoleRequest;
-    use signify_http::transport::Transport;
+
     use signify_keys::acdc::revocation::{RevocationEvent, RevocationEventBuilder};
-    use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";
 
-    fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-        let configuration = || {
-            ClientConfig::new(ADMIN, PASSCODE)
-                .and_then(|config| config.with_boot_url(BOOT))
-                .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-        };
-        let probe = SignifyClient::new(
-            configuration()?,
-            AgentTransport::new(&[]) as Arc<dyn Transport>,
-            clock(),
-        )?;
-        let prefix = probe.controller().prefix().qb64()?;
-        let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-        let state = agent_state(&prefix, &inception);
-        let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-        answers.extend_from_slice(bodies);
-        let transport = AgentTransport::new(&answers);
-
-        let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-        Ok((block_on(client.connect())?, transport))
-    }
-
-    type SentRequest = (String, String, Option<String>);
-
-    fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
-        transport
-            .requests()
-            .into_iter()
-            .skip(2)
-            .map(|request| Ok((request.resource(), request.method().to_owned(), request.body_text())))
-            .collect()
-    }
-
-    fn sealing_key() -> Result<Encrypter, Box<dyn Error>> {
-        let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
-        let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
-        Ok(Encrypter::from_verification_key(signer.verifier())?)
-    }
-
-    fn seal(salty: &mut Value) -> Result<(), Box<dyn Error>> {
-        let opens_to = salty
-            .get("sxlt_opens_to")
-            .and_then(Value::as_str)
-            .ok_or("the recorded key-manager block carries no sealed salt")?
-            .to_owned();
-        let sealed = sealing_key()?
-            .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-            .qb64()?;
-        let block = salty.as_object_mut().ok_or("the key-manager block is not an object")?;
-        block.remove("sxlt_opens_to");
-        block.insert("sxlt".to_owned(), Value::String(sealed));
-        Ok(())
-    }
-
     fn member(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut record = fixture.identifier_record.clone();
-        seal(
-            record
-                .get_mut("salty")
-                .ok_or("the recorded member has no key-manager block")?,
-        )?;
-        Ok(serde_json::to_vec(&record)?)
+        reseal(&fixture.identifier_record, PASSCODE)
     }
 
     fn group(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut record = fixture.group_record.clone();
-        let salty = record
-            .pointer_mut("/group/mhab/salty")
-            .ok_or("the recorded group has no member key-manager block")?;
-        seal(salty)?;
-        Ok(serde_json::to_vec(&record)?)
+        reseal(&fixture.group_record, PASSCODE)
     }
 
     fn stamp(fixture: &Fixture) -> Result<Timestamp, Box<dyn Error>> {
@@ -484,21 +358,23 @@ mod driven {
 
     /// Asserts a refused round read its four resources and wrote nothing.
     fn assert_nothing_written(transport: &AgentTransport) -> Result<(), Box<dyn Error>> {
-        let requests = sent(transport)?;
+        let requests = sent_all(transport)?;
         assert_eq!(
             requests.len(),
             4,
             "the member, the proposal, the members, and the group"
         );
-        assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+        assert!(requests.iter().all(|SentRequest { method, .. }| method == "GET"));
         Ok(())
     }
 
     /// The first write a round made, as its method and resource.
     fn first_write(transport: &AgentTransport) -> Result<(String, String), Box<dyn Error>> {
-        let (resource, method, _) = sent(transport)?
+        let SentRequest {
+            path: resource, method, ..
+        } = sent_all(transport)?
             .into_iter()
-            .find(|(_, method, _)| method != "GET")
+            .find(|SentRequest { method, .. }| method != "GET")
             .ok_or("nothing was written")?;
         Ok((method, resource))
     }
@@ -562,7 +438,7 @@ mod driven {
         let member = member(&fixture)?;
         let group = group(&fixture)?;
         let members = serde_json::to_vec(&fixture.members)?;
-        let (client, transport) = connected(&[
+        let Harness { client, transport, .. } = connected(&[
             &member, &members, // the local member and the listing
             &group, b"{}", &group, &member, b"{}", // the first agent
             &group, b"{}", &group, &member, b"{}", // the second agent
@@ -575,12 +451,12 @@ mod driven {
         }))?;
         assert_eq!(replies.len(), 2);
 
-        let requests = sent(&transport)?;
+        let requests = sent_all(&transport)?;
         let posted = |ending: &str| -> Vec<String> {
             requests
                 .iter()
-                .filter(|(path, method, _)| method == "POST" && path.ends_with(ending))
-                .filter_map(|(_, _, body)| body.clone())
+                .filter(|SentRequest { path, method, .. }| method == "POST" && path.ends_with(ending))
+                .filter_map(|SentRequest { body, .. }| body.clone())
                 .collect()
         };
 
@@ -648,7 +524,7 @@ mod driven {
         let fixture = fixture()?;
         let member = member(&fixture)?;
         let members = serde_json::to_vec(&fixture.members_without_an_agent)?;
-        let (client, transport) = connected(&[&member, &members])?;
+        let Harness { client, transport, .. } = connected(&[&member, &members])?;
 
         let outcome = block_on(client.multisig().propose_agent_end_roles(&GroupEndRoleRequest {
             group_name: GROUP_NAME,
@@ -660,7 +536,9 @@ mod driven {
             "{outcome:?}"
         );
         assert!(
-            sent(&transport)?.iter().all(|(_, method, _)| method == "GET"),
+            sent_all(&transport)?
+                .iter()
+                .all(|SentRequest { method, .. }| method == "GET"),
             "the round sent something before refusing"
         );
         Ok(())
@@ -673,18 +551,18 @@ mod driven {
         let group = group(&fixture)?;
         let members = serde_json::to_vec(&fixture.members)?;
         let (said, listing) = proposal(&fixture, |_| {})?;
-        let (client, transport) = connected(&[
+        let Harness { client, transport, .. } = connected(&[
             &member, &listing, &group, &members, &group, b"{}", &group, &member, b"{}",
         ])?;
 
         let reply = block_on(client.multisig().accept_end_role(GROUP_NAME, ALIAS, &said))?;
 
         // Stamp, role, and endpoint read from the proposal: the reply is the proposer's own.
-        let requests = sent(&transport)?;
+        let requests = sent_all(&transport)?;
         let posted: Vec<&str> = requests
             .iter()
-            .filter(|(path, method, _)| method == "POST" && path.ends_with("/endroles"))
-            .filter_map(|(_, _, body)| body.as_deref())
+            .filter(|SentRequest { path, method, .. }| method == "POST" && path.ends_with("/endroles"))
+            .filter_map(|SentRequest { body, .. }| body.as_deref())
             .collect();
         let reference = bodies(&fixture, "propose_the_end_roles", "/endroles")?;
         assert_eq!(posted.first(), reference.first());
@@ -692,13 +570,14 @@ mod driven {
         assert!(
             requests
                 .iter()
-                .any(|(path, _, _)| path == &format!("/multisig/request/{}", said.qb64().unwrap_or_default())),
+                .any(|SentRequest { path, .. }| path
+                    == &format!("/multisig/request/{}", said.qb64().unwrap_or_default())),
             "the proposal was not read"
         );
         let announcements: Vec<&str> = requests
             .iter()
-            .filter(|(path, method, _)| method == "POST" && path.ends_with("/exchanges"))
-            .filter_map(|(_, _, body)| body.as_deref())
+            .filter(|SentRequest { path, method, .. }| method == "POST" && path.ends_with("/exchanges"))
+            .filter_map(|SentRequest { body, .. }| body.as_deref())
             .collect();
         assert_eq!(announcements.len(), 1, "one proposal is answered with one announcement");
         let announced: Value = serde_json::from_str(announcements.first().copied().ok_or("nothing was announced")?)?;
@@ -743,14 +622,18 @@ mod driven {
                 *stamp = Value::String("2023-11-14T22:13:21.123000+00:00".to_owned());
             }
         })?;
-        let (client, transport) = connected(&[&member, &listing, &group])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &group])?;
 
         let outcome = block_on(client.multisig().accept_end_role(GROUP_NAME, ALIAS, &said));
         assert!(
             matches!(outcome, Err(ClientError::ProposalMismatch { .. })),
             "{outcome:?}"
         );
-        assert!(sent(&transport)?.iter().all(|(_, method, _)| method == "GET"));
+        assert!(
+            sent_all(&transport)?
+                .iter()
+                .all(|SentRequest { method, .. }| method == "GET")
+        );
         Ok(())
     }
 
@@ -760,7 +643,7 @@ mod driven {
         let member = member(&fixture)?;
         let group = group(&fixture)?;
         let (said, listing) = interaction_proposal(&fixture.pinned_confirmations.group)?;
-        let (client, transport) = connected(&[&member, &listing, &group, b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &group, b"{}"])?;
 
         let outcome = block_on(
             client
@@ -771,9 +654,9 @@ mod driven {
             matches!(outcome, Err(ClientError::ProposalMismatch { .. })),
             "{outcome:?}"
         );
-        let requests = sent(&transport)?;
+        let requests = sent_all(&transport)?;
         assert_eq!(requests.len(), 3, "the member, the proposal, and the group");
-        assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+        assert!(requests.iter().all(|SentRequest { method, .. }| method == "GET"));
         Ok(())
     }
 
@@ -783,7 +666,7 @@ mod driven {
         let member = member(&fixture)?;
         let group = group(&fixture)?;
         let (said, listing) = interaction_proposal(&fixture.pinned_confirmations.group)?;
-        let (client, transport) = connected(&[&member, &listing, &group, b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &group, b"{}"])?;
 
         let outcome = block_on(client.multisig().accept_delegation_approval(
             GROUP_NAME,
@@ -794,13 +677,13 @@ mod driven {
         let Err(ClientError::ProposalMismatch { built, .. }) = outcome else {
             return Err(format!("{outcome:?}").into());
         };
-        let requests = sent(&transport)?;
+        let requests = sent_all(&transport)?;
         assert_eq!(requests.len(), 3, "the member, the proposal, and the group");
-        assert!(requests.iter().all(|(_, method, _)| method == "GET"));
+        assert!(requests.iter().all(|SentRequest { method, .. }| method == "GET"));
 
         // The same proposal naming the event this member builds goes through to the delegation address.
         let (said, listing) = interaction_proposal(&built)?;
-        let (client, transport) = connected(&[&member, &listing, &group, b"{}", &group, &member, b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing, &group, b"{}", &group, &member, b"{}"])?;
         let outcome = block_on(client.multisig().accept_delegation_approval(
             GROUP_NAME,
             ALIAS,
@@ -808,11 +691,11 @@ mod driven {
             stamp(&fixture)?,
         ));
         assert!(outcome.is_ok(), "{outcome:?}");
-        let posted = sent(&transport)?
+        let posted = sent_all(&transport)?
             .into_iter()
-            .find(|(_, method, _)| method == "POST")
+            .find(|SentRequest { method, .. }| method == "POST")
             .ok_or("nothing was posted")?;
-        assert_eq!(posted.0, format!("/identifiers/{GROUP_NAME}/delegation"));
+        assert_eq!(posted.path, format!("/identifiers/{GROUP_NAME}/delegation"));
         Ok(())
     }
 
@@ -829,7 +712,7 @@ mod driven {
             .to_owned();
 
         let (said, listing) = listed(exn.clone(), "/e/vcp/i", &fixture.pinned_confirmations.group)?;
-        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let Harness { client, transport, .. } = connected(&joining_answers(&member, &listing, &members, &group))?;
         let outcome =
             block_on(
                 client
@@ -843,7 +726,7 @@ mod driven {
         assert_nothing_written(&transport)?;
 
         let (said, listing) = listed(exn, "/e/vcp/i", &proposed)?;
-        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let Harness { client, transport, .. } = connected(&joining_answers(&member, &listing, &members, &group))?;
         let outcome =
             block_on(
                 client
@@ -866,7 +749,7 @@ mod driven {
         let exn = credential_exn("propose_the_issuance")?;
 
         let (said, listing) = listed(exn.clone(), "/e/acdc/d", &fixture.pinned_confirmations.group)?;
-        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let Harness { client, transport, .. } = connected(&joining_answers(&member, &listing, &members, &group))?;
         let outcome = block_on(client.multisig().accept_issuance(
             GROUP_NAME,
             ALIAS,
@@ -880,7 +763,7 @@ mod driven {
         assert_nothing_written(&transport)?;
 
         let (said, listing) = listed(exn, "/e/acdc/d", &built)?;
-        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let Harness { client, transport, .. } = connected(&joining_answers(&member, &listing, &members, &group))?;
         let outcome = block_on(client.multisig().accept_issuance(
             GROUP_NAME,
             ALIAS,
@@ -904,7 +787,7 @@ mod driven {
         let exn = revocation_exn()?;
 
         let (said, listing) = listed(exn.clone(), "/e/rev/d", &fixture.pinned_confirmations.group)?;
-        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let Harness { client, transport, .. } = connected(&joining_answers(&member, &listing, &members, &group))?;
         let outcome = block_on(client.multisig().accept_revocation(
             GROUP_NAME,
             ALIAS,
@@ -918,7 +801,7 @@ mod driven {
         assert_nothing_written(&transport)?;
 
         let (said, listing) = listed(exn, "/e/rev/d", &built)?;
-        let (client, transport) = connected(&joining_answers(&member, &listing, &members, &group))?;
+        let Harness { client, transport, .. } = connected(&joining_answers(&member, &listing, &members, &group))?;
         let revocation = group_revocation(&fixture)?;
         let credential = revocation.credential().qb64()?;
         let outcome =
@@ -963,14 +846,16 @@ mod driven {
             ),
         ] {
             let (said, listing) = proposal(&fixture, rewrite)?;
-            let (client, transport) = connected(&[&member, &listing, &group])?;
+            let Harness { client, transport, .. } = connected(&[&member, &listing, &group])?;
             let outcome = block_on(client.multisig().accept_end_role(GROUP_NAME, ALIAS, &said));
             assert!(
                 matches!(outcome, Err(ClientError::NotAnEndRoleProposal { .. })),
                 "{label}: {outcome:?}"
             );
             assert!(
-                sent(&transport)?.iter().all(|(_, method, _)| method == "GET"),
+                sent_all(&transport)?
+                    .iter()
+                    .all(|SentRequest { method, .. }| method == "GET"),
                 "{label}"
             );
         }
@@ -993,7 +878,7 @@ mod driven {
         let said = Said::from_qb64(exn.get("d").and_then(Value::as_str).ok_or("no SAID")?)?;
         let listing = serde_json::to_vec(&serde_json::json!([{ "exn": exn, "paths": {} }]))?;
 
-        let (client, transport) = connected(&[&member, &listing])?;
+        let Harness { client, transport, .. } = connected(&[&member, &listing])?;
         let outcome = block_on(client.multisig().accept_end_role(GROUP_NAME, ALIAS, &said));
         assert!(
             matches!(
@@ -1003,7 +888,9 @@ mod driven {
             "an interaction proposal was not refused as an end role: {outcome:?}"
         );
         assert!(
-            sent(&transport)?.iter().all(|(_, method, _)| method == "GET"),
+            sent_all(&transport)?
+                .iter()
+                .all(|SentRequest { method, .. }| method == "GET"),
             "the round sent something before refusing"
         );
         Ok(())

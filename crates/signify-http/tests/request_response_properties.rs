@@ -4,6 +4,9 @@
 //! the delimiters it must never introduce, a `Content-Range` differing from a well-formed one by a
 //! single character, and a body that is not UTF-8.
 
+mod support;
+
+use crate::support::{fail, method_of};
 use proptest::prelude::*;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::{
@@ -12,14 +15,6 @@ use signify_http::request::{
 };
 use signify_http::response::{ContentRange, MAX_DETAIL_CHARS, RequestOrigin, ResourceResponse, ResponseError};
 use signify_http::transport::{Method, Request, RequestUrl, Response, StatusCode};
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn method_of(index: usize) -> Method {
-    *Method::ALL.get(index % Method::ALL.len()).unwrap_or(&Method::Get)
-}
 
 /// Builds one response for a request whose URL carries a query.
 fn decode(status: u16, content_type: Option<&str>, body: Vec<u8>) -> Result<ResourceResponse, ResponseError> {

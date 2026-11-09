@@ -4,10 +4,13 @@
 //! window's exact edge, a timestamp at the epoch and at the last year the format can hold, and a
 //! request whose method and path vary independently of what a signature covers.
 
+mod support;
+
 use core::time::Duration;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+use crate::support::{block_on, fail, method_of};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
@@ -21,32 +24,12 @@ use signify_http::signature::timestamp::{MAX_YEAR, SignifyTimestamp, TIMESTAMP_W
 use signify_http::signature::transport::{
     Freshness, ResponseAuthenticationError, ResponseAuthenticator, SigningTransport,
 };
-use signify_http::transport::{Method, Request, RequestUrl, ScriptedTransport, Transport, TransportError};
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn method_of(index: usize) -> Method {
-    *Method::ALL.get(index % Method::ALL.len()).unwrap_or(&Method::Get)
-}
+use signify_http::transport::{Request, RequestUrl, ScriptedTransport, Transport, TransportError};
 
 const RESOURCE: &str = "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose";
 
 /// The last instant the four-digit year can hold, in milliseconds.
 const LATEST_MILLIS: u64 = 253_402_300_799_000;
-
-/// A minimal executor; every future on this path is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
 
 /// Builds a signing transport over a scripted answer at a fixed clock.
 fn signing_transport(at_millis: u64) -> Result<(SigningTransport, Arc<TestClock>), TestCaseError> {
@@ -149,77 +132,36 @@ proptest! {
         prop_assert_eq!(signed.headers().get(SIGNIFY_RESOURCE_HEADER_NAME), Some(RESOURCE));
     }
 
-    /// The query never reaches the signature base, so it cannot change a signature.
+    /// The method and path are covered, so changing either changes a signature; the query never
+    /// reaches the signature base, so it cannot.
     #[test]
-    fn a_query_never_changes_a_signature(
-        path in "(/[A-Za-z0-9._~-]{1,10}){1,3}",
-        query in "[a-z]{1,6}=[a-z0-9]{1,10}",
-        index in 0_usize..8,
-    ) {
-        let (transport, _clock) = signing_transport(1_700_000_000_123)?;
-        let plain = RequestUrl::new(format!("http://localhost:3901{path}")).map_err(fail)?;
-        let queried = RequestUrl::new(format!("http://localhost:3901{path}?{query}")).map_err(fail)?;
-
-        let one = transport
-            .sign_request(&Request::builder(method_of(index), plain).build().map_err(fail)?)
-            .map_err(fail)?;
-        let two = transport
-            .sign_request(&Request::builder(method_of(index), queried).build().map_err(fail)?)
-            .map_err(fail)?;
-
-        prop_assert_eq!(one.headers().get("signature"), two.headers().get("signature"));
-        prop_assert_eq!(
-            one.headers().get("signature-input"),
-            two.headers().get("signature-input"),
-        );
-    }
-
-    /// A different method or path always produces a different signature.
-    #[test]
-    fn the_method_and_path_always_change_a_signature(
+    fn a_signature_covers_the_method_and_path_but_never_the_query(
         left in 0_usize..4,
         right in 0_usize..4,
-        first in "(/[a-z]{1,8}){1,3}",
-        second in "(/[a-z]{1,8}){1,3}",
+        first in "(/[A-Za-z0-9._~-]{1,10}){1,3}",
+        second in "(/[A-Za-z0-9._~-]{1,10}){1,3}",
+        query in "[a-z]{1,6}=[a-z0-9]{1,10}",
     ) {
-        prop_assume!(left != right || first != second);
         let (transport, _clock) = signing_transport(1_700_000_000_123)?;
+        let sign = |index: usize, text: String| -> Result<Request, TestCaseError> {
+            let url = RequestUrl::new(text).map_err(fail)?;
+            transport
+                .sign_request(&Request::builder(method_of(index), url).build().map_err(fail)?)
+                .map_err(fail)
+        };
 
-        let one = transport
-            .sign_request(
-                &Request::builder(
-                    method_of(left),
-                    RequestUrl::new(format!("http://localhost:3901{first}")).map_err(fail)?,
-                )
-                .build()
-                .map_err(fail)?,
-            )
-            .map_err(fail)?;
-        let two = transport
-            .sign_request(
-                &Request::builder(
-                    method_of(right),
-                    RequestUrl::new(format!("http://localhost:3901{second}")).map_err(fail)?,
-                )
-                .build()
-                .map_err(fail)?,
-            )
-            .map_err(fail)?;
+        let one = sign(left, format!("http://localhost:3901{first}"))?;
+        let queried = sign(left, format!("http://localhost:3901{first}?{query}"))?;
+        prop_assert_eq!(one.headers().get("signature"), queried.headers().get("signature"));
+        prop_assert_eq!(
+            one.headers().get("signature-input"),
+            queried.headers().get("signature-input"),
+        );
 
-        // Both are covered components, so changing either changes the base and the signature.
-        prop_assert_ne!(one.headers().get("signature"), two.headers().get("signature"));
-    }
-
-    /// Signing the same request twice is always refused, whatever it carried.
-    #[test]
-    fn a_request_is_never_signed_twice(index in 0_usize..8, millis in 0_u64..LATEST_MILLIS) {
-        let (transport, _clock) = signing_transport(millis)?;
-        let url = RequestUrl::new("http://localhost:3901/identifiers").map_err(fail)?;
-        let once = transport
-            .sign_request(&Request::builder(method_of(index), url).build().map_err(fail)?)
-            .map_err(fail)?;
-        // The reference appends a second value; here the duplicate name does not build.
-        prop_assert!(transport.sign_request(&once).is_err());
+        if left != right || first != second {
+            let two = sign(right, format!("http://localhost:3901{second}"))?;
+            prop_assert_ne!(one.headers().get("signature"), two.headers().get("signature"));
+        }
     }
 
     /// A signing failure is always the permanent transport failure, never a transient one.

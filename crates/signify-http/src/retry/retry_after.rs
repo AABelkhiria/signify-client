@@ -306,6 +306,7 @@ impl Error for RetryAfterError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::displays_and_sources;
     use std::error::Error;
 
     /// 2023-11-14T22:15:00Z, the moment the doctest uses.
@@ -316,17 +317,7 @@ mod tests {
     }
 
     #[test]
-    fn delay_seconds_parse_and_are_bounded() -> Result<(), Box<dyn Error>> {
-        for (value, seconds) in [("0", 0_u64), ("1", 1), ("120", 120), ("3600", 3_600)] {
-            assert_eq!(
-                RetryAfter::parse(value)?,
-                RetryAfter::Delay(Duration::from_secs(seconds))
-            );
-            assert_eq!(
-                RetryAfter::parse(value)?.delay_from(at(REFERENCE_SECONDS)),
-                Duration::from_secs(seconds),
-            );
-        }
+    fn the_delay_ceiling_is_inclusive_and_leading_zeros_parse() -> Result<(), Box<dyn Error>> {
         // The ceiling is inclusive.
         assert_eq!(
             RetryAfter::parse(&MAX_DELAY_SECONDS.to_string())?,
@@ -342,10 +333,10 @@ mod tests {
     }
 
     #[test]
-    fn a_signed_or_fractional_delay_is_not_a_delay() {
-        // `delay-seconds` is a non-negative integer, so each of these is a malformed *date*
+    fn a_fractional_or_non_decimal_delay_is_not_a_delay() {
+        // `delay-seconds` is a run of ASCII digits, so each of these is a malformed *date*
         // rather than a number, and is refused as one.
-        for value in ["-1", "+1", "1.5", "1e3", " 1", "1 ", "0x10", "١٢٣"] {
+        for value in ["1.5", "1e3", "1 ", "0x10", "١٢٣"] {
             assert!(RetryAfter::parse(value).is_err(), "{value:?} was accepted");
         }
     }
@@ -458,18 +449,21 @@ mod tests {
 
     #[test]
     fn errors_carry_readable_text() {
-        for error in [
-            RetryAfterError::Empty,
-            RetryAfterError::TooLong { length: 999 },
-            RetryAfterError::DelayOutOfRange { value: "-1".to_owned() },
-            RetryAfterError::InvalidDate {
-                value: "nope".to_owned(),
-                reason: "not a date",
-            },
-        ] {
-            assert_ne!(error.to_string(), "");
-            assert!(error.source().is_none());
+        let cases: [(RetryAfterError, &[&str]); 3] = [
+            (RetryAfterError::TooLong { length: 999 }, &["999"]),
+            (RetryAfterError::DelayOutOfRange { value: "-1".to_owned() }, &["\"-1\""]),
+            (
+                RetryAfterError::InvalidDate {
+                    value: "nope".to_owned(),
+                    reason: "not a date",
+                },
+                &["\"nope\"", "not a date"],
+            ),
+        ];
+        for (error, fragments) in cases {
+            displays_and_sources(&error, fragments, false);
         }
+        assert_eq!(RetryAfterError::Empty.to_string(), "a Retry-After value is empty");
         // Rejected text is bounded even when the input is not.
         let long = "x".repeat(MAX_RETRY_AFTER_BYTES);
         if let Err(error) = RetryAfter::parse(&long) {

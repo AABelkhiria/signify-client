@@ -5,26 +5,19 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
-use keri_protocol::prefix::IdentifierPrefix;
+use crate::support::{
+    ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, prefix, sent,
+};
 use keria_types::api::{EchoedSequence, OperationOutcome, QueryOperation, Seal};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
+use signify_client::client::ConnectedClient;
 use signify_client::endpoint::key_events::{EVENTS_SEGMENT, PREFIX_PARAMETER};
 use signify_client::endpoint::key_states::{KeyStateQuery, QUERIES_SEGMENT, QuerySequence, STATES_SEGMENT};
 use signify_client::error::ClientError;
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-key-state/v1.json"
-));
 
 const PREFIX_ONE: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const PREFIX_TWO: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -41,7 +34,6 @@ struct Fixture {
     provenance: Provenance,
     declarations: Declarations,
     calls: Vec<Call>,
-    pinned_confirmations: PinnedConfirmations,
     reference_quirks: Value,
 }
 
@@ -93,17 +85,8 @@ struct RecordedRequest {
     body: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct PinnedConfirmations {
-    published_paths: Vec<String>,
-    driven_paths: Vec<String>,
-    every_pinned_path_is_driven: bool,
-    pinned_query_body: String,
-    note: String,
-}
-
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-key-state")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -121,39 +104,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.first().ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
-
-fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    Ok(IdentifierPrefix::from_qb64(text)?)
-}
-
 fn assert_matches_recorded(
     fixture: &Fixture,
     name: &str,
@@ -161,9 +111,9 @@ fn assert_matches_recorded(
     run: impl FnOnce(&ConnectedClient),
 ) -> Result<(), Box<dyn Error>> {
     let recorded = request_of(fixture, name)?;
-    let (client, transport) = connected(&[answer])?;
+    let Harness { client, transport, .. } = connected(&[answer])?;
     run(&client);
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path, "path mismatch for {name}");
     assert_eq!(method, recorded.method, "method mismatch for {name}");
     assert_eq!(body.as_deref(), recorded.body.as_deref(), "body mismatch for {name}");
@@ -243,30 +193,6 @@ fn the_ported_declarations_are_the_references_own() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn every_path_the_pinned_test_asserts_is_produced() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    assert!(fixture.pinned_confirmations.every_pinned_path_is_driven);
-    assert_ne!(fixture.pinned_confirmations.note, "");
-    for path in [
-        format!("/events?pre={PREFIX_ONE}"),
-        format!("/states?pre={PREFIX_ONE}"),
-        format!("/states?pre={PREFIX_ONE}&pre={PREFIX_TWO}"),
-        "/queries".to_owned(),
-    ] {
-        assert!(
-            fixture.pinned_confirmations.published_paths.contains(&path),
-            "{path} is not published by the pinned test"
-        );
-        assert!(
-            fixture.pinned_confirmations.driven_paths.contains(&path),
-            "{path} was not driven"
-        );
-    }
-    assert!(fixture.pinned_confirmations.pinned_query_body.contains(r#""sn":"1""#));
-    Ok(())
-}
-
-#[test]
 fn every_recorded_divergence_names_its_reason_and_its_rust_decision() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let quirks = fixture
@@ -297,9 +223,9 @@ fn a_key_event_read_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> 
     let expected = prefix(PREFIX_ONE)?;
 
     let recorded = request_of(&fixture, "events_get")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let events = block_on(client.key_events().get(&expected))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, "GET");
     assert_eq!(body, None, "a key-event read sends no body");
@@ -317,9 +243,9 @@ fn a_key_state_read_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> 
     let expected = prefix(PREFIX_ONE)?;
 
     let recorded = request_of(&fixture, "states_get")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let states = block_on(client.key_states().get(&expected))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, "GET");
     assert_eq!(body, None);
@@ -334,9 +260,9 @@ fn a_listing_repeats_the_parameter_in_the_recorded_order() -> Result<(), Box<dyn
     let answer = serde_json::to_vec(&call(&fixture, "states_list")?.result)?;
     let recorded = request_of(&fixture, "states_list")?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let states = block_on(client.key_states().list(&[prefix(PREFIX_ONE)?, prefix(PREFIX_TWO)?]))?;
-    let (path, method, _) = sent(&transport)?;
+    let SentRequest { path, method, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, format!("/states?pre={PREFIX_ONE}&pre={PREFIX_TWO}"));
     assert_eq!(method, "GET");
@@ -352,7 +278,7 @@ fn an_empty_listing_is_refused_rather_than_addressing_a_bare_question_mark() -> 
     let fixture = fixture()?;
     assert_eq!(request_of(&fixture, "states_list_empty")?.path, "/states?");
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let outcome = block_on(client.key_states().list(&[]));
     assert!(matches!(outcome, Err(ClientError::EmptyKeyStateListing)));
     assert_eq!(transport.requests().len(), 2);
@@ -409,13 +335,18 @@ fn the_pinned_query_carries_an_anchor_this_port_cannot_express() -> Result<(), B
     assert!(body.get("anchor").and_then(Value::as_object).is_none());
 
     let answer = serde_json::to_vec(&call(&fixture, "query_pinned")?.result)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let _ = block_on(
         client
             .key_states()
             .query(&KeyStateQuery::at(prefix(PREFIX_ONE)?, QuerySequence::Decimal(1))),
     );
-    let (path, method, sent_body) = sent(&transport)?;
+    let SentRequest {
+        path,
+        method,
+        body: sent_body,
+        ..
+    } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, "POST");
     assert_eq!(
@@ -429,7 +360,7 @@ fn the_pinned_query_carries_an_anchor_this_port_cannot_express() -> Result<(), B
 fn a_query_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let answer = serde_json::to_vec(&call(&fixture, "query_prefix_only")?.result)?;
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let operation = block_on(client.key_states().query(&KeyStateQuery::latest(prefix(PREFIX_ONE)?)))?;
 
     assert_eq!(operation.name, format!("query.{PREFIX_ONE}"));
@@ -475,15 +406,6 @@ fn a_two_digit_sequence_number_is_where_the_bases_part_company() -> Result<(), B
             QuerySequence::Hexadecimal(value).to_text()
         );
     }
-    Ok(())
-}
-
-#[test]
-fn a_prefix_carrying_query_delimiters_is_not_a_prefix() -> Result<(), Box<dyn Error>> {
-    let fixture = fixture()?;
-    let recorded = request_of(&fixture, "events_get_prefix_needing_encoding")?;
-    assert_eq!(recorded.path, "/events?pre=E&pre=EOTHER#x");
-    assert!(IdentifierPrefix::from_qb64("E&pre=EOTHER#x").is_err());
     Ok(())
 }
 

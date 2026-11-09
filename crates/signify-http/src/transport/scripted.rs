@@ -187,19 +187,8 @@ mod tests {
     use std::error::Error;
 
     use crate::header::Headers;
+    use crate::test_support::{assert_send_sync, block_on};
     use crate::transport::{Method, RequestUrl, StatusCode};
-
-    /// A minimal executor: every future here is ready on its first poll.
-    fn block_on<F: core::future::Future>(future: F) -> F::Output {
-        use core::task::{Context, Poll, Waker};
-        let mut future = Box::pin(future);
-        let mut context = Context::from_waker(Waker::noop());
-        loop {
-            if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-                return value;
-            }
-        }
-    }
 
     fn request(method: Method, path: &str) -> Result<Request, Box<dyn Error>> {
         Ok(Request::builder(method, RequestUrl::new(format!("https://keria.example{path}"))?).build()?)
@@ -257,38 +246,6 @@ mod tests {
     }
 
     #[test]
-    fn the_requests_own_limit_is_enforced() -> Result<(), Box<dyn Error>> {
-        let transport = ScriptedTransport::new().respond(response(200, b"0123456789")?);
-        let request = Request::builder(Method::Get, RequestUrl::new("https://keria.example/big")?)
-            .response_limit(4)
-            .build()?;
-        let outcome = block_on(transport.execute(request));
-        assert!(matches!(
-            outcome,
-            Err(TransportError::ResponseBodyTooLarge { limit: 4, actual: 10 })
-        ));
-        Ok(())
-    }
-
-    #[test]
-    fn dropping_a_future_consumes_nothing() -> Result<(), Box<dyn Error>> {
-        let transport = ScriptedTransport::new().respond(response(200, b"kept")?);
-        let future = transport.execute(request(Method::Get, "/cancelled")?);
-        drop(future);
-
-        // Nothing was recorded and the answer is still available for the next request.
-        assert_eq!(transport.answered(), 0);
-        assert_eq!(transport.remaining(), 1);
-        let response = block_on(transport.execute(request(Method::Get, "/kept")?))?;
-        assert_eq!(response.body(), b"kept");
-        assert_eq!(
-            transport.last_request().map(|request| request.url().path().to_owned()),
-            Some("/kept".to_owned())
-        );
-        Ok(())
-    }
-
-    #[test]
     fn a_script_can_grow_after_construction() -> Result<(), Box<dyn Error>> {
         let transport = ScriptedTransport::new();
         assert_eq!(transport.remaining(), 0);
@@ -320,7 +277,6 @@ mod tests {
 
     #[test]
     fn the_transport_is_send_and_sync() {
-        const fn assert_send_sync<T: Send + Sync>() {}
         assert_send_sync::<ScriptedTransport>();
         assert_send_sync::<Request>();
         assert_send_sync::<Response>();

@@ -203,21 +203,7 @@ impl Clock for TokioClock {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// Compile-time proof that a value can cross threads.
-    fn assert_send_sync<T: Send + Sync>(_: &T) {}
-
-    /// A minimal executor; every future in this module is ready on its first poll.
-    fn block_on<F: Future>(future: F) -> F::Output {
-        use core::task::{Context, Poll, Waker};
-        let mut future = Box::pin(future);
-        let mut context = Context::from_waker(Waker::noop());
-        loop {
-            if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-                return value;
-            }
-        }
-    }
+    use crate::test_support::{assert_send_sync, block_on};
 
     #[test]
     fn a_test_clock_records_and_advances() {
@@ -293,6 +279,6 @@ mod tests {
         let before = clock.now();
         block_on(clock.sleep(Duration::from_millis(5)));
         assert_eq!(clock.now().duration_since(before), Duration::from_millis(5));
-        assert_send_sync(&clock);
+        assert_send_sync::<std::sync::Arc<dyn Clock>>();
     }
 }

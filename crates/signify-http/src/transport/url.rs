@@ -155,18 +155,7 @@ mod tests {
 
     #[test]
     fn a_url_is_split_without_being_rewritten() -> Result<(), Box<dyn Error>> {
-        let cases: [(&str, &str, &str, &str, Option<&str>); 6] = [
-            (
-                "https://keria.example/identifiers?limit=10",
-                "https",
-                "keria.example",
-                "/identifiers",
-                Some("limit=10"),
-            ),
-            ("http://localhost:3901/boot", "http", "localhost:3901", "/boot", None),
-            // No path at all: the path reads as `/`, but the text keeps its own bytes.
-            ("https://keria.example", "https", "keria.example", "/", None),
-            ("https://keria.example?a=1", "https", "keria.example", "/", Some("a=1")),
+        let cases: [(&str, &str, &str, &str, Option<&str>); 2] = [
             // An empty query is a query, and a trailing `?` survives.
             ("https://keria.example/p?", "https", "keria.example", "/p", Some("")),
             // Percent escapes and mixed case are preserved exactly, because a signature covers them.

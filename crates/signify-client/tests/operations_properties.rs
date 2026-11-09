@@ -2,15 +2,14 @@
 //!
 //! Address, decoding, and dependency invariants for the operations family.
 
+mod support;
+
+use crate::support::fail;
 use keria_types::api::{KeyEvent, Operation, OperationOutcome, OperationStatus, UntypedOperation, WitnessMetadata};
 use proptest::prelude::*;
 use signify_client::endpoint::operations::{MAX_FAILURE_MESSAGE_BYTES, OPERATIONS_SEGMENT, TYPE_PARAMETER, completed};
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
 
 fn operation_path(name: &str) -> Result<ResourcePath, TestCaseError> {
     ResourcePath::builder()

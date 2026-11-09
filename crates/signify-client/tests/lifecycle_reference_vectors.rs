@@ -2,10 +2,13 @@
 //!
 //! Boot, state, connect, two signed requests, both passcode calls, and one non-success status.
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
+use crate::support::block_on;
 use serde::Deserialize;
 use signify_client::client::{ClientRequest, SignifyClient};
 use signify_client::config::{ClientConfig, Passcode};
@@ -17,10 +20,6 @@ use signify_http::signature::transport::Freshness;
 use signify_http::transport::{Method, Response, ScriptedTransport, StatusCode};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-lifecycle/v1.json"
-));
 
 #[derive(Debug, Deserialize)]
 struct Fixture {
@@ -201,19 +200,8 @@ struct ScanHit {
     count: usize,
 }
 
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-lifecycle")
 }
 
 fn pinned_clock(fixture: &Fixture) -> Arc<dyn Clock> {

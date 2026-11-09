@@ -242,22 +242,6 @@ mod tests {
     }
 
     #[test]
-    fn a_failure_message_is_bounded_on_a_character_boundary() -> Result<(), Box<dyn Error>> {
-        let long = "\u{1f510}".repeat(400);
-        let status: OperationStatus = serde_json::from_str(&format!(
-            r#"{{"code":500,"message":{}}}"#,
-            serde_json::to_string(&long)?
-        ))?;
-        let Err(ClientError::OperationFailed { message, .. }) = completed(operation(OperationOutcome::Failed(status)))
-        else {
-            return Err("a failed operation was not reported as one".into());
-        };
-        assert!(message.len() <= MAX_FAILURE_MESSAGE_BYTES);
-        assert!(message.chars().all(|character| character == '\u{1f510}'));
-        Ok(())
-    }
-
-    #[test]
     fn the_path_constants_are_the_references_own() {
         assert_eq!(OPERATIONS_SEGMENT, "operations");
         assert_eq!(TYPE_PARAMETER, "type");

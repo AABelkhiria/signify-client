@@ -3,6 +3,9 @@
 //! Every member's agent is read in order or the round is refused whole, and what a proposed reply
 //! authorizes — role, endpoint, stamp, SAID — survives the round trip exactly.
 
+mod support;
+
+use crate::support::fail;
 use keri_protocol::event::Timestamp;
 use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::{GroupMember, ReplyRecord, Role};
@@ -22,10 +25,6 @@ const PREFIXES: [&str; 6] = [
     "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
 ];
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";
-
-fn fail(error: impl std::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
 
 fn prefix(text: &str) -> Result<IdentifierPrefix, TestCaseError> {
     IdentifierPrefix::from_qb64(text).map_err(fail)

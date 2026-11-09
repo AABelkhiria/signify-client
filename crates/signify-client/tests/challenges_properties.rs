@@ -2,8 +2,11 @@
 //!
 //! What cannot be asked for: an impossible strength, a wordless verification, a source addressing another resource.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::{fail, prefixes};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
@@ -17,16 +20,6 @@ use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
 
 const SOURCE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
-    "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
-        IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
-    })
-}
 
 fn strengths() -> impl Strategy<Value = ChallengeStrength> {
     proptest::sample::select(ChallengeStrength::DECLARED.to_vec())
@@ -83,14 +76,6 @@ proptest! {
             }
             Err(other) => prop_assert!(false, "an unexpected failure: {:?}", other),
         }
-    }
-
-    #[test]
-    fn a_strength_names_its_own_word_count(strength in strengths()) {
-        let expected = strength.bits() / 32 * 3;
-        prop_assert_eq!(strength.word_count(), expected);
-        prop_assert!((12..=24).contains(&strength.word_count()));
-        prop_assert_eq!(strength.word_count() % 3, 0);
     }
 
     #[test]
@@ -215,4 +200,17 @@ fn a_hostile_source_is_not_a_prefix() {
         );
     }
     assert!(IdentifierPrefix::from_qb64(SOURCE).is_ok());
+}
+
+#[test]
+fn a_strength_names_the_bip39_word_count() {
+    for (strength, words) in [
+        (ChallengeStrength::BITS_128, 12),
+        (ChallengeStrength::BITS_160, 15),
+        (ChallengeStrength::BITS_192, 18),
+        (ChallengeStrength::BITS_224, 21),
+        (ChallengeStrength::BITS_256, 24),
+    ] {
+        assert_eq!(strength.word_count(), words, "{} bits", strength.bits());
+    }
 }
