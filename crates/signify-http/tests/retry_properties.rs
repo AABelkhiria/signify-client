@@ -38,13 +38,15 @@ fn block_on<F: core::future::Future>(future: F) -> F::Output {
 }
 
 proptest! {
-    /// A delay always lands inside the bounds the policy names, however far the schedule runs.
+    /// A delay always lands inside the policy's bounds, and the schedule never decreases and
+    /// flattens once the ceiling binds.
     #[test]
-    fn a_delay_is_always_within_its_bounds(
+    fn a_schedule_is_bounded_monotonic_and_flattens(
         base_ms in 1_u64..5_000,
         min_ms in 1_u64..5_000,
-        max_ms in 1_u64..5_000,
+        max_ms in 1_u64..20_000,
         attempt in any::<u32>(),
+        steps in 1_u32..40,
     ) {
         let policy = RetryPolicy::builder()
             .base_delay(Duration::from_millis(base_ms))
@@ -54,37 +56,25 @@ proptest! {
             .build()
             .map_err(fail)?;
 
-        let delay = policy.delay_for(attempt);
-        // The reference applies the floor *outside* the ceiling, so a floor above the ceiling wins.
-        prop_assert!(delay >= Duration::from_millis(min_ms), "{delay:?}");
-        if min_ms <= max_ms {
-            prop_assert!(delay <= Duration::from_millis(max_ms), "{delay:?}");
-        } else {
-            prop_assert_eq!(delay, Duration::from_millis(min_ms));
-        }
-        // Nothing overflows, whatever the attempt number.
-        prop_assert!(delay <= Duration::from_millis(min_ms.max(max_ms)));
-    }
+        let within_bounds = |delay: Duration| -> Result<(), TestCaseError> {
+            // The reference applies the floor *outside* the ceiling, so a floor above the ceiling wins.
+            prop_assert!(delay >= Duration::from_millis(min_ms), "{delay:?}");
+            if min_ms <= max_ms {
+                prop_assert!(delay <= Duration::from_millis(max_ms), "{delay:?}");
+            } else {
+                prop_assert_eq!(delay, Duration::from_millis(min_ms));
+            }
+            // Nothing overflows, whatever the attempt number.
+            prop_assert!(delay <= Duration::from_millis(min_ms.max(max_ms)));
+            Ok(())
+        };
 
-    /// The schedule never decreases, and flattens once the ceiling binds.
-    #[test]
-    fn a_schedule_is_monotonic_and_flattens(
-        base_ms in 1_u64..1_000,
-        max_ms in 1_u64..20_000,
-        steps in 1_u32..40,
-    ) {
-        let policy = RetryPolicy::builder()
-            .base_delay(Duration::from_millis(base_ms))
-            .min_delay(Duration::from_millis(1))
-            .max_delay(Duration::from_millis(max_ms))
-            .jitter(Jitter::None)
-            .build()
-            .map_err(fail)?;
-
+        within_bounds(policy.delay_for(attempt))?;
         let mut previous = Duration::ZERO;
-        for attempt in 0..steps {
-            let delay = policy.delay_for(attempt);
-            prop_assert!(delay >= previous, "attempt {attempt}: {delay:?} < {previous:?}");
+        for step in 0..steps {
+            let delay = policy.delay_for(step);
+            within_bounds(delay)?;
+            prop_assert!(delay >= previous, "attempt {step}: {delay:?} < {previous:?}");
             previous = delay;
         }
         // Far enough out, it has stopped growing entirely.

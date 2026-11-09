@@ -75,18 +75,21 @@ proptest! {
         prop_assert!(RequestUrl::new(text).is_err());
     }
 
-    /// A request carries its method, URL, headers, and body through unchanged, and the body's
-    /// absence is never confused with emptiness.
+    /// A request carries what it was given, takes the default limit unless one is set, and never
+    /// confuses an absent body with an empty one.
     #[test]
     fn requests_carry_what_they_were_given(
         method_index in 0_usize..4,
         header_count in 0_usize..6,
         body in proptest::option::of(prop::collection::vec(any::<u8>(), 0..256)),
-        limit in 0_usize..MAX_RESPONSE_BODY_LIMIT,
+        limit in proptest::option::of(0_usize..MAX_RESPONSE_BODY_LIMIT),
     ) {
         let method = method_of(method_index);
         let url = RequestUrl::new("https://keria.example/identifiers").map_err(fail)?;
-        let mut builder = Request::builder(method, url.clone()).response_limit(limit);
+        let mut builder = Request::builder(method, url.clone());
+        if let Some(limit) = limit {
+            builder = builder.response_limit(limit);
+        }
         let mut expected = Vec::new();
         for index in 0..header_count {
             let name = format!("X-Header-{index}");
@@ -104,7 +107,7 @@ proptest! {
 
         prop_assert_eq!(request.method(), method);
         prop_assert_eq!(request.url().as_str(), url.as_str());
-        prop_assert_eq!(request.response_limit(), limit);
+        prop_assert_eq!(request.response_limit(), limit.unwrap_or(DEFAULT_RESPONSE_BODY_LIMIT));
         prop_assert_eq!(request.body().map(<[u8]>::to_vec), body);
         prop_assert_eq!(request.headers().len(), header_count);
         for (name, value) in &expected {
@@ -263,18 +266,6 @@ proptest! {
         .map_err(fail)?;
         let response = block_on(transport.execute(request)).map_err(fail)?;
         prop_assert_eq!(response.body(), b"kept");
-    }
-
-    /// The default response limit is what a request takes unless it says otherwise.
-    #[test]
-    fn the_default_limit_applies_unless_set(explicit in proptest::option::of(0_usize..1024)) {
-        let url = RequestUrl::new("https://keria.example/a").map_err(fail)?;
-        let mut builder = Request::builder(Method::Get, url);
-        if let Some(limit) = explicit {
-            builder = builder.response_limit(limit);
-        }
-        let request = builder.build().map_err(fail)?;
-        prop_assert_eq!(request.response_limit(), explicit.unwrap_or(DEFAULT_RESPONSE_BODY_LIMIT));
     }
 }
 

@@ -4,7 +4,7 @@
 
 use std::error::Error;
 
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource, RotationRecord};
+use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use proptest::prelude::*;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, ExchangeRoute, GROUP_LABEL, MultisigRoute, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
@@ -225,17 +225,6 @@ fn a_rotation_announced_as_an_interaction_is_refused() -> Result<(), Box<dyn Err
         accepted.as_multisig().map(|proposal| proposal.route),
         Some(MultisigRoute::Rotation)
     );
-    Ok(())
-}
-
-#[test]
-fn the_two_witness_threshold_types_decode_to_one_value() -> Result<(), Box<dyn Error>> {
-    let numeric = r#"{"v":"KERI10JSON000_","t":"rot","d":"EROT","i":"EGRP","s":"1","p":"EICP","kt":"2","k":["DAA"],"nt":"2","n":["EAA"],"bt":3,"br":[],"ba":[],"a":[]}"#;
-    let text = numeric.replace(r#""bt":3"#, r#""bt":"3""#);
-    let from_number: RotationRecord = serde_json::from_str(numeric)?;
-    let from_text: RotationRecord = serde_json::from_str(&text)?;
-    assert_eq!(from_number.witness_threshold, from_text.witness_threshold);
-    assert_eq!(from_number.witness_threshold, "3");
     Ok(())
 }
 

@@ -87,28 +87,24 @@ proptest! {
 }
 
 proptest! {
-    /// The same passcode always derives the same controller, and different passcodes different
-    /// ones — the pinned unit test's own property, over arbitrary passcodes.
+    /// The same passcode always derives the same self-consistent inception, and different
+    /// passcodes different controllers.
     #[test]
-    fn controllers_are_deterministic_and_distinct(first in ALPHABET, second in ALPHABET) {
-        let left = ephemeral(&first)?;
+    fn controllers_are_deterministic_distinct_and_self_consistent(first in ALPHABET, second in ALPHABET) {
+        let controller = ephemeral(&first)?;
         let again = ephemeral(&first)?;
-        prop_assert_eq!(left.current_event().raw(), again.current_event().raw());
-        prop_assert_eq!(left.current_keys(), again.current_keys());
+        prop_assert_eq!(controller.current_event().raw(), again.current_event().raw());
+        prop_assert_eq!(controller.current_keys(), again.current_keys());
         if first != second {
-            let right = ephemeral(&second)?;
+            let other = ephemeral(&second)?;
             prop_assert_ne!(
-                left.prefix().qb64().ok(),
-                right.prefix().qb64().ok()
+                controller.prefix().qb64().ok(),
+                other.prefix().qb64().ok()
             );
         }
-    }
 
-    /// The inception is self-consistent: one key, one digest, both thresholds one, sequence
-    /// zero, a self-addressing prefix, and bytes that reparse to the same field map.
-    #[test]
-    fn every_inception_is_self_consistent(passcode in ALPHABET) {
-        let controller = ephemeral(&passcode)?;
+        // One key, one digest, both thresholds one, sequence zero, a self-addressing prefix, and
+        // bytes that reparse to the same field map.
         let event = controller.current_event();
         let sad = event.sad();
         prop_assert_eq!(sad.get_text("t"), Some(EventKind::Inception.as_str()));
@@ -187,11 +183,14 @@ proptest! {
         }
     }
 
-    /// A passcode rotation always produces the same shape: a sequence-one rotation whose second
-    /// key is the previously committed one, two verifying signatures, and a sealed salt the
-    /// prior passcode's key opens to the stored salt.
+    /// A passcode rotation has a fixed shape — a sequence-one rotation over the committed key with
+    /// two verifying signatures — and re-seals the salt and every stored key under the new passcode.
     #[test]
-    fn passcode_rotation_is_self_consistent(first in ALPHABET, second in ALPHABET) {
+    fn passcode_rotation_is_self_consistent_and_re_encrypts(
+        first in ALPHABET,
+        second in ALPHABET,
+        seed in any::<[u8; 32]>(),
+    ) {
         prop_assume!(first != second);
         let mut controller = ephemeral(&first)?;
         let committed = controller.next_digests().first().cloned();
@@ -201,91 +200,6 @@ proptest! {
             .map_err(|error| TestCaseError::fail(error.to_string()))?
             .as_str()
             .to_owned();
-        let prior_signer = controller
-            .salt()
-            .derive_signer_with_profile(
-                "",
-                KeyTransferability::NonTransferable,
-                DerivationCost::Ephemeral.profile(SecurityTier::Low),
-            )
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-
-        let rotation = controller
-            .rotate_passcode(&second, &[])
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let sad = rotation.rotation.sad();
-        // A fresh controller is at its inception, so its first rotation is sequence one.
-        prop_assert_eq!(sad.get_text("s"), Some("1"));
-        let Some(SadValue::Array(keys)) = sad.get("k") else {
-            return Err(TestCaseError::fail("the rotation carries no keys"));
-        };
-        prop_assert_eq!(keys.len(), 2);
-        let Some(SadValue::Text(old_key)) = keys.get(1) else {
-            return Err(TestCaseError::fail("the second key is not text"));
-        };
-        let digest = keri_cesr::crypto::digest::Digest::derive(
-            keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
-            old_key.as_bytes(),
-        );
-        prop_assert_eq!(committed, digest.qb64().ok());
-        prop_assert_eq!(rotation.signatures.len(), 2);
-        for signature in &rotation.signatures {
-            let position = usize::try_from(signature.index())
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
-            let Some(SadValue::Text(key)) = keys.get(position) else {
-                return Err(TestCaseError::fail("a signature indexes a missing key"));
-            };
-            let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
-            prop_assert!(verifier.verify(signature.raw(), rotation.rotation.raw()).is_ok());
-        }
-
-        // The sealed salt opens under the NEW key to the NEW salt, as keripy does — so rotating
-        // the passcode rotates the encryption. The reference seals the old salt under the old key,
-        // producing a payload the new passcode cannot open at all.
-        let new_salt = controller
-            .salt()
-            .expose_qb64()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?
-            .as_str()
-            .to_owned();
-        prop_assert_ne!(&new_salt, &old_salt, "the controller's salt did not move");
-
-        let new_signer = controller
-            .salt()
-            .derive_signer_with_profile(
-                "",
-                KeyTransferability::NonTransferable,
-                DerivationCost::Ephemeral.profile(SecurityTier::Low),
-            )
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let opened = Decrypter::from_signer(&new_signer)
-            .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        prop_assert_eq!(
-            opened.expose_qb64().map(|qb64| qb64.as_str().to_owned()).ok(),
-            Some(new_salt)
-        );
-
-        // And the passcode being left behind no longer opens it.
-        prop_assert!(
-            Decrypter::from_signer(&prior_signer)
-                .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
-                .is_err(),
-            "the old passcode still opens the rotated payload"
-        );
-        prop_assert_eq!(controller.current_keys().len(), 2);
-        // The rotation became the current event; the reference leaves it at zero.
-        prop_assert_eq!(controller.current_sequence_number(), 1);
-        prop_assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
-    }
-
-    /// Sealed material round-trips through a rotation: whatever the prior key sealed, the **new**
-    /// key opens afterwards, unchanged — and the prior key no longer does.
-    #[test]
-    fn re_encryption_preserves_what_it_seals(first in ALPHABET, second in ALPHABET, seed in any::<[u8; 32]>()) {
-        prop_assume!(first != second);
-        let mut controller = ephemeral(&first)?;
         let prior_signer = controller
             .salt()
             .derive_signer_with_profile(
@@ -334,15 +248,44 @@ proptest! {
         let rotation = controller
             .rotate_passcode(&second, std::slice::from_ref(&record))
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let Some((_, signify_keys::controller::ReEncryptedKeyState::Randy { signing_keys, .. })) =
-            rotation.re_encrypted.first()
-        else {
-            return Err(TestCaseError::fail("the randy record was not re-encrypted"));
+        let sad = rotation.rotation.sad();
+        // A fresh controller is at its inception, so its first rotation is sequence one.
+        prop_assert_eq!(sad.get_text("s"), Some("1"));
+        let Some(SadValue::Array(keys)) = sad.get("k") else {
+            return Err(TestCaseError::fail("the rotation carries no keys"));
         };
-        let Some(resealed) = signing_keys.first() else {
-            return Err(TestCaseError::fail("no key was re-sealed"));
+        prop_assert_eq!(keys.len(), 2);
+        let Some(SadValue::Text(old_key)) = keys.get(1) else {
+            return Err(TestCaseError::fail("the second key is not text"));
         };
-        // The new passcode opens what the old one sealed, and the material is unchanged.
+        let digest = keri_cesr::crypto::digest::Digest::derive(
+            keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
+            old_key.as_bytes(),
+        );
+        prop_assert_eq!(committed, digest.qb64().ok());
+        prop_assert_eq!(rotation.signatures.len(), 2);
+        for signature in &rotation.signatures {
+            let position = usize::try_from(signature.index())
+                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            let Some(SadValue::Text(key)) = keys.get(position) else {
+                return Err(TestCaseError::fail("a signature indexes a missing key"));
+            };
+            let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)
+                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            prop_assert!(verifier.verify(signature.raw(), rotation.rotation.raw()).is_ok());
+        }
+
+        // The sealed salt opens under the NEW key to the NEW salt, as keripy does — so rotating
+        // the passcode rotates the encryption. The reference seals the old salt under the old key,
+        // producing a payload the new passcode cannot open at all.
+        let new_salt = controller
+            .salt()
+            .expose_qb64()
+            .map_err(|error| TestCaseError::fail(error.to_string()))?
+            .as_str()
+            .to_owned();
+        prop_assert_ne!(&new_salt, &old_salt, "the controller's salt did not move");
+
         let new_signer = controller
             .salt()
             .derive_signer_with_profile(
@@ -351,12 +294,41 @@ proptest! {
                 DerivationCost::Ephemeral.profile(SecurityTier::Low),
             )
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let reopened = Decrypter::from_signer(&new_signer)
+        let new_decrypter = Decrypter::from_signer(&new_signer);
+        let opened = new_decrypter
+            .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
+            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        prop_assert_eq!(
+            opened.expose_qb64().map(|qb64| qb64.as_str().to_owned()).ok(),
+            Some(new_salt)
+        );
+
+        // And the passcode being left behind no longer opens it.
+        prop_assert!(
+            decrypter
+                .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
+                .is_err(),
+            "the old passcode still opens the rotated payload"
+        );
+        prop_assert_eq!(controller.current_keys().len(), 2);
+        // The rotation became the current event; the reference leaves it at zero.
+        prop_assert_eq!(controller.current_sequence_number(), 1);
+        prop_assert_eq!(controller.current_event().raw(), rotation.rotation.raw());
+
+        // Whatever the prior key sealed, the new key opens unchanged — and the prior key no longer
+        // does, which is what makes this a rotation rather than a copy.
+        let Some((_, signify_keys::controller::ReEncryptedKeyState::Randy { signing_keys, .. })) =
+            rotation.re_encrypted.first()
+        else {
+            return Err(TestCaseError::fail("the randy record was not re-encrypted"));
+        };
+        let Some(resealed) = signing_keys.first() else {
+            return Err(TestCaseError::fail("no key was re-sealed"));
+        };
+        let reopened = new_decrypter
             .decrypt_seed(resealed, KeyTransferability::Transferable)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         prop_assert_eq!(reopened.verifier().qb64().ok(), Some(public));
-
-        // And the old one does not, which is what makes this a rotation rather than a copy.
         prop_assert!(
             decrypter
                 .decrypt_seed(resealed, KeyTransferability::Transferable)
