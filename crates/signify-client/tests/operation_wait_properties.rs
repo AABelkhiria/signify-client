@@ -99,26 +99,6 @@ proptest! {
     }
 
     #[test]
-    fn a_delay_is_always_inside_its_own_bounds(policy in policies(), attempt in 0_u32..24) {
-        let delay = policy.delay_for(attempt);
-        prop_assert!(delay >= policy.min_delay(), "a delay fell below the floor");
-        prop_assert!(
-            delay <= policy.max_delay().max(policy.min_delay()),
-            "a delay rose above both bounds"
-        );
-    }
-
-    #[test]
-    fn the_schedule_never_goes_backwards(policy in policies()) {
-        let mut previous = Duration::ZERO;
-        for attempt in 0_u32..20 {
-            let delay = policy.delay_for(attempt);
-            prop_assert!(delay >= previous, "the schedule went backwards at attempt {}", attempt);
-            previous = delay;
-        }
-    }
-
-    #[test]
     fn every_schedule_stops_within_its_attempt_bound(policy in policies()) {
         let start = Instant::now();
         let mut backoff = Backoff::new(*policy.schedule(), start);

@@ -99,9 +99,9 @@ proptest! {
         }
     }
 
-    /// What a keeper commits to is exactly what its next rotation signs with.
+    /// What a keeper commits to is exactly what its next rotation signs with, round after round.
     #[test]
-    fn a_rotation_signs_with_the_keys_it_committed_to(count in 1_usize..3) {
+    fn a_rotation_signs_with_the_keys_it_committed_to(count in 1_usize..3, rounds in 1_usize..4) {
         let mut keeper = salty(SaltyKeeperConfig {
             transferability: KeyTransferability::Transferable,
             current_count: count,
@@ -109,23 +109,25 @@ proptest! {
             ..SaltyKeeperConfig::default()
         })?;
 
-        let incepted = keeper.incept(KeyTransferability::Transferable)?;
-        let rotated = keeper.rotate(KeeperRotation::to_keys(count))?;
-
-        let recomputed: Vec<String> = rotated
-            .public_keys
-            .iter()
-            .map(|key| {
-                let verifier = VerificationKey::from_qb64(key)?;
-                let digest = keri_cesr::crypto::digest::Digest::derive(
-                    keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
-                    &verifier.qb64_bytes()?,
-                );
-                digest.qb64()
-            })
-            .collect::<Result<_, _>>()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        prop_assert_eq!(incepted.next_digests, recomputed);
+        let mut committed = keeper.incept(KeyTransferability::Transferable)?.next_digests;
+        for _ in 0..rounds {
+            let rotated = keeper.rotate(KeeperRotation::to_keys(count))?;
+            let recomputed: Vec<String> = rotated
+                .public_keys
+                .iter()
+                .map(|key| {
+                    let verifier = VerificationKey::from_qb64(key)?;
+                    let digest = keri_cesr::crypto::digest::Digest::derive(
+                        keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
+                        &verifier.qb64_bytes()?,
+                    );
+                    digest.qb64()
+                })
+                .collect::<Result<_, _>>()
+                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            prop_assert_eq!(&committed, &recomputed);
+            committed = rotated.next_digests;
+        }
     }
 
     /// Every signature a keeper produces verifies against the key it reported.

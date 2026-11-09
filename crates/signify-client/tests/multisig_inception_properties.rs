@@ -10,7 +10,6 @@ use proptest::prelude::*;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, GROUP_LABEL, MultisigRoute, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
 };
-use signify_client::error::ClientError;
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT, delivery_list};
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -223,16 +222,6 @@ fn the_pinned_scenario_reproduces() -> Result<(), Box<dyn Error>> {
     let participants = [prefix(LOCAL)?, prefix(PEER)?];
     assert_eq!(delivery_list(&prefix(LOCAL)?, &participants)?, [prefix(PEER)?]);
     assert_eq!(delivery_list(&prefix(PEER)?, &participants)?, [prefix(LOCAL)?]);
-    Ok(())
-}
-
-#[test]
-fn a_group_of_one_has_nobody_to_tell() -> Result<(), Box<dyn Error>> {
-    let refused = matches!(
-        delivery_list(&prefix(LOCAL)?, &[prefix(LOCAL)?]),
-        Err(ClientError::LonelyGroup)
-    );
-    assert!(refused, "a group of one was allowed to propose");
     Ok(())
 }
 

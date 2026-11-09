@@ -14,7 +14,7 @@ use proptest::prelude::*;
 use serde_json::{Value, json};
 use signify_client::endpoint::exchanges::{EXCHANGES_SEGMENT, ExchangeDraft, MULTISIG_TOPIC, REGISTRY_TOPIC};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
-use signify_http::request::{ResourcePath, encode_path_component};
+use signify_http::request::ResourcePath;
 
 const SENDER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const RECIPIENT: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -85,20 +85,6 @@ fn message_for(route: &str, sender: &str, addressee: &str, payload: Sad) -> Resu
 
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
-
-    #[test]
-    fn an_alias_never_leaves_its_own_segment(alias in aliases()) {
-        let path = submission_path(&alias)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-        prop_assert_eq!(segments.len(), 3, "the path was {}", path.as_str());
-        prop_assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
-        prop_assert_eq!(segments.last().copied(), Some(EXCHANGES_SEGMENT));
-        let encoded = encode_path_component(&alias);
-        prop_assert_eq!(segments.get(1).copied(), Some(encoded.as_str()));
-        prop_assert_eq!(path.query(), None);
-        prop_assert_eq!(path.path(), path.as_str());
-    }
 
     #[test]
     fn a_said_never_leaves_its_own_segment(text in "[A-Za-z0-9_-]{44}") {

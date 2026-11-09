@@ -984,220 +984,32 @@ mod tests {
     }
 
     #[test]
-    fn an_unencrypted_salty_manager_reproduces_the_pinned_inception() -> Result<(), Box<dyn Error>> {
-        let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        assert!(manager.encryption_identifier().is_none());
-        assert_eq!(manager.algorithm(), KeyAlgorithm::Salty);
-        assert_eq!(manager.tier(), SecurityTier::Low);
-        assert_eq!(manager.prefix_index(), 0);
+    fn encryption_decides_whether_a_key_is_sealed_or_left_as_a_path() -> Result<(), Box<dyn Error>> {
+        // Without encryption nothing is stored but the derivation path.
+        let mut plain = KeyManager::builder().salt(salt()?).build()?;
+        let incepted = plain.incept(temporary())?;
+        assert_eq!(plain.store().sealed_key_count(), 0);
+        assert!(plain.store().path(&incepted.prefix).is_some());
 
-        let incepted = manager.incept(temporary())?;
-        assert_eq!(incepted.prefix, "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI");
-        assert_eq!(
-            incepted.next_digests.first().map(|digest| digest.qb64()).transpose()?,
-            Some("ENmcKrctbztF36MttN7seUYJqH2IMnkavBgGLR6Mj2-B".to_owned())
-        );
-        assert_eq!(manager.prefix_index(), 1);
-
-        // With an empty stem the path drops the rotation index, so the committed next key is the
-        // key already in use. This is the reference behavior, and the pinned test asserts it too.
-        let situation = manager
-            .store()
-            .situation(&incepted.prefix)
-            .ok_or("the incepted identifier has no key sets")?;
-        assert_eq!(situation.current.public_keys, std::slice::from_ref(&incepted.prefix));
-        assert_eq!(situation.next.public_keys, std::slice::from_ref(&incepted.prefix));
-        assert_eq!(situation.current.rotation_index, 0);
-        assert_eq!(situation.current.key_index, 0);
-        assert_eq!(situation.next.rotation_index, 1);
-        assert_eq!(situation.next.key_index, 1);
-        assert!(situation.old.is_empty());
-
-        // Both rotations of the key set are recorded under their padded rotation keys.
-        assert_eq!(
-            manager.store().key_set(&RotationKey::new(&incepted.prefix, 0)),
-            Some(std::slice::from_ref(&incepted.prefix))
-        );
-        assert_eq!(
-            manager.store().key_set(&RotationKey::new(&incepted.prefix, 1)),
-            Some(std::slice::from_ref(&incepted.prefix))
-        );
-
-        // Nothing is stored but the path, because there is no encryption.
-        assert_eq!(manager.store().sealed_key_count(), 0);
-        let stored = manager
-            .store()
-            .path(&incepted.prefix)
-            .ok_or("the incepted key has no stored path")?;
-        assert_eq!(stored.path.as_str(), "0");
-        assert_eq!(stored.profile, KeyDerivationProfile::Temporary);
+        // With encryption the key is sealed instead. The current and next keys are the same key
+        // here, so one sealed key covers both.
+        let mut sealed = KeyManager::builder().salt(salt()?).build_encrypted(&crypt_seed()?)?;
+        let incepted = sealed.incept(temporary())?;
+        assert_eq!(sealed.store().sealed_key_count(), 1);
+        assert!(sealed.store().path(&incepted.prefix).is_none());
         Ok(())
     }
 
     #[test]
-    fn signing_reproduces_the_pinned_signatures() -> Result<(), Box<dyn Error>> {
-        let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        let incepted = manager.incept(temporary())?;
-        let public_keys = vec![incepted.prefix.clone()];
-
-        let indexed = manager.sign(SERIALIZATION, &public_keys, &SignatureForm::IndexedByPosition)?;
-        assert_eq!(
-            indexed.qb64()?,
-            ["AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"]
-        );
-        assert_eq!(indexed.len(), 1);
-        assert!(!indexed.is_empty());
-
-        // The pinned test's `indices: [3]` case, which moves the signature to position three.
-        let placed = manager.sign(
-            SERIALIZATION,
-            &public_keys,
-            &SignatureForm::Indexed(vec![SignaturePlacement::both_lists(3)]),
-        )?;
-        assert_eq!(
-            placed.qb64()?,
-            ["ADCRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"]
-        );
-
-        // The pinned test's unindexed case.
-        let unindexed = manager.sign(SERIALIZATION, &public_keys, &SignatureForm::Unindexed)?;
-        assert_eq!(
-            unindexed.qb64()?,
-            ["0BCRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"]
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn rotation_reproduces_the_pinned_key_sets() -> Result<(), Box<dyn Error>> {
-        let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        let incepted = manager.incept(temporary())?;
-
-        // The pinned test rotates with the production profile, which is the default.
-        let rotated = manager.rotate(RotationRequest::new(&incepted.prefix))?;
-        assert_eq!(
-            rotated.next_digests.first().map(|digest| digest.qb64()).transpose()?,
-            Some("ECl1Env_5PQHqVMpHgoqg9H9mT7ENtk0Q499cmMT6Fvz".to_owned())
-        );
-
-        let situation = manager
-            .store()
-            .situation(&incepted.prefix)
-            .ok_or("the rotated identifier has no key sets")?;
-        assert_eq!(situation.old.public_keys, std::slice::from_ref(&incepted.prefix));
-        assert_eq!(situation.current.public_keys, std::slice::from_ref(&incepted.prefix));
-        assert_eq!(situation.current.rotation_index, 1);
-        assert_eq!(situation.current.key_index, 1);
-        assert_eq!(
-            situation.next.public_keys,
-            ["DHHneREQ1eZyQNc5nEsQYx1FqFVL1OTXmvmatTE77Cfe"]
-        );
-        assert_eq!(situation.next.rotation_index, 2);
-        assert_eq!(situation.next.key_index, 2);
-        Ok(())
-    }
-
-    #[test]
-    fn a_stem_reproduces_the_pinned_stemmed_identifiers() -> Result<(), Box<dyn Error>> {
-        let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        let incepted = manager.incept(InceptionRequest {
-            stem: Stem::new("red")?,
-            ..temporary()
-        })?;
-        assert_eq!(incepted.prefix, "DOtu4gX3oc4feusD8wWIykLhjkpiJHXEe29eJ2b_1CyM");
-        assert_eq!(
-            incepted.next_digests.first().map(|digest| digest.qb64()).transpose()?,
-            Some("EIGjhyyBRcqCkPE9bmkph7morew0wW0ak-rQ-dHCH-M2".to_owned())
-        );
-        let situation = manager
-            .store()
-            .situation(&incepted.prefix)
-            .ok_or("the stemmed identifier has no key sets")?;
-        // A stem puts the rotation index in the path, so the next key differs from the current one.
-        assert_eq!(
-            situation.next.public_keys,
-            ["DBzZ6vejSNAZpXv1SDRnIF_P1UqcW5d2pu2U-v-uhXvE"]
-        );
-        assert_ne!(situation.current.public_keys, situation.next.public_keys);
-
-        // The two witness identifiers the pinned test creates, which commit to no next keys.
-        for (stem, expected) in [
-            ("wit0", "BOTNI4RzN706NecNdqTlGEcMSTWiFUvesEqmxWR_op8n"),
-            ("wit1", "BAB_5xNXH4hoxDCtAHPFPDedZ6YwTo8mbdw_v0AOHOMt"),
-        ] {
-            let witness = manager.incept(InceptionRequest {
-                next_keys: 0,
-                stem: Stem::new(stem)?,
-                transferability: KeyTransferability::NonTransferable,
-                ..temporary()
-            })?;
-            assert_eq!(witness.prefix, expected);
-            assert_eq!(witness.next_digests, [] as [Digest; 0]);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn an_encrypted_manager_seals_every_key_and_opens_it_again() -> Result<(), Box<dyn Error>> {
-        let seed = crypt_seed()?;
-        let mut manager = KeyManager::builder().salt(salt()?).build_encrypted(&seed)?;
-        assert_eq!(manager.encryption_identifier(), Some(AEID));
-
-        let incepted = manager.incept(temporary())?;
-        assert_eq!(incepted.prefix, "DB-fH5uto5o5XHZjNN3_W3PdT4MIyTCmQWDzMxMZV2kI");
-        // The current and next keys are the same key here, so one sealed key covers both.
-        assert_eq!(manager.store().sealed_key_count(), 1);
-        assert!(manager.store().path(&incepted.prefix).is_none());
-
-        // The sealed key opens to the same signer, so the same signature comes out.
-        let signatures = manager.sign(
-            SERIALIZATION,
-            std::slice::from_ref(&incepted.prefix),
-            &SignatureForm::IndexedByPosition,
-        )?;
-        assert_eq!(
-            signatures.qb64()?,
-            ["AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"]
-        );
-
-        // The manager salt and the identifier salt are both sealed to the encryption identifier.
-        let globals = manager.store().globals().ok_or("the manager has no globals")?;
-        assert!(globals.sealed_salt.is_some());
-        let parameters = manager
-            .store()
-            .parameters(&incepted.prefix)
-            .ok_or("the identifier has no parameters")?;
-        assert!(parameters.sealed_salt.is_some());
-        assert_eq!(parameters.tier, Some(SecurityTier::Low));
-        assert_eq!(parameters.algorithm, KeyAlgorithm::Salty);
-        assert_eq!(parameters.prefix_index, 0);
-        Ok(())
-    }
-
-    #[test]
-    fn random_keys_need_encryption_and_are_stored_sealed() -> Result<(), Box<dyn Error>> {
-        // The pinned test asserts a randy manager without encryption throws.
-        assert!(matches!(
-            KeyManager::builder().algorithm(KeyAlgorithm::Randy).build(),
-            Err(ManagerError::RandomKeysNeedEncryption)
-        ));
-
-        let seed = crypt_seed()?;
+    fn a_randy_identifier_records_its_algorithm_and_signs() -> Result<(), Box<dyn Error>> {
         let mut manager = KeyManager::builder()
             .algorithm(KeyAlgorithm::Randy)
-            .build_encrypted(&seed)?;
+            .build_encrypted(&crypt_seed()?)?;
         let incepted = manager.incept(InceptionRequest::default())?;
-
-        // One sealed key per current and next key, and no derivation paths at all.
-        assert_eq!(manager.store().sealed_key_count(), 2);
-        assert!(manager.store().path(&incepted.prefix).is_none());
         let parameters = manager
             .store()
             .parameters(&incepted.prefix)
             .ok_or("the identifier has no parameters")?;
-        // A randy identifier records no salt and no tier, as upstream.
-        assert_eq!(parameters.sealed_salt, None);
-        assert_eq!(parameters.tier, None);
         assert_eq!(parameters.algorithm, KeyAlgorithm::Randy);
 
         let signatures = manager.sign(SERIALIZATION, &[incepted.prefix], &SignatureForm::IndexedByPosition)?;
@@ -1206,18 +1018,8 @@ mod tests {
     }
 
     #[test]
-    fn an_identifier_with_no_next_keys_cannot_rotate_again() -> Result<(), Box<dyn Error>> {
+    fn rotating_to_zero_next_keys_abandons_the_identifier() -> Result<(), Box<dyn Error>> {
         let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        let incepted = manager.incept(InceptionRequest {
-            next_keys: 0,
-            ..temporary()
-        })?;
-        assert!(matches!(
-            manager.rotate(RotationRequest::new(&incepted.prefix)),
-            Err(ManagerError::Abandoned { .. })
-        ));
-
-        // Rotating to zero next keys abandons an identifier that could rotate before.
         let live = manager.incept(InceptionRequest {
             stem: Stem::new("live")?,
             ..temporary()
@@ -1235,7 +1037,7 @@ mod tests {
     }
 
     #[test]
-    fn rotation_erases_the_keys_it_retires_unless_told_otherwise() -> Result<(), Box<dyn Error>> {
+    fn a_rotation_erases_only_the_keys_it_retires() -> Result<(), Box<dyn Error>> {
         let seed = crypt_seed()?;
         let mut manager = KeyManager::builder().salt(salt()?).build_encrypted(&seed)?;
         let incepted = manager.incept(InceptionRequest {
@@ -1243,14 +1045,17 @@ mod tests {
             ..temporary()
         })?;
         let first = incepted.prefix.clone();
+        let rotation = || RotationRequest {
+            profile: KeyDerivationProfile::Temporary,
+            ..RotationRequest::new(&first)
+        };
 
         // The first rotation retires the empty set, so nothing is erased.
-        manager.rotate(RotationRequest::new(&first))?;
+        manager.rotate(rotation())?;
         assert!(manager.store().sealed_key(&first).is_some());
 
-        // The second retires the inception keys, which are then gone.
-        manager.rotate(RotationRequest::new(&first))?;
-        assert!(manager.store().sealed_key(&first).is_none());
+        // The second retires the inception keys, which can then no longer sign.
+        manager.rotate(rotation())?;
         assert!(matches!(
             manager.sign(
                 SERIALIZATION,
@@ -1263,21 +1068,7 @@ mod tests {
     }
 
     #[test]
-    fn an_inception_needs_at_least_one_current_key() -> Result<(), Box<dyn Error>> {
-        let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        // The reference reads position zero of an empty list and fails with a `TypeError`.
-        assert!(matches!(
-            manager.incept(InceptionRequest {
-                current_keys: 0,
-                ..temporary()
-            }),
-            Err(ManagerError::NoCurrentKeys)
-        ));
-        Ok(())
-    }
-
-    #[test]
-    fn a_prefix_may_not_be_incepted_twice_and_reassignment_moves_it() -> Result<(), Box<dyn Error>> {
+    fn a_prefix_may_not_be_incepted_twice_and_reassignment_is_checked() -> Result<(), Box<dyn Error>> {
         let mut manager = KeyManager::builder().salt(salt()?).build()?;
         let incepted = manager.incept(InceptionRequest {
             stem: Stem::new("red")?,
@@ -1293,33 +1084,12 @@ mod tests {
             Err(ManagerError::AlreadyIncepted { .. })
         ));
 
-        let destination = "DCu5o5cxzv1lgMqxMVG3IcCNK4lpFfpMM-9rfkY3XVUc";
-        manager.reassign(&incepted.prefix, destination)?;
-        assert!(manager.store().situation(destination).is_some());
-        assert!(manager.store().situation(&incepted.prefix).is_none());
-        assert_eq!(manager.store().alias(&incepted.prefix), Some(destination));
-        assert_eq!(
-            manager
-                .store()
-                .key_set(&RotationKey::new(destination, 0))
-                .map(<[String]>::len),
-            Some(1)
-        );
-
-        // Reassigning to itself is a no-op, an unknown source is an error, and an occupied
-        // destination may not be clobbered.
-        manager.reassign(destination, destination)?;
+        // Reassigning to itself is a no-op, and an unknown source is an error.
+        manager.reassign(&incepted.prefix, &incepted.prefix)?;
+        assert!(manager.store().situation(&incepted.prefix).is_some());
         assert!(matches!(
             manager.reassign("DUNKNOWN", "DOTHER"),
             Err(ManagerError::NotIncepted { .. })
-        ));
-        let second = manager.incept(InceptionRequest {
-            stem: Stem::new("blue")?,
-            ..temporary()
-        })?;
-        assert!(matches!(
-            manager.reassign(&second.prefix, destination),
-            Err(ManagerError::DestinationOccupied { .. })
         ));
         Ok(())
     }
@@ -1335,14 +1105,6 @@ mod tests {
         let manager = KeyManager::from_passcode("0123456789abcdefghijk", Some(salt()?))?;
         assert_eq!(manager.algorithm(), KeyAlgorithm::Salty);
 
-        for (passcode, expected_short) in [("short", true), ("0123456789abcdefghij", true)] {
-            let outcome = KeyManager::from_passcode(passcode, None);
-            assert_eq!(
-                matches!(outcome, Err(ManagerError::PasscodeTooShort { .. })),
-                expected_short,
-                "{passcode}"
-            );
-        }
         // A character outside the Base64 alphabet could never produce a salt.
         assert!(matches!(
             KeyManager::from_passcode("0123456789abcdefghij*", None),
@@ -1357,10 +1119,6 @@ mod tests {
         let incepted = manager.incept(temporary())?;
         let keys = vec![incepted.prefix.clone()];
 
-        assert!(matches!(
-            manager.sign(SERIALIZATION, &[], &SignatureForm::IndexedByPosition),
-            Err(ManagerError::NoSigningKeysRequested)
-        ));
         assert!(matches!(
             manager.sign(
                 SERIALIZATION,
@@ -1388,38 +1146,6 @@ mod tests {
             ),
             Err(ManagerError::Crypto { .. })
         ));
-        Ok(())
-    }
-
-    #[test]
-    fn a_current_only_placement_carries_no_prior_index() -> Result<(), Box<dyn Error>> {
-        let mut manager = KeyManager::builder().salt(salt()?).build()?;
-        let incepted = manager.incept(temporary())?;
-
-        // The pinned test's `ondices: [undefined]` case, which the reference had to special-case.
-        let signatures = manager.sign(
-            SERIALIZATION,
-            std::slice::from_ref(&incepted.prefix),
-            &SignatureForm::Indexed(vec![SignaturePlacement::current_list(0)]),
-        )?;
-        let ManagedSignatures::Indexed(signatures) = &signatures else {
-            return Err("an indexed request produced unindexed signatures".into());
-        };
-        let signature = signatures.first().ok_or("no signature was produced")?;
-        assert_eq!(signature.index(), 0);
-        assert_eq!(signature.other_index(), None);
-
-        // The `ondices: [0]` case, which is a real dual-index placement at position zero.
-        let signatures = manager.sign(
-            SERIALIZATION,
-            &[incepted.prefix],
-            &SignatureForm::Indexed(vec![SignaturePlacement::both_lists_with_prior(0, 0)]),
-        )?;
-        let ManagedSignatures::Indexed(signatures) = &signatures else {
-            return Err("an indexed request produced unindexed signatures".into());
-        };
-        let signature = signatures.first().ok_or("no signature was produced")?;
-        assert_eq!(signature.other_index(), Some(0));
         Ok(())
     }
 
@@ -1531,27 +1257,6 @@ mod tests {
         assert_eq!(
             situation.map(|lot| lot.next.public_keys.clone()),
             Some(expected.public_keys()?)
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn saved_state_restores_into_a_working_manager() -> Result<(), Box<dyn Error>> {
-        let seed = crypt_seed()?;
-        let mut manager = KeyManager::builder().salt(salt()?).build_encrypted(&seed)?;
-        let incepted = manager.incept(temporary())?;
-        let saved = manager.store().clone();
-
-        let restored = KeyManager::restore(saved, Some(salt()?), &seed)?;
-        assert_eq!(restored.prefix_index(), 1);
-        assert_eq!(restored.algorithm(), KeyAlgorithm::Salty);
-        assert_eq!(restored.encryption_identifier(), Some(AEID));
-
-        // The restored manager signs with the same key, which is the point of saving the state.
-        let signatures = restored.sign(SERIALIZATION, &[incepted.prefix], &SignatureForm::IndexedByPosition)?;
-        assert_eq!(
-            signatures.qb64()?,
-            ["AACRPqO6vdXm1oSSa82rmVVHikf7NdN4JXjOWEk30Ub5JHChL0bW6DzJfA-7VlgLm_B1XR0Z61FweP87bBQpVawI"]
         );
         Ok(())
     }

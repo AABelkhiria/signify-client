@@ -207,8 +207,6 @@ fn the_route_constants_are_the_references_own() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     assert_eq!(fixture.declarations.rotation_route, ROTATION_ROUTE);
     assert_eq!(fixture.declarations.interaction_route, INTERACTION_ROUTE);
-    assert_eq!(MultisigRoute::Rotation.as_str(), ROTATION_ROUTE);
-    assert_eq!(MultisigRoute::Interaction.as_str(), INTERACTION_ROUTE);
     assert_eq!(fixture.declarations.scanned_files, 117);
     assert_eq!(fixture.declarations.scenario_files.len(), 3);
     assert!(fixture.declarations.notes.is_object());

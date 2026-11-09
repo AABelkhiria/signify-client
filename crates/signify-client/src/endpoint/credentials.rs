@@ -642,18 +642,6 @@ mod tests {
     }
 
     #[test]
-    fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
-        let path = ResourcePath::builder()
-            .segment(IDENTIFIERS_SEGMENT)
-            .segment("a/b")
-            .segment(CREDENTIALS_SEGMENT)
-            .build()?;
-        assert_eq!(path.as_str(), "/identifiers/a%2Fb/credentials");
-        assert_eq!(path.path().split('/').count(), 4);
-        Ok(())
-    }
-
-    #[test]
     fn a_listing_addresses_the_query_resource_rather_than_the_collection() -> Result<(), Box<dyn Error>> {
         let path = ResourcePath::builder()
             .segment(CREDENTIALS_SEGMENT)

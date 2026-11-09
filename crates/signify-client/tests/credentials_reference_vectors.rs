@@ -22,11 +22,8 @@ use serde::Deserialize;
 use serde_json::Value;
 use signify_client::client::{ConnectedClient, SignifyClient};
 use signify_client::config::ClientConfig;
-use signify_client::endpoint::credentials::{
-    CREDENTIAL_QUERY_SEGMENT, CREDENTIALS_SEGMENT, CredentialFilter, DEFAULT_CREDENTIAL_LIMIT,
-};
+use signify_client::endpoint::credentials::{CredentialFilter, DEFAULT_CREDENTIAL_LIMIT};
 use signify_client::error::ClientError;
-use signify_http::request::ResourcePath;
 use signify_http::transport::Transport;
 use signify_keys::acdc::revocation::RevocationEventBuilder;
 use signify_keys::manager::DerivationCost;
@@ -1199,11 +1196,5 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
             .issue("a/b", pinned_credential(&fixture.provenance.stamp)?),
     )?;
     assert_eq!(sent(&transport, 1)?.0, "/identifiers/a%2Fb/credentials");
-
-    let listing = ResourcePath::builder()
-        .segment(CREDENTIALS_SEGMENT)
-        .segment(CREDENTIAL_QUERY_SEGMENT)
-        .build()?;
-    assert_eq!(listing.as_str(), "/credentials/query");
     Ok(())
 }

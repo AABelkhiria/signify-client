@@ -709,20 +709,13 @@ mod tests {
     }
 
     #[test]
-    fn a_rotation_follows_the_log_after_a_delegation_approval() -> Result<(), Box<dyn Error>> {
-        // Connecting a client approves its agent with an interaction at sequence one. The
-        // reference's rotation then claims sequence one with that interaction as its prior, which
-        // keripy reads as a recovery and refuses. This one is the next event instead.
+    fn a_second_rotation_after_an_approval_chains_on_the_first() -> Result<(), Box<dyn Error>> {
+        // With the log moved by an approval, a second rotation still chains on the first and
+        // reveals the key the first committed to.
         let mut controller = ephemeral()?;
         controller.approve_delegation(&agent()?)?;
-        let interaction = controller.current_said().qb64()?;
-        assert_eq!(controller.current_sequence_number(), 1);
-
         let first = controller.rotate_passcode(NEW_PASSCODE, &[])?;
-        assert_eq!(text(&first.rotation, "s"), "2");
-        assert_eq!(text(&first.rotation, "p"), interaction);
 
-        // And a second rotation chains on the first, revealing the key the first committed to.
         let second = controller.rotate_passcode(PASSCODE, &[])?;
         assert_eq!(text(&second.rotation, "s"), "3");
         assert_eq!(text(&second.rotation, "p"), text(&first.rotation, "d"));

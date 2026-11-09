@@ -243,7 +243,7 @@ proptest! {
         request.transferability = KeyTransferability::NonTransferable;
         let refused = matches!(
             request.keeper_request(0),
-            Err(IdentifierError::NonTransferableNextKeys { .. })
+            Err(IdentifierError::NonTransferableNextKeys { requested }) if requested == next
         );
         prop_assert!(refused);
         let mut request = salty_request(PASSCODE, 1, 0);

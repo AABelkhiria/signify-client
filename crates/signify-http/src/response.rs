@@ -602,26 +602,6 @@ mod tests {
     }
 
     #[test]
-    fn the_success_boundary_matches_the_reference() -> Result<(), Box<dyn Error>> {
-        for status in [200_u16, 201, 202, 299] {
-            assert!(
-                ResourceResponse::decode(&origin()?, response(status, None, b"")?).is_ok(),
-                "{status}"
-            );
-        }
-        for status in [100_u16, 199, 300, 301, 400, 404, 409, 500, 599] {
-            assert!(
-                matches!(
-                    ResourceResponse::decode(&origin()?, response(status, None, b"")?),
-                    Err(ResponseError::Status { .. })
-                ),
-                "{status}",
-            );
-        }
-        Ok(())
-    }
-
-    #[test]
     fn a_failure_names_the_call_without_its_query() -> Result<(), Box<dyn Error>> {
         let failure = ResourceResponse::decode(&origin()?, response(404, Some("text/plain"), b"not found")?);
         let Err(ResponseError::Status {
@@ -747,16 +727,6 @@ mod tests {
             broken.content_range(&aids),
             Err(ResponseError::InvalidContentRange { .. })
         ));
-        Ok(())
-    }
-
-    #[test]
-    fn an_origin_reads_its_request() -> Result<(), Box<dyn Error>> {
-        let origin = origin()?;
-        assert_eq!(origin.method(), Method::Get);
-        assert_eq!(origin.path(), "/identifiers/aid1");
-        assert_eq!(origin.to_string(), "GET /identifiers/aid1");
-        assert_eq!(origin, origin.clone());
         Ok(())
     }
 

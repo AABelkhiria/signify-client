@@ -12,8 +12,8 @@ use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
 use signify_keys::manager::{
-    DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError, RotationKey,
-    RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
+    CreatorKind, DerivationCost, DerivationPath, InceptionRequest, KeyAlgorithm, KeyIndices, KeyManager, ManagerError,
+    RotationKey, RotationRequest, SaltyKeyCreator, SignatureForm, Stem,
 };
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
@@ -515,8 +515,8 @@ fn the_creator_factory_supports_the_same_two_algorithms() -> Result<(), Box<dyn 
     assert_eq!(KeyAlgorithm::default(), KeyAlgorithm::Salty);
 
     // Two have a creator here, and the two the reference throws for do not.
-    assert!(KeyAlgorithm::Salty.creator_kind().is_ok());
-    assert!(KeyAlgorithm::Randy.creator_kind().is_ok());
+    assert!(matches!(KeyAlgorithm::Salty.creator_kind(), Ok(CreatorKind::Salty)));
+    assert!(matches!(KeyAlgorithm::Randy.creator_kind(), Ok(CreatorKind::Randy)));
     for algorithm in [KeyAlgorithm::Group, KeyAlgorithm::Extern] {
         assert!(matches!(
             algorithm.creator_kind(),

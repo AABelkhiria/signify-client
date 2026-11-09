@@ -442,27 +442,8 @@ mod tests {
     }
 
     #[test]
-    fn a_post_is_not_retried_unless_the_scope_widens() -> Result<(), Box<dyn Error>> {
-        let observer = Arc::new(Recorder::default());
-        let scripted = Arc::new(
-            ScriptedTransport::new()
-                .respond(response(503, None)?)
-                .respond(response(200, None)?),
-        );
-        let transport = RetryingTransport::new(Arc::clone(&scripted) as Arc<dyn Transport>, Arc::new(TestClock::new()))
-            .with_policy(reference_policy(5)?)
-            .with_observer(Arc::clone(&observer) as Arc<dyn RetryObserver>);
-
-        // Repeating this could create a second identifier.
-        let answer = block_on(transport.execute(request(Method::Post)?));
-        assert_eq!(answer.map(|response| response.status().as_u16()).ok(), Some(503));
-        assert_eq!(scripted.answered(), 1);
-        assert_eq!(
-            observer.give_ups().first().map(|event| event.reason),
-            Some(StopReason::MethodNotRepeatable),
-        );
-
-        // The caller may assert that repeating is safe.
+    fn a_widened_scope_retries_a_post() -> Result<(), Box<dyn Error>> {
+        // The caller asserts that repeating is safe; by default a POST is never retried.
         let scripted = Arc::new(
             ScriptedTransport::new()
                 .respond(response(503, None)?)

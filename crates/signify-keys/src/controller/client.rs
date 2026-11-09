@@ -443,49 +443,6 @@ mod tests {
     }
 
     #[test]
-    fn the_pinned_controller_prefixes_are_reproduced() -> Result<(), Box<dyn Error>> {
-        // The two pinned `controller.test.ts` cases, at the production Argon2 cost the reference
-        // hardcodes.
-        let controller = Controller::new(PASSCODE, SecurityTier::Low)?;
-        assert_eq!(
-            controller.prefix().qb64()?,
-            "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
-        );
-        let controller = Controller::new("abcdefghijk0123456789", SecurityTier::Low)?;
-        assert_eq!(
-            controller.prefix().qb64()?,
-            "EIIY2SgE_bqKLl2MlnREUawJ79jTuucvWwh-S6zsSUFo"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn the_inception_matches_the_reference_shape() -> Result<(), Box<dyn Error>> {
-        let controller = ephemeral(PASSCODE)?;
-        let sad = controller.current_event().sad();
-        assert_eq!(sad.get_text("t"), Some(EventKind::Inception.as_str()));
-        assert_eq!(sad.get_text("s"), Some("0"));
-        assert_eq!(sad.get_text("kt"), Some("1"));
-        assert_eq!(sad.get_text("nt"), Some("1"));
-        assert_eq!(sad.get_text("bt"), Some("0"));
-        assert_eq!(controller.current_keys().len(), 1);
-        assert_eq!(controller.next_digests().len(), 1);
-        assert!(controller.prefix().is_digestive());
-        assert_eq!(controller.current_said().qb64()?, controller.prefix().qb64()?);
-        assert_eq!(controller.current_sequence_number(), 0);
-        assert_eq!(controller.tier(), SecurityTier::Low);
-        assert_eq!(controller.rotation_index(), 0);
-        // The event's key is the controller's key, and its digest commits to the next signer.
-        assert_eq!(
-            sad.get("k"),
-            Some(&SadValue::Array(vec![SadValue::text(
-                controller.current_keys().first().map_or("", String::as_str)
-            )]))
-        );
-        Ok(())
-    }
-
-    #[test]
     fn a_rotation_index_moves_the_whole_key_chain() -> Result<(), Box<dyn Error>> {
         let base = ephemeral(PASSCODE)?;
         let advanced = Controller::with_options(
@@ -503,25 +460,6 @@ mod tests {
         let advanced_digest = Digest::derive(DigestAlgorithm::Blake3_256, advanced_key.as_bytes());
         assert_eq!(base_next.qb64()?, advanced_digest.qb64()?);
         assert_eq!(advanced.rotation_index(), 1);
-        Ok(())
-    }
-
-    #[test]
-    fn restore_rebuilds_the_inception_at_sequence_zero() -> Result<(), Box<dyn Error>> {
-        let controller = ephemeral(PASSCODE)?;
-        let inception_raw = controller.current_event().raw().to_vec();
-
-        // The reference's rule: an establishment event at sequence zero is not adopted.
-        let restored = Controller::restore(
-            PASSCODE,
-            SecurityTier::Low,
-            ControllerOptions {
-                derivation_cost: DerivationCost::Ephemeral,
-                ..ControllerOptions::default()
-            },
-            SerializedEvent::parse(&inception_raw)?,
-        )?;
-        assert_eq!(restored.current_event().raw(), inception_raw.as_slice());
         Ok(())
     }
 

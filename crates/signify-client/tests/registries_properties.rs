@@ -51,17 +51,6 @@ proptest! {
     #![proptest_config(ProptestConfig { cases: 96, ..ProptestConfig::default() })]
 
     #[test]
-    fn an_alias_never_leaves_its_own_segment(identifier in names()) {
-        let path = collection(&identifier).map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-        prop_assert_eq!(segments.len(), 3, "the alias became {} segments", segments.len());
-        prop_assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
-        prop_assert_eq!(segments.get(2).copied(), Some(REGISTRIES_SEGMENT));
-        prop_assert_eq!(path.query(), None);
-        prop_assert!(!path.as_str().contains('#'));
-    }
-
-    #[test]
     fn neither_name_in_a_rename_can_escape(identifier in names(), registry in names()) {
         let path = member(&identifier, &registry).map_err(|error| TestCaseError::fail(error.to_string()))?;
         let segments: Vec<&str> = path.path().split('/').skip(1).collect();

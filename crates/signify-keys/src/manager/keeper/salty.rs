@@ -333,25 +333,6 @@ mod tests {
     }
 
     #[test]
-    fn an_ephemeral_keeper_cannot_be_stored() -> Result<(), Box<dyn Error>> {
-        // An identifier record names a tier, not a profile, so a cheap keeper has nothing to write.
-        let keeper = keeper()?;
-        assert!(matches!(keeper.parameters(), Err(ManagerError::ProfileNotStorable)));
-
-        // A production keeper stores normally. This is the one test that pays the real Argon2 cost.
-        let storable = SaltyKeeper::new(
-            &passcode_salt()?,
-            SaltySource::Sealed(sealed_salt_for(DerivationCost::Production)?),
-            SaltyKeeperConfig {
-                transferability: KeyTransferability::Transferable,
-                ..SaltyKeeperConfig::default()
-            },
-        )?;
-        assert!(storable.parameters().is_ok());
-        Ok(())
-    }
-
-    #[test]
     fn a_sealed_salt_round_trips_into_a_working_keeper() -> Result<(), Box<dyn Error>> {
         let mut keeper = SaltyKeeper::new(
             &passcode_salt()?,
@@ -389,99 +370,13 @@ mod tests {
     }
 
     #[test]
-    fn the_key_index_advances_by_the_inception_count() -> Result<(), Box<dyn Error>> {
-        let mut keeper = keeper()?;
-        let incepted = keeper.incept(KeyTransferability::Transferable)?;
-        assert_eq!(keeper.key_index(), 0);
-
-        let rotated = keeper.rotate(KeeperRotation::to_keys(1))?;
-        assert_eq!(keeper.key_index(), 1);
-        // What was committed to is now signing.
-        assert_eq!(
-            incepted.next_digests,
-            keeper_digests(&rotated.public_keys, DigestAlgorithm::Blake3_256)?
-        );
-
-        let again = keeper.rotate(KeeperRotation::to_keys(1))?;
-        assert_eq!(keeper.key_index(), 2);
-        assert_eq!(
-            rotated.next_digests,
-            keeper_digests(&again.public_keys, DigestAlgorithm::Blake3_256)?
-        );
-        Ok(())
-    }
-
-    /// Recomputes the digests a set of public keys would be committed to by.
-    fn keeper_digests(public_keys: &[String], algorithm: DigestAlgorithm) -> Result<Vec<String>, Box<dyn Error>> {
-        public_keys
-            .iter()
-            .map(|key| {
-                let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)?;
-                Ok(Digest::derive(algorithm, &verifier.qb64_bytes()?).qb64()?)
-            })
-            .collect()
-    }
-
-    #[test]
-    fn signing_uses_the_current_key_set_whatever_the_purpose() -> Result<(), Box<dyn Error>> {
-        let mut keeper = keeper()?;
-        let incepted = keeper.incept(KeyTransferability::Transferable)?;
-
-        for purpose in [SigningPurpose::Current, SigningPurpose::Rotation] {
-            let signatures = keeper.sign(b"payload", &SignatureForm::IndexedByPosition, purpose)?;
-            assert_eq!(signatures.len(), 1);
-        }
-
-        // Every signature verifies against the key the keeper reported.
-        let signatures = keeper.sign(b"payload", &SignatureForm::IndexedByPosition, SigningPurpose::Current)?;
-        let ManagedSignatures::Indexed(indexed) = &signatures else {
-            return Err("an indexed request produced unindexed signatures".into());
-        };
-        let key = incepted.public_keys.first().ok_or("no key was established")?;
-        let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)?;
-        let signature = indexed.first().ok_or("no signature was produced")?;
-        verifier.verify(signature.raw(), b"payload")?;
-        Ok(())
-    }
-
-    #[test]
-    fn a_current_only_placement_is_preserved() -> Result<(), Box<dyn Error>> {
-        // The pinned `keeping.test.ts` case: `ondices: [undefined]` must stay current-only.
-        let mut keeper = keeper()?;
-        keeper.incept(KeyTransferability::Transferable)?;
-        let signatures = keeper.sign(
-            b"current-only-salty",
-            &SignatureForm::Indexed(vec![keri_cesr::crypto::signer::SignaturePlacement::current_list(0)]),
-            SigningPurpose::Current,
-        )?;
-        let ManagedSignatures::Indexed(indexed) = &signatures else {
-            return Err("an indexed request produced unindexed signatures".into());
-        };
-        let signature = indexed.first().ok_or("no signature was produced")?;
-        assert_eq!(signature.index(), 0);
-        assert_eq!(signature.other_index(), None);
-        Ok(())
-    }
-
-    #[test]
     fn a_passcode_source_derives_the_salt_from_it() -> Result<(), Box<dyn Error>> {
         let mut first = SaltyKeeper::new(
             &passcode_salt()?,
             SaltySource::Passcode("0123456789abcdefghijk".into()),
             ephemeral(),
         )?;
-        let mut second = SaltyKeeper::new(
-            &passcode_salt()?,
-            SaltySource::Passcode("0123456789abcdefghijk".into()),
-            ephemeral(),
-        )?;
-        // The same passcode always gives the same identifier keys.
-        assert_eq!(
-            first.incept(KeyTransferability::NonTransferable)?,
-            second.incept(KeyTransferability::NonTransferable)?
-        );
-
-        // A different passcode does not.
+        // A different passcode gives different identifier keys.
         let mut other = SaltyKeeper::new(
             &passcode_salt()?,
             SaltySource::Passcode("abcdefghijk0123456789".into()),

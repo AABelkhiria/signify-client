@@ -137,18 +137,6 @@ mod tests {
     }
 
     #[test]
-    fn only_two_algorithms_have_a_creator() {
-        assert!(matches!(KeyAlgorithm::Salty.creator_kind(), Ok(CreatorKind::Salty)));
-        assert!(matches!(KeyAlgorithm::Randy.creator_kind(), Ok(CreatorKind::Randy)));
-        for algorithm in [KeyAlgorithm::Group, KeyAlgorithm::Extern] {
-            assert!(matches!(
-                algorithm.creator_kind(),
-                Err(ManagerError::UnsupportedAlgorithm { .. })
-            ));
-        }
-    }
-
-    #[test]
     fn only_random_keys_have_to_be_stored() {
         assert!(KeyAlgorithm::Randy.needs_stored_keys());
         for algorithm in [KeyAlgorithm::Salty, KeyAlgorithm::Group, KeyAlgorithm::Extern] {

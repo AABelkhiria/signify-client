@@ -292,6 +292,7 @@ proptest! {
         prop_assert_eq!(before, after);
         prop_assert_eq!(restored.prefix_index(), manager.prefix_index());
         prop_assert_eq!(restored.algorithm(), manager.algorithm());
+        prop_assert_eq!(restored.encryption_identifier(), manager.encryption_identifier());
     }
 
     /// Retiring a key set erases exactly the private keys it retires, and only when asked.

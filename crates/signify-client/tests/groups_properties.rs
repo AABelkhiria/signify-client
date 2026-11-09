@@ -13,7 +13,7 @@ use serde_json::{Map, Value, json};
 use signify_client::endpoint::exchanges::{ClassifiedExchange, MULTISIG_TOPIC, MultisigRoute};
 use signify_client::endpoint::groups::{JOIN_SEGMENT, MULTISIG_SEGMENT, REQUEST_SEGMENT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
-use signify_http::request::{ResourcePath, encode_path_component};
+use signify_http::request::ResourcePath;
 
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const GROUP: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -101,23 +101,6 @@ proptest! {
         prop_assert_eq!(segments.get(1).copied(), Some(REQUEST_SEGMENT));
         prop_assert_eq!(segments.get(2).copied(), Some(text.as_str()));
         prop_assert_eq!(path.query(), None);
-    }
-
-    #[test]
-    fn an_alias_never_leaves_its_own_segment(alias in aliases()) {
-        for action in [REQUEST_SEGMENT, JOIN_SEGMENT] {
-            let path = write_path(&alias, action)
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
-            let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-            prop_assert_eq!(segments.len(), 4, "the path was {}", path.as_str());
-            prop_assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
-            let encoded = encode_path_component(&alias);
-            prop_assert_eq!(segments.get(1).copied(), Some(encoded.as_str()));
-            prop_assert_eq!(segments.get(2).copied(), Some(MULTISIG_SEGMENT));
-            prop_assert_eq!(segments.get(3).copied(), Some(action));
-            prop_assert_eq!(path.query(), None);
-            prop_assert_eq!(path.path(), path.as_str());
-        }
     }
 
     #[test]

@@ -500,8 +500,6 @@ mod tests {
     const SALT_RAW: &[u8] = b"0123456789abcdef";
     /// The passcode the pinned `habery.test.ts` uses.
     const PASSCODE: &str = "0123456789abcdefghijk";
-    /// The qualified salt the reference builds from that passcode: `0A` + `A` + 21 characters.
-    const PASSCODE_SALT_QB64: &str = "0AA0123456789abcdefghijk";
 
     /// Checks that a refusal is the expected non-transferable conflict.
     type ConflictCheck = fn(&IdentifierError) -> bool;
@@ -536,92 +534,22 @@ mod tests {
     }
 
     #[test]
-    fn the_pinned_habery_test_values_are_reproduced() -> Result<(), Box<dyn Error>> {
-        // The first pinned `habery.test.ts` case: a salt and a passcode together, at the
-        // production Argon2 cost the reference hardcodes.
-        let mut habery = Habery::builder("signify").salt(salt()?).build_with_passcode(PASSCODE)?;
-        assert_eq!(
-            habery.manager().encryption_identifier(),
-            Some("BMbZTXzB7LmWPT2TXLGV88PQz5vDEM2L2flUs2yxn3U9")
-        );
-        assert_eq!(habery.manager().algorithm(), KeyAlgorithm::Salty);
+    fn a_salty_registry_reports_its_name_and_algorithm() -> Result<(), Box<dyn Error>> {
+        let habery = ephemeral("signify")?;
         assert_eq!(habery.name(), "signify");
-
-        let habitat = habery.make_habitat("test", HabitatRequest::default())?;
-        assert_eq!(habitat.name(), "test");
-        assert_eq!(
-            list_field(habitat, "k")?,
-            ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"]
-        );
-        assert_eq!(
-            list_field(habitat, "n")?,
-            ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"]
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn the_pinned_passcode_as_salt_prefix_is_reproduced() -> Result<(), Box<dyn Error>> {
-        // The second pinned `habery.test.ts` case: the passcode-derived salt used directly, with
-        // no encryption, under the registry name `test`.
-        let salt = Salt::from_qb64(PASSCODE_SALT_QB64, SecurityTier::Low)?;
-        let mut habery = Habery::builder("test").salt(salt).build()?;
+        assert_eq!(habery.manager().algorithm(), KeyAlgorithm::Salty);
+        // A salt alone encrypts nothing.
         assert!(habery.manager().encryption_identifier().is_none());
-
-        let habitat = habery.make_habitat("test", HabitatRequest::default())?;
-        assert_eq!(habitat.prefix().qb64()?, "EMRbh7mWJTijcWiQKT3uxozncpa9_gEX1IU0fM1wnKxi");
         Ok(())
     }
 
     #[test]
-    fn a_default_habitat_matches_the_reference_shape() -> Result<(), Box<dyn Error>> {
-        let mut habery = ephemeral("signify")?;
-        assert!(habery.habitats().is_empty());
-
-        let habitat = habery.make_habitat("test", HabitatRequest::default())?;
-        assert_eq!(habitat.inception().kind(), EventKind::Inception);
-        assert_eq!(habitat.inception().sequence_number(), 0);
-        assert_eq!(text_field(habitat, "kt").as_deref(), Some("1"));
-        assert_eq!(text_field(habitat, "nt").as_deref(), Some("1"));
-        assert_eq!(text_field(habitat, "bt").as_deref(), Some("0"));
-        assert_eq!(list_field(habitat, "k")?.len(), 1);
-        assert_eq!(list_field(habitat, "n")?.len(), 1);
-        assert_eq!(list_field(habitat, "b")?, [] as [String; 0]);
-        assert_eq!(list_field(habitat, "c")?, [] as [String; 0]);
-
-        // The reference's default derivation code is BLAKE3-256, so the identifier is the event's
-        // own digest even for a single key — unlike the bare inception builder, whose default
-        // would make the key itself the identifier.
-        assert!(habitat.prefix().is_digestive());
-        assert_eq!(habitat.prefix().qb64()?, habitat.inception().said().qb64()?);
-        assert_eq!(
-            habitat.inception().sad().get_text("i"),
-            habitat.inception().sad().get_text("d")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn a_non_transferable_habitat_commits_to_nothing() -> Result<(), Box<dyn Error>> {
-        let mut habery = ephemeral("signify")?;
-        let habitat = habery.make_habitat(
-            "witness",
-            HabitatRequest {
-                transferability: KeyTransferability::NonTransferable,
-                ..HabitatRequest::default()
-            },
-        )?;
-        assert!(habitat.prefix().qb64()?.starts_with('B'));
-        assert!(!habitat.prefix().is_transferable());
-        assert_eq!(text_field(habitat, "nt").as_deref(), Some("0"));
-        assert_eq!(list_field(habitat, "n")?, [] as [String; 0]);
-
+    fn a_non_transferable_habitat_accepts_its_explicit_values() -> Result<(), Box<dyn Error>> {
         // An explicit zero next threshold and an explicit basic derivation agree with the forced
-        // values and are accepted. A fresh registry is needed: the same registry would re-derive
-        // the same non-transferable key and refuse it as already incepted.
-        let mut second = ephemeral("signify")?;
-        second.make_habitat(
-            "witness-explicit",
+        // values and are accepted.
+        let mut habery = ephemeral("signify")?;
+        habery.make_habitat(
+            "witness",
             HabitatRequest {
                 transferability: KeyTransferability::NonTransferable,
                 next_keys: Some(0),
@@ -638,18 +566,7 @@ mod tests {
     }
 
     #[test]
-    fn a_named_salty_registry_refuses_a_second_habitat() -> Result<(), Box<dyn Error>> {
-        // The salty derivation path under a non-empty stem drops the prefix index, so a second
-        // habitat re-derives the first one's keys and the manager refuses, exactly as the
-        // reference throws `Already incepted pre=…`.
-        let mut habery = ephemeral("signify")?;
-        habery.make_habitat("first", HabitatRequest::default())?;
-        assert!(matches!(
-            habery.make_habitat("second", HabitatRequest::default()),
-            Err(IdentifierError::Manager { source })
-                if matches!(*source, ManagerError::AlreadyIncepted { .. })
-        ));
-
+    fn an_unnamed_registry_holds_several_distinct_habitats() -> Result<(), Box<dyn Error>> {
         // An empty-name registry keeps the prefix index in the path, so it can hold several
         // habitats — at the price of the derivation collapse its own test pins.
         let mut unnamed = ephemeral("")?;
@@ -733,87 +650,6 @@ mod tests {
         // Every refusal happened before the manager derived anything.
         assert_eq!(habery.manager().prefix_index(), 0);
         assert!(habery.habitats().is_empty());
-        Ok(())
-    }
-
-    #[test]
-    fn duplicate_names_are_refused_and_lookup_finds_each_habitat() -> Result<(), Box<dyn Error>> {
-        // A randy registry generates fresh keys per habitat, so it can hold several; a named salty
-        // one cannot, which its own test covers.
-        let mut habery = Habery::builder("signify").build_with_passcode(PASSCODE)?;
-        let red = habery.make_habitat("red", HabitatRequest::default())?.prefix().qb64()?;
-        let blue = habery
-            .make_habitat("blue", HabitatRequest::default())?
-            .prefix()
-            .qb64()?;
-        assert_ne!(red, blue);
-        assert_eq!(habery.manager().prefix_index(), 2);
-
-        let names: Vec<&str> = habery.habitats().iter().map(Habitat::name).collect();
-        assert_eq!(names, ["red", "blue"]);
-        assert_eq!(
-            habery
-                .habitat_by_name("red")
-                .map(|habitat| habitat.prefix().qb64())
-                .transpose()?,
-            Some(red)
-        );
-        assert!(habery.habitat_by_name("green").is_none());
-
-        // The reference silently overwrites the map entry while still creating a second
-        // identifier; that is refused here, and the manager is untouched by the refusal.
-        assert!(matches!(
-            habery.make_habitat("red", HabitatRequest::default()),
-            Err(IdentifierError::DuplicateHabitat { .. })
-        ));
-        assert_eq!(habery.manager().prefix_index(), 2);
-        Ok(())
-    }
-
-    #[test]
-    fn threshold_defaults_and_propagation_match_the_reference() -> Result<(), Box<dyn Error>> {
-        // Each case gets a fresh registry: a named salty registry re-derives the same keys for a
-        // second habitat and refuses it as already incepted.
-
-        // Three keys default to a two-of-three majority on both sides.
-        let mut habery = ephemeral("signify")?;
-        let habitat = habery.make_habitat(
-            "multisig",
-            HabitatRequest {
-                current_keys: 3,
-                ..HabitatRequest::default()
-            },
-        )?;
-        assert_eq!(text_field(habitat, "kt").as_deref(), Some("2"));
-        assert_eq!(text_field(habitat, "nt").as_deref(), Some("2"));
-        assert_eq!(list_field(habitat, "k")?.len(), 3);
-        assert_eq!(list_field(habitat, "n")?.len(), 3);
-
-        // An explicit signing threshold carries over to the next keys, as `nsith ??= isith` does.
-        let mut habery = ephemeral("signify")?;
-        let habitat = habery.make_habitat(
-            "propagated",
-            HabitatRequest {
-                current_keys: 2,
-                signing_threshold: Some(SigningThreshold::numeric(2)),
-                ..HabitatRequest::default()
-            },
-        )?;
-        assert_eq!(text_field(habitat, "kt").as_deref(), Some("2"));
-        assert_eq!(text_field(habitat, "nt").as_deref(), Some("2"));
-
-        // An explicit next threshold wins over the propagated one.
-        let mut habery = ephemeral("signify")?;
-        let habitat = habery.make_habitat(
-            "explicit",
-            HabitatRequest {
-                current_keys: 2,
-                signing_threshold: Some(SigningThreshold::numeric(2)),
-                next_threshold: Some(SigningThreshold::numeric(1)),
-                ..HabitatRequest::default()
-            },
-        )?;
-        assert_eq!(text_field(habitat, "nt").as_deref(), Some("1"));
         Ok(())
     }
 

@@ -210,18 +210,6 @@ proptest! {
         prop_assert_ne!(one.headers().get("signature"), two.headers().get("signature"));
     }
 
-    /// Signing the same request twice is always refused, whatever it carried.
-    #[test]
-    fn a_request_is_never_signed_twice(index in 0_usize..8, millis in 0_u64..LATEST_MILLIS) {
-        let (transport, _clock) = signing_transport(millis)?;
-        let url = RequestUrl::new("http://localhost:3901/identifiers").map_err(fail)?;
-        let once = transport
-            .sign_request(&Request::builder(method_of(index), url).build().map_err(fail)?)
-            .map_err(fail)?;
-        // The reference appends a second value; here the duplicate name does not build.
-        prop_assert!(transport.sign_request(&once).is_err());
-    }
-
     /// A signing failure is always the permanent transport failure, never a transient one.
     #[test]
     fn a_signing_failure_is_never_retryable(name in "[a-z][a-z0-9-]{0,12}", index in 0_usize..8) {

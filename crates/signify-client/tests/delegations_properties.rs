@@ -11,7 +11,7 @@ use signify_client::endpoint::delegations::{
     DELEGATION_SEGMENT, InceptionSeal, SEAL_DIGEST_LABEL, SEAL_IDENTIFIER_LABEL, SEAL_SEQUENCE_LABEL,
 };
 use signify_client::endpoint::identifiers::{EVENTS_SEGMENT, IDENTIFIERS_SEGMENT};
-use signify_http::request::{ResourcePath, encode_path_component};
+use signify_http::request::ResourcePath;
 
 const DELEGATE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const DELEGATOR: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -54,20 +54,6 @@ fn qualified() -> impl Strategy<Value = String> {
 
 proptest! {
     #![proptest_config(ProptestConfig { cases: 128, ..ProptestConfig::default() })]
-
-    #[test]
-    fn an_alias_never_leaves_its_own_segment(alias in aliases()) {
-        let path = write_path(&alias, DELEGATION_SEGMENT)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
-        let segments: Vec<&str> = path.path().split('/').skip(1).collect();
-        prop_assert_eq!(segments.len(), 3, "the alias {:?} became {} segments", alias, segments.len());
-        prop_assert_eq!(segments.first().copied(), Some(IDENTIFIERS_SEGMENT));
-        prop_assert_eq!(segments.last().copied(), Some(DELEGATION_SEGMENT));
-        let encoded = encode_path_component(&alias);
-        prop_assert_eq!(segments.get(1).copied(), Some(encoded.as_str()));
-        prop_assert_eq!(path.query(), None, "the alias {:?} introduced a query", alias);
-        prop_assert_eq!(path.path(), path.as_str());
-    }
 
     #[test]
     fn the_read_and_the_write_treat_the_alias_the_same_way(alias in aliases()) {
@@ -116,24 +102,6 @@ proptest! {
         prop_assert_eq!(written.get_text(SEAL_SEQUENCE_LABEL), Some("0"));
         prop_assert_eq!(seal.delegate().qb64().ok(), Some(delegate));
         prop_assert_eq!(seal.digest().qb64().ok(), Some(digest));
-    }
-
-    #[test]
-    fn a_seal_carries_nothing_beyond_the_references_three(
-        delegate in qualified(),
-        digest in qualified(),
-    ) {
-        let seal = InceptionSeal::new(
-            IdentifierPrefix::from_qb64(&delegate).map_err(|error| TestCaseError::fail(error.to_string()))?,
-            digest.parse::<Said>().map_err(|error| TestCaseError::fail(error.to_string()))?,
-        );
-        let written = seal.to_sad().map_err(|error| TestCaseError::fail(error.to_string()))?;
-        for label in [SEAL_IDENTIFIER_LABEL, SEAL_SEQUENCE_LABEL, SEAL_DIGEST_LABEL] {
-            prop_assert!(written.get_text(label).is_some(), "the seal carries no {}", label);
-        }
-        for absent in ["a", "v", "t", "n", "bt", "kt"] {
-            prop_assert!(written.get_text(absent).is_none(), "the seal carries an unexpected {}", absent);
-        }
     }
 
     #[test]

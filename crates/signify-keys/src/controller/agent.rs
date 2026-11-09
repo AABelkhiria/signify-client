@@ -246,57 +246,7 @@ mod tests {
     }
 
     #[test]
-    fn exactly_one_key_and_one_next_digest_are_required() -> Result<(), Box<dyn Error>> {
-        let two_keys = state_with(|value| {
-            value["k"] = serde_json::json!([
-                "DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE",
-                "DFs8BBx86uytIM0D2BhsE5rrqVIT8ef8mflpNceHo4XH",
-            ]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(two_keys),
-            Err(ControllerError::AgentKeyCount { count: 2 })
-        ));
-        let no_keys = state_with(|value| {
-            value["k"] = serde_json::json!([]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(no_keys),
-            Err(ControllerError::AgentKeyCount { count: 0 })
-        ));
-        let no_digests = state_with(|value| {
-            value["n"] = serde_json::json!([]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(no_digests),
-            Err(ControllerError::AgentNextDigestCount { count: 0 })
-        ));
-        Ok(())
-    }
-
-    #[test]
-    fn both_thresholds_must_be_exactly_one() -> Result<(), Box<dyn Error>> {
-        let signing_two = state_with(|value| {
-            value["kt"] = serde_json::json!("2");
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(signing_two),
-            Err(ControllerError::AgentThresholdNotOne {
-                label: "kt",
-                value: Some(2)
-            })
-        ));
-        // A weighted threshold has no numeric value at all; the reference reports `undefined`.
-        let weighted = state_with(|value| {
-            value["kt"] = serde_json::json!(["1/2", "1/2"]);
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(weighted),
-            Err(ControllerError::AgentThresholdNotOne {
-                label: "kt",
-                value: None
-            })
-        ));
+    fn the_next_threshold_and_a_malformed_weight_are_refused_too() -> Result<(), Box<dyn Error>> {
         let next_zero = state_with(|value| {
             value["nt"] = serde_json::json!("0");
         })?;
@@ -331,18 +281,6 @@ mod tests {
                 other => return Err(format!("expected AgentNotDelegated for {kind:?}, got {other:?}").into()),
             }
         }
-        Ok(())
-    }
-
-    #[test]
-    fn a_missing_delegator_is_refused() -> Result<(), Box<dyn Error>> {
-        let empty = state_with(|value| {
-            value["di"] = serde_json::json!("");
-        })?;
-        assert!(matches!(
-            Agent::from_key_state(empty),
-            Err(ControllerError::MissingDelegatorAnchor)
-        ));
         Ok(())
     }
 

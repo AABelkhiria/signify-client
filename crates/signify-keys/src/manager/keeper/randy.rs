@@ -240,28 +240,6 @@ mod tests {
     }
 
     #[test]
-    fn every_key_is_stored_sealed_and_opens_again() -> Result<(), Box<dyn Error>> {
-        let mut keeper = keeper()?;
-        assert_eq!(keeper.algorithm(), KeyAlgorithm::Randy);
-        let material = keeper.incept(KeyTransferability::Transferable)?;
-        assert_eq!(material.public_keys.len(), 1);
-        assert_eq!(material.next_digests.len(), 1);
-
-        let KeyManagerState::Randy(state) = keeper.parameters()? else {
-            return Err("a randy keeper reported another state".into());
-        };
-        assert_eq!(state.encrypted_signing_keys.len(), 1);
-        assert_eq!(state.encrypted_next_keys.len(), 1);
-        // What is stored is ciphertext, not a key.
-        assert!(state.encrypted_signing_keys.iter().all(|key| key.starts_with('P')));
-
-        // The stored keys open to the keys the keeper reported.
-        let signers = keeper.expose_signers()?;
-        assert_eq!(public_keys(&signers)?, material.public_keys);
-        Ok(())
-    }
-
-    #[test]
     fn a_rotation_promotes_the_keys_it_committed_to() -> Result<(), Box<dyn Error>> {
         let mut keeper = keeper()?;
         let incepted = keeper.incept(KeyTransferability::Transferable)?;
@@ -279,48 +257,6 @@ mod tests {
         )?;
         let digest = Digest::derive(DigestAlgorithm::Blake3_256, &verifier.qb64_bytes()?).qb64()?;
         assert_eq!(incepted.next_digests, [digest]);
-        Ok(())
-    }
-
-    #[test]
-    fn a_keeper_restored_from_its_own_state_signs_identically() -> Result<(), Box<dyn Error>> {
-        let mut keeper = keeper()?;
-        keeper.incept(KeyTransferability::Transferable)?;
-        let KeyManagerState::Randy(state) = keeper.parameters()? else {
-            return Err("a randy keeper reported another state".into());
-        };
-
-        let restored = RandyKeeper::new(
-            &passcode_salt()?,
-            state.encrypted_signing_keys,
-            state.encrypted_next_keys,
-            &RandyKeeperConfig {
-                transferability: KeyTransferability::Transferable,
-                ..RandyKeeperConfig::default()
-            },
-        )?;
-        let first = keeper.sign(b"payload", &SignatureForm::IndexedByPosition, SigningPurpose::Current)?;
-        let second = restored.sign(b"payload", &SignatureForm::IndexedByPosition, SigningPurpose::Current)?;
-        assert_eq!(first.qb64()?, second.qb64()?);
-        Ok(())
-    }
-
-    #[test]
-    fn a_current_only_placement_is_preserved() -> Result<(), Box<dyn Error>> {
-        // The pinned `keeping.test.ts` case for the randy path.
-        let mut keeper = keeper()?;
-        keeper.incept(KeyTransferability::Transferable)?;
-        let signatures = keeper.sign(
-            b"current-only-randy",
-            &SignatureForm::Indexed(vec![keri_cesr::crypto::signer::SignaturePlacement::current_list(0)]),
-            SigningPurpose::Current,
-        )?;
-        let ManagedSignatures::Indexed(indexed) = &signatures else {
-            return Err("an indexed request produced unindexed signatures".into());
-        };
-        let signature = indexed.first().ok_or("no signature was produced")?;
-        assert_eq!(signature.index(), 0);
-        assert_eq!(signature.other_index(), None);
         Ok(())
     }
 

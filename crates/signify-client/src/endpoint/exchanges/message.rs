@@ -733,29 +733,6 @@ mod tests {
     }
 
     #[test]
-    fn a_group_request_classifies_as_the_plain_form_does() -> Result<(), Box<dyn Error>> {
-        // Upstream this needs a second overload per function and eight extra `*Group` variants.
-        let embeds = format!(r#"{{"d":"EEMB","icp":{INCEPTION}}}"#);
-        let exn = message("/multisig/icp", &group_block(), &embeds)?;
-        let plain = ExchangeResource {
-            exn: exn.clone(),
-            pathed: Map::new(),
-        };
-        let grouped = MultisigExchangeResource {
-            exn,
-            paths: Map::new(),
-            group_name: Some("group".to_owned()),
-            member_name: Some("member1".to_owned()),
-            sender: Some(MEMBER.to_owned()),
-        };
-        assert_eq!(
-            ClassifiedExchange::try_from(&plain)?,
-            ClassifiedExchange::try_from(&grouped)?
-        );
-        Ok(())
-    }
-
-    #[test]
     fn every_multisig_route_expects_a_distinct_slot() {
         // The correspondence that makes the check possible: eight routes, eight embed variants.
         let slots: Vec<&str> = MultisigRoute::ALL.iter().copied().map(expected_slot).collect();
