@@ -284,6 +284,7 @@ const ED25519_SEED_CODE: &str = "A";
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::salt;
     use keria_types::api::KeyTier;
     use std::error::Error;
 
@@ -295,13 +296,9 @@ mod tests {
         }
     }
 
-    fn passcode_salt() -> Result<Salt, Box<dyn Error>> {
-        Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-    }
-
     fn keeper() -> Result<SaltyKeeper, Box<dyn Error>> {
         Ok(SaltyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             SaltySource::Sealed(sealed_salt()?),
             SaltyKeeperConfig {
                 transferability: KeyTransferability::Transferable,
@@ -317,7 +314,7 @@ mod tests {
     /// The sealing key follows the derivation cost, so a salt sealed for an ephemeral keeper does
     /// not open for a production one and the other way round.
     fn sealed_salt_for(cost: DerivationCost) -> Result<String, Box<dyn Error>> {
-        let sealing_key = passcode_salt()?.derive_signer_with_profile(
+        let sealing_key = salt()?.derive_signer_with_profile(
             "",
             KeyTransferability::Transferable,
             cost.profile(SecurityTier::Low),
@@ -335,7 +332,7 @@ mod tests {
     #[test]
     fn a_sealed_salt_round_trips_into_a_working_keeper() -> Result<(), Box<dyn Error>> {
         let mut keeper = SaltyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             SaltySource::Sealed(sealed_salt_for(DerivationCost::Production)?),
             SaltyKeeperConfig {
                 transferability: KeyTransferability::Transferable,
@@ -358,7 +355,7 @@ mod tests {
         assert_eq!(state.digest_code, "E");
 
         let mut reloaded = SaltyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             SaltySource::Sealed(state.encrypted_salt.clone()),
             SaltyKeeperConfig {
                 transferability: KeyTransferability::Transferable,
@@ -372,13 +369,13 @@ mod tests {
     #[test]
     fn a_passcode_source_derives_the_salt_from_it() -> Result<(), Box<dyn Error>> {
         let mut first = SaltyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             SaltySource::Passcode("0123456789abcdefghijk".into()),
             ephemeral(),
         )?;
         // A different passcode gives different identifier keys.
         let mut other = SaltyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             SaltySource::Passcode("abcdefghijk0123456789".into()),
             ephemeral(),
         )?;
@@ -388,7 +385,7 @@ mod tests {
         );
 
         assert!(matches!(
-            SaltyKeeper::new(&passcode_salt()?, SaltySource::Passcode("short".into()), ephemeral()),
+            SaltyKeeper::new(&salt()?, SaltySource::Passcode("short".into()), ephemeral()),
             Err(ManagerError::PasscodeTooShort { .. })
         ));
         Ok(())
@@ -396,7 +393,7 @@ mod tests {
 
     #[test]
     fn growing_the_key_count_reuses_a_key_as_signify_ts_does() -> Result<(), Box<dyn Error>> {
-        let mut keeper = SaltyKeeper::new(&passcode_salt()?, SaltySource::Generated, ephemeral())?;
+        let mut keeper = SaltyKeeper::new(&salt()?, SaltySource::Generated, ephemeral())?;
         keeper.incept(KeyTransferability::Transferable)?;
 
         let first = keeper.rotate(KeeperRotation::to_keys(2))?;
@@ -413,7 +410,7 @@ mod tests {
             next_count: 2,
             ..ephemeral()
         };
-        let mut keeper = SaltyKeeper::new(&passcode_salt()?, SaltySource::Generated, config)?;
+        let mut keeper = SaltyKeeper::new(&salt()?, SaltySource::Generated, config)?;
         keeper.incept(KeyTransferability::Transferable)?;
 
         let rotated = keeper.rotate(KeeperRotation::to_keys(1))?;
@@ -426,8 +423,8 @@ mod tests {
 
     #[test]
     fn a_generated_salt_differs_every_time() -> Result<(), Box<dyn Error>> {
-        let mut first = SaltyKeeper::new(&passcode_salt()?, SaltySource::Generated, ephemeral())?;
-        let mut second = SaltyKeeper::new(&passcode_salt()?, SaltySource::Generated, ephemeral())?;
+        let mut first = SaltyKeeper::new(&salt()?, SaltySource::Generated, ephemeral())?;
+        let mut second = SaltyKeeper::new(&salt()?, SaltySource::Generated, ephemeral())?;
         assert_ne!(
             first.incept(KeyTransferability::NonTransferable)?,
             second.incept(KeyTransferability::NonTransferable)?
@@ -448,7 +445,7 @@ mod tests {
     #[test]
     fn multiple_keys_derive_at_consecutive_positions() -> Result<(), Box<dyn Error>> {
         let mut keeper = SaltyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             SaltySource::Sealed(sealed_salt()?),
             SaltyKeeperConfig {
                 transferability: KeyTransferability::Transferable,

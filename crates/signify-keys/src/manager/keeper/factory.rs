@@ -345,13 +345,11 @@ mod tests {
     use super::super::{KeeperRotation, KeyMaterial, SigningPurpose};
     use super::*;
     use crate::manager::key_manager::{ManagedSignatures, SignatureForm};
+    use crate::test_support::{member_state, salt};
     use std::error::Error;
 
     fn factory() -> Result<KeeperFactory, Box<dyn Error>> {
-        Ok(KeeperFactory::new(Salt::from_raw(
-            b"0123456789abcdef",
-            SecurityTier::Low,
-        )?))
+        Ok(KeeperFactory::new(salt()?))
     }
 
     /// A module that stands in for an HSM, recording what it was handed.
@@ -586,12 +584,9 @@ mod tests {
         key: &str,
         next_digest: &str,
     ) -> Result<keria_types::api::AcceptedHab, Box<dyn Error>> {
-        let document = format!(
-            r#"{{"i":"{prefix}","s":"0","p":"","d":"{prefix}","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next_digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{prefix}"}},"di":""}}"#
-        );
         Ok(keria_types::api::AcceptedHab {
             common: common(prefix, state),
-            state: Box::new(serde_json::from_str(&document)?),
+            state: Box::new(member_state(prefix, key, next_digest)?),
         })
     }
 }

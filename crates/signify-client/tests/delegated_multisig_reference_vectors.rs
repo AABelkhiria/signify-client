@@ -2,6 +2,8 @@
 //!
 //! A delegatee group's inception and its delegator's approval, both members anchoring one seal.
 
+mod support;
+
 use std::error::Error;
 
 use keri_protocol::prefix::IdentifierPrefix;
@@ -14,10 +16,6 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INTERACTION_ROUTE, INTERACTION_SLOT};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-delegated-multisig/v1.json"
-));
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -91,7 +89,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-delegated-multisig")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {

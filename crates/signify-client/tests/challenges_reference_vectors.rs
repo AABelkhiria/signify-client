@@ -4,33 +4,21 @@
 
 mod support;
 
-use core::time::Duration;
 use std::error::Error;
-use std::sync::Arc;
-use std::time::SystemTime;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use crate::support::{ADMIN, AGENT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, sent};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keria_types::api::OperationOutcome;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::challenges::{
     CHALLENGE_RESPONSE_ROUTE, CHALLENGE_TOPIC, CHALLENGES_SEGMENT, CHALLENGES_VERIFY_SEGMENT, ChallengeStrength,
     STRENGTH_PARAMETER,
 };
 use signify_client::error::ClientError;
-use signify_http::retry::{Clock, TestClock};
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-challenges/v1.json"
-));
 
 const SOURCE: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SAID: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
@@ -112,7 +100,7 @@ struct RecordedRequest {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-challenges")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -132,46 +120,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
 
 fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.result)?)
-}
-
-type Harness = (ConnectedClient, Arc<AgentTransport>);
-
-fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let clock: Arc<dyn Clock> = Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ));
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        Arc::clone(&clock),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(
-        configuration()?,
-        Arc::clone(&transport) as Arc<dyn Transport>,
-        Arc::clone(&clock),
-    )?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let recorded = transport.requests();
-    let request = recorded.get(2).ok_or("no endpoint request was sent")?;
-    let path = request.resource();
-    let body = request.body_text();
-    Ok((path, request.method().to_owned(), body))
 }
 
 fn source() -> Result<IdentifierPrefix, Box<dyn Error>> {
@@ -316,9 +264,9 @@ fn both_recorded_strengths_reproduce_byte_for_byte() -> Result<(), Box<dyn Error
         assert_eq!(recorded.body, None);
 
         let answer = answer_of(&fixture, name)?;
-        let (client, transport) = connected(&[&answer])?;
+        let Harness { client, transport, .. } = connected(&[&answer])?;
         let challenge = block_on(client.challenges().generate(strength))?;
-        let (path, method, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
 
         assert_eq!(path, recorded.path, "{name} addressed a different resource");
         assert_eq!(method, recorded.method);
@@ -377,9 +325,9 @@ fn the_pinned_verification_reproduces_byte_for_byte() -> Result<(), Box<dyn Erro
 
     let words = fixture.provenance.words.clone();
     let answer = answer_of(&fixture, "verify")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let operation = block_on(client.challenges().verify(&source()?, &words))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
 
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
@@ -397,9 +345,9 @@ fn the_pinned_acceptance_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>
     assert_eq!(recorded.method, "PUT");
     assert_eq!(recorded.body.as_deref(), Some(&format!(r#"{{"said":"{SAID}"}}"#)[..]));
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     block_on(client.challenges().responded(&source()?, &Said::from_qb64(SAID)?))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
 
     assert_eq!(path, recorded.path);
     assert_eq!(method, "PUT");
@@ -415,13 +363,13 @@ fn an_empty_word_list_is_refused_where_the_reference_sends_it() -> Result<(), Bo
     assert_eq!(recorded.body.as_deref(), Some(r#"{"words":[]}"#));
     assert_eq!(recorded.path, format!("/challenges_verify/{SOURCE}"));
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let outcome = block_on(client.challenges().verify(&source()?, &[]));
     assert!(
         matches!(outcome, Err(ClientError::EmptyChallengeWords)),
         "an empty word list was not refused: {outcome:?}"
     );
-    assert!(sent(&transport).is_err(), "an empty verification reached the agent");
+    assert!(sent(&transport, 0).is_err(), "an empty verification reached the agent");
     Ok(())
 }
 
@@ -444,19 +392,19 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
     assert_eq!(generated.error, None);
     assert_eq!(generated.result.get("unexpected").and_then(Value::as_bool), Some(true));
     let answer = serde_json::to_vec(&generated.result)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let outcome = block_on(client.challenges().generate(ChallengeStrength::BITS_128));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
         "an answer carrying no words was not refused: {outcome:?}"
     );
-    assert_eq!(sent(&transport)?.0, "/challenges?strength=128");
+    assert_eq!(sent(&transport, 0)?.path, "/challenges?strength=128");
 
     let verified = call(&fixture, "verify_wrong_shape")?;
     assert_eq!(verified.error, None);
     let answer = serde_json::to_vec(&verified.result)?;
     let words = fixture.provenance.words.clone();
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let outcome = block_on(client.challenges().verify(&source()?, &words));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),

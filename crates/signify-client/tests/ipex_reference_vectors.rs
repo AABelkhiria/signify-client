@@ -5,9 +5,8 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+use crate::support::{ADMIN, AGENT, BOOT, Harness, PASSCODE, SentRequest, block_on, connected, sent};
 use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
@@ -16,18 +15,14 @@ use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue, SerializedEvent};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::ipex::IPEX_SEGMENT;
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use signify_http::transport::Transport;
 use signify_keys::acdc::ipex::{Disclosure, IpexEnvelope, IpexMessage, IpexRoute, admit, agree, apply, grant, offer};
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest};
 use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-ipex/v1.json"));
 
 // --- Fixture model ---
 #[derive(Debug, Deserialize)]
@@ -134,7 +129,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-ipex")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -150,35 +145,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .request
         .as_ref()
         .ok_or_else(|| format!("call {name} recorded no request").into())
-}
-
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport, index: usize) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
 }
 
 // --- Rebuilding the five messages the generator submitted ---
@@ -487,14 +453,14 @@ fn all_five_submissions_reproduce_the_recorded_requests() -> Result<(), Box<dyn 
     let recipients = recipients(&fixture)?;
     let answer = serde_json::to_vec(&call(&fixture, "grant")?.result)?;
     let answers: Vec<&[u8]> = core::iter::repeat_n(answer.as_slice(), 5).collect();
-    let (client, transport) = connected(&answers)?;
+    let Harness { client, transport, .. } = connected(&answers)?;
 
     for (index, (name, message)) in conversation(&fixture)?.into_iter().enumerate() {
         let recorded = request_of(&fixture, name)?;
         let submitted = block_on(client.ipex().submit("multisig", &message, &recipients))?;
         assert_eq!(submitted.route(), message.route());
 
-        let (path, method, body) = sent(&transport, index)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, index)?;
         assert_eq!(path, recorded.path, "{name} addressed a different resource");
         assert_eq!(path, format!("/identifiers/multisig/ipex/{name}"));
         assert_eq!(method, recorded.method);
@@ -537,7 +503,7 @@ fn a_route_can_never_disagree_with_the_resource_it_is_posted_to() -> Result<(), 
     );
 
     let recipients = recipients(&fixture)?;
-    let (client, transport) = connected(&[b"{}", b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}", b"{}"])?;
     let messages = conversation(&fixture)?;
     for (name, message) in &messages {
         if !matches!(*name, "apply" | "grant") {
@@ -545,7 +511,7 @@ fn a_route_can_never_disagree_with_the_resource_it_is_posted_to() -> Result<(), 
         }
         let index = usize::from(*name == "grant");
         let _ = block_on(client.ipex().submit("multisig", message, &recipients))?;
-        let (path, _, body) = sent(&transport, index)?;
+        let SentRequest { path, body, .. } = sent(&transport, index)?;
         let route = message.route().as_str();
         assert!(
             path.ends_with(route.trim_start_matches('/').trim_start_matches("ipex/")),
@@ -562,7 +528,7 @@ fn an_empty_recipient_list_is_refused_before_anything_is_sent() -> Result<(), Bo
     let recorded = request_of(&fixture, "grant_no_recipients")?;
     assert!(recorded.body.clone().unwrap_or_default().contains(r#""rec":[]"#));
 
-    let (client, transport) = connected(&[])?;
+    let Harness { client, transport, .. } = connected(&[])?;
     let messages = conversation(&fixture)?;
     let grant = messages
         .iter()
@@ -599,18 +565,18 @@ fn a_recipient_list_is_carried_as_given_and_is_not_checked_against_the_message()
         .find(|(name, _)| *name == "grant")
         .map(|(_, message)| message)
         .ok_or("no grant was built")?;
-    let (client, transport) = connected(&[b"{}", b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}", b"{}"])?;
 
     let both = vec![
         IdentifierPrefix::from_qb64(&fixture.provenance.recipient)?,
         IdentifierPrefix::from_qb64(&fixture.provenance.second_recipient)?,
     ];
     let _ = block_on(client.ipex().submit("multisig", grant, &both))?;
-    assert_eq!(sent(&transport, 0)?.2.as_deref(), two.body.as_deref());
+    assert_eq!(sent(&transport, 0)?.body.as_deref(), two.body.as_deref());
 
     let elsewhere_only = vec![IdentifierPrefix::from_qb64(&fixture.provenance.second_recipient)?];
     let _ = block_on(client.ipex().submit("multisig", grant, &elsewhere_only))?;
-    assert_eq!(sent(&transport, 1)?.2.as_deref(), elsewhere.body.as_deref());
+    assert_eq!(sent(&transport, 1)?.body.as_deref(), elsewhere.body.as_deref());
     Ok(())
 }
 
@@ -629,9 +595,9 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
         .find(|(name, _)| *name == "apply")
         .map(|(_, message)| message)
         .ok_or("no apply was built")?;
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let _ = block_on(client.ipex().submit("a/b", applied, &recipients))?;
-    let (path, _, _) = sent(&transport, 0)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
     assert_eq!(path, "/identifiers/a%2Fb/ipex/apply");
     assert_eq!(path.split('/').count(), 5);
 
@@ -657,7 +623,7 @@ fn the_answer_is_decoded_rather_than_cast() -> Result<(), Box<dyn Error>> {
         .map(|(_, message)| message)
         .ok_or("no grant was built")?;
 
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let submitted = block_on(client.ipex().submit("multisig", grant, &recipients))?;
     let operation = submitted.operation()?;
     assert!(operation.name.starts_with("exchange."));
@@ -666,7 +632,7 @@ fn the_answer_is_decoded_rather_than_cast() -> Result<(), Box<dyn Error>> {
     assert!(submitted.operation().is_ok());
     assert_ne!(submitted.response_body(), b"");
 
-    let (other, _) = connected(&[br#"{"not":"an operation"}"#])?;
+    let Harness { client: other, .. } = connected(&[br#"{"not":"an operation"}"#])?;
     let submitted = block_on(other.ipex().submit("multisig", grant, &recipients))?;
     assert!(
         matches!(submitted.operation(), Err(ClientError::Api { .. })),

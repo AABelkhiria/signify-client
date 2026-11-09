@@ -2,8 +2,11 @@
 //!
 //! A prefix encodes exactly once, a query body keeps its field order, and a sequence base round-trips.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::prefixes;
 use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::Seal;
 use proptest::prelude::*;
@@ -13,12 +16,6 @@ use signify_client::endpoint::key_states::{KeyStateQuery, QuerySequence, STATES_
 use signify_http::request::{MAX_QUERY_PARAMETERS, ResourcePath};
 
 const PREFIX: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
-
-fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
-    "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
-        IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
-    })
-}
 
 fn hostile_text() -> impl Strategy<Value = String> {
     prop_oneof![

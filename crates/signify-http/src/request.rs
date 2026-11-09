@@ -1130,6 +1130,7 @@ impl From<TransportError> for RequestError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::displays_and_sources;
     use std::error::Error;
 
     fn base() -> Result<BaseUrl, Box<dyn Error>> {
@@ -1614,11 +1615,7 @@ mod tests {
             ),
         ];
         for (error, fragments, has_source) in cases {
-            let rendered = error.to_string();
-            for fragment in fragments {
-                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
-            }
-            assert_eq!(error.source().is_some(), has_source, "{error}");
+            displays_and_sources(&error, fragments, has_source);
         }
         assert_eq!(
             RequestError::EmptyPath.to_string(),

@@ -5,21 +5,17 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AgentTransport, BOOT, LIFECYCLE_REQUESTS, PASSCODE, agent_state, block_on, clock};
+use crate::support::{AgentTransport, Harness, LIFECYCLE_REQUESTS, PASSCODE, block_on, connected};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::event::Timestamp;
 use keria_types::api::Role;
 use proptest::prelude::*;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::identifiers::{IdentifierUpdate, LocationSchemeRequest, PreparedRotation};
 use signify_client::error::ClientError;
 use signify_http::request::ItemRange;
-use signify_http::transport::Transport;
 use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, RotateIdentifierRequest};
 use signify_keys::manager::DerivationCost;
 
@@ -44,29 +40,6 @@ fn record(prefix: &str, key: &str, next: &str, sealed: &str) -> String {
     format!(
         r#"{{"name":"aid1","prefix":"{prefix}","icp_dt":"{STAMP}","state":{{"vn":[1,0],"i":"{prefix}","s":"0","p":"","d":"{prefix}","f":"0","dt":"{STAMP}","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{next}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"{prefix}","br":[],"ba":[]}},"di":""}},"transferable":true,"windexes":[],"salty":{{"tier":"low","sxlt":"{sealed}","pidx":0,"kidx":0,"stem":"signify:aid","dcode":"E","icodes":["A"],"ncodes":["A"],"transferable":true}}}}"#
     )
-}
-
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
 }
 
 fn endpoint_paths(transport: &AgentTransport) -> Vec<String> {
@@ -136,7 +109,7 @@ proptest! {
             "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
             sealed_salt().map_err(|error| TestCaseError::fail(error.to_string()))?,
         );
-        let (client, transport) = connected(&[record.as_bytes(), record.as_bytes()])
+        let Harness { client, transport, .. } = connected(&[record.as_bytes(), record.as_bytes()])
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
 
         let _ = block_on(client.identifiers().get_any(&alias));
@@ -155,7 +128,7 @@ proptest! {
             "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
             sealed_salt().map_err(|error| TestCaseError::fail(error.to_string()))?,
         );
-        let (client, transport) = connected(&[record.as_bytes()])
+        let Harness { client, transport, .. } = connected(&[record.as_bytes()])
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let _ = block_on(client.identifiers().update_any("aid1", &IdentifierUpdate::rename(name.clone())));
 
@@ -170,7 +143,7 @@ proptest! {
     #[test]
     fn a_requested_window_is_sent_exactly(start in 0_u64..1_000, span in 0_u64..1_000) {
         let end = start.saturating_add(span);
-        let (client, transport) = connected(&[b"[]"])
+        let Harness { client, transport, .. } = connected(&[b"[]"])
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
         let window = ItemRange::new(start, end)
             .map_err(|error| TestCaseError::fail(error.to_string()))?;
@@ -200,7 +173,7 @@ fn a_body_names_its_optional_fields_exactly_when_they_apply() -> Result<(), Box<
     for proxy in [None, Some("EPROXY".to_owned())] {
         let mut request = storable_creation();
         request.proxy = proxy.clone();
-        let (client, transport) = connected(&[b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[b"{}"])?;
         let _ = block_on(client.identifiers().create("aid1", &request))?;
 
         let body = endpoint_body(&transport, 0).unwrap_or_default();
@@ -233,7 +206,7 @@ fn a_salty_block_always_carries_the_same_nine_fields_in_order() -> Result<(), Bo
         }
         request.signing_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
         request.next_threshold = Some(keri_protocol::threshold::SigningThreshold::numeric(1));
-        let (client, transport) = connected(&[b"{}"])?;
+        let Harness { client, transport, .. } = connected(&[b"{}"])?;
         let _ = block_on(client.identifiers().create("aid1", &request))?;
 
         let body = endpoint_body(&transport, 0).unwrap_or_default();
@@ -273,7 +246,7 @@ fn a_rotation_always_names_both_member_lists() -> Result<(), Box<dyn Error>> {
         "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
         sealed_salt()?,
     );
-    let (client, transport) = connected(&[record.as_bytes(), b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[record.as_bytes(), b"{}"])?;
     let _ = block_on(client.identifiers().rotate("aid1", &RotateIdentifierRequest::default()))?;
 
     let body = endpoint_body(&transport, 1).unwrap_or_default();
@@ -297,7 +270,7 @@ fn rotatable_record() -> Result<String, Box<dyn Error>> {
 #[test]
 fn a_prepared_rotation_is_resent_byte_for_byte_after_a_restore() -> Result<(), Box<dyn Error>> {
     let record = rotatable_record()?;
-    let (client, transport) = connected(&[record.as_bytes(), b"{}", b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[record.as_bytes(), b"{}", b"{}"])?;
     let identifiers = client.identifiers();
     let prepared = block_on(identifiers.prepare_rotation("aid1", &RotateIdentifierRequest::default(), None))?;
     assert_eq!(
@@ -321,7 +294,7 @@ fn a_prepared_rotation_is_resent_byte_for_byte_after_a_restore() -> Result<(), B
 #[test]
 fn a_prepared_rotation_matches_a_direct_rotation() -> Result<(), Box<dyn Error>> {
     let record = rotatable_record()?;
-    let (client, transport) = connected(&[record.as_bytes(), record.as_bytes(), b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[record.as_bytes(), record.as_bytes(), b"{}"])?;
     let identifiers = client.identifiers();
     let prepared = block_on(identifiers.prepare_rotation("aid1", &RotateIdentifierRequest::default(), None))?;
     let _ = block_on(identifiers.rotate("aid1", &RotateIdentifierRequest::default()))?;
@@ -344,7 +317,7 @@ fn a_prior_state_replaces_the_agents_current_one() -> Result<(), Box<dyn Error>>
     );
     let prior = serde_json::from_value(state)?;
 
-    let (client, _transport) = connected(&[record.as_bytes()])?;
+    let Harness { client, .. } = connected(&[record.as_bytes()])?;
     let identifiers = client.identifiers();
     let prepared = block_on(identifiers.prepare_rotation("aid1", &RotateIdentifierRequest::default(), Some(&prior)))?;
 
@@ -390,7 +363,7 @@ fn a_prepared_rotation_keeps_its_body_out_of_debug_output() -> Result<(), Box<dy
 fn a_pending_record_is_refused_under_any_alias() -> Result<(), Box<dyn Error>> {
     for alias in ["group1", "..", "a/b", ""] {
         let pending = r#"{"name":"group1","prefix":"EGRP","icp_dt":"2023-12-01T10:05:25.062609+00:00","transferable":true,"windexes":[],"randy":{"prxs":[],"nxts":[]}}"#;
-        let (client, _) = connected(&[pending.as_bytes()])?;
+        let Harness { client, .. } = connected(&[pending.as_bytes()])?;
         let outcome = block_on(client.identifiers().get(alias));
         assert!(
             matches!(outcome, Err(ClientError::IdentifierNotAccepted { ref name }) if name == alias),
@@ -402,7 +375,7 @@ fn a_pending_record_is_refused_under_any_alias() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn an_alias_of_two_dots_addresses_the_identifier_it_names() -> Result<(), Box<dyn Error>> {
-    let (client, transport) = connected(&[b"{}", b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}", b"{}"])?;
     let _ = block_on(client.identifiers().get_any(".."));
     let _ = block_on(client.identifiers().get_any("../identifiers"));
     let paths = endpoint_paths(&transport);
@@ -419,7 +392,7 @@ fn a_defaulted_location_authorization_writes_every_attribute() -> Result<(), Box
         "EAORnRtObOgNiOlMolji-KijC_isa3lRDpHCsol79cOc",
         sealed_salt()?,
     );
-    let (client, transport) = connected(&[record.as_bytes(), b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[record.as_bytes(), b"{}"])?;
     let request = LocationSchemeRequest {
         url: "http://test.com".to_owned(),
         scheme: None,
@@ -455,7 +428,7 @@ fn a_defaulted_location_authorization_writes_every_attribute() -> Result<(), Box
 fn an_unnamed_role_is_carried_verbatim() -> Result<(), Box<dyn Error>> {
     let role = Role::Other("custodian".to_owned());
     assert_eq!(role.as_str(), "custodian");
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     let outcome = block_on(
         client
             .identifiers()

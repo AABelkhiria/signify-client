@@ -5,7 +5,10 @@
 //! arithmetic and the state machine under test do not depend on the profile, and the
 //! cross-language vectors cover the production one exactly.
 
-use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+mod support;
+
+use crate::support::{fail, key_digest, member_habitat, salt, transferability};
+use keri_cesr::crypto::salt::KeyDerivationProfile;
 use keri_cesr::crypto::signer::SignaturePlacement;
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
 use keria_types::api::KeyManagerState;
@@ -15,10 +18,6 @@ use signify_keys::manager::{
     DerivationCost, GroupKeeper, IdentifierKeeper, KeeperFactory, KeeperRequest, KeeperRotation, KeyAlgorithm,
     ManagedSignatures, ManagerError, RandyKeeperRequest, SaltyKeeper, SignatureForm, SigningPurpose, Stem,
 };
-
-fn salt() -> Result<Salt, ManagerError> {
-    Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-}
 
 /// A cheap salty keeper; anything built this way is ephemeral and cannot be stored.
 fn salty(config: SaltyKeeperConfig) -> Result<SaltyKeeper, ManagerError> {
@@ -30,14 +29,6 @@ fn salty(config: SaltyKeeperConfig) -> Result<SaltyKeeper, ManagerError> {
             ..config
         },
     )
-}
-
-fn transferability(transferable: bool) -> KeyTransferability {
-    if transferable {
-        KeyTransferability::Transferable
-    } else {
-        KeyTransferability::NonTransferable
-    }
 }
 
 proptest! {
@@ -90,16 +81,9 @@ proptest! {
             let recomputed: Vec<String> = rotated
                 .public_keys
                 .iter()
-                .map(|key| {
-                    let verifier = VerificationKey::from_qb64(key)?;
-                    let digest = keri_cesr::crypto::digest::Digest::derive(
-                        keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
-                        &verifier.qb64_bytes()?,
-                    );
-                    digest.qb64()
-                })
+                .map(|key| key_digest(key))
                 .collect::<Result<_, _>>()
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+                .map_err(fail)?;
             prop_assert_eq!(&committed, &recomputed);
             committed = rotated.next_digests;
         }
@@ -133,7 +117,7 @@ proptest! {
                     .get(position)
                     .ok_or_else(|| TestCaseError::fail("a signature has no key"))?;
                 let verifier = VerificationKey::from_qb64(key)
-                    .map_err(|error| TestCaseError::fail(error.to_string()))?;
+                    .map_err(fail)?;
                 prop_assert!(verifier.verify(signature, &payload).is_ok());
             }
 
@@ -178,7 +162,7 @@ proptest! {
             .iter()
             .map(|signer| signer.verifier().qb64())
             .collect::<Result<_, _>>()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         prop_assert_eq!(recovered, material.public_keys);
     }
 
@@ -201,21 +185,14 @@ proptest! {
                 signer
                     .verifier()
                     .qb64()
-                    .map_err(|error| TestCaseError::fail(error.to_string()))?,
+                    .map_err(fail)?,
             );
         }
         let digests: Vec<String> = keys
             .iter()
-            .map(|key| {
-                let verifier = VerificationKey::from_qb64(key)?;
-                keri_cesr::crypto::digest::Digest::derive(
-                    keri_cesr::crypto::digest::DigestAlgorithm::Blake3_256,
-                    &verifier.qb64_bytes()?,
-                )
-                .qb64()
-            })
+            .map(|key| key_digest(key))
             .collect::<Result<_, _>>()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
 
         let key = keys.get(member).ok_or_else(|| TestCaseError::fail("no member key"))?;
         let digest = digests.get(member).ok_or_else(|| TestCaseError::fail("no member digest"))?;
@@ -225,10 +202,7 @@ proptest! {
         })?;
         inner.incept(KeyTransferability::Transferable)?;
 
-        let habitat: keria_types::api::AcceptedHab = serde_json::from_str(&format!(
-            r#"{{"name":"m","prefix":"EMEM","icp_dt":"2023-12-01T10:05:25.062609+00:00","randy":{{"prxs":[],"nxts":[]}},"state":{{"i":"EMEM","s":"0","p":"","d":"EMEM","f":"0","dt":"","et":"icp","kt":"1","k":["{key}"],"nt":"1","n":["{digest}"],"bt":"0","b":[],"c":[],"ee":{{"s":"0","d":"EMEM"}},"di":""}}}}"#
-        ))
-        .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let habitat: keria_types::api::AcceptedHab = member_habitat("m", key, digest).map_err(fail)?;
 
         let group = GroupKeeper::new(Box::new(inner), habitat, keys.clone(), digests.clone());
         prop_assert_eq!(group.algorithm(), KeyAlgorithm::Group);

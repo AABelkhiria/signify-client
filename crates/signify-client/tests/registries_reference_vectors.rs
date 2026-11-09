@@ -5,32 +5,22 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
-use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_cesr::crypto::verifier::KeyTransferability;
+use crate::support::{
+    ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, mask_sealed, reseal, sent,
+};
 use keri_protocol::event::ConfigurationTrait;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::registry::RegistryInceptionBuilder;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::registries::{
     CreateRegistryRequest, NO_BACKERS_TRAIT, REGISTRIES_SEGMENT, RegistryBacking,
 };
 use signify_client::error::ClientError;
 use signify_http::request::ResourcePath;
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-registries/v1.json"
-));
 
 // --- Fixture model ---
 #[derive(Debug, Deserialize)]
@@ -145,7 +135,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-registries")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -161,98 +151,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .request
         .as_ref()
         .ok_or_else(|| format!("call {name} recorded no request").into())
-}
-
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport, index: usize) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.get(index).ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
-
-fn sealing_keys() -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
-    let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
-    let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
-    Ok((
-        Encrypter::from_verification_key(signer.verifier())?,
-        Decrypter::from_signer(&signer),
-    ))
-}
-
-fn mask_sealed(body: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
-    let (_, decrypter) = sealing_keys()?;
-    let mut masked = String::with_capacity(body.len());
-    let mut opened = Vec::new();
-    let mut rest = body;
-    while let Some(start) = rest.find(r#""sxlt":""#) {
-        let (head, tail) = rest.split_at(start.saturating_add(r#""sxlt":""#.len()));
-        masked.push_str(head);
-        let end = tail.find('"').ok_or("an unterminated sealed salt")?;
-        let (sealed, remainder) = tail.split_at(end);
-        opened.push(
-            decrypter
-                .decrypt_salt(&Ciphertext::from_qb64(sealed)?, SecurityTier::Low)?
-                .expose_qb64()?
-                .to_string(),
-        );
-        masked.push_str("<SXLT>");
-        rest = remainder;
-    }
-    masked.push_str(rest);
-    Ok((masked, opened))
-}
-
-fn identifier_record(record: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
-    let mut document = record.clone();
-    let (encrypter, _) = sealing_keys()?;
-    reseal_in_place(&mut document, &encrypter)?;
-    Ok(serde_json::to_vec(&document)?)
-}
-
-fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Box<dyn Error>> {
-    match document {
-        Value::Object(fields) => {
-            if let Some(Value::String(opens_to)) = fields.get("sxlt_opens_to").cloned() {
-                let sealed = encrypter
-                    .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-                    .qb64()?;
-                fields.remove("sxlt_opens_to");
-                fields.insert("sxlt".to_owned(), Value::String(sealed));
-            }
-            for value in fields.values_mut() {
-                reseal_in_place(value, encrypter)?;
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                reseal_in_place(item, encrypter)?;
-            }
-        }
-        _ => {}
-    }
-    Ok(())
 }
 
 // --- Manifest and provenance ---
@@ -428,9 +326,9 @@ fn a_listing_addresses_the_recorded_path() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "list")?;
     let answer = serde_json::to_vec(&call(&fixture, "list")?.result)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let registries = block_on(client.registries().list("issuer"))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, "/identifiers/issuer/registries");
     assert_eq!(method, "GET");
@@ -453,11 +351,11 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
         "/identifiers/a/b/registries/c/d"
     );
 
-    let (client, transport) = connected(&[b"[]", b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]", b"{}"])?;
     let _ = block_on(client.registries().list("a/b"));
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/a%2Fb/registries");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/a%2Fb/registries");
     let _ = block_on(client.registries().rename("a/b", "c/d", "new"));
-    assert_eq!(sent(&transport, 1)?.0, "/identifiers/a%2Fb/registries/c%2Fd");
+    assert_eq!(sent(&transport, 1)?.path, "/identifiers/a%2Fb/registries/c%2Fd");
     Ok(())
 }
 
@@ -465,19 +363,19 @@ fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>>
 fn a_default_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "create_default")?;
-    let record = identifier_record(&fixture.identifier_records.ordinary)?;
+    let record = reseal(&fixture.identifier_records.ordinary, PASSCODE)?;
 
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let request = CreateRegistryRequest::new("issuer", "vLEI").with_nonce(&fixture.provenance.nonce);
     let created = block_on(client.registries().create(&request))?;
 
     assert_eq!(call(&fixture, "create_default")?.requests, 2);
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/issuer");
-    let (path, method, body) = sent(&transport, 1)?;
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/issuer");
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, "POST");
 
-    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
+    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?, PASSCODE)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
@@ -492,9 +390,9 @@ fn a_default_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error
 fn a_backed_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "create_with_backers")?;
-    let record = identifier_record(&fixture.identifier_records.ordinary)?;
+    let record = reseal(&fixture.identifier_records.ordinary, PASSCODE)?;
 
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let request = CreateRegistryRequest::new("issuer", "backed")
         .with_backing(RegistryBacking::Backers {
             backers: fixture.provenance.backers.clone(),
@@ -503,10 +401,10 @@ fn a_backed_creation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>
         .with_nonce(&fixture.provenance.nonce);
     let _ = block_on(client.registries().create(&request))?;
 
-    let (path, method, body) = sent(&transport, 1)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
-    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
+    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?, PASSCODE)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
@@ -532,15 +430,15 @@ fn a_generated_nonce_has_the_recorded_shape() -> Result<(), Box<dyn Error>> {
     assert_ne!(shape.note, "");
     assert_eq!(shape.vcp_fields, ["v", "t", "d", "i", "ii", "s", "c", "bt", "b", "n"]);
 
-    let record = identifier_record(&fixture.identifier_records.ordinary)?;
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let record = reseal(&fixture.identifier_records.ordinary, PASSCODE)?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let created = block_on(
         client
             .registries()
             .create(&CreateRegistryRequest::new("issuer", "generated")),
     )?;
 
-    let (_, _, body) = sent(&transport, 1)?;
+    let SentRequest { body, .. } = sent(&transport, 1)?;
     let document: Value = serde_json::from_str(&body.unwrap_or_default())?;
     let fields = document.as_object().ok_or("the body is not an object")?;
     assert_eq!(
@@ -581,8 +479,8 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_built() -> Result<
     assert_eq!(recorded.requests_made, 1);
     assert_ne!(recorded.note, "");
 
-    let record = identifier_record(&fixture.identifier_records.establishment_only)?;
-    let (client, transport) = connected(&[&record])?;
+    let record = reseal(&fixture.identifier_records.establishment_only, PASSCODE)?;
+    let Harness { client, transport, .. } = connected(&[&record])?;
     let outcome = block_on(
         client
             .registries()
@@ -593,7 +491,7 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_built() -> Result<
         "an establishment-only issuer was not refused: {outcome:?}"
     );
     assert_eq!(transport.requests().len(), 3);
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/estonly");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/estonly");
     Ok(())
 }
 
@@ -603,9 +501,9 @@ fn a_rename_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "rename")?;
     let answer = serde_json::to_vec(&call(&fixture, "rename")?.result)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let registry = block_on(client.registries().rename("issuer", "vLEI", "renamed"))?;
-    let (path, method, body) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, "/identifiers/issuer/registries/vLEI");
     assert_eq!(method, "PUT");
@@ -622,9 +520,9 @@ fn a_creation_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Er
     let operation = serde_json::from_slice::<Value>(&answer);
     assert!(operation.is_ok());
 
-    let record = identifier_record(&fixture.identifier_records.ordinary)?;
+    let record = reseal(&fixture.identifier_records.ordinary, PASSCODE)?;
     let registry_operation = br#"{"name":"registry.EREG","metadata":{"pre":"EISS","depends":{"name":"witness.EISS.1","metadata":{"pre":"EISS","sn":1},"done":false},"anchor":{"i":"EISS","s":"1","d":"EANCHOR"}},"done":false}"#;
-    let (client, _) = connected(&[&record, registry_operation])?;
+    let Harness { client, .. } = connected(&[&record, registry_operation])?;
     let created = block_on(
         client
             .registries()

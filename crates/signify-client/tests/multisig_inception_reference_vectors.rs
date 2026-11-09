@@ -14,10 +14,6 @@ use signify_client::endpoint::exchanges::{ClassifiedExchange, MultisigRoute};
 use signify_client::multisig::{INCEPTION_ROUTE, INCEPTION_SLOT};
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-multisig-inception/v1.json"
-));
 
 const LOCAL: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const PEER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
@@ -81,7 +77,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-multisig-inception")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -392,88 +388,23 @@ mod driven {
 
     use std::error::Error;
 
-    use std::sync::Arc;
-
-    use keri_cesr::crypto::cipher::Encrypter;
-    use keri_cesr::crypto::salt::{Salt, SecurityTier};
     use serde_json::Value;
-    use signify_client::client::{ConnectedClient, SignifyClient};
-    use signify_client::config::ClientConfig;
+
     use signify_client::error::ClientError;
     use signify_client::multisig::GroupInceptionRequest;
 
-    use keri_cesr::crypto::verifier::KeyTransferability;
-
-    use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+    use crate::support::{Harness, PASSCODE, SentRequest, block_on, connected, prefix, reseal, sent_all};
     use keri_protocol::event::Timestamp;
     use keri_protocol::prefix::IdentifierPrefix;
     use keri_protocol::threshold::SigningThreshold;
-    use signify_http::transport::Transport;
-    use signify_keys::manager::DerivationCost;
 
     const ALIAS: &str = "member1";
     const GROUP_NAME: &str = "multisig";
     const THIRD: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
     const STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 
-    fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-        let configuration = || {
-            ClientConfig::new(ADMIN, PASSCODE)
-                .and_then(|config| config.with_boot_url(BOOT))
-                .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-        };
-        let probe = SignifyClient::new(
-            configuration()?,
-            AgentTransport::new(&[]) as Arc<dyn Transport>,
-            clock(),
-        )?;
-        let prefix = probe.controller().prefix().qb64()?;
-        let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-        let state = agent_state(&prefix, &inception);
-        let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-        answers.extend_from_slice(bodies);
-        let transport = AgentTransport::new(&answers);
-
-        let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-        Ok((block_on(client.connect())?, transport))
-    }
-
-    type SentRequest = (String, String, Option<String>);
-
-    fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
-        transport
-            .requests()
-            .into_iter()
-            .skip(2)
-            .map(|request| Ok((request.resource(), request.method().to_owned(), request.body_text())))
-            .collect()
-    }
-
-    fn sealing_key() -> Result<Encrypter, Box<dyn Error>> {
-        let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
-        let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
-        Ok(Encrypter::from_verification_key(signer.verifier())?)
-    }
-
     fn identifier_record(fixture: &Fixture) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut record = fixture.identifier_record.clone();
-        let opens_to = record
-            .get("salty")
-            .and_then(|salty| salty.get("sxlt_opens_to"))
-            .and_then(Value::as_str)
-            .ok_or("the recorded member carries no sealed salt")?
-            .to_owned();
-        let sealed = sealing_key()?
-            .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-            .qb64()?;
-        let salty = record
-            .get_mut("salty")
-            .and_then(Value::as_object_mut)
-            .ok_or("the recorded member has no key-manager block")?;
-        salty.remove("sxlt_opens_to");
-        salty.insert("sxlt".to_owned(), Value::String(sealed));
-        Ok(serde_json::to_vec(&record)?)
+        reseal(&fixture.identifier_record, PASSCODE)
     }
 
     fn key_state(fixture: &Fixture, member: &str) -> Result<Vec<u8>, Box<dyn Error>> {
@@ -482,10 +413,6 @@ mod driven {
             .get(member)
             .ok_or("the fixture records no key state for this member")?;
         Ok(serde_json::to_vec(&Value::Array(vec![state.clone()]))?)
-    }
-
-    fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
-        Ok(IdentifierPrefix::from_qb64(text)?)
     }
 
     fn witnesses(fixture: &Fixture) -> Result<Vec<IdentifierPrefix>, Box<dyn Error>> {
@@ -547,7 +474,7 @@ mod driven {
     fn a_proposal_derives_the_group_the_reference_derived() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let answers = answers(&fixture)?;
-        let (client, transport) = connected(&answers.scripted())?;
+        let Harness { client, transport, .. } = connected(&answers.scripted())?;
 
         let participants = [prefix(LOCAL)?, prefix(PEER)?];
         let witnesses = witnesses(&fixture)?;
@@ -560,12 +487,12 @@ mod driven {
         assert_eq!(proposal.group().qb64()?, fixture.pinned_confirmations.group_prefix);
 
         let recorded = recorded_body(&fixture, "start_multisig_incept", "/identifiers")?;
-        let sent = sent(&transport)?;
+        let sent = sent_all(&transport)?;
         let creation = sent
             .iter()
-            .find(|(path, _, _)| path == "/identifiers")
+            .find(|SentRequest { path, .. }| path == "/identifiers")
             .ok_or("this port created nothing")?;
-        let body: Value = serde_json::from_str(creation.2.as_deref().ok_or("no body")?)?;
+        let body: Value = serde_json::from_str(creation.body.as_deref().ok_or("no body")?)?;
         assert_eq!(body.get("icp"), recorded.get("icp"));
         assert_eq!(body.get("name"), recorded.get("name"));
         assert_eq!(body.get("smids"), recorded.get("smids"));
@@ -577,7 +504,7 @@ mod driven {
     fn a_proposal_reads_and_writes_what_the_reference_read_and_wrote() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let answers = answers(&fixture)?;
-        let (client, transport) = connected(&answers.scripted())?;
+        let Harness { client, transport, .. } = connected(&answers.scripted())?;
 
         let participants = [prefix(LOCAL)?, prefix(PEER)?];
         let witnesses = witnesses(&fixture)?;
@@ -587,9 +514,9 @@ mod driven {
                 .propose_inception(&scenario(&participants, &witnesses)?),
         )?;
 
-        let addresses: Vec<String> = sent(&transport)?
+        let addresses: Vec<String> = sent_all(&transport)?
             .iter()
-            .map(|(path, method, _)| format!("{method} {path}"))
+            .map(|SentRequest { path, method, .. }| format!("{method} {path}"))
             .collect();
 
         assert_eq!(
@@ -621,7 +548,7 @@ mod driven {
     fn a_proposal_is_addressed_to_a_peer_where_the_reference_addresses_itself() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let answers = answers(&fixture)?;
-        let (client, transport) = connected(&answers.scripted())?;
+        let Harness { client, transport, .. } = connected(&answers.scripted())?;
 
         let participants = [prefix(LOCAL)?, prefix(PEER)?];
         let witnesses = witnesses(&fixture)?;
@@ -631,12 +558,12 @@ mod driven {
                 .propose_inception(&scenario(&participants, &witnesses)?),
         )?;
 
-        let sent = sent(&transport)?;
+        let sent = sent_all(&transport)?;
         let submission = sent
             .iter()
-            .find(|(path, _, _)| path.ends_with("/exchanges"))
+            .find(|SentRequest { path, .. }| path.ends_with("/exchanges"))
             .ok_or("this port proposed nothing")?;
-        let body: Value = serde_json::from_str(submission.2.as_deref().ok_or("no body")?)?;
+        let body: Value = serde_json::from_str(submission.body.as_deref().ok_or("no body")?)?;
         let recorded = recorded_body(&fixture, "start_multisig_incept", "/identifiers/member1/exchanges")?;
 
         assert_eq!(
@@ -687,7 +614,7 @@ mod driven {
     fn a_member_that_is_not_a_participant_is_refused_before_anything_is_created() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let answers = answers(&fixture)?;
-        let (client, transport) = connected(&answers.scripted())?;
+        let Harness { client, transport, .. } = connected(&answers.scripted())?;
 
         let participants = [prefix(PEER)?, prefix(THIRD)?];
         let witnesses = witnesses(&fixture)?;
@@ -701,7 +628,7 @@ mod driven {
         );
         assert!(refused, "a group the proposer is not in was accepted");
 
-        assert_eq!(sent(&transport)?.len(), 1);
+        assert_eq!(sent_all(&transport)?.len(), 1);
         Ok(())
     }
 
@@ -709,7 +636,7 @@ mod driven {
     fn a_group_of_one_is_refused() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let answers = answers(&fixture)?;
-        let (client, transport) = connected(&answers.scripted())?;
+        let Harness { client, transport, .. } = connected(&answers.scripted())?;
 
         let participants = [prefix(LOCAL)?];
         let witnesses = witnesses(&fixture)?;
@@ -722,7 +649,7 @@ mod driven {
             Err(ClientError::LonelyGroup)
         );
         assert!(refused, "a group of one was accepted");
-        assert_eq!(sent(&transport)?.len(), 1);
+        assert_eq!(sent_all(&transport)?.len(), 1);
         Ok(())
     }
 }

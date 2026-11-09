@@ -4,10 +4,13 @@
 //! window's exact edge, a timestamp at the epoch and at the last year the format can hold, and a
 //! request whose method and path vary independently of what a signature covers.
 
+mod support;
+
 use core::time::Duration;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+use crate::support::{block_on, fail, method_of};
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
@@ -21,32 +24,12 @@ use signify_http::signature::timestamp::{MAX_YEAR, SignifyTimestamp, TIMESTAMP_W
 use signify_http::signature::transport::{
     Freshness, ResponseAuthenticationError, ResponseAuthenticator, SigningTransport,
 };
-use signify_http::transport::{Method, Request, RequestUrl, ScriptedTransport, Transport, TransportError};
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn method_of(index: usize) -> Method {
-    *Method::ALL.get(index % Method::ALL.len()).unwrap_or(&Method::Get)
-}
+use signify_http::transport::{Request, RequestUrl, ScriptedTransport, Transport, TransportError};
 
 const RESOURCE: &str = "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose";
 
 /// The last instant the four-digit year can hold, in milliseconds.
 const LATEST_MILLIS: u64 = 253_402_300_799_000;
-
-/// A minimal executor; every future on this path is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
 
 /// Builds a signing transport over a scripted answer at a fixed clock.
 fn signing_transport(at_millis: u64) -> Result<(SigningTransport, Arc<TestClock>), TestCaseError> {

@@ -2,10 +2,13 @@
 //!
 //! What a member reads is what it uses and what it tells the others; a proposal decodes or is refused.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::{classify, prefix};
 use keri_protocol::prefix::IdentifierPrefix;
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
+use keria_types::api::{ExchangeEmbed, KeyEvent};
 use proptest::prelude::*;
 use signify_client::endpoint::exchanges::{
     ClassifiedExchange, GROUP_LABEL, MultisigRoute, ROTATION_MEMBERS_LABEL, SIGNING_MEMBERS_LABEL,
@@ -19,10 +22,6 @@ const FOURTH: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const GROUP: &str = "EISBcwQkfNCtFc-9k1IiB7neavhY4ZoQ0IRf-Rcev5Tk";
 
 const MEMBERS: [&str; 4] = [LOCAL, PEER, THIRD, FOURTH];
-
-fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    Ok(IdentifierPrefix::from_qb64(text)?)
-}
 
 fn members() -> impl Strategy<Value = Vec<String>> {
     proptest::collection::vec(prop::sample::select(MEMBERS.to_vec()), 1..5).prop_map(|chosen| {
@@ -62,12 +61,6 @@ fn proposal(signing: &[String], rotation: &[String], witness_threshold: &str, wi
         rotation = quoted(rotation)
     );
     format!(r#"[{{"exn":{exn},"paths":{{}},"groupName":"multisig","memberName":"member1","sender":"{LOCAL}"}}]"#)
-}
-
-fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
-    let listing: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
-    let entry = listing.first().ok_or("empty listing")?;
-    Ok(ClassifiedExchange::try_from(entry)?)
 }
 
 fn embedded_threshold(classified: &ClassifiedExchange) -> Result<String, TestCaseError> {

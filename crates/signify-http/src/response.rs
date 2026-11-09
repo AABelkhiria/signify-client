@@ -480,6 +480,7 @@ mod tests {
     use super::*;
     use crate::header::{HeaderName, HeaderValue};
     use crate::request::MediaType;
+    use crate::test_support::displays_and_sources;
     use crate::transport::RequestUrl;
     use std::error::Error;
 
@@ -770,11 +771,7 @@ mod tests {
             ),
         ];
         for (error, fragments, has_source) in cases {
-            let rendered = error.to_string();
-            for fragment in fragments {
-                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
-            }
-            assert_eq!(error.source().is_some(), has_source, "{error}");
+            displays_and_sources(&error, fragments, has_source);
         }
         Ok(())
     }

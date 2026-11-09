@@ -8,11 +8,14 @@
 //! this purpose — the default is jittered, because the reference's fixed schedule is a defect this
 //! crate does not inherit.
 
+mod support;
+
 use core::time::Duration;
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::support::block_on;
 use serde::Deserialize;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{
@@ -554,18 +557,5 @@ impl RetryObserver for GiveUpRecorder {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .push(event.clone());
-    }
-}
-
-/// A minimal executor; every future reachable from a scripted transport and a test clock is ready
-/// on its first poll, so no runtime is needed and no wall-clock time passes.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
     }
 }

@@ -12,10 +12,6 @@ use serde_json::Value;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-passcode-rotation/v1.json"
-));
 
 // --- Fixture model ---
 #[derive(Debug, Deserialize)]
@@ -105,7 +101,7 @@ struct SealedValue {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-passcode-rotation")
 }
 
 fn quirk<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Value, Box<dyn Error>> {
@@ -215,34 +211,13 @@ mod driven {
     use signify_http::signature::authentication::ResponseVerifier;
     use signify_http::signature::input::RequestTarget;
 
-    use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, agent_state, block_on, clock};
+    use crate::support::{
+        ADMIN, AGENT, AgentTransport, BOOT, Connection, Harness, agent_state, block_on, clock, connected_with,
+    };
     use keri_protocol::prefix::IdentifierPrefix;
     use keria_types::api::AcceptedHab;
     use signify_http::transport::Transport;
     use signify_keys::manager::{DerivationCost, KeyIndices, SaltyKeyCreator, Stem};
-
-    fn connected(passcode: &str, bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-        let configuration = || {
-            ClientConfig::new(ADMIN, passcode)
-                .and_then(|config| config.with_boot_url(BOOT))
-                .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-        };
-        let probe = SignifyClient::new(
-            configuration()?,
-            AgentTransport::new(&[]) as Arc<dyn Transport>,
-            clock(),
-        )?;
-        let prefix = probe.controller().prefix().qb64()?;
-        let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-        let state = agent_state(&prefix, &inception);
-        let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-        answers.extend_from_slice(bodies);
-        let transport = AgentTransport::new(&answers);
-
-        let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-        Ok((block_on(client.connect())?, transport))
-    }
 
     fn encryption(passcode: &str) -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
         let salt = Salt::from_qb64(&format!("0AA{passcode}"), SecurityTier::Low)?;
@@ -329,7 +304,15 @@ mod driven {
     fn the_rotation_reaches_the_agent_in_the_reference_shape() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let (encrypter, _) = encryption(&fixture.provenance.passcode)?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         let records = identifiers(&fixture, &encrypter)?;
 
         let new_passcode = Passcode::new(fixture.provenance.second_passcode.clone())?;
@@ -393,7 +376,15 @@ mod driven {
     fn the_rotation_follows_the_log_and_is_signed_with_the_key_it_introduces() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let (encrypter, _) = encryption(&fixture.provenance.passcode)?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         let records = identifiers(&fixture, &encrypter)?;
 
         // Connecting approved the delegation, so the log is at the interaction, sequence one.
@@ -438,7 +429,15 @@ mod driven {
     #[test]
     fn a_rotated_client_signs_what_it_sends_next_with_its_new_key() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}", b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}", b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         let new_passcode = Passcode::new(fixture.provenance.second_passcode.clone())?;
         block_on(client.rotate_passcode(&new_passcode, &[]))?;
         let rotation = sent_rotation(&transport)?;
@@ -458,7 +457,15 @@ mod driven {
     #[test]
     fn a_second_rotation_chains_on_the_first() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}", b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}", b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
 
         block_on(client.rotate_passcode(&Passcode::new(fixture.provenance.second_passcode.clone())?, &[]))?;
         let first = sent_rotation(&transport)?;
@@ -496,7 +503,13 @@ mod driven {
     /// establishment event, from the event's own bytes — a JSON value would re-sort its labels and
     /// lose the version-first order a KERI event requires.
     fn rotated(fixture: &Fixture) -> Result<(ConnectedClient, String, String), Box<dyn Error>> {
-        let (mut client, _) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        let Harness { mut client, .. } = connected_with(
+            &[b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         block_on(client.rotate_passcode(&Passcode::new(fixture.provenance.second_passcode.clone())?, &[]))?;
         let prefix = client.controller().prefix().qb64()?;
         let raw = core::str::from_utf8(client.controller().current_event().raw())?.to_owned();
@@ -623,7 +636,13 @@ mod driven {
     #[test]
     fn connecting_records_the_controller_prefix() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
-        let (client, _) = connected(&fixture.provenance.passcode, &[])?;
+        let Harness { client, .. } = connected_with(
+            &[],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         assert_eq!(
             client
                 .config()
@@ -640,7 +659,15 @@ mod driven {
         let fixture = fixture()?;
         let (encrypter, old_decrypter) = encryption(&fixture.provenance.passcode)?;
         let (_, new_decrypter) = encryption(&fixture.provenance.second_passcode)?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         let records = identifiers(&fixture, &encrypter)?;
 
         let new_passcode = Passcode::new(fixture.provenance.second_passcode.clone())?;
@@ -684,7 +711,15 @@ mod driven {
     fn a_refused_rotation_leaves_the_client_untouched() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let (encrypter, _) = encryption(&fixture.provenance.passcode)?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}", b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}", b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         let records = identifiers(&fixture, &encrypter)?;
         let before = client.controller().current_keys().to_vec();
         let passcode_before = client.config().passcode().expose().to_owned();
@@ -706,7 +741,15 @@ mod driven {
     fn an_identifier_whose_keys_do_not_match_is_refused_before_anything_is_sent() -> Result<(), Box<dyn Error>> {
         let fixture = fixture()?;
         let (encrypter, _) = encryption(&fixture.provenance.passcode)?;
-        let (mut client, transport) = connected(&fixture.provenance.passcode, &[b"{}"])?;
+        let Harness {
+            mut client, transport, ..
+        } = connected_with(
+            &[b"{}"],
+            Connection {
+                passcode: &fixture.provenance.passcode,
+                ..Connection::default()
+            },
+        )?;
         let mut records = identifiers(&fixture, &encrypter)?;
         let Some(first) = records.first_mut() else {
             return Err("no records were built".into());

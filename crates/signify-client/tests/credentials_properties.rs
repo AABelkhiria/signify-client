@@ -5,9 +5,8 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
+use crate::support::{Harness, block_on, connected};
 
 use keri_acdc::credential::RegistryIdentifier;
 use keri_protocol::said::Said;
@@ -15,14 +14,10 @@ use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential as CredentialRecord;
 use proptest::prelude::*;
 use serde_json::{Value, json};
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::credentials::{CREDENTIALS_SEGMENT, CredentialFilter, DEFAULT_CREDENTIAL_LIMIT};
 use signify_client::endpoint::identifiers::IDENTIFIERS_SEGMENT;
 use signify_client::endpoint::registries::REGISTRIES_SEGMENT;
 use signify_http::request::ResourcePath;
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const CREDENTIAL: &str = "EMwcsEMUEruPXVwPCW7zmqmN8m0I3CihxolBm-RDrsJo";
 const REGISTRY: &str = "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df";
@@ -44,29 +39,6 @@ fn hostile_text() -> impl Strategy<Value = String> {
         Just("..".to_owned()),
         Just(String::new()),
     ]
-}
-
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
 }
 
 fn query_labels() -> impl Strategy<Value = String> {
@@ -261,7 +233,7 @@ proptest! {
 
     #[test]
     fn a_listing_never_carries_input_in_its_path(skip in any::<u32>(), limit in any::<u32>()) {
-        let (client, transport) = connected(&[b"[]"]).map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let Harness { client, transport, .. } = connected(&[b"[]"]).map_err(|error| TestCaseError::fail(error.to_string()))?;
         let filter = CredentialFilter::new().with_skip(skip).with_limit(limit);
         let listed = block_on(client.credentials().list(&filter))
             .map_err(|error| TestCaseError::fail(error.to_string()))?;

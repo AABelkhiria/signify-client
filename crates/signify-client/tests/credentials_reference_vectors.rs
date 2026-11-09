@@ -5,34 +5,23 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
 use crate::support::{
-    ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, as_keria_writes, block_on, clock,
+    ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, as_keria_writes, block_on, connected,
+    mask_sealed, reseal, sent,
 };
 use keri_acdc::credential::{Credential, CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use keri_cesr::crypto::cipher::{Ciphertext, Decrypter, Encrypter};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keri_protocol::serialization::{Sad, SadValue};
 use keria_types::api::Credential as CredentialRecord;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::credentials::{CredentialFilter, DEFAULT_CREDENTIAL_LIMIT};
 use signify_client::error::ClientError;
-use signify_http::transport::Transport;
 use signify_keys::acdc::revocation::RevocationEventBuilder;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-credentials/v1.json"
-));
 
 const FIXED_STAMP: &str = "2023-11-14T22:13:20.123000+00:00";
 
@@ -207,7 +196,7 @@ struct UnitTestAssertions {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-credentials")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -223,103 +212,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .request
         .as_ref()
         .ok_or_else(|| format!("call {name} recorded no request").into())
-}
-
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-type SentRequest = (String, String, Option<String>, Option<String>);
-
-fn sent(transport: &AgentTransport, index: usize) -> Result<SentRequest, Box<dyn Error>> {
-    let recorded = transport.requests();
-    let request = recorded.get(2 + index).ok_or("no endpoint request was sent")?;
-    let path = request.resource();
-    let body = request.body_text();
-    let accept = request.header("accept").map(ToOwned::to_owned);
-    Ok((path, request.method().to_owned(), body, accept))
-}
-
-fn sealing_keys() -> Result<(Encrypter, Decrypter), Box<dyn Error>> {
-    let salt = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?;
-    let signer = salt.derive_signer("", KeyTransferability::NonTransferable)?;
-    Ok((
-        Encrypter::from_verification_key(signer.verifier())?,
-        Decrypter::from_signer(&signer),
-    ))
-}
-
-fn mask_sealed(body: &str) -> Result<(String, Vec<String>), Box<dyn Error>> {
-    let (_, decrypter) = sealing_keys()?;
-    let mut masked = String::with_capacity(body.len());
-    let mut opened = Vec::new();
-    let mut rest = body;
-    while let Some(start) = rest.find(r#""sxlt":""#) {
-        let (head, tail) = rest.split_at(start.saturating_add(r#""sxlt":""#.len()));
-        masked.push_str(head);
-        let end = tail.find('"').ok_or("an unterminated sealed salt")?;
-        let (sealed, remainder) = tail.split_at(end);
-        opened.push(
-            decrypter
-                .decrypt_salt(&Ciphertext::from_qb64(sealed)?, SecurityTier::Low)?
-                .expose_qb64()?
-                .to_string(),
-        );
-        masked.push_str("<SXLT>");
-        rest = remainder;
-    }
-    masked.push_str(rest);
-    Ok((masked, opened))
-}
-
-fn identifier_record(record: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
-    let mut document = record.clone();
-    let (encrypter, _) = sealing_keys()?;
-    reseal_in_place(&mut document, &encrypter)?;
-    Ok(serde_json::to_vec(&document)?)
-}
-
-fn reseal_in_place(document: &mut Value, encrypter: &Encrypter) -> Result<(), Box<dyn Error>> {
-    match document {
-        Value::Object(fields) => {
-            if let Some(Value::String(opens_to)) = fields.get("sxlt_opens_to").cloned() {
-                let sealed = encrypter
-                    .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-                    .qb64()?;
-                fields.remove("sxlt_opens_to");
-                fields.insert("sxlt".to_owned(), Value::String(sealed));
-            }
-            for value in fields.values_mut() {
-                reseal_in_place(value, encrypter)?;
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                reseal_in_place(item, encrypter)?;
-            }
-        }
-        _ => {}
-    }
-    Ok(())
 }
 
 fn pinned_credential(stamp: &str) -> Result<Credential, Box<dyn Error>> {
@@ -477,9 +369,9 @@ fn an_unfiltered_listing_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "list_default")?;
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let listed = block_on(client.credentials().list(&CredentialFilter::new()))?;
-    let (path, method, body, _) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, "/credentials/query");
     assert_eq!(method, recorded.method);
@@ -508,9 +400,9 @@ fn the_pinned_filter_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>
         .with_skip(5)
         .with_limit(25);
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let _ = block_on(client.credentials().list(&filter))?;
-    let (path, method, body, _) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
     assert_eq!(body.as_deref(), recorded.body.as_deref());
@@ -526,9 +418,9 @@ fn a_partial_filter_still_sends_the_fields_it_was_not_given() -> Result<(), Box<
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "list_partial")?;
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let _ = block_on(client.credentials().list(&CredentialFilter::new().with_limit(1)))?;
-    let (_, _, body, _) = sent(&transport, 0)?;
+    let SentRequest { body, .. } = sent(&transport, 0)?;
     assert_eq!(body.as_deref(), recorded.body.as_deref());
     assert_eq!(body.as_deref(), Some(r#"{"filter":{},"sort":[],"skip":0,"limit":1}"#));
     Ok(())
@@ -540,9 +432,11 @@ fn a_json_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<()
     let recorded = request_of(&fixture, "get_json")?;
     let answer = serde_json::to_vec(&as_keria_writes(fixture.mock_records.well_formed_credential.clone())?)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let credential = block_on(client.credentials().get(&Said::from_qb64(SCHEMA)?))?;
-    let (path, method, body, accept) = sent(&transport, 0)?;
+    let request = sent(&transport, 0)?;
+    let accept = request.header("accept");
+    let SentRequest { path, method, body, .. } = request;
     assert_eq!(path, recorded.path);
     assert_eq!(path, format!("/credentials/{SCHEMA}"));
     assert_eq!(method, "GET");
@@ -563,9 +457,11 @@ fn a_cesr_read_declares_the_other_media_type_and_returns_text() -> Result<(), Bo
     let recorded = request_of(&fixture, "get_cesr")?;
     let answer = serde_json::to_vec(&fixture.mock_records.well_formed_credential)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let stream = block_on(client.credentials().get_cesr(&Said::from_qb64(SCHEMA)?))?;
-    let (path, method, _, accept) = sent(&transport, 0)?;
+    let request = sent(&transport, 0)?;
+    let accept = request.header("accept");
+    let SentRequest { path, method, .. } = request;
     assert_eq!(path, recorded.path);
     assert_eq!(method, "GET");
     assert_eq!(accept.as_deref(), recorded.accept.as_deref());
@@ -577,7 +473,7 @@ fn a_cesr_read_declares_the_other_media_type_and_returns_text() -> Result<(), Bo
 
 #[test]
 fn a_cesr_answer_that_is_not_utf8_is_refused_rather_than_repaired() -> Result<(), Box<dyn Error>> {
-    let (client, _) = connected(&[b"-VAS\xff\xfeGAB"])?;
+    let Harness { client, .. } = connected(&[b"-VAS\xff\xfeGAB"])?;
     let outcome = block_on(client.credentials().get_cesr(&Said::from_qb64(CREDENTIAL)?));
     assert!(
         matches!(outcome, Err(ClientError::Decode { .. })),
@@ -615,7 +511,7 @@ fn the_references_own_mock_credential_is_refused() -> Result<(), Box<dyn Error>>
         "the reference's own mock decoded as a credential record"
     );
 
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let outcome = block_on(client.credentials().get(&Said::from_qb64(CREDENTIAL)?));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
@@ -630,9 +526,9 @@ fn a_delete_addresses_the_recorded_path_and_sends_no_body() -> Result<(), Box<dy
     let recorded = request_of(&fixture, "delete")?;
     assert_eq!(recorded.body, None);
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     block_on(client.credentials().delete(&Said::from_qb64(CREDENTIAL)?))?;
-    let (path, method, body, _) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, format!("/credentials/{CREDENTIAL}"));
     assert_eq!(method, "DELETE");
@@ -646,12 +542,12 @@ fn a_state_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<(
     let recorded = request_of(&fixture, "state")?;
     let answer = serde_json::to_vec(&as_keria_writes(call(&fixture, "state")?.answer.clone())?)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let state = block_on(client.credentials().state(
         &RegistryIdentifier::from_qb64(CREDENTIAL_REGISTRY)?,
         &Said::from_qb64(CREDENTIAL)?,
     ))?;
-    let (path, method, body, _) = sent(&transport, 0)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, format!("/registries/{CREDENTIAL_REGISTRY}/{CREDENTIAL}"));
     assert_eq!(method, "GET");
@@ -668,10 +564,10 @@ fn a_state_read_addresses_the_recorded_path_and_decodes_its_answer() -> Result<(
 fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "issue_pinned")?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
     let operation = serde_json::to_vec(&call(&fixture, "issue_pinned")?.answer)?;
 
-    let (client, transport) = connected(&[&record, &operation])?;
+    let Harness { client, transport, .. } = connected(&[&record, &operation])?;
     let issued = block_on(
         client
             .credentials()
@@ -679,13 +575,13 @@ fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
     )?;
 
     assert_eq!(call(&fixture, "issue_pinned")?.requests, 2);
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
-    let (path, method, body, _) = sent(&transport, 1)?;
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/aid1");
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, "/identifiers/aid1/credentials");
     assert_eq!(method, "POST");
 
-    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
+    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?, PASSCODE)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
@@ -744,10 +640,10 @@ fn the_pinned_issuance_reproduces_the_recorded_body() -> Result<(), Box<dyn Erro
 #[test]
 fn the_issuance_answer_decodes_into_the_typed_operation() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
     let operation = serde_json::to_vec(&call(&fixture, "issue_pinned")?.answer)?;
 
-    let (client, _) = connected(&[&record, &operation])?;
+    let Harness { client, .. } = connected(&[&record, &operation])?;
     let issued = block_on(
         client
             .credentials()
@@ -792,15 +688,15 @@ fn a_credential_naming_another_issuer_is_refused_before_anything_is_signed() -> 
     )
     .build()?;
 
-    let record = identifier_record(&fixture.mock_records.identifier)?;
-    let (client, transport) = connected(&[&record])?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
+    let Harness { client, transport, .. } = connected(&[&record])?;
     let outcome = block_on(client.credentials().issue("aid1", credential));
     assert!(
         matches!(outcome, Err(ClientError::CredentialIssuerMismatch { .. })),
         "a mismatched issuer was accepted: {outcome:?}"
     );
     assert_eq!(transport.requests().len(), 3);
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/aid1");
     Ok(())
 }
 
@@ -819,14 +715,14 @@ fn an_issuance_addresses_the_callers_alias_rather_than_the_agents() -> Result<()
     if let Some(fields) = record.as_object_mut() {
         fields.insert("name".to_owned(), Value::String(renamed.answered_with.clone()));
     }
-    let record = identifier_record(&record)?;
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let record = reseal(&record, PASSCODE)?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let _ = block_on(
         client
             .credentials()
             .issue("aid1", pinned_credential(&fixture.provenance.stamp)?),
     )?;
-    assert_eq!(sent(&transport, 1)?.0, "/identifiers/aid1/credentials");
+    assert_eq!(sent(&transport, 1)?.path, "/identifiers/aid1/credentials");
     Ok(())
 }
 
@@ -838,8 +734,8 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_derived() -> Resul
     assert_eq!(recorded.requests_made, 1);
     assert_ne!(recorded.note, "");
 
-    let record = identifier_record(&fixture.mock_records.establishment_only)?;
-    let (client, transport) = connected(&[&record])?;
+    let record = reseal(&fixture.mock_records.establishment_only, PASSCODE)?;
+    let Harness { client, transport, .. } = connected(&[&record])?;
     let outcome = block_on(
         client
             .credentials()
@@ -857,7 +753,7 @@ fn an_establishment_only_issuer_is_refused_before_anything_is_derived() -> Resul
 fn the_pinned_revocation_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "revoke_pinned")?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
     let operation = serde_json::to_vec(&call(&fixture, "revoke_pinned")?.answer)?;
 
     let revocation = RevocationEventBuilder::new(
@@ -868,19 +764,19 @@ fn the_pinned_revocation_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
     )
     .build()?;
 
-    let (client, transport) = connected(&[&record, &operation])?;
+    let Harness { client, transport, .. } = connected(&[&record, &operation])?;
     let revoked = block_on(client.credentials().revoke("aid1", revocation))?;
 
     assert_eq!(call(&fixture, "revoke_pinned")?.requests, 3);
     assert_eq!(transport.requests().len(), 4);
-    assert_eq!(sent(&transport, 0)?.0, "/identifiers/aid1");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/aid1");
 
-    let (path, method, body, _) = sent(&transport, 1)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, format!("/identifiers/aid1/credentials/{CREDENTIAL}"));
     assert_eq!(method, "DELETE");
 
-    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
+    let (masked, opened) = mask_sealed(body.as_deref().ok_or("no body was sent")?, PASSCODE)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert_eq!(opened, recorded.sxlt_opens_to);
 
@@ -903,7 +799,7 @@ fn the_pinned_revocation_reproduces_the_recorded_body() -> Result<(), Box<dyn Er
 fn the_revocation_the_pinned_unit_test_asserts_reproduces_field_for_field() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "revoke_unit_test_subject")?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
     let asserted = &fixture.pinned_confirmations.unit_test_assertions;
 
     let revocation = RevocationEventBuilder::new(
@@ -914,14 +810,14 @@ fn the_revocation_the_pinned_unit_test_asserts_reproduces_field_for_field() -> R
     )
     .build()?;
 
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let _ = block_on(client.credentials().revoke("aid1", revocation))?;
-    let (path, method, body, _) = sent(&transport, 1)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
     assert_eq!(path, asserted.revoke_path);
     assert_eq!(method, asserted.revoke_method);
 
-    let (masked, _) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
+    let (masked, _) = mask_sealed(body.as_deref().ok_or("no body was sent")?, PASSCODE)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
 
     let document: Value = serde_json::from_str(&masked)?;
@@ -955,7 +851,7 @@ fn the_revocation_the_pinned_unit_test_asserts_reproduces_field_for_field() -> R
 fn a_caller_supplied_revocation_timestamp_reproduces_the_recorded_body() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let recorded = request_of(&fixture, "revoke_with_datetime")?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
 
     let revocation = RevocationEventBuilder::new(
         Said::from_qb64(CREDENTIAL)?,
@@ -965,11 +861,11 @@ fn a_caller_supplied_revocation_timestamp_reproduces_the_recorded_body() -> Resu
     )
     .build()?;
 
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let _ = block_on(client.credentials().revoke("aid1", revocation))?;
-    let (path, _, body, _) = sent(&transport, 1)?;
+    let SentRequest { path, body, .. } = sent(&transport, 1)?;
     assert_eq!(path, recorded.path);
-    let (masked, _) = mask_sealed(body.as_deref().ok_or("no body was sent")?)?;
+    let (masked, _) = mask_sealed(body.as_deref().ok_or("no body was sent")?, PASSCODE)?;
     assert_eq!(masked, recorded.body.clone().unwrap_or_default());
     assert!(masked.contains(r#""dt":"2023-08-23T15:16:07.553000+00:00""#));
     Ok(())
@@ -993,7 +889,7 @@ fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>
             .is_some_and(|sad| !sad.contains_key("ri") && !sad.contains_key("rd"))
     );
 
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
     let revocation = RevocationEventBuilder::new(
         Said::from_qb64(CREDENTIAL)?,
         RegistryIdentifier::from_qb64(CREDENTIAL_REGISTRY)?,
@@ -1001,7 +897,7 @@ fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>
         fixture.provenance.stamp.parse()?,
     )
     .build()?;
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let revoked = block_on(client.credentials().revoke("aid1", revocation))?;
     assert_eq!(revoked.artifacts.revocation.registry().qb64()?, CREDENTIAL_REGISTRY);
     assert_eq!(transport.requests().len(), 4);
@@ -1011,7 +907,7 @@ fn a_revocation_needs_no_credential_lookup_at_all() -> Result<(), Box<dyn Error>
 #[test]
 fn a_revocation_answer_decodes_as_an_untyped_operation() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
     let operation = serde_json::to_vec(&call(&fixture, "revoke_pinned")?.answer)?;
 
     let revocation = RevocationEventBuilder::new(
@@ -1021,7 +917,7 @@ fn a_revocation_answer_decodes_as_an_untyped_operation() -> Result<(), Box<dyn E
         fixture.provenance.stamp.parse()?,
     )
     .build()?;
-    let (client, _) = connected(&[&record, &operation])?;
+    let Harness { client, .. } = connected(&[&record, &operation])?;
     let revoked = block_on(client.credentials().revoke("aid1", revocation))?;
 
     let untyped = revoked.operation()?;
@@ -1034,7 +930,7 @@ fn a_revocation_answer_decodes_as_an_untyped_operation() -> Result<(), Box<dyn E
 #[test]
 fn an_establishment_only_identifier_cannot_revoke_either() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    let record = identifier_record(&fixture.mock_records.establishment_only)?;
+    let record = reseal(&fixture.mock_records.establishment_only, PASSCODE)?;
     let revocation = RevocationEventBuilder::new(
         Said::from_qb64(CREDENTIAL)?,
         RegistryIdentifier::from_qb64(CREDENTIAL_REGISTRY)?,
@@ -1042,7 +938,7 @@ fn an_establishment_only_identifier_cannot_revoke_either() -> Result<(), Box<dyn
         fixture.provenance.stamp.parse()?,
     )
     .build()?;
-    let (client, transport) = connected(&[&record])?;
+    let Harness { client, transport, .. } = connected(&[&record])?;
     let outcome = block_on(client.credentials().revoke("estonly", revocation));
     assert!(
         matches!(outcome, Err(ClientError::EstablishmentOnlyIssuer { .. })),
@@ -1056,13 +952,13 @@ fn an_establishment_only_identifier_cannot_revoke_either() -> Result<(), Box<dyn
 #[test]
 fn an_alias_can_never_leave_its_own_path_segment() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
-    let record = identifier_record(&fixture.mock_records.identifier)?;
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let record = reseal(&fixture.mock_records.identifier, PASSCODE)?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let _ = block_on(
         client
             .credentials()
             .issue("a/b", pinned_credential(&fixture.provenance.stamp)?),
     )?;
-    assert_eq!(sent(&transport, 1)?.0, "/identifiers/a%2Fb/credentials");
+    assert_eq!(sent(&transport, 1)?.path, "/identifiers/a%2Fb/credentials");
     Ok(())
 }

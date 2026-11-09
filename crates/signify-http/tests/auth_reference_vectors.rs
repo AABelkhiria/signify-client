@@ -10,11 +10,14 @@
 //! material the reference derives from its own published passcode — so the same key can sign here
 //! and the resulting headers compared character for character.
 
+mod support;
+
 use core::time::Duration;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+use crate::support::block_on;
 use keri_cesr::crypto::signer::Signer;
 use keri_cesr::crypto::verifier::KeyTransferability;
 use serde::Deserialize;
@@ -204,18 +207,6 @@ fn find<'cases>(cases: &'cases [RequestCase], name: &str) -> Result<&'cases Requ
         .iter()
         .find(|case| case.name == name)
         .ok_or_else(|| format!("fixture has no request named {name}").into())
-}
-
-/// A minimal executor; every future on this path is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------

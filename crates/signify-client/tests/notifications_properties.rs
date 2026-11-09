@@ -2,8 +2,11 @@
 //!
 //! A window reaching a `Range` header cannot be a fraction or a reversed pair, and an identifier stays put.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::fail;
 use keria_types::api::Notification;
 use proptest::prelude::*;
 use serde_json::{Value, json};
@@ -12,10 +15,6 @@ use signify_http::request::{ItemRange, RangeUnit, ResourcePath};
 use signify_http::response::ContentRange;
 
 const NONCE: &str = "0AADChEYHyYtNDtCSVBXXmVs";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
 
 fn unit() -> Result<RangeUnit, TestCaseError> {
     RangeUnit::new(NOTIFICATION_RANGE_UNIT).map_err(fail)

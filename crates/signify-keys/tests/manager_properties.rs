@@ -5,7 +5,10 @@
 //! machine under test do not depend on the profile, and the cross-language vectors cover the
 //! production one.
 
-use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
+mod support;
+
+use crate::support::{CRYPT_SEED, fail, salt, transferability};
+use keri_cesr::crypto::salt::{KeyDerivationProfile, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use proptest::prelude::*;
@@ -14,16 +17,6 @@ use signify_keys::manager::{
     ManagedSignatures, ManagerError, RetiredKeyPolicy, RotationKey, RotationRequest, SaltyKeyCreator, SignatureForm,
     Stem, salt_from_passcode,
 };
-
-/// The encryption seed the pinned unit test uses.
-const CRYPT_SEED: [u8; 32] = [
-    104, 44, 35, 124, 138, 112, 34, 18, 196, 51, 116, 50, 166, 225, 24, 25, 240, 102, 50, 44, 121, 196, 194, 49, 64,
-    245, 64, 21, 46, 162, 26, 207,
-];
-
-fn salt() -> Result<Salt, ManagerError> {
-    Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-}
 
 fn seed() -> Result<Signer, ManagerError> {
     Ok(Signer::from_seed(&CRYPT_SEED, KeyTransferability::NonTransferable)?)
@@ -55,11 +48,7 @@ proptest! {
         let salt = salt()?;
         let creator = SaltyKeyCreator::new(&salt, Stem::new(stem)?);
         let indices = KeyIndices::new(prefix, rotation, key);
-        let transferability = if transferable {
-            KeyTransferability::Transferable
-        } else {
-            KeyTransferability::NonTransferable
-        };
+        let transferability = transferability(transferable);
 
         let first = creator.create(count, transferability, indices, KeyDerivationProfile::Temporary)?;
         let second = creator.create(count, transferability, indices, KeyDerivationProfile::Temporary)?;
@@ -136,11 +125,7 @@ proptest! {
             current_keys: current,
             next_keys: next,
             stem: Stem::new(stem)?,
-            transferability: if transferable {
-                KeyTransferability::Transferable
-            } else {
-                KeyTransferability::NonTransferable
-            },
+            transferability: transferability(transferable),
             ..temporary()
         })?;
 
@@ -221,7 +206,7 @@ proptest! {
             .iter()
             .map(keri_cesr::crypto::verifier::VerificationKey::qb64)
             .collect::<Result<_, _>>()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
 
         for form in [SignatureForm::IndexedByPosition, SignatureForm::Unindexed] {
             let signatures = manager.sign(&payload, &public_keys, &form)?;

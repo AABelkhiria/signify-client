@@ -5,24 +5,18 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use crate::support::{ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, sent};
 use keri_protocol::event::reply::ReplyBuilder;
 use keri_protocol::event::timestamp::Timestamp;
 use keri_protocol::serialization::{Sad, SadValue};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::escrows::{ESCROWS_SEGMENT, PRESENTATION_REQUEST_ROUTE, REPLY_SEGMENT, ROUTE_PARAMETER};
 use signify_client::error::ClientError;
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-escrows/v1.json"));
 
 // --- Fixture model ---
 #[derive(Debug, Deserialize)]
@@ -137,7 +131,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-escrows")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -148,42 +142,11 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .ok_or_else(|| format!("no recorded call {name}").into())
 }
 
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport) -> Result<SentRequest, Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.first().ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
-
-type SentRequest = (String, String, Option<String>);
-
 type DrivenListing = (SentRequest, Result<Vec<Value>, ClientError>);
 
 fn drive(recorded: &Call) -> Result<DrivenListing, Box<dyn Error>> {
     let answer = serde_json::to_vec(&recorded.answer)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let outcome = block_on(client.escrows().list_replies(recorded.route()));
     let listing = outcome.map(|replies| {
         replies
@@ -191,7 +154,7 @@ fn drive(recorded: &Call) -> Result<DrivenListing, Box<dyn Error>> {
             .filter_map(|reply| serde_json::to_value(reply).ok())
             .collect::<Vec<Value>>()
     });
-    Ok((sent(&transport)?, listing))
+    Ok((sent(&transport, 0)?, listing))
 }
 
 // --- Manifest and provenance ---
@@ -342,7 +305,7 @@ fn keripy_corroborates_that_the_one_named_route_is_not_a_reply_route() -> Result
     );
 
     let recorded = call(&fixture, "pinned_route")?;
-    let ((path, _, _), _) = drive(recorded)?;
+    let (SentRequest { path, .. }, _) = drive(recorded)?;
     assert_eq!(path, "/escrows/rpy?route=%2Fpresentation%2Frequest");
     Ok(())
 }
@@ -367,7 +330,7 @@ fn the_pinned_url_and_method_are_produced() -> Result<(), Box<dyn Error>> {
     assert_ne!(confirmations.note, "");
 
     let recorded = call(&fixture, "pinned_route")?;
-    let ((path, method, body), _) = drive(recorded)?;
+    let (SentRequest { path, method, body, .. }, _) = drive(recorded)?;
     assert_eq!(&path, published);
     assert_eq!(method, "GET");
     assert_eq!(body, None);
@@ -404,7 +367,7 @@ fn every_recorded_request_reproduces_except_the_bare_question_mark() -> Result<(
     let mut reproduced = 0_usize;
     for recorded in &fixture.calls {
         let expected = recorded.request.as_ref().ok_or("no recorded request")?;
-        let ((path, method, body), _) = drive(recorded)?;
+        let (SentRequest { path, method, body, .. }, _) = drive(recorded)?;
         assert_eq!(method, expected.method, "call {}", recorded.name);
         assert_eq!(method, "GET");
         assert_eq!(body, None, "call {} sent a body", recorded.name);
@@ -436,7 +399,7 @@ fn a_route_reaches_the_query_encoded_exactly_once() -> Result<(), Box<dyn Error>
             recorded.request.as_ref().map(|request| request.path.as_str()),
             Some(expected)
         );
-        let ((path, _, _), _) = drive(recorded)?;
+        let (SentRequest { path, .. }, _) = drive(recorded)?;
         assert_eq!(path, expected, "call {name}");
         assert!(path.starts_with("/escrows/rpy?"));
         assert_eq!(path.matches('?').count(), 1);
@@ -455,12 +418,12 @@ fn an_empty_route_and_an_absent_one_are_two_requests() -> Result<(), Box<dyn Err
         empty.request.as_ref().map(|request| request.path.as_str()),
         Some("/escrows/rpy?route=")
     );
-    let ((path, _, _), _) = drive(empty)?;
+    let (SentRequest { path, .. }, _) = drive(empty)?;
     assert_eq!(path, "/escrows/rpy?route=");
 
     let absent = call(&fixture, "no_route")?;
     assert_eq!(absent.arguments, [] as [String; 0]);
-    let ((path, _, _), _) = drive(absent)?;
+    let (SentRequest { path, .. }, _) = drive(absent)?;
     assert_eq!(path, "/escrows/rpy");
     Ok(())
 }
@@ -551,7 +514,7 @@ fn a_wrong_ilk_answer_is_refused_where_the_reference_counts_it() -> Result<(), B
         Some("icp")
     );
 
-    let ((path, _, _), listing) = drive(recorded)?;
+    let (SentRequest { path, .. }, listing) = drive(recorded)?;
     assert!(
         matches!(listing, Err(ClientError::Api { .. })),
         "an inception event was accepted as an escrowed reply: {listing:?}"

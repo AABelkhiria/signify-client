@@ -6,8 +6,11 @@
 //! opens to — while the events and signatures, which depend on no ciphertext, are compared byte
 //! for byte.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::key_state_value;
 use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
 use keri_cesr::crypto::digest::{Digest, DigestAlgorithm};
 use keri_cesr::crypto::salt::{Salt, SecurityTier};
@@ -280,24 +283,7 @@ fn hab_record(
         "name": "aid",
         "prefix": prefix,
         "icp_dt": "2023-12-01T10:05:25.062609+00:00",
-        "state": {
-            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "s": "0",
-            "p": "",
-            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "f": "0",
-            "dt": "2023-12-01T10:05:25.062609+00:00",
-            "et": "icp",
-            "kt": "1",
-            "k": keys,
-            "nt": "1",
-            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-            "bt": "0",
-            "b": [],
-            "c": [],
-            "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
-            "di": ""
-        }
+        "state": key_state_value("0", "icp", keys, "")
     });
     if let (Some(target), Some(source)) = (record.as_object_mut(), key_manager.as_object()) {
         for (label, value) in source {

@@ -5,24 +5,21 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on, clock};
+use crate::support::{
+    ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, prefix, sent,
+};
 use keri_protocol::prefix::IdentifierPrefix;
 use keria_types::api::{EndRole, OperationOutcome, Role};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::oobis::{
     DEFAULT_ROLE, END_ROLES_SEGMENT, OOBIS_SEGMENT, OobiResolution, RESOLUTIONS_SEGMENT, ROLE_PARAMETER, ResolvedOobi,
 };
 use signify_client::error::ClientError;
-use signify_http::transport::{RequestUrl, Transport};
-use signify_keys::manager::DerivationCost;
+use signify_http::transport::RequestUrl;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-oobis/v1.json"));
 
 const GROUP_AID: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
 const UNKNOWN_AID: &str = "EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
@@ -102,7 +99,7 @@ struct RecordedRequest {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-oobis")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -122,39 +119,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
 
 fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.result)?)
-}
-
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.first().ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
-
-fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    Ok(IdentifierPrefix::from_qb64(text)?)
 }
 
 // --- Manifest and provenance ---
@@ -294,9 +258,9 @@ fn every_recorded_publication_addresses_the_recorded_path() -> Result<(), Box<dy
         let recorded = request_of(&fixture, name)?;
         let answer = answer_of(&fixture, name)?;
 
-        let (client, transport) = connected(&[&answer])?;
+        let Harness { client, transport, .. } = connected(&[&answer])?;
         let listing = block_on(client.oobis().get(alias, &role))?;
-        let (path, method, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
         assert_eq!(path, recorded.path, "{name} addressed a different resource");
         assert_eq!(method, recorded.method);
         assert_eq!(method, "GET");
@@ -317,9 +281,9 @@ fn an_alias_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn Error>
     let recorded = request_of(&fixture, "get_name_needing_encoding")?;
     assert_eq!(recorded.path, "/identifiers/a/b?c=d/oobis?role=agent");
 
-    let (client, transport) = connected(&[b"{\"role\":\"agent\",\"oobis\":[]}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{\"role\":\"agent\",\"oobis\":[]}"])?;
     block_on(client.oobis().get("a/b?c=d", &Role::Agent))?;
-    let (path, _, _) = sent(&transport)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
     assert_eq!(path, "/identifiers/a%2Fb%3Fc%3Dd/oobis?role=agent");
     assert_ne!(path, recorded.path);
     assert_eq!(path.split('?').next().map(|route| route.split('/').count()), Some(4));
@@ -334,9 +298,9 @@ fn a_role_can_never_add_a_query_parameter() -> Result<(), Box<dyn Error>> {
     assert_eq!(recorded.path.matches('=').count(), 2);
 
     let role = Role::Other("agent&extra=1".to_owned());
-    let (client, transport) = connected(&[b"{\"role\":\"agent\",\"oobis\":[]}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{\"role\":\"agent\",\"oobis\":[]}"])?;
     block_on(client.oobis().get("aid", &role))?;
-    let (path, _, _) = sent(&transport)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
     assert_eq!(path, "/identifiers/aid/oobis?role=agent%26extra%3D1");
     assert_eq!(path.matches('=').count(), 1);
     Ok(())
@@ -350,13 +314,13 @@ fn a_wrong_shaped_publication_is_refused_where_the_reference_casts_it() -> Resul
     assert_eq!(recorded.result.get("unexpected").and_then(Value::as_bool), Some(true));
 
     let answer = serde_json::to_vec(&recorded.result)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let outcome = block_on(client.oobis().get("aid", &Role::Agent));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
         "an answer naming neither a role nor an OOBI list was not refused: {outcome:?}"
     );
-    assert_eq!(sent(&transport)?.0, "/identifiers/aid/oobis?role=agent");
+    assert_eq!(sent(&transport, 0)?.path, "/identifiers/aid/oobis?role=agent");
     Ok(())
 }
 
@@ -384,9 +348,9 @@ fn every_recorded_resolution_reproduces_its_body_byte_for_byte() -> Result<(), B
             "{name} built a different body"
         );
 
-        let (client, transport) = connected(&[&answer])?;
+        let Harness { client, transport, .. } = connected(&[&answer])?;
         let operation = block_on(client.oobis().resolve(&resolution))?;
-        let (path, method, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
         assert_eq!(path, recorded.path);
         assert_eq!(path, "/oobis");
         assert_eq!(method, recorded.method);
@@ -403,7 +367,7 @@ fn every_recorded_resolution_reproduces_its_body_byte_for_byte() -> Result<(), B
 fn a_resolution_returns_an_operation_rather_than_waiting() -> Result<(), Box<dyn Error>> {
     let fixture = fixture()?;
     let pending = answer_of(&fixture, "resolve_without_alias")?;
-    let (client, _) = connected(&[&pending])?;
+    let Harness { client, .. } = connected(&[&pending])?;
     let operation = block_on(
         client
             .oobis()
@@ -413,7 +377,7 @@ fn a_resolution_returns_an_operation_rather_than_waiting() -> Result<(), Box<dyn
     assert!(!operation.outcome.is_done());
 
     let completed = answer_of(&fixture, "resolve_schema_oobi")?;
-    let (client, _) = connected(&[&completed])?;
+    let Harness { client, .. } = connected(&[&completed])?;
     let operation = block_on(
         client
             .oobis()
@@ -437,7 +401,7 @@ fn a_resolution_that_introduces_no_controller_answers_the_oobi() -> Result<(), B
     let answer = format!(
         r#"{{"name":"oobi.{SCHEMA_OOBI}","metadata":{{"oobi":"{SCHEMA_OOBI}"}},"done":true,"response":{{"oobi":"{SCHEMA_OOBI}"}}}}"#
     );
-    let (client, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, .. } = connected(&[answer.as_bytes()])?;
 
     let operation = block_on(
         client
@@ -486,9 +450,9 @@ fn both_pinned_end_role_paths_reproduce() -> Result<(), Box<dyn Error>> {
         let recorded = request_of(&fixture, name)?;
         let answer = answer_of(&fixture, name)?;
 
-        let (client, transport) = connected(&[&answer])?;
+        let Harness { client, transport, .. } = connected(&[&answer])?;
         let roles = block_on(client.oobis().end_roles(&prefix(GROUP_AID)?, role.as_ref()))?;
-        let (path, method, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
         assert_eq!(path, recorded.path, "{name} addressed a different resource");
         assert_eq!(method, recorded.method);
         assert_eq!(method, "GET");
@@ -523,10 +487,10 @@ fn the_unknown_aid_the_reference_asks_about_is_not_a_prefix() -> Result<(), Box<
     let valid = request_of(&fixture, "endroles_unknown_valid_aid")?;
     assert_eq!(valid.path, format!("/endroles/{UNKNOWN_VALID_AID}"));
     let answer = answer_of(&fixture, "endroles_unknown_valid_aid")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let roles = block_on(client.oobis().end_roles(&prefix(UNKNOWN_VALID_AID)?, None))?;
     assert_eq!(roles, [] as [EndRole; 0]);
-    assert_eq!(sent(&transport)?.0, valid.path);
+    assert_eq!(sent(&transport, 0)?.path, valid.path);
     Ok(())
 }
 
@@ -541,9 +505,9 @@ fn an_aid_or_a_role_filter_that_would_escape_the_path_is_unrepresentable() -> Re
     assert_eq!(escaping_role.path, format!("/endroles/{GROUP_AID}/../identifiers"));
 
     let role = Role::Other("../identifiers".to_owned());
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     block_on(client.oobis().end_roles(&prefix(GROUP_AID)?, Some(&role)))?;
-    let (path, _, _) = sent(&transport)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
     assert_eq!(path, format!("/endroles/{GROUP_AID}/..%2Fidentifiers"));
     assert_ne!(path, escaping_role.path);
     Ok(())
@@ -565,12 +529,12 @@ fn a_wrong_shaped_end_role_listing_is_refused() -> Result<(), Box<dyn Error>> {
     );
 
     let answer = serde_json::to_vec(&recorded.result)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let outcome = block_on(client.oobis().end_roles(&prefix(GROUP_AID)?, None));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
         "an end role missing its role and endpoint was not refused: {outcome:?}"
     );
-    assert_eq!(sent(&transport)?.0, format!("/endroles/{GROUP_AID}"));
+    assert_eq!(sent(&transport, 0)?.path, format!("/endroles/{GROUP_AID}"));
     Ok(())
 }

@@ -4,10 +4,13 @@
 //! shift, a floor above its ceiling, a delay of zero, a date one character away from valid, and a
 //! deadline that expires exactly on a wait.
 
+mod support;
+
 use core::time::Duration;
 use std::sync::Arc;
 use std::time::{Instant, SystemTime};
 
+use crate::support::{block_on, fail, method_of};
 use proptest::prelude::*;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::retry::{
@@ -16,26 +19,6 @@ use signify_http::retry::{
     RetryScope, RetryingTransport, StopReason, TestClock,
 };
 use signify_http::transport::{Method, Request, RequestUrl, Response, ScriptedTransport, StatusCode, Transport};
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn method_of(index: usize) -> Method {
-    *Method::ALL.get(index % Method::ALL.len()).unwrap_or(&Method::Get)
-}
-
-/// A minimal executor; every future in this crate's test path is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
 
 proptest! {
     /// A delay always lands inside the policy's bounds, and the schedule never decreases and

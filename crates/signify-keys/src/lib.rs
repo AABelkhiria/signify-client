@@ -8,3 +8,6 @@ pub mod acdc;
 pub mod controller;
 pub mod identifier;
 pub mod manager;
+
+#[cfg(test)]
+pub(crate) mod test_support;

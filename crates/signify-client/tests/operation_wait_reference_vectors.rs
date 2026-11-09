@@ -10,7 +10,9 @@ use std::future::Future;
 use std::sync::Arc;
 use std::time::SystemTime;
 
-use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use crate::support::{
+    ADMIN, AgentTransport, BOOT, Connection, FIXED_MILLIS, Harness, PASSCODE, agent_state, block_on, connected_with,
+};
 use keria_types::api::{KelMetadata, KelResponse, Operation, OperationOutcome, RegistryMetadata};
 use serde::Deserialize;
 use serde_json::Value;
@@ -23,10 +25,13 @@ use signify_http::transport::Transport;
 use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-operation-wait/v1.json"
-));
+
+/// A connection whose agent keeps repeating its last answer.
+const REPEATING: Connection<'static> = Connection {
+    passcode: PASSCODE,
+    content_range: None,
+    repeat_last: true,
+};
 
 const NAME: &str = "witness.EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1.0";
 const DEPENDENCY: &str = "witness.EABC.0";
@@ -101,7 +106,7 @@ struct PinnedConfirmations {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-operation-wait")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -110,40 +115,6 @@ fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>
         .iter()
         .find(|entry| entry.name == name)
         .ok_or_else(|| format!("no recorded call {name}").into())
-}
-
-type Harness = (ConnectedClient, Arc<AgentTransport>, Arc<TestClock>);
-
-fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let clock = Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ));
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        Arc::clone(&clock) as Arc<dyn Clock>,
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-    transport.repeating_last();
-
-    let client = SignifyClient::new(
-        configuration()?,
-        Arc::clone(&transport) as Arc<dyn Transport>,
-        Arc::clone(&clock) as Arc<dyn Clock>,
-    )?;
-    let connected = block_on(client.connect())?;
-    Ok((connected, transport, clock))
 }
 
 fn reference_poller(client: &ConnectedClient) -> Result<Poller<'_>, Box<dyn Error>> {
@@ -322,7 +293,11 @@ fn an_already_finished_operation_costs_no_request() -> Result<(), Box<dyn Error>
     assert_eq!(recorded.request_count, 0);
     assert_eq!(recorded.returned_the_same_object, Some(true));
 
-    let (client, transport, clock) = connected(&[])?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&[], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&done(NAME))?;
     let finished = block_on(reference_poller(&client)?.wait(operation))?;
 
@@ -341,7 +316,11 @@ fn an_operation_done_after_one_poll_makes_one_request() -> Result<(), Box<dyn Er
     assert!(recorded.delays_ms.is_empty(), "the reference slept before returning");
 
     let answer = done(NAME);
-    let (client, transport, clock) = connected(&[answer.as_bytes()])?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&pending(NAME))?;
     block_on(reference_poller(&client)?.wait(operation))?;
 
@@ -362,7 +341,11 @@ fn an_operation_done_after_two_polls_makes_two_requests_and_sleeps_once() -> Res
 
     let pending_body = pending(NAME);
     let done_body = done(NAME);
-    let (client, transport, clock) = connected(&[pending_body.as_bytes(), done_body.as_bytes()])?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&[pending_body.as_bytes(), done_body.as_bytes()], REPEATING)?;
     let policy = PollPolicy::builder()
         .max_delay(Duration::from_millis(10))
         .jitter(Jitter::None)
@@ -405,7 +388,11 @@ fn a_dependency_is_polled_to_completion_before_its_parent() -> Result<(), Box<dy
         registry(true, true),
     ];
     let bodies: Vec<&[u8]> = answers.iter().map(String::as_bytes).collect();
-    let (client, transport, clock) = connected(&bodies)?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&bodies, REPEATING)?;
     let policy = PollPolicy::builder()
         .max_delay(Duration::from_millis(10))
         .jitter(Jitter::None)
@@ -441,7 +428,7 @@ fn a_dependency_the_snapshot_reports_finished_is_never_polled() -> Result<(), Bo
     );
 
     let answer = registry(true, true);
-    let (client, transport, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<RegistryMetadata, Value> = snapshot(&registry(true, false))?;
     block_on(reference_poller(&client)?.wait(operation))?;
 
@@ -465,7 +452,7 @@ fn a_dependency_that_finished_unsuccessfully_is_skipped_in_silence() -> Result<(
         r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":{depends},"anchor":{{"i":"EPRE","s":"0","d":"EANCHOR"}}}},"done":false}}"#
     );
     let answer = registry(true, true);
-    let (client, transport, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<RegistryMetadata, Value> = snapshot(&parent)?;
     let finished = block_on(reference_poller(&client)?.wait(operation))?;
 
@@ -487,7 +474,7 @@ fn a_dependency_that_fails_while_polled_surfaces_under_its_own_name() -> Result<
     assert!(!message.contains(REGISTRY), "{message}");
 
     let answer = failed(DEPENDENCY, 500, "witness receipts timed out");
-    let (client, transport, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<RegistryMetadata, Value> = snapshot(&registry(false, false))?;
     let outcome = block_on(reference_poller(&client)?.wait(operation));
 
@@ -514,7 +501,7 @@ fn an_already_failed_operation_throws_before_asking() -> Result<(), Box<dyn Erro
     assert!(message.contains("[Code 400]"), "{message}");
     assert!(message.contains("bad witness threshold"), "{message}");
 
-    let (client, transport, _) = connected(&[])?;
+    let Harness { client, transport, .. } = connected_with(&[], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&failed(NAME, 400, "bad witness threshold"))?;
     let outcome = block_on(reference_poller(&client)?.wait(operation));
 
@@ -538,7 +525,7 @@ fn a_failure_found_by_polling_keeps_its_parts_apart() -> Result<(), Box<dyn Erro
     assert!(detailed_message.contains(r#"Details: {"witnesses":["BABC"],"received":1}"#));
 
     let answer = failed(NAME, 500, "witness receipts timed out");
-    let (client, _, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&pending(NAME))?;
     let outcome = block_on(reference_poller(&client)?.wait(operation));
 
@@ -571,7 +558,7 @@ fn a_metadata_block_with_no_dependency_skips_the_guard() -> Result<(), Box<dyn E
         r#"{{"name":"{REGISTRY}","metadata":{{"pre":"EPRE","depends":null,"anchor":{{"i":"EPRE","s":"0","d":"EA"}}}},"done":false}}"#
     );
     let answer = done(REGISTRY);
-    let (client, transport, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&body)?;
     block_on(reference_poller(&client)?.wait(operation))?;
     assert_eq!(transport.endpoint_calls().len(), 1);
@@ -591,7 +578,11 @@ fn the_long_run_reproduces_the_recorded_delay_schedule() -> Result<(), Box<dyn E
     let mut bodies: Vec<String> = (0..12).map(|_| pending(NAME)).collect();
     bodies.push(done(NAME));
     let answers: Vec<&[u8]> = bodies.iter().map(String::as_bytes).collect();
-    let (client, transport, clock) = connected(&answers)?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&answers, REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&pending(NAME))?;
     block_on(reference_poller(&client)?.wait(operation))?;
 
@@ -606,7 +597,7 @@ fn the_long_run_reproduces_the_recorded_delay_schedule() -> Result<(), Box<dyn E
 #[test]
 fn an_operation_that_never_finishes_stops_on_the_attempt_bound() -> Result<(), Box<dyn Error>> {
     let answer = pending(NAME);
-    let (client, transport, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let policy = PollPolicy::builder()
         .jitter(Jitter::None)
         .without_deadline()
@@ -632,7 +623,11 @@ fn an_operation_that_never_finishes_stops_on_the_attempt_bound() -> Result<(), B
 #[test]
 fn an_operation_that_never_finishes_stops_on_the_deadline() -> Result<(), Box<dyn Error>> {
     let answer = pending(NAME);
-    let (client, transport, clock) = connected(&[answer.as_bytes()])?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let policy = PollPolicy::builder()
         .jitter(Jitter::None)
         .deadline(Duration::from_millis(400))
@@ -697,7 +692,7 @@ fn a_finished_operation_with_no_response_is_refused() -> Result<(), Box<dyn Erro
     let literal = format!(r#"{{"name":"{NAME}","done":true}}"#);
     assert!(serde_json::from_str::<Operation<Value, Value>>(&literal).is_err());
 
-    let (client, transport, _) = connected(&[literal.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[literal.as_bytes()], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&pending(NAME))?;
     let outcome = block_on(reference_poller(&client)?.wait(operation));
     assert!(matches!(outcome, Err(ClientError::Api { .. })), "{outcome:?}");
@@ -712,7 +707,7 @@ fn a_completed_operation_carrying_a_null_error_is_not_a_failure() -> Result<(), 
     assert_eq!(recorded.error, None, "the reference treated a null error as a failure");
 
     let answer = format!(r#"{{"name":"{NAME}","done":true,"response":{{}},"error":null}}"#);
-    let (client, _, _) = connected(&[answer.as_bytes()])?;
+    let Harness { client, .. } = connected_with(&[answer.as_bytes()], REPEATING)?;
     let operation: Operation<Value, Value> = snapshot(&pending(NAME))?;
     let finished = block_on(reference_poller(&client)?.wait(operation))?;
     assert_eq!(finished.name(), NAME);
@@ -789,7 +784,7 @@ fn dropping_the_future_stops_the_poll_at_once() -> Result<(), Box<dyn Error>> {
 fn waiting_by_name_reads_the_operation_first() -> Result<(), Box<dyn Error>> {
     let first = pending(NAME);
     let second = done(NAME);
-    let (client, transport, _) = connected(&[first.as_bytes(), second.as_bytes()])?;
+    let Harness { client, transport, .. } = connected_with(&[first.as_bytes(), second.as_bytes()], REPEATING)?;
     let finished = block_on(reference_poller(&client)?.wait_named::<Value, Value>(NAME))?;
 
     assert_eq!(finished.name(), NAME);

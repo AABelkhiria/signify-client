@@ -4,7 +4,9 @@
 //! which a property test would multiply by its case count; the composition under test does not
 //! depend on the profile, and the cross-language vectors cover the production one exactly.
 
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
+mod support;
+
+use crate::support::{PASSCODE, fail, incepted_state, keeper_for, salty_request};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::event::EventError;
 use keri_protocol::event::kind::EventKind;
@@ -13,38 +15,9 @@ use keri_protocol::threshold::SigningThreshold;
 use keria_types::api::KeyState;
 use proptest::prelude::*;
 use signify_keys::identifier::{
-    CreateAlgorithm, CreateIdentifierRequest, IdentifierError, RotateIdentifierRequest, incept_identifier,
-    interact_identifier, rotate_identifier,
+    IdentifierError, RotateIdentifierRequest, incept_identifier, interact_identifier, rotate_identifier,
 };
-use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory, ManagedSignatures, SaltySource};
-
-const PASSCODE: &str = "0123456789abcdefghijk";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn factory() -> Result<KeeperFactory, TestCaseError> {
-    Ok(KeeperFactory::new(
-        Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).map_err(fail)?,
-    ))
-}
-
-fn salty_request(passcode: &str, current: usize, next: usize) -> CreateIdentifierRequest {
-    CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some(passcode.into()),
-        tier: SecurityTier::Low,
-        current_count: current,
-        next_count: next,
-        cost: DerivationCost::Ephemeral,
-    })
-}
-
-fn keeper_for(request: &CreateIdentifierRequest) -> Result<Box<dyn IdentifierKeeper>, TestCaseError> {
-    factory()?
-        .create(request.keeper_request(0).map_err(fail)?)
-        .map_err(fail)
-}
+use signify_keys::manager::{ManagedSignatures, SaltySource};
 
 /// The key state an incepted artifact's event describes, with optional overrides.
 fn state_of(
@@ -52,24 +25,7 @@ fn state_of(
     mutate: impl FnOnce(&mut serde_json::Value),
 ) -> Result<KeyState, TestCaseError> {
     let event: serde_json::Value = serde_json::from_slice(artifact.event.raw()).map_err(fail)?;
-    let mut state = serde_json::json!({
-        "i": event.get("i").cloned().unwrap_or_default(),
-        "s": "0",
-        "p": "",
-        "d": event.get("d").cloned().unwrap_or_default(),
-        "f": "0",
-        "dt": "2023-12-01T10:05:25.062609+00:00",
-        "et": "icp",
-        "kt": event.get("kt").cloned().unwrap_or_default(),
-        "k": event.get("k").cloned().unwrap_or_default(),
-        "nt": event.get("nt").cloned().unwrap_or_default(),
-        "n": event.get("n").cloned().unwrap_or_default(),
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": event.get("d").cloned().unwrap_or_default(), "br": [], "ba": []},
-        "di": ""
-    });
+    let mut state = incepted_state(&event, "2023-12-01T10:05:25.062609+00:00");
     mutate(&mut state);
     serde_json::from_value(state).map_err(fail)
 }

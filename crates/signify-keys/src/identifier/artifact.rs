@@ -738,10 +738,9 @@ mod tests {
     use super::*;
     use std::error::Error;
 
-    use keri_cesr::crypto::salt::Salt;
-
     use crate::manager::KeeperFactory;
     use crate::manager::keeper::GroupKeeper;
+    use crate::test_support::salt;
     use keri_protocol::event::kind::EventKind;
     use keri_protocol::serialization::SadValue;
 
@@ -759,7 +758,7 @@ mod tests {
     }
 
     fn keeper_for(request: &CreateIdentifierRequest) -> Result<Box<dyn IdentifierKeeper>, Box<dyn Error>> {
-        let factory = KeeperFactory::new(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?);
+        let factory = KeeperFactory::new(salt()?);
         Ok(factory.create(request.keeper_request(0)?)?)
     }
 

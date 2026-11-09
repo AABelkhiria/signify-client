@@ -5,8 +5,11 @@
 //! carries. Where the reference's ciphertext is recorded the fixture stores what it *opens to*
 //! rather than the bytes, because a sealed box draws a fresh ephemeral key each call.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::{CRYPT_SEED, transferability};
 use keri_cesr::crypto::salt::{KeyDerivationProfile, Salt, SecurityTier};
 use keri_cesr::crypto::signer::{SignaturePlacement, Signer};
 use keri_cesr::crypto::verifier::{KeyTransferability, VerificationKey};
@@ -357,26 +360,12 @@ fn profile(temp: bool, tier_name: &str) -> KeyDerivationProfile {
     }
 }
 
-fn transferability(transferable: bool) -> KeyTransferability {
-    if transferable {
-        KeyTransferability::Transferable
-    } else {
-        KeyTransferability::NonTransferable
-    }
-}
-
 fn salt(fixture: &Fixture) -> Result<Salt, Box<dyn Error>> {
     Ok(Salt::from_raw(
         fixture.provenance.salt_raw.as_bytes(),
         SecurityTier::Low,
     )?)
 }
-
-/// The encryption seed the pinned test calls `cryptseed0`.
-const CRYPT_SEED: [u8; 32] = [
-    104, 44, 35, 124, 138, 112, 34, 18, 196, 51, 116, 50, 166, 225, 24, 25, 240, 102, 50, 44, 121, 196, 194, 49, 64,
-    245, 64, 21, 46, 162, 26, 207,
-];
 
 fn crypt_seed() -> Result<Signer, Box<dyn Error>> {
     Ok(Signer::from_seed(&CRYPT_SEED, KeyTransferability::NonTransferable)?)

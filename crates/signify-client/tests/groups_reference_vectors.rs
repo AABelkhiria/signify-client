@@ -5,25 +5,16 @@
 mod support;
 
 use std::error::Error;
-use std::sync::Arc;
 
-use crate::support::{ADMIN, AgentTransport, BOOT, PASSCODE, agent_state, block_on, clock};
-use keri_cesr::crypto::cipher::Encrypter;
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
-use keri_cesr::crypto::verifier::KeyTransferability;
+use crate::support::{Harness, PASSCODE, SentRequest, block_on, connected, reseal, sent_all};
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
 use keria_types::api::{GroupOperation, MultisigExchangeResource};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, ExchangeDraft, MULTISIG_TOPIC, MultisigRoute};
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-groups/v1.json"));
 
 const EXCHANGES_FIXTURE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -104,7 +95,7 @@ struct RecordedRequest {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-groups")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -122,63 +113,13 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
         .ok_or_else(|| format!("call {name} recorded no request").into())
 }
 
-fn connected(bodies: &[&[u8]]) -> Result<(ConnectedClient, Arc<AgentTransport>), Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        clock(),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(configuration()?, Arc::clone(&transport) as Arc<dyn Transport>, clock())?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-type SentRequest = (String, String, Option<String>);
-
-fn sent(transport: &AgentTransport) -> Result<Vec<SentRequest>, Box<dyn Error>> {
-    Ok(transport
-        .endpoint_requests()?
-        .into_iter()
-        .map(|request| (request.resource(), request.method().to_owned(), request.body_text()))
-        .collect())
-}
-
 /// The exchanges fixture's `aid1`, its salt sealed under the test passcode's key.
 fn identifier_record() -> Result<Vec<u8>, Box<dyn Error>> {
     let exchanges: Value = serde_json::from_str(EXCHANGES_FIXTURE)?;
-    let mut record = exchanges
+    let record = exchanges
         .pointer("/mock_shortfall/identifier_record")
-        .cloned()
         .ok_or("the exchanges fixture carries no identifier record")?;
-    let opens_to = record
-        .pointer("/salty/sxlt_opens_to")
-        .and_then(Value::as_str)
-        .ok_or("the recorded identifier carries no sealed salt")?
-        .to_owned();
-    let signer = Salt::from_qb64(&format!("0AA{PASSCODE}"), SecurityTier::Low)?
-        .derive_signer("", KeyTransferability::NonTransferable)?;
-    let sealed = Encrypter::from_verification_key(signer.verifier())?
-        .encrypt_salt(&Salt::from_qb64(&opens_to, SecurityTier::Low)?)?
-        .qb64()?;
-    let salty = record
-        .get_mut("salty")
-        .and_then(Value::as_object_mut)
-        .ok_or("the recorded identifier has no key-manager block")?;
-    salty.remove("sxlt_opens_to");
-    salty.insert("sxlt".to_owned(), Value::String(sealed));
-    Ok(serde_json::to_vec(&record)?)
+    reseal(record, PASSCODE)
 }
 
 // --- Manifest and provenance ---
@@ -295,11 +236,14 @@ fn the_real_read_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     let request = recorded.request.as_ref().ok_or("the real read recorded no request")?;
     let answer = serde_json::to_vec(&recorded.answer)?;
 
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let listing = block_on(client.groups().requests(&REAL_SAID.parse::<Said>()?))?;
     assert_eq!(listing.len(), 1);
     assert_eq!(
-        sent(&transport)?,
+        sent_all(&transport)?
+            .into_iter()
+            .map(|sent| (sent.path, sent.method, sent.body))
+            .collect::<Vec<_>>(),
         [(request.path.clone(), request.method.clone(), request.body.clone())]
     );
     Ok(())
@@ -312,13 +256,13 @@ fn an_alias_never_reaches_the_wire_unencoded() -> Result<(), Box<dyn Error>> {
     assert_eq!(alias.path, "/identifiers/a/b?c=d/multisig/request");
 
     let record = identifier_record()?;
-    let (client, transport) = connected(&[&record, b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[&record, b"{}"])?;
     let draft = ExchangeDraft::new("/multisig/icp", MEMBER.parse::<IdentifierPrefix>()?, STAMP.parse()?);
     let message = block_on(client.exchanges().create_message("aid1", &draft))?;
     block_on(client.groups().send_request("a/b?c=d", &message))?;
 
-    let requests = sent(&transport)?;
-    let (path, method, _) = requests.last().ok_or("no proposal was sent")?;
+    let requests = sent_all(&transport)?;
+    let SentRequest { path, method, .. } = requests.last().ok_or("no proposal was sent")?;
     assert_eq!(method, "POST");
     assert_eq!(path, "/identifiers/a%2Fb%3Fc%3Dd/multisig/request");
     Ok(())

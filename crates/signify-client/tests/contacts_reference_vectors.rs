@@ -4,28 +4,20 @@
 
 mod support;
 
-use core::time::Duration;
 use std::error::Error;
-use std::sync::Arc;
-use std::time::SystemTime;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
-use keri_protocol::prefix::IdentifierPrefix;
+use crate::support::{
+    ADMIN, AGENT, BOOT, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, prefix, sent,
+};
 use keri_protocol::serialization::{Sad, SadValue};
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::contacts::{
     ALIAS_FIELD, CONTACTS_SEGMENT, ContactFilter, FILTER_FIELD_PARAMETER, FILTER_VALUE_PARAMETER, GROUP_PARAMETER,
 };
 use signify_client::error::ClientError;
-use signify_http::retry::{Clock, TestClock};
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/client-contacts/v1.json"));
 
 const CONTACT: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
 const OTHER: &str = "ELUvZ8aJEHAQE-0nsevyYTP98rBbGJUrTj5an-pCmwrK";
@@ -96,7 +88,7 @@ struct RecordedRequest {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-contacts")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -116,48 +108,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
 
 fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.result)?)
-}
-
-type Harness = (ConnectedClient, Arc<AgentTransport>);
-
-fn connected(bodies: &[&[u8]]) -> Result<Harness, Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let clock: Arc<dyn Clock> = Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ));
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        Arc::clone(&clock),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-
-    let client = SignifyClient::new(
-        configuration()?,
-        Arc::clone(&transport) as Arc<dyn Transport>,
-        Arc::clone(&clock),
-    )?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-fn sent(transport: &AgentTransport) -> Result<(String, String, Option<String>), Box<dyn Error>> {
-    let endpoint = transport.endpoint_requests()?;
-    let request = endpoint.first().ok_or("no endpoint request was sent")?;
-    Ok((request.resource(), request.method().to_owned(), request.body_text()))
-}
-
-fn prefix(text: &str) -> Result<IdentifierPrefix, Box<dyn Error>> {
-    Ok(IdentifierPrefix::from_qb64(text)?)
 }
 
 fn pinned_info() -> Result<Sad, Box<dyn Error>> {
@@ -279,10 +229,10 @@ fn the_pinned_filtered_listing_reproduces_byte_for_byte() -> Result<(), Box<dyn 
     );
 
     let answer = answer_of(&fixture, "list_filtered")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let filter = ContactFilter::new("company", "mycompany");
     let contacts = block_on(client.contacts().list(Some("mygroup"), Some(&filter)))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
 
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
@@ -299,9 +249,9 @@ fn a_group_only_listing_writes_one_parameter() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "list_group_only")?;
     assert_eq!(recorded.path, "/contacts?group=mygroup");
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     block_on(client.contacts().list(Some("mygroup"), None))?;
-    assert_eq!(sent(&transport)?.0, recorded.path);
+    assert_eq!(sent(&transport, 0)?.path, recorded.path);
     Ok(())
 }
 
@@ -312,11 +262,11 @@ fn the_integration_helpers_own_listing_reproduces() -> Result<(), Box<dyn Error>
     assert_eq!(recorded.path, "/contacts?filter_field=alias&filter_value=%5Ealice%24");
 
     let answer = answer_of(&fixture, "list_filter_only")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let filter = ContactFilter::alias("^alice$");
     assert_eq!(filter.field, ALIAS_FIELD);
     let contacts = block_on(client.contacts().list(None, Some(&filter)))?;
-    assert_eq!(sent(&transport)?.0, recorded.path);
+    assert_eq!(sent(&transport, 0)?.path, recorded.path);
     assert_eq!(
         contacts.first().and_then(|contact| contact.alias.as_deref()),
         Some("alice")
@@ -331,9 +281,9 @@ fn an_unfiltered_listing_is_the_one_deliberate_path_difference() -> Result<(), B
     assert_eq!(recorded.path, "/contacts?");
 
     let answer = answer_of(&fixture, "list_unfiltered")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let contacts = block_on(client.contacts().list(None, None))?;
-    let (path, _, _) = sent(&transport)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
 
     assert_eq!(path, "/contacts");
     assert_ne!(path, recorded.path);
@@ -352,10 +302,10 @@ fn half_a_filter_is_unrepresentable_where_the_reference_drops_it() -> Result<(),
         assert!(!recorded.path.contains(FILTER_VALUE_PARAMETER), "{name}");
     }
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let filter = ContactFilter::new(ALIAS_FIELD, "");
     block_on(client.contacts().list(None, Some(&filter)))?;
-    let (path, _, _) = sent(&transport)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
     assert_eq!(path, "/contacts?filter_field=alias&filter_value=");
     assert!(path.contains(FILTER_FIELD_PARAMETER) && path.contains(FILTER_VALUE_PARAMETER));
     Ok(())
@@ -367,10 +317,10 @@ fn a_filter_value_is_encoded_on_both_sides() -> Result<(), Box<dyn Error>> {
     let recorded = request_of(&fixture, "list_filter_needing_encoding")?;
     assert_eq!(recorded.path, "/contacts?filter_field=alias&filter_value=a%26b%3Dc");
 
-    let (client, transport) = connected(&[b"[]"])?;
+    let Harness { client, transport, .. } = connected(&[b"[]"])?;
     let filter = ContactFilter::new(ALIAS_FIELD, "a&b=c");
     block_on(client.contacts().list(None, Some(&filter)))?;
-    assert_eq!(sent(&transport)?.0, recorded.path);
+    assert_eq!(sent(&transport, 0)?.path, recorded.path);
     Ok(())
 }
 
@@ -382,9 +332,9 @@ fn the_pinned_read_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
     assert_eq!(recorded.path, format!("/contacts/{CONTACT}"));
 
     let answer = answer_of(&fixture, "get")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let contact = block_on(client.contacts().get(&prefix(CONTACT)?))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
 
     assert_eq!(path, recorded.path);
     assert_eq!(method, "GET");
@@ -408,7 +358,7 @@ fn both_pinned_writes_reproduce_their_body_field_for_field() -> Result<(), Box<d
         );
 
         let answer = answer_of(&fixture, name)?;
-        let (client, transport) = connected(&[&answer])?;
+        let Harness { client, transport, .. } = connected(&[&answer])?;
         let info = pinned_info()?;
         let contacts = client.contacts();
         let identifier = prefix(CONTACT)?;
@@ -417,7 +367,7 @@ fn both_pinned_writes_reproduce_their_body_field_for_field() -> Result<(), Box<d
         } else {
             block_on(contacts.update(&identifier, &info))
         }?;
-        let (path, method, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
 
         assert_eq!(path, recorded.path);
         assert_eq!(method, recorded.method);
@@ -447,9 +397,9 @@ fn an_ordered_info_reaches_the_wire_in_the_callers_order() -> Result<(), Box<dyn
     )?;
 
     let answer = answer_of(&fixture, "add_nested_info")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     block_on(client.contacts().add(&prefix(CONTACT)?, &info))?;
-    let (_, _, body) = sent(&transport)?;
+    let SentRequest { body, .. } = sent(&transport, 0)?;
     assert_eq!(body, recorded.body);
     Ok(())
 }
@@ -461,9 +411,9 @@ fn an_empty_info_is_written_rather_than_omitted() -> Result<(), Box<dyn Error>> 
     assert_eq!(recorded.body.as_deref(), Some("{}"));
 
     let answer = answer_of(&fixture, "add_empty_info")?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     block_on(client.contacts().add(&prefix(CONTACT)?, &Sad::new()))?;
-    assert_eq!(sent(&transport)?.2, recorded.body);
+    assert_eq!(sent(&transport, 0)?.body, recorded.body);
     Ok(())
 }
 
@@ -476,9 +426,9 @@ fn a_delete_carries_no_body_at_all() -> Result<(), Box<dyn Error>> {
     assert!(recorded.body_is_undefined);
     assert_eq!(recorded.body, None);
 
-    let (client, transport) = connected(&[b"{}"])?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     block_on(client.contacts().delete(&prefix(CONTACT)?))?;
-    let (path, method, body) = sent(&transport)?;
+    let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
     assert_eq!(path, recorded.path);
     assert_eq!(method, "DELETE");
     assert_eq!(body, None);
@@ -493,18 +443,18 @@ fn a_wrong_shaped_answer_is_refused_where_the_reference_casts_it() -> Result<(),
     assert_eq!(single.error, None);
     assert_eq!(single.result.get("unexpected").and_then(Value::as_bool), Some(true));
     let answer = serde_json::to_vec(&single.result)?;
-    let (client, transport) = connected(&[&answer])?;
+    let Harness { client, transport, .. } = connected(&[&answer])?;
     let outcome = block_on(client.contacts().get(&prefix(CONTACT)?));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
         "an answer naming no identifier was not refused: {outcome:?}"
     );
-    assert_eq!(sent(&transport)?.0, format!("/contacts/{CONTACT}"));
+    assert_eq!(sent(&transport, 0)?.path, format!("/contacts/{CONTACT}"));
 
     let listing = call(&fixture, "list_wrong_shape")?;
     assert_eq!(listing.error, None);
     let answer = serde_json::to_vec(&listing.result)?;
-    let (client, _) = connected(&[&answer])?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let outcome = block_on(client.contacts().list(None, None));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),

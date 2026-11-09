@@ -2,9 +2,12 @@
 //!
 //! The value that decides an identifier survives the round trip: a registry's nonce, a credential's SAID.
 
+mod support;
+
 use std::error::Error;
 
-use keria_types::api::{ExchangeEmbed, MultisigExchangeResource};
+use crate::support::classify;
+use keria_types::api::ExchangeEmbed;
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::exchanges::{ClassifiedExchange, GROUP_LABEL, MultisigRoute};
@@ -49,12 +52,6 @@ fn proposal(route: &str, slot: &str, nonce: &str, attributes: &str) -> String {
         embeds = embeds(slot, nonce, attributes)
     );
     format!(r#"[{{"exn":{exn},"paths":{{}},"groupName":"multisig","memberName":"member1","sender":"{LOCAL}"}}]"#)
-}
-
-fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
-    let decoded: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
-    let entry = decoded.first().ok_or("empty listing")?;
-    Ok(ClassifiedExchange::try_from(entry)?)
 }
 
 fn nonce_of(classified: &ClassifiedExchange) -> Result<String, TestCaseError> {

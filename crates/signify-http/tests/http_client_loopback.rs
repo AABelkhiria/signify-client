@@ -8,11 +8,14 @@
 
 #![cfg(feature = "http-client")]
 
+mod support;
+
 use std::error::Error;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
+use crate::support::Seen;
 use signify_http::header::{HeaderName, HeaderValue};
 use signify_http::transport::{HttpTransport, Method, Request, RequestUrl, Transport, TransportError};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -27,23 +30,6 @@ enum Behaviour {
     Hang,
     /// Read the request, then close without writing anything.
     Hangup,
-}
-
-/// One request as the server saw it on the wire.
-#[derive(Clone, Debug, Default)]
-struct Seen {
-    request_line: String,
-    headers: Vec<(String, String)>,
-    body: Vec<u8>,
-}
-
-impl Seen {
-    fn header(&self, name: &str) -> Option<&str> {
-        self.headers
-            .iter()
-            .find(|(existing, _)| existing.eq_ignore_ascii_case(name))
-            .map(|(_, value)| value.as_str())
-    }
 }
 
 /// A minimal HTTP/1.1 server on loopback, for one connection.

@@ -493,20 +493,15 @@ mod tests {
     use super::*;
     use std::error::Error;
 
+    use crate::test_support::salt;
     use keri_protocol::event::kind::EventKind;
     use keri_protocol::serialization::SadValue;
 
-    /// The raw salt the pinned `habery.test.ts` builds its salter from.
-    const SALT_RAW: &[u8] = b"0123456789abcdef";
     /// The passcode the pinned `habery.test.ts` uses.
     const PASSCODE: &str = "0123456789abcdefghijk";
 
     /// Checks that a refusal is the expected non-transferable conflict.
     type ConflictCheck = fn(&IdentifierError) -> bool;
-
-    fn salt() -> Result<Salt, Box<dyn Error>> {
-        Ok(Salt::from_raw(SALT_RAW, SecurityTier::Low)?)
-    }
 
     /// A cheap salty registry for tests that do not pin production key material.
     fn ephemeral(name: &str) -> Result<Habery, Box<dyn Error>> {

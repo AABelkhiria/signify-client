@@ -2,11 +2,14 @@
 //!
 //! A seal list survives whole and in order at any length, and the event's digest moves when the list does.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::classify;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::said::Said;
-use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
+use keria_types::api::{ExchangeEmbed, KeyEvent};
 use proptest::prelude::*;
 use serde_json::Value;
 use signify_client::endpoint::delegations::InceptionSeal;
@@ -41,12 +44,6 @@ fn proposal(seals: &[String], digest: &str) -> String {
         r#"{{"v":"KERI10JSON000_","t":"exn","d":"EEXN","i":"{LOCAL}","rp":"{PEER}","p":"","dt":"2023-11-14T22:13:20.123000+00:00","r":"{INTERACTION_ROUTE}","q":{{}},"a":{{"{GROUP_LABEL}":"{GROUP}","{SIGNING_MEMBERS_LABEL}":["{LOCAL}","{PEER}"],"{ROTATION_MEMBERS_LABEL}":["{LOCAL}","{PEER}"]}},"e":{{"d":"EEMB","{INTERACTION_SLOT}":{event}}}}}"#
     );
     format!(r#"[{{"exn":{exn},"paths":{{}},"groupName":"delegators","memberName":"delegator1","sender":"{LOCAL}"}}]"#)
-}
-
-fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
-    let decoded: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
-    let entry = decoded.first().ok_or("empty listing")?;
-    Ok(ClassifiedExchange::try_from(entry)?)
 }
 
 fn anchored(classified: &ClassifiedExchange) -> Result<Vec<Value>, TestCaseError> {

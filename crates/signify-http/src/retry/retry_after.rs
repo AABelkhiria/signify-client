@@ -306,6 +306,7 @@ impl Error for RetryAfterError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::displays_and_sources;
     use std::error::Error;
 
     /// 2023-11-14T22:15:00Z, the moment the doctest uses.
@@ -460,11 +461,7 @@ mod tests {
             ),
         ];
         for (error, fragments) in cases {
-            let rendered = error.to_string();
-            for fragment in fragments {
-                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
-            }
-            assert!(error.source().is_none());
+            displays_and_sources(&error, fragments, false);
         }
         assert_eq!(RetryAfterError::Empty.to_string(), "a Retry-After value is empty");
         // Rejected text is bounded even when the input is not.

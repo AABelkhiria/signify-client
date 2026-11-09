@@ -1,31 +1,14 @@
 //! Invariants of the transport boundary.
 
+mod support;
+
+use crate::support::{block_on, fail, method_of};
 use proptest::prelude::*;
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::transport::{
     DEFAULT_RESPONSE_BODY_LIMIT, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_LIMIT, MAX_URL_BYTES, Method, Request,
     RequestUrl, Response, ScriptedTransport, StatusCode, Transport, TransportError,
 };
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-/// A minimal executor: every future in this crate is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn method_of(index: usize) -> Method {
-    *Method::ALL.get(index % Method::ALL.len()).unwrap_or(&Method::Get)
-}
 
 proptest! {
     /// An accepted URL is returned exactly as given, and its parts recompose into it.

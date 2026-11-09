@@ -4,8 +4,12 @@
 //! key, which a property test would multiply by its case count; nothing under test depends on the
 //! profile, and the cross-language vectors cover the production one exactly.
 
+mod support;
+
+use crate::support::{
+    ISSUANCE, ISSUER, PASSCODE, STAMP, fail, incepted_state, issuer_state, keeper_for, salty_request,
+};
 use keri_acdc::credential::{CredentialAttributes, CredentialBuilder, RegistryIdentifier};
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
 use keri_protocol::event::Timestamp;
 use keri_protocol::event::kind::EventKind;
 use keri_protocol::prefix::IdentifierPrefix;
@@ -17,21 +21,13 @@ use signify_keys::acdc::error::{AnchorError, TransactionError};
 use signify_keys::acdc::issuance::{ISSUANCE_SEQUENCE_NUMBER, IssuanceEvent, issue_credential};
 use signify_keys::acdc::revocation::{DEFAULT_REVOCATION_SEQUENCE_NUMBER, RevocationEventBuilder, revoke_credential};
 use signify_keys::acdc::transaction::{TransactionSeal, anchor, anchor_event, is_establishment_only};
-use signify_keys::identifier::{CreateAlgorithm, CreateIdentifierRequest, incept_identifier};
-use signify_keys::manager::{DerivationCost, IdentifierKeeper, KeeperFactory};
+use signify_keys::identifier::incept_identifier;
+use signify_keys::manager::IdentifierKeeper;
 
-const ISSUER: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
 const HOLDER: &str = "EKvn1M6shPLnXTb47bugVJblKMuWC0TcLIePP8p98Bby";
 const REGISTRY: &str = "EGK216v1yguLfex4YRFnG7k1sXRjh3OKY7QqzdKsx7df";
 const OTHER_REGISTRY: &str = "EP10ooRj0DJF0HWZePEYMLPl-arMV-MAoTKK-o3DXbgX";
 const SCHEMA: &str = "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao";
-const ISSUANCE: &str = "ENf3IEYwYtFmlq5ZzoI-zFzeR7E3ZNRN2YH_0KAFbdJW";
-const STAMP: &str = "2023-08-23T15:16:07.553000+00:00";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
 fn stamp() -> Result<Timestamp, TestCaseError> {
     STAMP.parse().map_err(fail)
 }
@@ -51,29 +47,6 @@ fn credential(registry: &str, value: &str) -> Result<keri_acdc::credential::Cred
     )
     .build()
     .map_err(fail)
-}
-
-/// A key state carrying only the fields anchoring reads.
-fn key_state(sequence_number: u128, configuration: &[&str]) -> Result<KeyState, TestCaseError> {
-    let document = serde_json::json!({
-        "i": ISSUER,
-        "s": format!("{sequence_number:x}"),
-        "p": "",
-        "d": ISSUANCE,
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": "1",
-        "k": ["DAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"],
-        "nt": "1",
-        "n": [ISSUANCE],
-        "bt": "0",
-        "b": [],
-        "c": configuration,
-        "ee": {"s": "0", "d": ISSUANCE, "br": [], "ba": []},
-        "di": "",
-    });
-    serde_json::from_value(document).map_err(fail)
 }
 
 proptest! {
@@ -203,7 +176,7 @@ proptest! {
     fn an_anchor_seals_one_event_at_the_next_position(position in 0_u128..100_000) {
         let credential = credential(REGISTRY, "1")?;
         let issuance = IssuanceEvent::for_credential(&credential).map_err(fail)?;
-        let state = key_state(position, &[])?;
+        let state = issuer_state(position, &[])?;
         let event = anchor_event(&state, &issuance.seal()).map_err(fail)?;
 
         prop_assert_eq!(event.kind(), EventKind::Interaction);
@@ -254,7 +227,7 @@ proptest! {
         let mut configuration: Vec<&str> = extra.iter().map(String::as_str).collect();
         let index = position.min(configuration.len());
         configuration.insert(index, "EO");
-        let state = key_state(1, &configuration)?;
+        let state = issuer_state(1, &configuration)?;
         prop_assert!(is_establishment_only(&state));
 
         let credential = credential(REGISTRY, "1")?;
@@ -268,7 +241,7 @@ proptest! {
         );
 
         // Without the trait the same state anchors happily.
-        let permitted = key_state(1, &extra.iter().map(String::as_str).collect::<Vec<_>>())?;
+        let permitted = issuer_state(1, &extra.iter().map(String::as_str).collect::<Vec<_>>())?;
         prop_assert!(!is_establishment_only(&permitted));
         prop_assert!(anchor_event(&permitted, &issuance.seal()).is_ok());
     }
@@ -295,36 +268,12 @@ proptest! {
 /// anchor for an identifier it just incepted, for both issuance and revocation.
 #[test]
 fn a_keeper_signs_both_anchors_and_agrees_with_the_unsigned_event() -> Result<(), Box<dyn std::error::Error>> {
-    let factory = KeeperFactory::new(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?);
-    let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some("0123456789abcdefghijk".into()),
-        tier: SecurityTier::Low,
-        current_count: 1,
-        next_count: 1,
-        cost: DerivationCost::Ephemeral,
-    });
-    let mut keeper: Box<dyn IdentifierKeeper> = factory.create(request.keeper_request(0)?)?;
+    let request = salty_request(PASSCODE, 1, 1);
+    let mut keeper: Box<dyn IdentifierKeeper> = keeper_for(&request)?;
     let inception = incept_identifier(keeper.as_mut(), &request)?;
 
     let event: serde_json::Value = serde_json::from_slice(inception.event.raw())?;
-    let state: KeyState = serde_json::from_value(serde_json::json!({
-        "i": event.get("i"),
-        "s": "0",
-        "p": "",
-        "d": event.get("d"),
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": event.get("kt"),
-        "k": event.get("k"),
-        "nt": event.get("nt"),
-        "n": event.get("n"),
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": event.get("d"), "br": [], "ba": []},
-        "di": "",
-    }))?;
+    let state: KeyState = serde_json::from_value(incepted_state(&event, STAMP))?;
 
     let issuer = IdentifierPrefix::from_qb64(&state.identifier)?;
     let credential = CredentialBuilder::new(
@@ -385,35 +334,10 @@ fn a_keeper_signs_both_anchors_and_agrees_with_the_unsigned_event() -> Result<()
 /// the unsigned one — the check is on the key state, so both entry points share it.
 #[test]
 fn the_signing_path_refuses_an_establishment_only_issuer() -> Result<(), Box<dyn std::error::Error>> {
-    let factory = KeeperFactory::new(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?);
-    let request = CreateIdentifierRequest::new(CreateAlgorithm::Salty {
-        passcode: Some("0123456789abcdefghijk".into()),
-        tier: SecurityTier::Low,
-        current_count: 1,
-        next_count: 1,
-        cost: DerivationCost::Ephemeral,
-    });
-    let keeper: Box<dyn IdentifierKeeper> = factory.create(request.keeper_request(0)?)?;
+    let request = salty_request(PASSCODE, 1, 1);
+    let keeper: Box<dyn IdentifierKeeper> = keeper_for(&request)?;
 
-    let document = serde_json::json!({
-        "i": ISSUER,
-        "s": "0",
-        "p": "",
-        "d": ISSUANCE,
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": "1",
-        "k": ["DAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"],
-        "nt": "1",
-        "n": [ISSUANCE],
-        "bt": "0",
-        "b": [],
-        "c": ["EO"],
-        "ee": {"s": "0", "d": ISSUANCE, "br": [], "ba": []},
-        "di": "",
-    });
-    let state: KeyState = serde_json::from_value(document)?;
+    let state: KeyState = issuer_state(0, &["EO"])?;
 
     let credential = CredentialBuilder::new(
         IdentifierPrefix::from_qb64(ISSUER)?,
@@ -446,25 +370,7 @@ fn the_signing_path_refuses_an_establishment_only_issuer() -> Result<(), Box<dyn
 /// names the number rather than wrapping to zero.
 #[test]
 fn a_key_event_log_at_the_ceiling_cannot_advance() -> Result<(), Box<dyn std::error::Error>> {
-    let document = serde_json::json!({
-        "i": ISSUER,
-        "s": format!("{:x}", u128::MAX),
-        "p": "",
-        "d": ISSUANCE,
-        "f": "0",
-        "dt": STAMP,
-        "et": "icp",
-        "kt": "1",
-        "k": ["DAKCxMOuoRzREVHsHCkLilBrUXTvyenBiuM2QtV8BB0C"],
-        "nt": "1",
-        "n": [ISSUANCE],
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": ISSUANCE, "br": [], "ba": []},
-        "di": "",
-    });
-    let state: KeyState = serde_json::from_value(document)?;
+    let state: KeyState = issuer_state(u128::MAX, &[])?;
     let said = Said::from_qb64(ISSUANCE)?;
     assert!(matches!(
         anchor_event(&state, &TransactionSeal::new(said, 0, said)),

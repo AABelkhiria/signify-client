@@ -4,7 +4,9 @@
 //! key, which a property test would multiply by its case count; the composition under test does
 //! not depend on the profile, and the cross-language vectors cover the production one exactly.
 
-use keri_cesr::crypto::salt::{Salt, SecurityTier};
+mod support;
+
+use crate::support::{fail, salt, transferability};
 use keri_cesr::crypto::verifier::KeyTransferability;
 use keri_protocol::event::kind::EventKind;
 use keri_protocol::serialization::{SadValue, SerializedEvent};
@@ -13,16 +15,12 @@ use proptest::prelude::*;
 use signify_keys::identifier::{Habery, Habitat, HabitatRequest, IdentifierError};
 use signify_keys::manager::DerivationCost;
 
-fn salt() -> Result<Salt, TestCaseError> {
-    Salt::from_raw(b"0123456789abcdef", SecurityTier::Low).map_err(|error| TestCaseError::fail(error.to_string()))
-}
-
 fn ephemeral(name: &str) -> Result<Habery, TestCaseError> {
     Habery::builder(name)
         .salt(salt()?)
         .derivation_cost(DerivationCost::Ephemeral)
         .build()
-        .map_err(|error| TestCaseError::fail(error.to_string()))
+        .map_err(fail)
 }
 
 fn text_field(habitat: &Habitat, label: &str) -> Option<String> {
@@ -116,11 +114,7 @@ proptest! {
     ) {
         let request = HabitatRequest {
             current_keys: if transferable { count } else { 1 },
-            transferability: if transferable {
-                KeyTransferability::Transferable
-            } else {
-                KeyTransferability::NonTransferable
-            },
+            transferability: transferability(transferable),
             ..HabitatRequest::default()
         };
         let mut habery = ephemeral(&name)?;
@@ -140,7 +134,7 @@ proptest! {
         prop_assert_eq!(event.sequence_number(), 0);
         prop_assert_eq!(event.serialized().size(), event.raw().len());
         let reparsed = SerializedEvent::parse(event.raw())
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         prop_assert_eq!(reparsed.sad(), event.sad());
         if transferable {
             // The default derivation digests the event, so the identifier is its own SAID.
@@ -208,7 +202,7 @@ proptest! {
             habery.make_habitat(name.clone(), HabitatRequest::default())?;
         }
         let expected_index =
-            u32::try_from(count).map_err(|error| TestCaseError::fail(error.to_string()))?;
+            u32::try_from(count).map_err(fail)?;
         prop_assert_eq!(habery.habitats().len(), count);
         prop_assert_eq!(habery.manager().prefix_index(), expected_index);
         let listed: Vec<&str> = habery.habitats().iter().map(Habitat::name).collect();

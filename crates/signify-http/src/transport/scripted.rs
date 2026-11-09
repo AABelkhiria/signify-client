@@ -187,19 +187,8 @@ mod tests {
     use std::error::Error;
 
     use crate::header::Headers;
+    use crate::test_support::{assert_send_sync, block_on};
     use crate::transport::{Method, RequestUrl, StatusCode};
-
-    /// A minimal executor: every future here is ready on its first poll.
-    fn block_on<F: core::future::Future>(future: F) -> F::Output {
-        use core::task::{Context, Poll, Waker};
-        let mut future = Box::pin(future);
-        let mut context = Context::from_waker(Waker::noop());
-        loop {
-            if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-                return value;
-            }
-        }
-    }
 
     fn request(method: Method, path: &str) -> Result<Request, Box<dyn Error>> {
         Ok(Request::builder(method, RequestUrl::new(format!("https://keria.example{path}"))?).build()?)
@@ -288,7 +277,6 @@ mod tests {
 
     #[test]
     fn the_transport_is_send_and_sync() {
-        const fn assert_send_sync<T: Send + Sync>() {}
         assert_send_sync::<ScriptedTransport>();
         assert_send_sync::<Request>();
         assert_send_sync::<Response>();

@@ -220,16 +220,12 @@ pub(crate) fn transferability_of(prefix: &str) -> Result<KeyTransferability, Man
 #[cfg(test)]
 mod tests {
     use super::*;
-    use keri_cesr::crypto::salt::SecurityTier;
+    use crate::test_support::{key_digest, salt};
     use std::error::Error;
-
-    fn passcode_salt() -> Result<Salt, Box<dyn Error>> {
-        Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-    }
 
     fn keeper() -> Result<RandyKeeper, Box<dyn Error>> {
         Ok(RandyKeeper::new(
-            &passcode_salt()?,
+            &salt()?,
             Vec::new(),
             Vec::new(),
             &RandyKeeperConfig {
@@ -252,10 +248,7 @@ mod tests {
         assert_ne!(keeper.sealed_next_keys, committed);
 
         // And the digests the inception published commit to exactly those keys.
-        let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(
-            rotated.public_keys.first().ok_or("no key was rotated to")?,
-        )?;
-        let digest = Digest::derive(DigestAlgorithm::Blake3_256, &verifier.qb64_bytes()?).qb64()?;
+        let digest = key_digest(rotated.public_keys.first().ok_or("no key was rotated to")?)?;
         assert_eq!(incepted.next_digests, [digest]);
         Ok(())
     }

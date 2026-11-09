@@ -2,6 +2,8 @@
 //!
 //! Thirteen guards and thirteen assertions, executed and declared, and the narrowing that is only a claim.
 
+mod support;
+
 use std::error::Error;
 
 use keria_types::api::{ExchangeEmbed, ExchangeRecord, ExchangeResource, MultisigExchangeResource};
@@ -16,10 +18,6 @@ use signify_client::error::ClientError;
 use signify_keys::acdc::ipex::IpexRoute;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-exchange-routes/v1.json"
-));
 
 const MEMBER: &str = "EG2XjQN-3jPN5rcR4spLjaJyM4zA6Lgg-Hd5vSMymu5p";
 const SECOND: &str = "EMQQpnSkgfUOgWdzQTWfrgiVHKIDAhvAZIPQ6z3EAfz1";
@@ -128,7 +126,7 @@ struct Hostile {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-exchange-routes")
 }
 
 fn entry<'a>(fixture: &'a Fixture, route: &str) -> Result<&'a Executed, Box<dyn Error>> {

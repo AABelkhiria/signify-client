@@ -277,25 +277,10 @@ impl Transport for RetryingTransport {
 mod tests {
     use super::*;
     use crate::header::{HeaderName, HeaderValue, Headers};
+    use crate::test_support::{assert_send_sync, block_on};
     use crate::transport::{Method, RequestUrl, ScriptedTransport};
     use std::error::Error;
     use std::sync::Mutex;
-
-    /// Compile-time proof that a value can cross threads.
-    fn assert_send_sync<T: Send + Sync>(_: &T) {}
-
-    /// A minimal executor; every future reachable from a scripted transport and a test clock is
-    /// ready on its first poll.
-    fn block_on<F: core::future::Future>(future: F) -> F::Output {
-        use core::task::{Context, Poll, Waker};
-        let mut future = Box::pin(future);
-        let mut context = Context::from_waker(Waker::noop());
-        loop {
-            if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-                return value;
-            }
-        }
-    }
 
     #[derive(Debug, Default)]
     struct Recorder {
@@ -642,7 +627,7 @@ mod tests {
         let answer = block_on(transport.execute(request(Method::Get)?));
         assert!(answer.is_ok());
         assert_ne!(format!("{transport:?}"), "");
-        assert_send_sync(&transport);
+        assert_send_sync::<Arc<dyn Transport>>();
         Ok(())
     }
 

@@ -4,6 +4,9 @@
 //! which a property test would multiply by its case count; the state machine under test does not
 //! depend on the profile, and the cross-language vectors cover the production one exactly.
 
+mod support;
+
+use crate::support::{fail, key_state_value};
 use keri_cesr::crypto::cipher::{Decrypter, Encrypter};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_cesr::crypto::verifier::KeyTransferability;
@@ -26,30 +29,18 @@ fn ephemeral(passcode: &str) -> Result<Controller, TestCaseError> {
             ..ControllerOptions::default()
         },
     )
-    .map_err(|error| TestCaseError::fail(error.to_string()))
+    .map_err(fail)
 }
 
 fn agent_state(sequence_hex: &str, delegator: &str) -> Result<Agent, TestCaseError> {
-    let state: KeyState = serde_json::from_value(serde_json::json!({
-        "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-        "s": sequence_hex,
-        "p": "",
-        "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-        "f": "0",
-        "dt": "2023-12-01T10:05:25.062609+00:00",
-        "et": "dip",
-        "kt": "1",
-        "k": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
-        "nt": "1",
-        "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-        "bt": "0",
-        "b": [],
-        "c": [],
-        "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
-        "di": delegator
-    }))
-    .map_err(|error| TestCaseError::fail(error.to_string()))?;
-    Agent::from_key_state(state).map_err(|error| TestCaseError::fail(error.to_string()))
+    let state: KeyState = serde_json::from_value(key_state_value(
+        sequence_hex,
+        "dip",
+        &["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE".to_owned()],
+        delegator,
+    ))
+    .map_err(fail)?;
+    Agent::from_key_state(state).map_err(fail)
 }
 
 proptest! {
@@ -66,19 +57,19 @@ proptest! {
         let delegator = controller
             .prefix()
             .qb64()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         for _ in 0..approvals {
             controller
                 .approve_delegation(&agent_state("0", &delegator)?)
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+                .map_err(fail)?;
         }
         let before = controller.current_said();
 
         let rotation = controller
             .rotate_passcode(&second, &[])
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let expected = format!("{:x}", u128::from(approvals) + 1);
-        let prior = before.qb64().map_err(|error| TestCaseError::fail(error.to_string()))?;
+        let prior = before.qb64().map_err(fail)?;
         prop_assert_eq!(rotation.rotation.sad().get_text("s"), Some(expected.as_str()));
         prop_assert_eq!(rotation.rotation.sad().get_text("p"), Some(prior.as_str()));
         prop_assert_eq!(controller.current_sequence_number(), u128::from(approvals) + 1);
@@ -118,7 +109,7 @@ proptest! {
             controller.prefix().qb64().ok()
         );
         let reparsed = SerializedEvent::parse(event.raw())
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         prop_assert_eq!(reparsed.sad(), event.sad());
         // The event's key is the signer's own verifier.
         prop_assert_eq!(
@@ -136,9 +127,9 @@ proptest! {
             derivation_cost: DerivationCost::Ephemeral,
         };
         let current = Controller::with_options(&passcode, SecurityTier::Low, options(index))
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let next = Controller::with_options(&passcode, SecurityTier::Low, options(index + 1))
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let committed = current.next_digests().first().cloned();
         let arrived = next.current_keys().first().cloned().unwrap_or_default();
         let digest = keri_cesr::crypto::digest::Digest::derive(
@@ -158,7 +149,7 @@ proptest! {
         for round in 1..=repeats {
             let signature = controller
                 .approve_delegation(&agent)
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+                .map_err(fail)?;
             let sad = controller.current_event().sad();
             prop_assert_eq!(sad.get_text("t"), Some(EventKind::Interaction.as_str()));
             prop_assert_eq!(controller.current_sequence_number(), round as u128);
@@ -197,7 +188,7 @@ proptest! {
         let old_salt = controller
             .salt()
             .expose_qb64()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?
+            .map_err(fail)?
             .as_str()
             .to_owned();
         let prior_signer = controller
@@ -207,47 +198,38 @@ proptest! {
                 KeyTransferability::NonTransferable,
                 DerivationCost::Ephemeral.profile(SecurityTier::Low),
             )
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let encrypter = Encrypter::from_verification_key(prior_signer.verifier())
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let decrypter = Decrypter::from_signer(&prior_signer);
 
         let signer = keri_cesr::crypto::signer::Signer::from_seed(&seed, KeyTransferability::Transferable)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let public = signer
             .verifier()
             .qb64()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let sealed = encrypter
             .encrypt_signer(&signer)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?
+            .map_err(fail)?
             .qb64()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
 
         let record: keria_types::api::Hab = serde_json::from_value(serde_json::json!({
             "name": "aid",
             "prefix": public.clone(),
             "icp_dt": "2023-12-01T10:05:25.062609+00:00",
             "randy": { "prxs": [sealed], "nxts": [] },
-            "state": {
-                "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-                "s": "0", "p": "", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-                "f": "0", "dt": "2023-12-01T10:05:25.062609+00:00", "et": "icp",
-                "kt": "1", "k": [public.clone()], "nt": "1",
-                "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-                "bt": "0", "b": [], "c": [],
-                "ee": {"s": "0", "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY", "br": [], "ba": []},
-                "di": ""
-            }
+            "state": key_state_value("0", "icp", std::slice::from_ref(&public), "")
         }))
-        .map_err(|error| TestCaseError::fail(error.to_string()))?;
+        .map_err(fail)?;
         let keria_types::api::Hab::Accepted(record) = record else {
             return Err(TestCaseError::fail("the record parsed as pending"));
         };
 
         let rotation = controller
             .rotate_passcode(&second, std::slice::from_ref(&record))
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let sad = rotation.rotation.sad();
         // A fresh controller is at its inception, so its first rotation is sequence one.
         prop_assert_eq!(sad.get_text("s"), Some("1"));
@@ -266,12 +248,12 @@ proptest! {
         prop_assert_eq!(rotation.signatures.len(), 2);
         for signature in &rotation.signatures {
             let position = usize::try_from(signature.index())
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+                .map_err(fail)?;
             let Some(SadValue::Text(key)) = keys.get(position) else {
                 return Err(TestCaseError::fail("a signature indexes a missing key"));
             };
             let verifier = keri_cesr::crypto::verifier::VerificationKey::from_qb64(key)
-                .map_err(|error| TestCaseError::fail(error.to_string()))?;
+                .map_err(fail)?;
             prop_assert!(verifier.verify(signature.raw(), rotation.rotation.raw()).is_ok());
         }
 
@@ -281,7 +263,7 @@ proptest! {
         let new_salt = controller
             .salt()
             .expose_qb64()
-            .map_err(|error| TestCaseError::fail(error.to_string()))?
+            .map_err(fail)?
             .as_str()
             .to_owned();
         prop_assert_ne!(&new_salt, &old_salt, "the controller's salt did not move");
@@ -293,11 +275,11 @@ proptest! {
                 KeyTransferability::NonTransferable,
                 DerivationCost::Ephemeral.profile(SecurityTier::Low),
             )
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         let new_decrypter = Decrypter::from_signer(&new_signer);
         let opened = new_decrypter
             .decrypt_salt(&rotation.sealed_salt, SecurityTier::Low)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         prop_assert_eq!(
             opened.expose_qb64().map(|qb64| qb64.as_str().to_owned()).ok(),
             Some(new_salt)
@@ -327,7 +309,7 @@ proptest! {
         };
         let reopened = new_decrypter
             .decrypt_seed(resealed, KeyTransferability::Transferable)
-            .map_err(|error| TestCaseError::fail(error.to_string()))?;
+            .map_err(fail)?;
         prop_assert_eq!(reopened.verifier().qb64().ok(), Some(public));
         prop_assert!(
             decrypter

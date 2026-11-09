@@ -2,9 +2,11 @@
 //!
 //! Construction, connection, and state invariants, every client derived at the ephemeral cost.
 
-use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+mod support;
 
+use std::sync::Arc;
+
+use crate::support::{block_on, clock, fail};
 use keri_cesr::crypto::salt::SecurityTier;
 use keri_protocol::serialization::{Sad, SadValue};
 use proptest::prelude::*;
@@ -14,7 +16,6 @@ use signify_client::error::ClientError;
 use signify_client::random::{random_nonce, random_passcode};
 use signify_http::header::{HeaderName, HeaderValue, Headers};
 use signify_http::request::ResourcePath;
-use signify_http::retry::{Clock, TestClock};
 use signify_http::transport::{Method, Response, ScriptedTransport, StatusCode};
 use signify_keys::manager::DerivationCost;
 
@@ -23,27 +24,6 @@ const BOOT: &str = "http://127.0.0.1:3903";
 const PASSCODE: &str = "0123456789abcdefghijk";
 const AGENT: &str = "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY";
 const AGENT_KEY: &str = "BHptu91ecGv_mxO8T3b98vNQUCghT8nfYkWRkVqOZark";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
-
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
-}
-
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(1_700_000_000_123),
-    ))
-}
 
 fn config(passcode: &str) -> Result<ClientConfig, ClientError> {
     Ok(ClientConfig::new(ADMIN, passcode)?

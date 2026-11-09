@@ -6,26 +6,25 @@ mod support;
 
 use core::time::Duration;
 use std::error::Error;
-use std::sync::Arc;
 use std::time::{Instant, SystemTime};
 
-use crate::support::{ADMIN, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use crate::support::{Connection, Harness, PASSCODE, block_on, connected_with, fail};
 use keria_types::api::{DelegatorMetadata, Operation, RegistryMetadata};
 use proptest::prelude::*;
 use serde_json::{Value, json};
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::error::ClientError;
 use signify_client::operation::{Dependency, PollPolicy, PollableMetadata, PollingLimit};
-use signify_http::retry::{Backoff, Clock, Jitter, RetryDecision, TestClock};
-use signify_http::transport::{Method, Transport};
-use signify_keys::manager::DerivationCost;
+use signify_http::retry::{Backoff, Jitter, RetryDecision};
+use signify_http::transport::Method;
+
+/// A connection whose agent keeps repeating its last answer.
+const REPEATING: Connection<'static> = Connection {
+    passcode: PASSCODE,
+    content_range: None,
+    repeat_last: true,
+};
 
 const NAME: &str = "witness.EABC.0";
-
-fn fail(error: impl core::fmt::Display) -> TestCaseError {
-    TestCaseError::fail(error.to_string())
-}
 
 // --- Strategies ---
 fn policies() -> impl Strategy<Value = PollPolicy> {
@@ -54,35 +53,6 @@ fn policies() -> impl Strategy<Value = PollPolicy> {
 
 fn names() -> impl Strategy<Value = String> {
     "[a-z]{3,10}\\.[A-Za-z0-9_-]{4,20}(\\.[0-9]{1,3})?"
-}
-
-type Harness = (ConnectedClient, Arc<AgentTransport>, Arc<TestClock>);
-
-fn connected(body: &str) -> Result<Harness, Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let clock = Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ));
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        Arc::clone(&clock) as Arc<dyn Clock>,
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-    let state = agent_state(&prefix, &inception);
-    let transport = AgentTransport::new(&[state.as_bytes(), b"{}", body.as_bytes()]);
-    transport.repeating_last();
-    let client = SignifyClient::new(
-        configuration()?,
-        Arc::clone(&transport) as Arc<dyn Transport>,
-        Arc::clone(&clock) as Arc<dyn Clock>,
-    )?;
-    Ok((block_on(client.connect())?, transport, clock))
 }
 
 proptest! {
@@ -190,7 +160,7 @@ proptest! {
             .build()
             .map_err(fail)?;
         let body = format!(r#"{{"name":"{NAME}","done":false}}"#);
-        let (client, transport, clock) = connected(&body).map_err(fail)?;
+        let Harness { client, transport, clock } = connected_with(&[body.as_bytes()], REPEATING).map_err(fail)?;
         let operation: Operation<Value, Value> = serde_json::from_str(&body).map_err(fail)?;
 
         let outcome = block_on(client.poller().with_policy(policy).wait(operation));
@@ -234,7 +204,11 @@ fn a_deadline_below_the_first_delay_stops_immediately() -> Result<(), Box<dyn Er
         .max_attempts(16)
         .build()?;
     let body = format!(r#"{{"name":"{NAME}","done":false}}"#);
-    let (client, transport, clock) = connected(&body)?;
+    let Harness {
+        client,
+        transport,
+        clock,
+    } = connected_with(&[body.as_bytes()], REPEATING)?;
     let operation: Operation<Value, Value> = serde_json::from_str(&body)?;
 
     let outcome = block_on(client.poller().with_policy(policy).wait(operation));

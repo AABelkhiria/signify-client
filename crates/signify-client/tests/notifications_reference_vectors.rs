@@ -4,31 +4,21 @@
 
 mod support;
 
-use core::time::Duration;
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::sync::Arc;
-use std::time::SystemTime;
 
-use crate::support::{ADMIN, AGENT, AgentTransport, BOOT, FIXED_MILLIS, PASSCODE, agent_state, block_on};
+use crate::support::{
+    ADMIN, AGENT, Connection, FIXED_MILLIS, Harness, PASSCODE, SentRequest, block_on, connected, connected_with, sent,
+};
 use keria_types::api::contact::Notification;
 use serde::Deserialize;
 use serde_json::Value;
-use signify_client::client::{ConnectedClient, SignifyClient};
-use signify_client::config::ClientConfig;
 use signify_client::endpoint::notifications::{NOTIFICATION_RANGE_UNIT, NOTIFICATIONS_SEGMENT};
 use signify_client::error::ClientError;
 use signify_http::request::{ItemRange, RangeUnit};
-use signify_http::retry::{Clock, TestClock};
-use signify_http::transport::Transport;
-use signify_keys::manager::DerivationCost;
 
 const REFERENCE_SHA: &str = "91a04a5edd804425f42be75ffbf034f8d14e5cb2";
 const KERIPY_SHA: &str = "4ce4cc79e06653f77342be1bf604086b89b1f090";
-const FIXTURE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/fixtures/client-notifications/v1.json"
-));
 
 const PINNED_LITERAL: &str = "notificationSAID";
 
@@ -100,7 +90,7 @@ struct RecordedRequest {
 }
 
 fn fixture() -> Result<Fixture, Box<dyn Error>> {
-    Ok(serde_json::from_str(FIXTURE)?)
+    support::fixture("client-notifications")
 }
 
 fn call<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a Call, Box<dyn Error>> {
@@ -120,52 +110,6 @@ fn request_of<'a>(fixture: &'a Fixture, name: &str) -> Result<&'a RecordedReques
 
 fn answer_of(fixture: &Fixture, name: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec(&call(fixture, name)?.payload)?)
-}
-
-type Harness = (ConnectedClient, Arc<AgentTransport>);
-
-fn connected(bodies: &[&[u8]], content_range: Option<&str>) -> Result<Harness, Box<dyn Error>> {
-    let configuration = || {
-        ClientConfig::new(ADMIN, PASSCODE)
-            .and_then(|config| config.with_boot_url(BOOT))
-            .map(|config| config.with_derivation_cost(DerivationCost::Ephemeral))
-    };
-    let clock: Arc<dyn Clock> = Arc::new(TestClock::with_wall_clock(
-        SystemTime::UNIX_EPOCH + Duration::from_millis(FIXED_MILLIS),
-    ));
-    let probe = SignifyClient::new(
-        configuration()?,
-        AgentTransport::new(&[]) as Arc<dyn Transport>,
-        Arc::clone(&clock),
-    )?;
-    let prefix = probe.controller().prefix().qb64()?;
-    let inception = core::str::from_utf8(probe.controller().current_event().raw())?.to_owned();
-
-    let state = agent_state(&prefix, &inception);
-    let mut answers: Vec<&[u8]> = vec![state.as_bytes(), b"{}"];
-    answers.extend_from_slice(bodies);
-    let transport = AgentTransport::new(&answers);
-    if let Some(range) = content_range {
-        transport.with_content_range(range);
-    }
-
-    let client = SignifyClient::new(
-        configuration()?,
-        Arc::clone(&transport) as Arc<dyn Transport>,
-        Arc::clone(&clock),
-    )?;
-    Ok((block_on(client.connect())?, transport))
-}
-
-type SentRequest = (String, String, Option<String>, Option<String>);
-
-fn sent(transport: &AgentTransport) -> Result<SentRequest, Box<dyn Error>> {
-    let recorded = transport.requests();
-    let request = recorded.get(2).ok_or("no endpoint request was sent")?;
-    let path = request.resource();
-    let range = request.header("range").map(ToOwned::to_owned);
-    let body = request.body_text();
-    Ok((path, request.method().to_owned(), range, body))
 }
 
 fn unit() -> Result<RangeUnit, Box<dyn Error>> {
@@ -277,9 +221,17 @@ fn the_pinned_windowed_listing_reproduces_byte_for_byte() -> Result<(), Box<dyn 
 
     let answer = answer_of(&fixture, "list_windowed")?;
     let range = call(&fixture, "list_windowed")?.content_range.clone();
-    let (client, transport) = connected(&[&answer], range.as_deref())?;
+    let Harness { client, transport, .. } = connected_with(
+        &[&answer],
+        Connection {
+            content_range: range.as_deref(),
+            ..Connection::default()
+        },
+    )?;
     let listing = block_on(client.notifications().list(ItemRange::new(20, 40)?))?;
-    let (path, method, header, body) = sent(&transport)?;
+    let request = sent(&transport, 0)?;
+    let header = request.header("range");
+    let SentRequest { path, method, body, .. } = request;
 
     assert_eq!(path, recorded.path);
     assert_eq!(method, recorded.method);
@@ -304,9 +256,15 @@ fn the_default_window_produces_the_same_request_as_naming_it() -> Result<(), Box
 
     let answer = answer_of(&fixture, "list_default_window")?;
     let range = call(&fixture, "list_default_window")?.content_range.clone();
-    let (client, transport) = connected(&[&answer], range.as_deref())?;
+    let Harness { client, transport, .. } = connected_with(
+        &[&answer],
+        Connection {
+            content_range: range.as_deref(),
+            ..Connection::default()
+        },
+    )?;
     block_on(client.notifications().list(ItemRange::DEFAULT))?;
-    assert_eq!(sent(&transport)?.2.as_deref(), Some("notes=0-24"));
+    assert_eq!(sent(&transport, 0)?.header("range").as_deref(), Some("notes=0-24"));
     Ok(())
 }
 
@@ -330,14 +288,20 @@ fn an_absent_content_range_stays_unreported_rather_than_becoming_zeroes() -> Res
     );
 
     let answer = answer_of(&fixture, "list_no_content_range")?;
-    let (client, _) = connected(&[&answer], None)?;
+    let Harness { client, .. } = connected(&[&answer])?;
     let listing = block_on(client.notifications().list(ItemRange::DEFAULT))?;
 
     assert_eq!(listing.window, None);
     assert_eq!(listing.notifications.len(), 1);
     let empty = answer_of(&fixture, "list_empty")?;
     let empty_range = call(&fixture, "list_empty")?.content_range.clone();
-    let (client, _) = connected(&[&empty], empty_range.as_deref())?;
+    let Harness { client, .. } = connected_with(
+        &[&empty],
+        Connection {
+            content_range: empty_range.as_deref(),
+            ..Connection::default()
+        },
+    )?;
     let empty_listing = block_on(client.notifications().list(ItemRange::DEFAULT))?;
     assert!(empty_listing.window.is_some());
     assert_eq!(empty_listing.notifications, [] as [Notification; 0]);
@@ -377,13 +341,19 @@ fn a_wrong_shaped_page_is_refused_where_the_reference_does_not_even_type_it() ->
 
     let answer = answer_of(&fixture, "list_wrong_shape")?;
     let range = recorded.content_range.clone();
-    let (client, transport) = connected(&[&answer], range.as_deref())?;
+    let Harness { client, transport, .. } = connected_with(
+        &[&answer],
+        Connection {
+            content_range: range.as_deref(),
+            ..Connection::default()
+        },
+    )?;
     let outcome = block_on(client.notifications().list(ItemRange::DEFAULT));
     assert!(
         matches!(outcome, Err(ClientError::Api { .. })),
         "a notification missing its declared fields was not refused: {outcome:?}"
     );
-    assert_eq!(sent(&transport)?.0, "/notifications");
+    assert_eq!(sent(&transport, 0)?.path, "/notifications");
     Ok(())
 }
 
@@ -396,14 +366,14 @@ fn both_pinned_single_notification_calls_reproduce_byte_for_byte() -> Result<(),
         assert_eq!(recorded.path, format!("/notifications/{PINNED_LITERAL}"));
         assert_eq!(recorded.method, expected_method);
 
-        let (client, transport) = connected(&[b"\"\""], None)?;
+        let Harness { client, transport, .. } = connected(&[b"\"\""])?;
         let notifications = client.notifications();
         if name == "mark" {
             block_on(notifications.mark(PINNED_LITERAL))?;
         } else {
             block_on(notifications.delete(PINNED_LITERAL))?;
         }
-        let (path, method, _, body) = sent(&transport)?;
+        let SentRequest { path, method, body, .. } = sent(&transport, 0)?;
         assert_eq!(path, recorded.path, "{name} addressed a different resource");
         assert_eq!(method, recorded.method);
         assert_eq!(body, None, "{name} sent a body");
@@ -419,14 +389,18 @@ fn a_real_identifier_reproduces_byte_for_byte() -> Result<(), Box<dyn Error>> {
         let recorded = request_of(&fixture, name)?;
         assert_eq!(recorded.path, format!("/notifications/{nonce}"));
 
-        let (client, transport) = connected(&[b"\"\""], None)?;
+        let Harness { client, transport, .. } = connected(&[b"\"\""])?;
         let notifications = client.notifications();
         if name == "mark_nonce" {
             block_on(notifications.mark(&nonce))?;
         } else {
             block_on(notifications.delete(&nonce))?;
         }
-        assert_eq!(sent(&transport)?.0, recorded.path, "{name} rewrote the identifier");
+        assert_eq!(
+            sent(&transport, 0)?.path,
+            recorded.path,
+            "{name} rewrote the identifier"
+        );
     }
     Ok(())
 }
@@ -437,9 +411,9 @@ fn an_identifier_that_would_escape_the_path_is_encoded() -> Result<(), Box<dyn E
     let recorded = request_of(&fixture, "mark_needing_encoding")?;
     assert_eq!(recorded.path, "/notifications/a?b=c");
 
-    let (client, transport) = connected(&[b"\"\""], None)?;
+    let Harness { client, transport, .. } = connected(&[b"\"\""])?;
     block_on(client.notifications().mark("a?b=c"))?;
-    let (path, _, _, _) = sent(&transport)?;
+    let SentRequest { path, .. } = sent(&transport, 0)?;
     assert_eq!(path, "/notifications/a%3Fb%3Dc");
     assert_ne!(path, recorded.path);
     assert!(!path.contains('?'));
@@ -455,9 +429,9 @@ fn a_delete_carries_no_body_where_mark_sends_null() -> Result<(), Box<dyn Error>
     let marked = request_of(&fixture, "mark")?;
     assert!(!marked.body_is_undefined);
 
-    let (client, transport) = connected(&[b"{}"], None)?;
+    let Harness { client, transport, .. } = connected(&[b"{}"])?;
     block_on(client.notifications().delete(PINNED_LITERAL))?;
-    assert_eq!(sent(&transport)?.3, None);
+    assert_eq!(sent(&transport, 0)?.body, None);
     Ok(())
 }
 
@@ -466,10 +440,10 @@ fn marking_returns_its_body_as_strictly_decoded_text() -> Result<(), Box<dyn Err
     let fixture = fixture()?;
     assert_eq!(fixture.declarations.mark_return, "await res.text()");
 
-    let (client, _) = connected(&[b"marked"], None)?;
+    let Harness { client, .. } = connected(&[b"marked"])?;
     assert_eq!(block_on(client.notifications().mark(PINNED_LITERAL))?, "marked");
 
-    let (client, _) = connected(&[&[0xff, 0xfe, 0x00]], None)?;
+    let Harness { client, .. } = connected(&[&[0xff, 0xfe, 0x00]])?;
     let outcome = block_on(client.notifications().mark(PINNED_LITERAL));
     assert!(
         matches!(outcome, Err(ClientError::Decode { .. })),

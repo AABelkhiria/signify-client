@@ -669,6 +669,7 @@ impl Backoff {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::displays_and_sources;
     use std::error::Error;
 
     fn reference_policy() -> Result<RetryPolicy, Box<dyn Error>> {
@@ -935,11 +936,7 @@ mod tests {
             ),
         ];
         for (error, fragments) in cases {
-            let rendered = error.to_string();
-            for fragment in fragments {
-                assert!(rendered.contains(fragment), "{rendered} lacks {fragment}");
-            }
-            assert!(error.source().is_none());
+            displays_and_sources(&error, fragments, false);
         }
         for (error, expected) in [
             (

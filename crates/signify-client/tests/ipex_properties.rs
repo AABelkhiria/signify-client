@@ -2,8 +2,11 @@
 //!
 //! The address and the message's own `r` can never disagree, which is what lets one `submit` replace five.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::prefixes;
 use keri_protocol::prefix::IdentifierPrefix;
 use keri_protocol::serialization::{Sad, SadValue};
 use proptest::prelude::*;
@@ -18,12 +21,6 @@ const HOLDER: &str = "ELjSFdrTdCebJlmvbFNX9-TLhR2PO0_60al1kQp5_e6k";
 
 fn routes() -> impl Strategy<Value = IpexRoute> {
     prop::sample::select(IpexRoute::ALL.to_vec())
-}
-
-fn prefixes() -> impl Strategy<Value = IdentifierPrefix> {
-    "[A-Za-z0-9_-]{43}".prop_filter_map("not a prefix", |body| {
-        IdentifierPrefix::from_qb64(&format!("E{body}")).ok()
-    })
 }
 
 fn aliases() -> impl Strategy<Value = String> {

@@ -426,12 +426,8 @@ impl KeyCreator<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use keri_cesr::crypto::salt::SecurityTier;
+    use crate::test_support::salt;
     use std::error::Error;
-
-    fn salt() -> Result<Salt, Box<dyn Error>> {
-        Ok(Salt::from_raw(b"0123456789abcdef", SecurityTier::Low)?)
-    }
 
     #[test]
     fn a_stem_drops_the_prefix_index() -> Result<(), Box<dyn Error>> {

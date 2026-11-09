@@ -5,8 +5,11 @@
 //! recorded call without loss: the same method, the same URL bytes, the same header names in the
 //! same order, and the same body or the same absence of one.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::block_on;
 use serde::Deserialize;
 use signify_http::header::{HeaderName, HeaderValue};
 use signify_http::transport::{
@@ -339,16 +342,4 @@ fn the_reference_quirks_hold_and_the_divergences_are_deliberate() -> Result<(), 
     );
     assert!(matches!(outcome, Err(TransportError::Timeout { .. })));
     Ok(())
-}
-
-/// A minimal executor: every future in this crate is ready on its first poll.
-fn block_on<F: core::future::Future>(future: F) -> F::Output {
-    use core::task::{Context, Poll, Waker};
-    let mut future = Box::pin(future);
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut context) {
-            return value;
-        }
-    }
 }

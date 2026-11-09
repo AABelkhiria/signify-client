@@ -954,10 +954,9 @@ const fn is_base64_url_safe(character: char) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::salt;
     use std::error::Error;
 
-    /// The raw salt the pinned `manager.test.ts` uses throughout.
-    const SALT_RAW: &[u8] = b"0123456789abcdef";
     /// The encryption seed the pinned test calls `cryptseed0`.
     const CRYPT_SEED: [u8; 32] = [
         104, 44, 35, 124, 138, 112, 34, 18, 196, 51, 116, 50, 166, 225, 24, 25, 240, 102, 50, 44, 121, 196, 194, 49,
@@ -967,10 +966,6 @@ mod tests {
     const AEID: &str = "BCa7mK96FwxkU0TdF54Yqg3qBDXUWpOhQ_Mtr7E77yZB";
     /// The serialization the pinned test signs.
     const SERIALIZATION: &[u8] = b"{\"vs\":\"KERI10JSON0000fb_\",\"pre\":\"EvEnZMhz52iTrJU8qKwtDxzmypyosgG70m6LIjkiCdoI\",\"sn\":\"0\",\"ilk\":\"icp\",\"sith\":\"1\",\"keys\":[\"DSuhyBcPZEZLK-fcw5tzHn2N46wRCG_ZOoeKtWTOunRA\"],\"nxt\":\"EPYuj8mq_PYYsoBKkzX1kxSPGYBWaIya3slgCOyOtlqU\",\"toad\":\"0\",\"wits\":[],\"cnfg\":[]}-AABAApYcYd1cppVg7Inh2YCslWKhUwh59TrPpIoqWxN2A38NCbTljvmBPBjSGIFDBNOvVjHpdZlty3Hgk6ilF8pVpAQ";
-
-    fn salt() -> Result<Salt, Box<dyn Error>> {
-        Ok(Salt::from_raw(SALT_RAW, SecurityTier::Low)?)
-    }
 
     fn crypt_seed() -> Result<Signer, Box<dyn Error>> {
         Ok(Signer::from_seed(&CRYPT_SEED, KeyTransferability::NonTransferable)?)

@@ -9,3 +9,6 @@ pub mod response;
 pub mod retry;
 pub mod signature;
 pub mod transport;
+
+#[cfg(test)]
+pub(crate) mod test_support;

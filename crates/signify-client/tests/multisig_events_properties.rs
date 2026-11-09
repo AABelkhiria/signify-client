@@ -2,8 +2,11 @@
 //!
 //! What one member announces is what another reads, including a witness threshold's JSON type.
 
+mod support;
+
 use std::error::Error;
 
+use crate::support::classify;
 use keria_types::api::{ExchangeEmbed, KeyEvent, MultisigExchangeResource};
 use proptest::prelude::*;
 use signify_client::endpoint::exchanges::{
@@ -64,12 +67,6 @@ fn listing(route: &str, slot: &str, witness_threshold: &str) -> String {
         event = event(slot, witness_threshold)
     );
     format!(r#"[{{"exn":{exn},"paths":{{}},"groupName":"multisig","memberName":"member1","sender":"{LOCAL}"}}]"#)
-}
-
-fn classify(document: &str) -> Result<ClassifiedExchange, Box<dyn Error>> {
-    let decoded: Vec<MultisigExchangeResource> = serde_json::from_str(document)?;
-    let entry = decoded.first().ok_or("empty listing")?;
-    Ok(ClassifiedExchange::try_from(entry)?)
 }
 
 fn classify_typed(document: &str) -> Result<Result<ClassifiedExchange, ClientError>, TestCaseError> {

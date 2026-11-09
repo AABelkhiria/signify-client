@@ -189,37 +189,11 @@ fn weighted_sith(clauses: &[Vec<ThresholdWeight>]) -> Result<String, ControllerE
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::agent_state_value;
     use std::error::Error;
 
-    /// A well-formed delegated agent key state, using real key material from the fixtures.
-    fn state_value() -> serde_json::Value {
-        serde_json::json!({
-            "i": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "s": "0",
-            "p": "",
-            "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-            "f": "0",
-            "dt": "2023-12-01T10:05:25.062609+00:00",
-            "et": "dip",
-            "kt": "1",
-            "k": ["DAQVURvW74OJH1Q0C6YLim_tdBYoXABwg6GsAlPaUJXE"],
-            "nt": "1",
-            "n": ["ENBWnU8wNHqq9oqJIimWhxUtNDHReUXtiCwwtjg9zKY0"],
-            "bt": "0",
-            "b": [],
-            "c": [],
-            "ee": {
-                "s": "0",
-                "d": "EJoqUumpXCf9HXV6JAGCsQ5aGCxCfSqhSGZGoVmVuDdY",
-                "br": [],
-                "ba": []
-            },
-            "di": "ELI7pg979AdhmvrjDeam2eAO2SR5niCgnjAJXJHtJose"
-        })
-    }
-
     fn state_with(mutate: impl FnOnce(&mut serde_json::Value)) -> Result<KeyState, Box<dyn Error>> {
-        let mut value = state_value();
+        let mut value = agent_state_value("0");
         mutate(&mut value);
         Ok(serde_json::from_value(value)?)
     }
